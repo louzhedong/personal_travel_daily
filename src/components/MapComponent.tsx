@@ -15,6 +15,16 @@ const REGION_COORDS: Record<string, [number, number]> = {
   '西安': [100, 120],
   '南京': [170, 130],
   '重庆': [90, 180],
+  '天津': [145, 90],
+  '苏州': [195, 145],
+  '厦门': [195, 200],
+  '青岛': [160, 110],
+  '大连': [170, 90],
+  '宁波': [195, 135],
+  '福州': [190, 190],
+  '长沙': [130, 175],
+  '郑州': [130, 130],
+  '济南': [150, 120],
   
   // 国外国家
   '美国': [400, 100],
@@ -27,45 +37,83 @@ const REGION_COORDS: Record<string, [number, number]> = {
   '英国': [230, 70],
   '德国': [250, 90],
   '意大利': [260, 100],
+  '加拿大': [400, 60],
+  '新西兰': [460, 240],
+  '西班牙': [260, 90],
+  '葡萄牙': [250, 95],
+  '希腊': [270, 110],
+  '埃及': [270, 140],
+  '南非': [300, 240],
+  '巴西': [450, 180],
+  '阿根廷': [460, 210],
+  '俄罗斯': [300, 60],
 };
 
-// 简化的地图SVG路径
-const mapPaths = {
-  domestic: (
-    <g id="domestic-map">
-      {/* 简化的中国地图轮廓 */}
-      <path 
-        d="M100,50 Q150,30 200,50 T300,70 Q320,100 310,150 T280,200 Q250,230 200,240 T100,220 Q80,180 70,130 T100,50" 
-        fill="#E6F7FF" 
-        stroke="#91D5FF" 
-        strokeWidth="2"
-      />
-      {/* 一些主要城市的点 */}
-      {Object.entries(REGION_COORDS).filter(([key]) => [
-        '北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '西安', '南京', '重庆'
-      ].includes(key)).map(([name, [x, y]]) => (
-        <circle key={name} cx={x} cy={y} r="3" fill="#1890FF" />
-      ))}
-    </g>
-  ),
-  international: (
-    <g id="international-map">
-      {/* 简化的世界地图轮廓 */}
-      <path 
-        d="M200,40 Q250,20 300,40 T400,60 Q450,80 460,120 T450,180 Q420,220 350,240 T250,230 Q220,200 210,150 T200,40" 
-        fill="#E6F7FF" 
-        stroke="#91D5FF" 
-        strokeWidth="2"
-      />
-      {/* 一些主要国家的点 */}
-      {Object.entries(REGION_COORDS).filter(([key]) => [
-        '美国', '日本', '韩国', '泰国', '新加坡', '澳大利亚', '法国', '英国', '德国', '意大利'
-      ].includes(key)).map(([name, [x, y]]) => (
-        <circle key={name} cx={x} cy={y} r="3" fill="#1890FF" />
-      ))}
-    </g>
-  )
-};
+// 更详细的中国地图SVG路径（简化版）
+const chinaMapPath = (
+  <g id="china-map">
+    {/* 中国地图轮廓 */}
+    <path 
+      d="M100,50 Q150,30 200,50 T300,70 Q320,100 310,150 T280,200 Q250,230 200,240 T100,220 Q80,180 70,130 T100,50" 
+      fill="#E6F7FF" 
+      stroke="#91D5FF" 
+      strokeWidth="2"
+    />
+    
+    {/* 省份分界线 */}
+    <path d="M150,80 L150,150" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M100,120 L200,120" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M100,160 L200,160" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M100,200 L200,200" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M120,50 L120,220" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M180,50 L180,220" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    
+    {/* 主要城市标记 */}
+    {Object.entries(REGION_COORDS).filter(([key]) => [
+      '北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '西安', '南京', '重庆',
+      '天津', '苏州', '厦门', '青岛', '大连', '宁波', '福州', '长沙', '郑州', '济南'
+    ].includes(key)).map(([name, [x, y]]) => (
+      <g key={name}>
+        <circle cx={x} cy={y} r="3" fill="#1890FF" />
+        <text x={x + 5} y={y - 5} fill="#333" fontSize="10">{name}</text>
+      </g>
+    ))}
+  </g>
+);
+
+// 更详细的世界地图SVG路径（简化版）
+const worldMapPath = (
+  <g id="world-map">
+    {/* 世界地图轮廓 */}
+    <path 
+      d="M200,40 Q250,20 300,40 T400,60 Q450,80 460,120 T450,180 Q420,220 350,240 T250,230 Q220,200 210,150 T200,40" 
+      fill="#E6F7FF" 
+      stroke="#91D5FF" 
+      strokeWidth="2"
+    />
+    
+    {/* 国家分界线 */}
+    <path d="M330,70 L330,130" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M280,70 L280,130" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M380,70 L380,130" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M430,70 L430,130" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M250,100 L350,100" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M250,140 L350,140" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M350,140 L450,140" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M350,180 L450,180" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    
+    {/* 主要国家标记 */}
+    {Object.entries(REGION_COORDS).filter(([key]) => [
+      '美国', '日本', '韩国', '泰国', '新加坡', '澳大利亚', '法国', '英国', '德国', '意大利',
+      '加拿大', '新西兰', '西班牙', '葡萄牙', '希腊', '埃及', '南非', '巴西', '阿根廷', '俄罗斯'
+    ].includes(key)).map(([name, [x, y]]) => (
+      <g key={name}>
+        <circle cx={x} cy={y} r="3" fill="#1890FF" />
+        <text x={x + 5} y={y - 5} fill="#333" fontSize="10">{name}</text>
+      </g>
+    ))}
+  </g>
+);
 
 const MapComponent: React.FC = () => {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -101,7 +149,7 @@ const MapComponent: React.FC = () => {
         style={{ overflow: 'visible' }}
       >
         {/* 绘制地图背景 */}
-        {currentMode === 'domestic' ? mapPaths.domestic : mapPaths.international}
+        {currentMode === 'domestic' ? chinaMapPath : worldMapPath}
         
         {/* 绘制用户标记 */}
         {modeMarks.map(mark => {
