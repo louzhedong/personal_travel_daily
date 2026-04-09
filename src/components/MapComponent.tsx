@@ -1,12 +1,9 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useTravelStore } from '../store';
 import { geoMercator, geoPath, GeoProjection, GeoPath } from 'd3-geo';
-import { chinaProvincesGeoJSON } from '../data/china-provinces';
 
 const MapComponent: React.FC = () => {
   const svgRef = useRef<SVGSVGElement>(null);
-  
-  const chinaGeoJSON = chinaProvincesGeoJSON;
   
   const { 
     currentMode, 
@@ -109,21 +106,14 @@ const MapComponent: React.FC = () => {
   };
 
   const renderChinaProvinces = () => {
-    return (chinaGeoJSON.features || []).map((feature: any, index: number) => {
-      const path = mapConfig.pathGenerator(feature);
-      if (!path) return null;
-      
-      return (
-        <path
-          key={`province-${index}`}
-          d={path}
-          fill="#E6F7FF"
-          stroke="#1890FF"
-          strokeWidth={1.5}
-          style={{ cursor: 'pointer' }}
-        />
-      );
-    });
+    return (
+      <g id="china-map">
+        {/* 测试矩形 */}
+        <rect x="100" y="100" width="800" height="600" fill="#E6F7FF" stroke="#1890FF" strokeWidth="2" />
+        <text x="500" y="400" textAnchor="middle" fill="#333" fontSize="24" fontWeight="bold">中国地图</text>
+        <text x="500" y="430" textAnchor="middle" fill="#666" fontSize="16">鸡形状地图</text>
+      </g>
+    );
   };
 
   const renderWorldMap = () => {
@@ -148,106 +138,6 @@ const MapComponent: React.FC = () => {
         style={{ overflow: 'visible' }}
       >
         {currentMode === 'domestic' ? renderChinaProvinces() : renderWorldMap()}
-        
-        {modeMarks.map(mark => {
-          const user = users.find(u => u.id === mark.userId);
-          if (!user) return null;
-          
-          const [x, y] = getCoord(mark.regionName);
-          if (x === 0 && y === 0) return null;
-          
-          const isSelected = selectedMarkId === mark.id;
-          
-          return (
-            <g key={mark.id} onClick={() => handleMarkerClick(mark.id)} className="cursor-pointer">
-              <circle 
-                cx={x} 
-                cy={y} 
-                r={isSelected ? 8 : 6} 
-                fill={user.color} 
-                stroke="white" 
-                strokeWidth="2"
-              />
-              <circle 
-                cx={x} 
-                cy={y} 
-                r={isSelected ? 12 : 10} 
-                fill={user.color} 
-                fillOpacity="0.3"
-              />
-              <text 
-                x={x} 
-                y={y - 15} 
-                textAnchor="middle" 
-                fill="#333" 
-                fontSize="12" 
-                fontWeight="500"
-              >
-                {mark.regionName}
-              </text>
-              
-              {isSelected && (
-                <g>
-                  <rect 
-                    x={x - 100} 
-                    y={y - 60} 
-                    width="200" 
-                    height="150" 
-                    rx="8" 
-                    fill="white" 
-                    stroke="#E8F3FF" 
-                    strokeWidth="2"
-                    filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))"
-                  />
-                  <text 
-                    x={x} 
-                    y={y - 45} 
-                    textAnchor="middle" 
-                    fill={user.color} 
-                    fontSize="14" 
-                    fontWeight="600"
-                  >
-                    {mark.regionName}
-                  </text>
-                  <text 
-                    x={x} 
-                    y={y - 30} 
-                    textAnchor="middle" 
-                    fill="#666" 
-                    fontSize="12"
-                  >
-                    用户: {user.name}
-                  </text>
-                  <text 
-                    x={x} 
-                    y={y - 15} 
-                    textAnchor="middle" 
-                    fill="#999" 
-                    fontSize="11"
-                  >
-                    访问城市:
-                  </text>
-                  {cityVisits
-                    .filter(visit => visit.markId === mark.id)
-                    .slice(0, 3)
-                    .map((visit, index) => (
-                      <text 
-                        key={visit.id} 
-                        x={x} 
-                        y={y + 5 + index * 12} 
-                        textAnchor="middle" 
-                        fill="#666" 
-                        fontSize="11"
-                      >
-                        {visit.cityName} ({new Date(visit.visitDate).toLocaleDateString()})
-                      </text>
-                    ))
-                  }
-                </g>
-              )}
-            </g>
-          );
-        })}        
       </svg>
     </div>
   );
