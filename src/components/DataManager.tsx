@@ -41,40 +41,50 @@ const DataManager: React.FC = () => {
   };
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-md">
-      <h2 className="text-lg font-semibold mb-4">数据管理</h2>
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-orange-700 flex items-center gap-2">
+        <span>💾</span> 数据管理
+      </h2>
       
       <div className="space-y-4">
-        <div>
-          <h3 className="text-md font-medium mb-2">导出数据</h3>
-          <p className="text-sm text-gray-600 mb-2">将所有旅游记录导出为JSON文件，用于备份或转移数据。</p>
+        <div className="p-4 bg-orange-50 rounded-xl">
+          <h3 className="text-md font-medium text-orange-700 mb-2 flex items-center gap-2">
+            <span>📤</span> 导出数据
+          </h3>
+          <p className="text-sm text-orange-600 mb-3">将所有旅游记录导出为JSON文件，用于备份或转移数据。</p>
           <button
             onClick={handleExport}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
           >
-            导出数据
+            <span>📥</span>
+            <span>导出数据</span>
           </button>
         </div>
         
-        <div>
-          <h3 className="text-md font-medium mb-2">导入数据</h3>
-          <p className="text-sm text-gray-600 mb-2">从JSON文件导入旅游记录数据，会覆盖现有数据。</p>
+        <div className="p-4 bg-blue-50 rounded-xl">
+          <h3 className="text-md font-medium text-blue-700 mb-2 flex items-center gap-2">
+            <span>📥</span> 导入数据
+          </h3>
+          <p className="text-sm text-blue-600 mb-3">从JSON文件导入旅游记录数据，会覆盖现有数据。</p>
           <input
             type="file"
             accept=".json"
             onChange={handleImport}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
           />
         </div>
         
-        <div>
-          <h3 className="text-md font-medium mb-2">清空数据</h3>
-          <p className="text-sm text-gray-600 mb-2">清空所有旅游记录数据，此操作不可恢复。</p>
+        <div className="p-4 bg-red-50 rounded-xl">
+          <h3 className="text-md font-medium text-red-700 mb-2 flex items-center gap-2">
+            <span>🗑️</span> 清空数据
+          </h3>
+          <p className="text-sm text-red-600 mb-3">清空所有旅游记录数据，此操作不可恢复。</p>
           <button
             onClick={handleClearAll}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
           >
-            清空数据
+            <span>⚠️</span>
+            <span>清空数据</span>
           </button>
         </div>
       </div>

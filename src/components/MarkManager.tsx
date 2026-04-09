@@ -101,28 +101,31 @@ const MarkManager: React.FC = () => {
   };
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-md">
-      <h2 className="text-lg font-semibold mb-4">标记管理</h2>
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-green-700 flex items-center gap-2">
+        <span>📍</span> 标记管理
+      </h2>
       
       {!isAddingMark ? (
         <button 
           onClick={() => setIsAddingMark(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="w-full px-4 py-3 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors shadow-sm flex items-center justify-center gap-2"
         >
-          添加新标记
+          <span>➕</span>
+          <span>添加新标记</span>
         </button>
       ) : (
-        <div className="space-y-4">
-          <h3 className="text-md font-medium">添加{currentMode === 'domestic' ? '省份' : '国家'}标记</h3>
+        <div className="space-y-4 p-4 bg-green-50 rounded-xl">
+          <h3 className="text-md font-medium text-green-700">添加{currentMode === 'domestic' ? '省份' : '国家'}标记</h3>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-green-700 mb-1">
               选择{currentMode === 'domestic' ? '省份' : '国家'}
             </label>
             <select
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-transparent"
             >
               <option value="">请选择</option>
               {currentRegions.map(region => (
@@ -131,105 +134,112 @@ const MarkManager: React.FC = () => {
             </select>
           </div>
           
-          <button 
-            onClick={handleAddMark}
-            disabled={!selectedRegion}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            保存标记
-          </button>
-          
-          <button 
-            onClick={() => setIsAddingMark(false)}
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-          >
-            取消
-          </button>
+          <div className="flex gap-3">
+            <button 
+              onClick={handleAddMark}
+              disabled={!selectedRegion}
+              className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:bg-green-300 disabled:cursor-not-allowed"
+            >
+              保存标记
+            </button>
+            
+            <button 
+              onClick={() => setIsAddingMark(false)}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              取消
+            </button>
+          </div>
         </div>
       )}
       
       {selectedMark && (
-        <div className="mt-6 space-y-4">
-          <h3 className="text-md font-medium">{selectedMark.regionName} - 添加城市访问</h3>
+        <div className="mt-4 space-y-4">
+          <h3 className="text-md font-medium text-blue-700 flex items-center gap-2">
+            <span>🏙️</span>
+            {selectedMark.regionName} - 添加城市访问
+          </h3>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              选择城市
-            </label>
-            <select
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">请选择</option>
-              {filteredCities.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              访问日期
-            </label>
-            <input
-              type="date"
-              value={visitDate}
-              onChange={(e) => setVisitDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              游玩描述
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="请输入游玩体验..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={3}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              图片链接（可选）
-            </label>
-            <input
-              type="text"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="请输入图片URL..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          
-          <button 
-            onClick={handleAddCityVisit}
-            disabled={!selectedCity || !visitDate}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            添加城市访问
-          </button>
-          
-          {currentCityVisits.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">已添加的城市：</h4>
-              <ul className="space-y-2">
-                {currentCityVisits.map(visit => (
-                  <li key={visit.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                    <div>
-                      <span className="font-medium">{visit.cityName}</span>
-                      <span className="text-sm text-gray-500 ml-2">({new Date(visit.visitDate).toLocaleDateString()})</span>
-                    </div>
-                    <div className="text-sm text-gray-500">{visit.description.substring(0, 20)}...</div>
-                  </li>
+          <div className="space-y-3 p-4 bg-blue-50 rounded-xl">
+            <div>
+              <label className="block text-sm font-medium text-blue-700 mb-1">
+                选择城市
+              </label>
+              <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+              >
+                <option value="">请选择</option>
+                {filteredCities.map(city => (
+                  <option key={city} value={city}>{city}</option>
                 ))}
-              </ul>
+              </select>
             </div>
-          )}
+            
+            <div>
+              <label className="block text-sm font-medium text-blue-700 mb-1">
+                访问日期
+              </label>
+              <input
+                type="date"
+                value={visitDate}
+                onChange={(e) => setVisitDate(e.target.value)}
+                className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-blue-700 mb-1">
+                游玩描述
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="请输入游玩体验..."
+                className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                rows={3}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-blue-700 mb-1">
+                图片链接（可选）
+              </label>
+              <input
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="请输入图片URL..."
+                className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+              />
+            </div>
+            
+            <button 
+              onClick={handleAddCityVisit}
+              disabled={!selectedCity || !visitDate}
+              className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
+            >
+              添加城市访问
+            </button>
+            
+            {currentCityVisits.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-blue-700 mb-2">已添加的城市：</h4>
+                <ul className="space-y-2">
+                  {currentCityVisits.map(visit => (
+                    <li key={visit.id} className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                      <div>
+                        <span className="font-medium text-gray-800">{visit.cityName}</span>
+                        <span className="text-xs text-gray-500 ml-2">({new Date(visit.visitDate).toLocaleDateString()})</span>
+                      </div>
+                      <div className="text-xs text-gray-600 truncate max-w-[100px]">{visit.description.substring(0, 20)}...</div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
