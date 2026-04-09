@@ -4,84 +4,81 @@ import { MapMarker } from '../types';
 
 // 模拟地理坐标数据（使用SVG坐标）
 const REGION_COORDS: Record<string, [number, number]> = {
-  // 国内省份
-  '北京': [380, 120],
-  '上海': [420, 200],
-  '广州': [360, 280],
-  '深圳': [365, 290],
-  '杭州': [410, 190],
-  '成都': [220, 220],
-  '武汉': [320, 220],
-  '西安': [250, 180],
-  '南京': [390, 180],
-  '重庆': [260, 240],
-  '天津': [390, 130],
-  '苏州': [415, 195],
-  '厦门': [380, 260],
-  '青岛': [395, 150],
-  '大连': [430, 140],
-  '宁波': [415, 180],
-  '福州': [370, 250],
-  '长沙': [310, 240],
-  '郑州': [330, 200],
-  '济南': [370, 160],
+  // 国内省份 - 基于参考图片的位置
+  '北京': [720, 180],
+  '上海': [820, 320],
+  '广州': [740, 480],
+  '深圳': [750, 500],
+  '杭州': [800, 300],
+  '成都': [480, 380],
+  '武汉': [650, 380],
+  '西安': [520, 280],
+  '南京': [760, 280],
+  '重庆': [560, 430],
+  '天津': [740, 200],
+  '苏州': [810, 310],
+  '厦门': [780, 460],
+  '青岛': [760, 230],
+  '大连': [860, 200],
+  '宁波': [810, 290],
+  '福州': [770, 430],
+  '长沙': [630, 410],
+  '郑州': [680, 330],
+  '济南': [740, 250],
   
   // 国外国家
   '美国': [100, 150],
-  '日本': [480, 140],
-  '韩国': [460, 130],
-  '泰国': [320, 320],
-  '新加坡': [330, 340],
-  '澳大利亚': [280, 400],
-  '法国': [220, 100],
-  '英国': [190, 80],
-  '德国': [240, 110],
-  '意大利': [250, 130],
-  '加拿大': [120, 80],
-  '新西兰': [300, 420],
-  '西班牙': [230, 140],
-  '葡萄牙': [220, 150],
-  '希腊': [260, 150],
-  '埃及': [280, 180],
-  '南非': [280, 320],
-  '巴西': [80, 280],
-  '阿根廷': [90, 340],
-  '俄罗斯': [300, 60],
+  '日本': [950, 250],
+  '韩国': [900, 230],
+  '泰国': [600, 580],
+  '新加坡': [620, 620],
+  '澳大利亚': [550, 700],
+  '法国': [300, 150],
+  '英国': [250, 120],
+  '德国': [320, 170],
+  '意大利': [350, 200],
+  '加拿大': [150, 80],
+  '新西兰': [580, 750],
+  '西班牙': [330, 220],
+  '葡萄牙': [310, 230],
+  '希腊': [380, 230],
+  '埃及': [400, 280],
+  '南非': [450, 600],
+  '巴西': [150, 450],
+  '阿根廷': [180, 550],
+  '俄罗斯': [500, 80],
 };
 
-// 更精确的中国地图SVG路径
+// 精确的中国地图SVG路径（基于参考图片）
 const chinaMapPath = (
   <g id="china-map">
-    {/* 中国地图轮廓 - 更精确的路径 */}
+    {/* 中国地图轮廓 - 基于参考图片的路径 */}
     <path 
-      d="M340,60 L380,70 L420,60 L460,80 L480,120 L470,160 L450,180 L430,170 L410,180 L390,160 L380,140 L360,130 L340,140 L320,120 L300,100 L280,80 L260,90 L240,70 L220,80 L200,100 L180,120 L160,150 L140,180 L130,220 L120,260 L130,300 L150,330 L180,350 L220,360 L260,350 L290,330 L320,310 L340,290 L360,270 L380,250 L400,230 L420,210 L440,200 L460,210 L480,230 L490,260 L480,290 L460,310 L440,320 L420,310 L400,290 L380,280 L360,290 L340,300 L320,310 L300,300 L280,280 L260,260 L240,240 L220,220 L200,200 L180,180 L160,160 L140,140 L120,120 L100,100 L90,80 L100,60 L120,50 L160,40 L200,50 L240,40 L280,50" 
+      d="M200,80 L300,60 L400,80 L500,100 L600,80 L700,100 L800,120 L900,150 L950,200 L930,280 L880,320 L850,300 L800,320 L750,280 L700,260 L650,280 L600,250 L550,220 L500,240 L450,220 L400,250 L350,230 L300,260 L250,240 L200,280 L180,350 L200,400 L250,420 L300,380 L350,400 L400,380 L450,420 L500,400 L550,430 L600,410 L650,430 L700,410 L750,430 L800,410 L850,430 L900,400 L950,450 L930,550 L880,580 L830,550 L780,530 L730,550 L680,530 L630,550 L580,530 L530,550 L480,530 L430,550 L380,530 L330,550 L280,530 L230,550 L200,500 L180,450 L200,400 L250,380 L300,400 L350,380 L400,400 L450,380 L500,400 L550,380 L600,400 L650,380 L700,400 L750,380 L800,400 L850,380 L900,400 L950,380 L930,300 L900,280 L850,300 L800,280 L750,300 L700,280 L650,300 L600,280 L550,300 L500,280 L450,300 L400,280 L350,300 L300,280 L250,300 L200,280 L180,300 L150,250 L180,200 L220,150 L280,120 Z" 
       fill="#E6F7FF" 
       stroke="#1890FF" 
       strokeWidth="2"
     />
     
-    {/* 省份分界线 - 更详细的路径 */}
+    {/* 省份分界线 - 基于参考图片 */}
     {/* 华北地区 */}
-    <path d="M380,120 L380,180" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
-    <path d="M340,140 L340,200" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
-    <path d="M300,160 L300,220" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M720,180 L720,330" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M620,250 L620,400" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
     
     {/* 华东地区 */}
-    <path d="M400,180 L400,240" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
-    <path d="M360,200 L360,260" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M800,250 L800,450" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
     
     {/* 中南地区 */}
-    <path d="M320,220 L320,280" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M650,400 L650,500" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
     
     {/* 西南地区 */}
-    <path d="M260,200 L260,260" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
-    <path d="M220,200 L220,260" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M500,400 L500,500" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
     
     {/* 西北地区 */}
-    <path d="M240,160 L240,220" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M400,250 L400,400" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
     
     {/* 东北地区 */}
-    <path d="M420,120 L420,180" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M850,200 L850,350" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
     
     {/* 主要城市标记 */}
     {Object.entries(REGION_COORDS).filter(([key]) => [
@@ -90,7 +87,7 @@ const chinaMapPath = (
     ].includes(key)).map(([name, [x, y]]) => (
       <g key={name}>
         <circle cx={x} cy={y} r="3" fill="#1890FF" />
-        <text x={x + 5} y={y - 5} fill="#333" fontSize="10">{name}</text>
+        <text x={x + 8} y={y - 5} fill="#333" fontSize="12">{name}</text>
       </g>
     ))}
   </g>
@@ -120,7 +117,15 @@ const worldMapPath = (
     />
     
     {/* 国家分界线 */}
-    <path d="M180,100 L180,200" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />    <path d="M280,100 L280,200" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />    <path d="M380,100 L380,200" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />    <path d="M140,150 L240,150" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />    <path d="M240,150 L340,150" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />    <path d="M340,150 L440,150" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />    <path d="M250,340 L350,340" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />    <path d="M100,260 L180,260" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />    
+    <path d="M180,100 L180,200" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M280,100 L280,200" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M380,100 L380,200" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M140,150 L240,150" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M240,150 L340,150" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M340,150 L440,150" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M250,340 L350,340" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    <path d="M100,260 L180,260" stroke="#91D5FF" strokeWidth="1" strokeDasharray="2,2" />
+    
     {/* 主要国家标记 */}
     {Object.entries(REGION_COORDS).filter(([key]) => [
       '美国', '日本', '韩国', '泰国', '新加坡', '澳大利亚', '法国', '英国', '德国', '意大利',
@@ -164,7 +169,7 @@ const MapComponent: React.FC = () => {
       <svg 
         ref={svgRef} 
         className="w-full h-full" 
-        viewBox="0 0 500 450"
+        viewBox="0 0 1000 800"
         style={{ overflow: 'visible' }}
       >
         {/* 绘制地图背景 */}
@@ -274,7 +279,7 @@ const MapComponent: React.FC = () => {
               )}
             </g>
           );
-        })}
+        })}        
       </svg>
     </div>
   );
