@@ -1,0 +1,78 @@
+import type { MapRegion, Scope, UserProfile } from '../types';
+
+export const defaultUsers: UserProfile[] = [
+  { id: 'user-alice', name: '小悠', color: '#2563eb' },
+  { id: 'user-bob', name: '阿泽', color: '#f97316' },
+];
+
+export const domesticRegions: MapRegion[] = [
+  { id: 'xinjiang', name: '新疆', x: 50, y: 60, width: 92, height: 52, cities: ['乌鲁木齐', '伊宁', '喀什', '吐鲁番'] },
+  { id: 'tibet', name: '西藏', x: 85, y: 130, width: 104, height: 54, cities: ['拉萨', '林芝', '日喀则', '那曲'] },
+  { id: 'qinghai', name: '青海', x: 165, y: 92, width: 76, height: 52, cities: ['西宁', '海东', '格尔木', '玉树'] },
+  { id: 'gansu', name: '甘肃', x: 180, y: 42, width: 78, height: 42, cities: ['兰州', '嘉峪关', '张掖', '敦煌'] },
+  { id: 'ningxia', name: '宁夏', x: 250, y: 70, width: 34, height: 32, cities: ['银川', '石嘴山', '吴忠'] },
+  { id: 'inner-mongolia', name: '内蒙古', x: 260, y: 26, width: 152, height: 46, cities: ['呼和浩特', '包头', '赤峰', '呼伦贝尔'] },
+  { id: 'sichuan', name: '四川', x: 210, y: 138, width: 86, height: 58, cities: ['成都', '绵阳', '乐山', '稻城'] },
+  { id: 'chongqing', name: '重庆', x: 296, y: 152, width: 36, height: 34, cities: ['渝中', '江北', '南岸'] },
+  { id: 'yunnan', name: '云南', x: 182, y: 205, width: 78, height: 50, cities: ['昆明', '大理', '丽江', '西双版纳'] },
+  { id: 'guizhou', name: '贵州', x: 268, y: 200, width: 58, height: 42, cities: ['贵阳', '遵义', '安顺', '兴义'] },
+  { id: 'guangxi', name: '广西', x: 304, y: 238, width: 62, height: 42, cities: ['南宁', '桂林', '北海', '柳州'] },
+  { id: 'guangdong', name: '广东', x: 370, y: 244, width: 78, height: 40, cities: ['广州', '深圳', '珠海', '佛山'] },
+  { id: 'hainan', name: '海南', x: 372, y: 300, width: 54, height: 28, cities: ['海口', '三亚', '万宁'] },
+  { id: 'hunan', name: '湖南', x: 332, y: 188, width: 64, height: 42, cities: ['长沙', '张家界', '岳阳', '郴州'] },
+  { id: 'hubei', name: '湖北', x: 322, y: 144, width: 68, height: 40, cities: ['武汉', '宜昌', '襄阳', '恩施'] },
+  { id: 'shaanxi', name: '陕西', x: 270, y: 102, width: 52, height: 44, cities: ['西安', '咸阳', '延安', '榆林'] },
+  { id: 'shanxi', name: '山西', x: 328, y: 92, width: 48, height: 38, cities: ['太原', '大同', '平遥', '运城'] },
+  { id: 'henan', name: '河南', x: 382, y: 124, width: 62, height: 42, cities: ['郑州', '洛阳', '开封', '安阳'] },
+  { id: 'hebei', name: '河北', x: 390, y: 82, width: 64, height: 38, cities: ['石家庄', '保定', '秦皇岛', '承德'] },
+  { id: 'beijing', name: '北京', x: 456, y: 76, width: 24, height: 18, cities: ['朝阳', '海淀', '东城'] },
+  { id: 'tianjin', name: '天津', x: 456, y: 96, width: 24, height: 18, cities: ['和平', '河西', '滨海新区'] },
+  { id: 'liaoning', name: '辽宁', x: 486, y: 68, width: 54, height: 30, cities: ['沈阳', '大连', '鞍山', '丹东'] },
+  { id: 'jilin', name: '吉林', x: 542, y: 62, width: 50, height: 30, cities: ['长春', '吉林市', '延吉'] },
+  { id: 'heilongjiang', name: '黑龙江', x: 598, y: 42, width: 86, height: 46, cities: ['哈尔滨', '大庆', '漠河', '佳木斯'] },
+  { id: 'shandong', name: '山东', x: 462, y: 116, width: 68, height: 34, cities: ['济南', '青岛', '烟台', '威海'] },
+  { id: 'jiangsu', name: '江苏', x: 458, y: 154, width: 58, height: 34, cities: ['南京', '苏州', '无锡', '扬州'] },
+  { id: 'anhui', name: '安徽', x: 418, y: 164, width: 40, height: 34, cities: ['合肥', '黄山', '芜湖', '安庆'] },
+  { id: 'zhejiang', name: '浙江', x: 488, y: 190, width: 50, height: 34, cities: ['杭州', '宁波', '温州', '绍兴'] },
+  { id: 'shanghai', name: '上海', x: 520, y: 178, width: 22, height: 18, cities: ['浦东新区', '黄浦区', '徐汇区'] },
+  { id: 'jiangxi', name: '江西', x: 406, y: 204, width: 42, height: 38, cities: ['南昌', '景德镇', '九江', '赣州'] },
+  { id: 'fujian', name: '福建', x: 462, y: 228, width: 46, height: 36, cities: ['福州', '厦门', '泉州', '漳州'] },
+  { id: 'taiwan', name: '台湾', x: 522, y: 240, width: 30, height: 48, cities: ['台北', '台中', '高雄'] },
+  { id: 'hongkong', name: '香港', x: 452, y: 286, width: 18, height: 16, cities: ['中西区', '尖沙咀', '铜锣湾'] },
+  { id: 'macao', name: '澳门', x: 432, y: 286, width: 16, height: 16, cities: ['花地玛堂区', '大堂区'] },
+];
+
+export const internationalRegions: MapRegion[] = [
+  { id: 'canada', name: '加拿大', continent: '北美洲', x: 56, y: 40, width: 120, height: 42, cities: ['多伦多', '温哥华', '蒙特利尔', '卡尔加里'] },
+  { id: 'usa', name: '美国', continent: '北美洲', x: 76, y: 98, width: 104, height: 42, cities: ['纽约', '洛杉矶', '旧金山', '西雅图'] },
+  { id: 'mexico', name: '墨西哥', continent: '北美洲', x: 108, y: 148, width: 72, height: 34, cities: ['墨西哥城', '坎昆', '瓜达拉哈拉'] },
+  { id: 'brazil', name: '巴西', continent: '南美洲', x: 188, y: 220, width: 84, height: 54, cities: ['里约热内卢', '圣保罗', '巴西利亚'] },
+  { id: 'argentina', name: '阿根廷', continent: '南美洲', x: 208, y: 288, width: 54, height: 56, cities: ['布宜诺斯艾利斯', '门多萨', '乌斯怀亚'] },
+  { id: 'uk', name: '英国', continent: '欧洲', x: 342, y: 88, width: 34, height: 28, cities: ['伦敦', '曼彻斯特', '爱丁堡'] },
+  { id: 'france', name: '法国', continent: '欧洲', x: 378, y: 118, width: 40, height: 30, cities: ['巴黎', '里昂', '尼斯'] },
+  { id: 'spain', name: '西班牙', continent: '欧洲', x: 332, y: 132, width: 40, height: 28, cities: ['马德里', '巴塞罗那', '塞维利亚'] },
+  { id: 'italy', name: '意大利', continent: '欧洲', x: 426, y: 132, width: 32, height: 32, cities: ['罗马', '米兰', '佛罗伦萨', '威尼斯'] },
+  { id: 'germany', name: '德国', continent: '欧洲', x: 388, y: 88, width: 38, height: 28, cities: ['柏林', '慕尼黑', '法兰克福'] },
+  { id: 'netherlands', name: '荷兰', continent: '欧洲', x: 382, y: 58, width: 28, height: 22, cities: ['阿姆斯特丹', '鹿特丹'] },
+  { id: 'switzerland', name: '瑞士', continent: '欧洲', x: 414, y: 108, width: 26, height: 18, cities: ['苏黎世', '日内瓦', '卢塞恩'] },
+  { id: 'russia', name: '俄罗斯', continent: '欧洲/亚洲', x: 438, y: 34, width: 158, height: 42, cities: ['莫斯科', '圣彼得堡', '海参崴', '伊尔库茨克'] },
+  { id: 'turkey', name: '土耳其', continent: '欧洲/亚洲', x: 462, y: 120, width: 52, height: 24, cities: ['伊斯坦布尔', '安卡拉', '卡帕多奇亚'] },
+  { id: 'egypt', name: '埃及', continent: '非洲', x: 468, y: 178, width: 46, height: 28, cities: ['开罗', '亚历山大', '卢克索'] },
+  { id: 'south-africa', name: '南非', continent: '非洲', x: 490, y: 304, width: 60, height: 36, cities: ['开普敦', '约翰内斯堡', '德班'] },
+  { id: 'uae', name: '阿联酋', continent: '亚洲', x: 544, y: 162, width: 34, height: 22, cities: ['迪拜', '阿布扎比'] },
+  { id: 'india', name: '印度', continent: '亚洲', x: 560, y: 194, width: 60, height: 48, cities: ['新德里', '孟买', '斋浦尔', '班加罗尔'] },
+  { id: 'nepal', name: '尼泊尔', continent: '亚洲', x: 560, y: 170, width: 34, height: 18, cities: ['加德满都', '博卡拉'] },
+  { id: 'thailand', name: '泰国', continent: '亚洲', x: 626, y: 226, width: 40, height: 34, cities: ['曼谷', '清迈', '普吉'] },
+  { id: 'vietnam', name: '越南', continent: '亚洲', x: 672, y: 218, width: 34, height: 44, cities: ['河内', '胡志明市', '岘港'] },
+  { id: 'singapore', name: '新加坡', continent: '亚洲', x: 652, y: 270, width: 20, height: 16, cities: ['新加坡'] },
+  { id: 'malaysia', name: '马来西亚', continent: '亚洲', x: 628, y: 264, width: 24, height: 28, cities: ['吉隆坡', '槟城', '亚庇'] },
+  { id: 'china', name: '中国', continent: '亚洲', x: 612, y: 120, width: 96, height: 64, cities: ['北京', '上海', '广州', '成都'] },
+  { id: 'japan', name: '日本', continent: '亚洲', x: 736, y: 134, width: 34, height: 60, cities: ['东京', '大阪', '京都', '札幌'] },
+  { id: 'south-korea', name: '韩国', continent: '亚洲', x: 716, y: 144, width: 22, height: 30, cities: ['首尔', '釜山', '济州'] },
+  { id: 'australia', name: '澳大利亚', continent: '大洋洲', x: 700, y: 304, width: 110, height: 54, cities: ['悉尼', '墨尔本', '布里斯班', '珀斯'] },
+  { id: 'new-zealand', name: '新西兰', continent: '大洋洲', x: 822, y: 338, width: 36, height: 24, cities: ['奥克兰', '皇后镇', '惠灵顿'] },
+];
+
+export function getRegionsByScope(scope: Scope) {
+  return scope === 'domestic' ? domesticRegions : internationalRegions;
+}
