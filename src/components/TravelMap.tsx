@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react';
 import { geoContains } from 'd3-geo';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -30,6 +30,16 @@ interface RenderItem extends StaticRenderItem {
   uniqueUsers: string[];
   isActive: boolean;
   projectedArea: number;
+}
+
+interface JourneyArc {
+  key: string;
+  d: string;
+  arrowD: string;
+  userId: string;
+  fromName: string;
+  toName: string;
+  dateLabel: string;
 }
 
 const MapPathLayer = memo(function MapPathLayer({
@@ -144,18 +154,100 @@ const MapLabelLayer = memo(function MapLabelLayer({
   );
 });
 
+const MapJourneyLayer = memo(function MapJourneyLayer({
+  arcs,
+  userColorMap,
+  cssVar,
+  strokeWidth,
+  hoveredArcKey,
+  onHoverArc,
+  onLeaveArc,
+}: {
+  arcs: JourneyArc[];
+  userColorMap: Map<string, string>;
+  cssVar: (vars: Record<string, string | number>) => CSSProperties;
+  strokeWidth: number;
+  hoveredArcKey: string | null;
+  onHoverArc: (arc: JourneyArc, event: ReactMouseEvent<SVGPathElement>) => void;
+  onLeaveArc: () => void;
+}) {
+  if (arcs.length === 0) {
+    return null;
+  }
+
+  return (
+    <g className="map-journey-layer" aria-hidden="true">
+      {arcs.map((arc) => (
+        <g
+          key={arc.key}
+          className={hoveredArcKey === arc.key ? 'map-journey-item hovered' : 'map-journey-item'}
+          style={cssVar({
+            '--tone-color': userColorMap.get(arc.userId) ?? '#94a3b8',
+            '--journey-stroke-width': strokeWidth,
+          })}
+        >
+          <path
+            d={arc.d}
+            className="map-journey-arc"
+            onMouseEnter={(event) => onHoverArc(arc, event)}
+            onMouseMove={(event) => onHoverArc(arc, event)}
+            onMouseLeave={onLeaveArc}
+          />
+          <path
+            d={arc.arrowD}
+            className="map-journey-arrow"
+          />
+        </g>
+      ))}
+    </g>
+  );
+});
+
+const JourneyTooltipPortal = memo(function JourneyTooltipPortal({
+  hoveredArc,
+  tooltipPos,
+}: {
+  hoveredArc: JourneyArc | null;
+  tooltipPos: { left: number; top: number } | null;
+}) {
+  if (!hoveredArc || !tooltipPos) {
+    return null;
+  }
+
+  return createPortal(
+    <div
+      className="hover-card map-hover-overlay map-journey-tooltip"
+      style={{
+        left: `${tooltipPos.left}px`,
+        top: `${tooltipPos.top}px`,
+      }}
+    >
+      <strong>{hoveredArc.fromName} → {hoveredArc.toName}</strong>
+      <span>{hoveredArc.dateLabel}</span>
+    </div>,
+    document.body,
+  );
+});
+
 const MapTooltipPortal = memo(function MapTooltipPortal({
   hoveredRegion,
   hoveredMarkers,
   tooltipPos,
+  users,
 }: {
   hoveredRegion: RegionOption | undefined;
   hoveredMarkers: VisitMarker[];
   tooltipPos: { left: number; top: number } | null;
+  users: UserProfile[];
 }) {
   if (!hoveredRegion || !tooltipPos) {
     return null;
   }
+
+  const userNameMap = new Map(users.map((user) => [user.id, user.name]));
+  const previewMarkers = [...hoveredMarkers]
+    .sort((a, b) => b.visitedStartAt.localeCompare(a.visitedStartAt))
+    .slice(0, 2);
 
   return createPortal(
     <div
@@ -167,6 +259,24 @@ const MapTooltipPortal = memo(function MapTooltipPortal({
     >
       <strong>{hoveredRegion.name}</strong>
       <span>{hoveredMarkers.length} 条旅行记录</span>
+      {previewMarkers.length > 0 ? (
+        <div className="map-hover-list">
+          {previewMarkers.map((marker) => (
+            <div key={marker.id} className="map-hover-item">
+              <span className="map-hover-item-title">
+                {userNameMap.get(marker.userId) ?? '未知用户'}
+                {marker.city ? ` · ${marker.city}` : ''}
+              </span>
+              <span className="map-hover-item-time">
+                {marker.visitedStartAt}
+                {marker.visitedEndAt !== marker.visitedStartAt ? ` → ${marker.visitedEndAt}` : ''}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <span className="map-hover-empty">暂无旅行记录</span>
+      )}
     </div>,
     document.body,
   );
@@ -177,6 +287,7 @@ interface TravelMapProps {
   regions: RegionOption[];
   markers: VisitMarker[];
   users: UserProfile[];
+  activeUserId: string;
   selectedRegionId?: string;
   onSelectRegion: (region: RegionOption) => void;
   onScopeChange: (scope: Scope) => void;
@@ -187,6 +298,7 @@ export function TravelMap({
   regions,
   markers,
   users,
+  activeUserId,
   selectedRegionId,
   onSelectRegion,
   onScopeChange,
@@ -195,9 +307,12 @@ export function TravelMap({
   const [geoFeatures, setGeoFeatures] = useState<LoadedFeature[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [showJourneyLines, setShowJourneyLines] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number } | null>(null);
+  const [journeyTooltipPos, setJourneyTooltipPos] = useState<{ left: number; top: number } | null>(null);
+  const [hoveredJourneyArc, setHoveredJourneyArc] = useState<JourneyArc | null>(null);
   const pointerInsideRef = useRef(false);
   const hoverFrameRef = useRef<number | null>(null);
   const pendingHoverRef = useRef<{ path: SVGPathElement | null; clientX: number; clientY: number } | null>(null);
@@ -328,6 +443,7 @@ export function TravelMap({
   const labelFontSize = Math.max(4.5, 11 / currentScale);
   const labelStrokeWidth = Math.max(0.8, 3 / currentScale);
   const markerDotRadius = Math.max(1.8, 4.5 / currentScale);
+  const journeyStrokeWidth = Math.max(1.1, 2 / currentScale);
   const labelAreaThreshold = 1800;
   const staticItems = useMemo<StaticRenderItem[]>(() => {
     if (!path) {
@@ -400,6 +516,127 @@ export function TravelMap({
       ) ?? null,
     [hoverRegionId, labelAreaThreshold, renderItems],
   );
+
+  const journeyArcs = useMemo<JourneyArc[]>(() => {
+    if (!showJourneyLines) {
+      return [];
+    }
+
+    const pointsByRegionId = new Map<
+      string,
+      {
+        users: string[];
+        x: number;
+        y: number;
+      }
+    >();
+
+    renderItems.forEach((item) => {
+      if (!item.region || !item.hasLabelPoint || item.uniqueUsers.length === 0) {
+        return;
+      }
+      pointsByRegionId.set(item.region.id, {
+        users: item.uniqueUsers,
+        x: item.labelX,
+        y: item.labelY + 16 / currentScale,
+      });
+    });
+
+    const activeUserMarkers = markers.filter((marker) => marker.userId === activeUserId);
+    if (activeUserMarkers.length < 2) {
+      return [];
+    }
+
+    const arcs: JourneyArc[] = [];
+    const orderedMarkers = [...activeUserMarkers].sort((a, b) => {
+      const startDiff = a.visitedStartAt.localeCompare(b.visitedStartAt);
+      if (startDiff !== 0) return startDiff;
+      const endDiff = a.visitedEndAt.localeCompare(b.visitedEndAt);
+      if (endDiff !== 0) return endDiff;
+      return a.createdAt.localeCompare(b.createdAt);
+    });
+
+    const points = orderedMarkers
+      .map((marker) => {
+        const regionPoint = pointsByRegionId.get(marker.scopeId);
+        if (!regionPoint) return null;
+        const userIndex = regionPoint.users.indexOf(activeUserId);
+        if (userIndex === -1) return null;
+        return {
+          markerId: marker.id,
+          regionId: marker.scopeId,
+          scopeName: marker.scopeName,
+          visitedStartAt: marker.visitedStartAt,
+          visitedEndAt: marker.visitedEndAt,
+          x: regionPoint.x + userIndex * 12 - ((regionPoint.users.length - 1) * 6),
+          y: regionPoint.y,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .filter((item, index, list) => index === 0 || list[index - 1].regionId !== item.regionId);
+
+    for (let index = 1; index < points.length; index += 1) {
+      const from = points[index - 1];
+      const to = points[index];
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance < 1) {
+        continue;
+      }
+
+      const midpointX = (from.x + to.x) / 2;
+      const midpointY = (from.y + to.y) / 2;
+      const normalX = -dy / distance;
+      const normalY = dx / distance;
+      const bend = Math.min(40, distance * 0.18);
+      const controlX = midpointX + normalX * bend;
+      const controlY = midpointY + normalY * bend;
+      const tangentX = to.x - controlX;
+      const tangentY = to.y - controlY;
+      const tangentDistance = Math.hypot(tangentX, tangentY);
+      if (tangentDistance < 1) {
+        continue;
+      }
+      const dirX = tangentX / tangentDistance;
+      const dirY = tangentY / tangentDistance;
+      const arrowLength = Math.max(4, 7 / currentScale);
+      const arrowWidth = Math.max(2.1, 3.2 / currentScale);
+      const baseX = to.x - dirX * arrowLength;
+      const baseY = to.y - dirY * arrowLength;
+      const perpX = -dirY;
+      const perpY = dirX;
+      const leftX = baseX + perpX * arrowWidth;
+      const leftY = baseY + perpY * arrowWidth;
+      const rightX = baseX - perpX * arrowWidth;
+      const rightY = baseY - perpY * arrowWidth;
+
+      arcs.push({
+        key: `${activeUserId}-${from.markerId}-${to.markerId}`,
+        userId: activeUserId,
+        d: `M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`,
+        arrowD: `M ${to.x} ${to.y} L ${leftX} ${leftY} L ${rightX} ${rightY} Z`,
+        fromName: from.scopeName,
+        toName: to.scopeName,
+        dateLabel: `${from.visitedStartAt} → ${to.visitedStartAt}`,
+      });
+    }
+
+    return arcs;
+  }, [activeUserId, currentScale, markers, renderItems, showJourneyLines]);
+
+  const handleJourneyHover = (arc: JourneyArc, event: ReactMouseEvent<SVGPathElement>) => {
+    setHoveredJourneyArc(arc);
+    setJourneyTooltipPos({
+      left: event.clientX + 16,
+      top: event.clientY + 16,
+    });
+  };
+
+  const handleJourneyLeave = () => {
+    setHoveredJourneyArc(null);
+    setJourneyTooltipPos(null);
+  };
 
   useEffect(() => {
     viewBoxRef.current = viewBox;
@@ -680,14 +917,27 @@ export function TravelMap({
           <p>点击地图区域即可打开标记表单，悬停可查看当前区域的标记数量。</p>
         </div>
         <div className="map-heading-side">
-          <div className="map-segmented-header">
-            <span className="map-caption">
+          <div className="map-heading-controls">
+            <div className="map-segmented-header">
+              <span className="map-caption">
+                <span className="travel-icon-inline">
+                  <TravelIcon name="route" size={14} />
+                </span>
+                {scope === 'domestic' ? '中国省级示意图' : '世界国家示意图'}
+              </span>
+              <MapToggle scope={scope} onChange={onScopeChange} />
+            </div>
+            <button
+              type="button"
+              className={showJourneyLines ? 'map-route-toggle active' : 'map-route-toggle'}
+              aria-pressed={showJourneyLines}
+              onClick={() => setShowJourneyLines((current) => !current)}
+            >
               <span className="travel-icon-inline">
                 <TravelIcon name="route" size={14} />
               </span>
-              {scope === 'domestic' ? '中国省级示意图' : '世界国家示意图'}
-            </span>
-            <MapToggle scope={scope} onChange={onScopeChange} />
+              {showJourneyLines ? '隐藏旅途轨迹' : '显示旅途轨迹'}
+            </button>
           </div>
         </div>
       </div>
@@ -717,6 +967,18 @@ export function TravelMap({
 
           {!loading && !error && path ? (
             <MapPathLayer renderItems={renderItems} />
+          ) : null}
+
+          {!loading && !error && path ? (
+            <MapJourneyLayer
+              arcs={journeyArcs}
+              userColorMap={userColorMap}
+              cssVar={cssVar}
+              strokeWidth={journeyStrokeWidth}
+              hoveredArcKey={hoveredJourneyArc?.key ?? null}
+              onHoverArc={handleJourneyHover}
+              onLeaveArc={handleJourneyLeave}
+            />
           ) : null}
 
           {!loading && !error && path ? (
@@ -771,7 +1033,13 @@ export function TravelMap({
         {error ? <div className="map-status error">{error}</div> : null}
       </div>
 
-      <MapTooltipPortal hoveredRegion={hoveredRegion} hoveredMarkers={hoveredMarkers} tooltipPos={tooltipPos} />
+      <MapTooltipPortal
+        hoveredRegion={hoveredRegion}
+        hoveredMarkers={hoveredMarkers}
+        tooltipPos={tooltipPos}
+        users={users}
+      />
+      <JourneyTooltipPortal hoveredArc={hoveredJourneyArc} tooltipPos={journeyTooltipPos} />
 
       <div className="map-legend">
         <div className="legend-label">用户标签</div>

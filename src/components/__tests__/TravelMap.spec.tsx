@@ -7,11 +7,63 @@ import * as loader from '../../geo/loader';
 
 const users: UserProfile[] = [
   { id: 'u1', name: 'A', color: '#2563eb' },
+  { id: 'u2', name: 'B', color: '#f97316' },
 ];
 
 const regions: RegionOption[] = [
   { id: 'bigland', name: 'Bigland', cities: [] },
   { id: 'smallia', name: 'Smallia', cities: [] },
+];
+
+const markers: VisitMarker[] = [
+  {
+    id: 'm1',
+    userId: 'u1',
+    scope: 'international',
+    scopeId: 'bigland',
+    scopeName: 'Bigland',
+    city: 'City A',
+    note: 'a',
+    visitedStartAt: '2026-01-01',
+    visitedEndAt: '2026-01-02',
+    createdAt: '2026-01-03T00:00:00.000Z',
+  },
+  {
+    id: 'm2',
+    userId: 'u1',
+    scope: 'international',
+    scopeId: 'smallia',
+    scopeName: 'Smallia',
+    city: 'City B',
+    note: 'b',
+    visitedStartAt: '2026-02-01',
+    visitedEndAt: '2026-02-02',
+    createdAt: '2026-02-03T00:00:00.000Z',
+  },
+  {
+    id: 'm3',
+    userId: 'u2',
+    scope: 'international',
+    scopeId: 'bigland',
+    scopeName: 'Bigland',
+    city: 'City C',
+    note: 'c',
+    visitedStartAt: '2026-01-05',
+    visitedEndAt: '2026-01-06',
+    createdAt: '2026-01-07T00:00:00.000Z',
+  },
+  {
+    id: 'm4',
+    userId: 'u2',
+    scope: 'international',
+    scopeId: 'smallia',
+    scopeName: 'Smallia',
+    city: 'City D',
+    note: 'd',
+    visitedStartAt: '2026-03-01',
+    visitedEndAt: '2026-03-02',
+    createdAt: '2026-03-03T00:00:00.000Z',
+  },
 ];
 
 const mockedFeatures = [
@@ -54,6 +106,7 @@ describe('TravelMap', () => {
         regions={regions}
         markers={[] as VisitMarker[]}
         users={users}
+        activeUserId="u1"
         onScopeChange={() => {}}
         onSelectRegion={() => {}}
       />,
@@ -79,6 +132,7 @@ describe('TravelMap', () => {
         regions={regions}
         markers={[] as VisitMarker[]}
         users={users}
+        activeUserId="u1"
         onScopeChange={() => {}}
         onSelectRegion={onSelectRegion}
       />,
@@ -94,6 +148,29 @@ describe('TravelMap', () => {
 
     await waitFor(() => {
       expect(onSelectRegion).toHaveBeenCalledWith(expect.objectContaining({ id: 'bigland', name: 'Bigland' }));
+    });
+  });
+
+  it('shows journey arcs only for the active user after enabling the route toggle', async () => {
+    const { container } = render(
+      <TravelMap
+        scope="international"
+        regions={regions}
+        markers={markers}
+        users={users}
+        activeUserId="u1"
+        onScopeChange={() => {}}
+        onSelectRegion={() => {}}
+      />,
+    );
+
+    await screen.findByText('Bigland');
+    expect(container.querySelector('.map-journey-arc')).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: '显示旅途轨迹' }));
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.map-journey-arc')).toHaveLength(1);
     });
   });
 });

@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import 'fake-indexeddb/auto';
 
 if (!('PointerEvent' in window)) {
   // JSDOM 缺少 PointerEvent，测试中用 MouseEvent 兜底即可

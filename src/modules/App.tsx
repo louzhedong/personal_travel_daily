@@ -7,13 +7,13 @@ import TravelIcon from '../components/TravelIcon';
 import UserManager from '../components/UserManager';
 import { getRegionsByScope } from '../data/regions';
 import { loadGeoForScope } from '../geo/loader';
-import { createMarker, createUser, loadStore, saveStore } from '../lib/storage';
+import { createDefaultStore, createMarker, createUser, loadPersistedStore, persistStore } from '../lib/storage';
 import type { RegionOption, Scope, TravelStore } from '../types';
 
 function App() {
-  const initialStore = useMemo(() => loadStore(), []);
   const [scope, setScope] = useState<Scope>('domestic');
-  const [store, setStore] = useState<TravelStore>(initialStore);
+  const [store, setStore] = useState<TravelStore>(() => createDefaultStore());
+  const [storeReady, setStoreReady] = useState(false);
   const [selectedRegionId, setSelectedRegionId] = useState<string>('');
   const [markerModalOpen, setMarkerModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -53,8 +53,32 @@ function App() {
   );
 
   useEffect(() => {
-    saveStore(store);
-  }, [store]);
+    let cancelled = false;
+
+    loadPersistedStore()
+      .then((nextStore) => {
+        if (cancelled) return;
+        setStore(nextStore);
+        setStoreReady(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setStore(createDefaultStore());
+        setStoreReady(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!storeReady) {
+      return;
+    }
+
+    void persistStore(store);
+  }, [store, storeReady]);
 
   useEffect(() => {
     if (!selectedRegionId || regionOptions.some((item) => item.id === selectedRegionId)) {
@@ -255,6 +279,7 @@ function App() {
             regions={regionOptions}
             markers={currentMarkers}
             users={store.users}
+            activeUserId={store.activeUserId}
             selectedRegionId={selectedRegionId}
             onScopeChange={(nextScope) => {
               setScope(nextScope);
