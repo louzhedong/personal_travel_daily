@@ -20,7 +20,7 @@ describe('UserManager', () => {
       />,
     );
 
-    await userEvent.click(screen.getByRole('button', { name: '阿泽' }));
+    await userEvent.click(screen.getByRole('button', { name: /阿泽/ }));
     expect(onSwitch).toHaveBeenCalledWith('u2');
   });
 

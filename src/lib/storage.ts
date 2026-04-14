@@ -1,9 +1,15 @@
 import { defaultUsers } from '../data/regions';
+import {
+  loadTravelStoreSnapshot,
+  saveTravelStoreSnapshot,
+  supportsIndexedDb,
+  type TravelStoreSnapshot,
+} from './repositories/travelStoreRepository';
 import type { TravelStore, UserProfile, VisitMarker } from '../types';
 
-const STORAGE_KEY = 'personal-travel-diary-store';
+const LEGACY_STORAGE_KEY = 'personal-travel-diary-store';
 
-function createDefaultStore(): TravelStore {
+export function createDefaultStore(): TravelStore {
   return {
     users: defaultUsers,
     markers: [],
@@ -62,21 +68,33 @@ function normalizeMarker(
   };
 }
 
-export function loadStore(): TravelStore {
-  if (typeof window === 'undefined') {
-    return createDefaultStore();
+function normalizeUsers(users: unknown): UserProfile[] {
+  if (!Array.isArray(users) || users.length === 0) {
+    return defaultUsers;
   }
 
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return createDefaultStore();
-  }
+  const normalizedUsers = users.filter(
+    (item): item is UserProfile =>
+      !!item &&
+      typeof item === 'object' &&
+      typeof item.id === 'string' &&
+      typeof item.name === 'string' &&
+      typeof item.color === 'string',
+  );
 
+  return normalizedUsers.length > 0 ? normalizedUsers : defaultUsers;
+}
+
+function normalizeStore(
+  rawStore:
+    | Partial<TravelStore>
+    | TravelStoreSnapshot
+    | null
+    | undefined,
+): TravelStore {
   try {
-    const parsed = JSON.parse(raw) as Partial<TravelStore>;
-    const users = Array.isArray(parsed.users) && parsed.users.length > 0
-      ? parsed.users
-      : defaultUsers;
+    const parsed = rawStore ?? {};
+    const normalizedUsers = normalizeUsers(parsed.users);
     const markers = Array.isArray(parsed.markers)
       ? parsed.markers
           .map((item) =>
@@ -84,22 +102,73 @@ export function loadStore(): TravelStore {
           )
           .filter((item): item is VisitMarker => item !== null)
       : [];
-    const activeUserId = typeof parsed.activeUserId === 'string' && users.some((item) => item.id === parsed.activeUserId)
-      ? parsed.activeUserId
-      : users[0].id;
+    const activeUserId =
+      typeof parsed.activeUserId === 'string' && normalizedUsers.some((item) => item.id === parsed.activeUserId)
+        ? parsed.activeUserId
+        : normalizedUsers[0].id;
 
-    return { users, markers, activeUserId };
+    return { users: normalizedUsers, markers, activeUserId };
   } catch {
     return createDefaultStore();
   }
 }
 
-export function saveStore(store: TravelStore) {
+function readLegacyLocalStorage(): TravelStore | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return normalizeStore(JSON.parse(raw) as Partial<TravelStore>);
+  } catch {
+    return null;
+  }
+}
+
+export async function loadPersistedStore(): Promise<TravelStore> {
+  if (typeof window === 'undefined') {
+    return createDefaultStore();
+  }
+
+  if (!supportsIndexedDb()) {
+    return readLegacyLocalStorage() ?? createDefaultStore();
+  }
+
+  try {
+    const savedSnapshot = await loadTravelStoreSnapshot();
+    if (savedSnapshot) {
+      return normalizeStore(savedSnapshot);
+    }
+
+    const migratedStore = readLegacyLocalStorage();
+    const nextStore = migratedStore ?? createDefaultStore();
+    await saveTravelStoreSnapshot(nextStore);
+    return nextStore;
+  } catch {
+    return readLegacyLocalStorage() ?? createDefaultStore();
+  }
+}
+
+export async function persistStore(store: TravelStore) {
   if (typeof window === 'undefined') {
     return;
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  if (!supportsIndexedDb()) {
+    window.localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(store));
+    return;
+  }
+
+  try {
+    await saveTravelStoreSnapshot(store);
+  } catch {
+    window.localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(store));
+  }
 }
 
 export function createUser(name: string, color: string): UserProfile {

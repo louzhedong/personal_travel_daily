@@ -51,11 +51,9 @@ export function UserManager({ users, activeUserId, onSwitch, onCreate }: UserMan
         {activeUser ? (
           <span className="active-user-badge user-manager-active-badge">
             <span className="user-status-dot" aria-hidden="true" />
-            <span className="user-avatar-badge">{getUserInitial(activeUser.name)}</span>
-            <span
-              className="color-dot tone-dot"
-              style={toneStyle(activeUser.color)}
-            />
+            <span className="user-avatar-badge user-avatar-badge-toned" style={toneStyle(activeUser.color)}>
+              {getUserInitial(activeUser.name)}
+            </span>
             当前用户：{activeUser.name}
           </span>
         ) : null}

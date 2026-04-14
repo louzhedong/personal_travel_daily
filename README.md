@@ -1,6 +1,6 @@
 # Voyage Atlas / 旅迹地图
 
-`旅迹地图` 是一个基于 React + Vite + TypeScript 的个人旅行记录产品原型。它围绕“地图足迹 + 旅行相册 + 多人记录”展开，支持国内/世界地图切换、点击区域弹出录入、旅伴管理、图片上传到免费图床，以及基于 `localStorage` 的纯前端数据持久化。
+`旅迹地图` 是一个基于 React + Vite + TypeScript 的个人旅行记录产品原型。它围绕“地图足迹 + 旅行相册 + 多人记录”展开，支持国内/世界地图切换、点击区域弹出录入、旅伴管理、图片上传到免费图床，以及基于 `IndexedDB` 的前端持久化存储。
 
 ## 功能特性
 
@@ -95,6 +95,9 @@ interface TravelStore {
 }
 ```
 
+- 当前主存储：`IndexedDB`
+- 兼容迁移：若检测到旧版 `localStorage` 数据，会在首次读取时自动迁移
+
 ## 启动方式
 
 ```bash
@@ -161,7 +164,7 @@ npm run test
 - 构建工具：Vite 7
 - 语言：TypeScript
 - 地图实现：SVG 区域示意图 + `d3-geo`
-- 数据存储：浏览器 `localStorage`
+- 数据存储：浏览器 `IndexedDB`（兼容旧 `localStorage` 迁移）
 - 国内地图：本地静态文件 `public/maps/china-provinces.json`
 - 国外地图：本地静态文件 `public/maps/world-countries.json`
 - 图片上传：ImgBB API（读取 `VITE_IMGBB_API_KEY`）
@@ -185,4 +188,4 @@ npm run test
 - 替换为真实 GeoJSON / TopoJSON 地图数据
 - 增加游记详情页、图片灯箱和筛选标签
 - 支持 JSON 导入导出
-- 将本地存储升级为 IndexedDB
+- 增加云端同步与多端数据管理
