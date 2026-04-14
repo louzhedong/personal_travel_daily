@@ -1,0 +1,136 @@
+# Task Prompt
+
+你正在为 `旅迹地图 / Voyage Atlas` 项目实现一个具体任务。
+
+请在开始前先基于以下上下文理解项目，再给出方案并实施。
+
+## 项目背景
+
+这是一个旅行记录产品原型，不是后台管理系统。
+
+产品重点包括：
+
+- 地图足迹
+- 旅行相册
+- 多人 / 旅伴记录
+- 时间线轨迹
+- 品牌化旅行体验
+
+## 技术背景
+
+- React 19 + TypeScript + Vite 7
+- SVG + `d3-geo` 地图渲染
+- IndexedDB repository 持久化
+- ImgBB 图片上传
+- Vitest + Testing Library
+
+## 当前数据模型
+
+```ts
+type Scope = 'domestic' | 'international';
+
+interface UserProfile {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface VisitMarker {
+  id: string;
+  userId: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note: string;
+  imageUrls?: string[];
+  visitedStartAt: string;
+  visitedEndAt: string;
+  createdAt: string;
+}
+
+interface TravelStore {
+  users: UserProfile[];
+  markers: VisitMarker[];
+  activeUserId: string;
+}
+```
+
+## 当前架构重点
+
+- `App.tsx`
+  - 页面主状态入口
+- `TravelMap.tsx`
+  - 地图绘制、hover、点击、缩放、轨迹
+- `MarkerForm.tsx`
+  - 旅行记录录入
+- `MarkerList.tsx`
+  - 记录展示
+- `UserManager.tsx`
+  - 旅伴管理
+- `travelStoreRepository.ts`
+  - IndexedDB repository
+- `storage.ts`
+  - 数据归一化、迁移、domain helper
+
+## 任务执行要求
+
+当我提出一个具体需求时，请按以下方式工作：
+
+1. 先判断这个需求主要影响哪个模块
+2. 说明你理解到的现状
+3. 给出最小可行改动方案
+4. 如果改动涉及：
+   - 存储：说明 schema / migration 影响
+   - 地图：说明缩放 / hover / tooltip 影响
+   - UI：说明是否符合当前品牌风格
+5. 修改后运行必要验证：
+   - `npm run test`
+   - `npm run build`
+
+## 具体任务模板
+
+当我给出新需求时，请按这个格式思考：
+
+### 任务目标
+
+- 这个需求要解决什么问题
+
+### 影响范围
+
+- 哪些文件 / 模块会受影响
+
+### 实施方案
+
+- 最小改动方案是什么
+- 是否需要新增状态 / 数据结构 / 样式 / 测试
+
+### 风险点
+
+- 是否影响已有交互
+- 是否影响存储兼容性
+- 是否影响地图性能
+
+### 验证
+
+- 运行哪些命令
+- 观察哪些行为
+
+## 输出要求
+
+当你真正开始写代码时，请遵循：
+
+- 优先复用现有模块和命名
+- 保持样式集中在 `src/styles/index.css`
+- 测试只补必要覆盖，避免低价值测试
+- 不要无故改动无关文件
+
+## 示例任务说明
+
+如果任务是：
+
+- “新增地图轨迹方向箭头”
+- “优化旅伴管理模块视觉”
+- “把存储拆成 repository 层”
+
+你都应该先把需求映射到已有模块，再做增量实现，而不是另起炉灶。
