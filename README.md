@@ -182,6 +182,10 @@ npm run test
 
 - 视觉 Token 文档：`docs/design-tokens.md`
 - 地图渲染与 hover 性能文档：`docs/map-rendering-and-hover-performance.md`
+- AI System Prompt：`docs/system-prompt.md`
+- AI Task Prompt：`docs/task-prompt.md`
+- AI Design Prompt：`docs/design-prompt.md`
+- AI 项目总览 Prompt：`docs/project-ai-prompt.md`
 
 ## 后续可扩展方向
 
