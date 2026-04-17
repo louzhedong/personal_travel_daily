@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import MarkerForm, { type MarkerFormValue } from '../components/MarkerForm';
+import MarkerDetailPanel from '../components/MarkerDetailPanel';
 import MarkerList from '../components/MarkerList';
 import StatsPanel from '../components/StatsPanel';
 import TravelMap from '../components/TravelMap';
@@ -15,6 +16,7 @@ function App() {
   const [store, setStore] = useState<TravelStore>(() => createDefaultStore());
   const [storeReady, setStoreReady] = useState(false);
   const [selectedRegionId, setSelectedRegionId] = useState<string>('');
+  const [detailMarkerId, setDetailMarkerId] = useState<string | null>(null);
   const [markerModalOpen, setMarkerModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('点击地图区域即可弹出表单，快速记录你的旅行足迹。');
@@ -50,6 +52,11 @@ function App() {
   const selectedRegion = useMemo<RegionOption | undefined>(
     () => regionOptions.find((item) => item.id === selectedRegionId),
     [regionOptions, selectedRegionId],
+  );
+
+  const detailMarker = useMemo(
+    () => store.markers.find((item) => item.id === detailMarkerId) ?? null,
+    [detailMarkerId, store.markers],
   );
 
   useEffect(() => {
@@ -155,7 +162,34 @@ function App() {
       ...current,
       markers: current.markers.filter((item) => item.id !== markerId),
     }));
+    if (detailMarkerId === markerId) {
+      setDetailMarkerId(null);
+    }
     setMessage(`已删除 ${target.scopeName} · ${target.city} 的旅行记录。`);
+  };
+
+  const handleUpdateMarker = async (
+    markerId: string,
+    updates: { note: string; imageUrls?: string[] },
+  ) => {
+    const target = store.markers.find((item) => item.id === markerId);
+    if (!target || target.userId !== store.activeUserId) {
+      return;
+    }
+
+    setStore((current) => ({
+      ...current,
+      markers: current.markers.map((item) =>
+        item.id === markerId
+          ? {
+              ...item,
+              note: updates.note,
+              imageUrls: updates.imageUrls,
+            }
+          : item,
+      ),
+    }));
+    setMessage(`已更新 ${target.scopeName} · ${target.city} 的旅行记录。`);
   };
 
   return (
@@ -297,6 +331,7 @@ function App() {
             users={store.users}
             activeUserId={store.activeUserId}
             onDelete={handleDeleteMarker}
+            onViewDetail={setDetailMarkerId}
           />
         </div>
 
@@ -365,6 +400,15 @@ function App() {
           </div>
         </div>
       ) : null}
+
+      <MarkerDetailPanel
+        marker={detailMarker}
+        user={detailMarker ? store.users.find((item) => item.id === detailMarker.userId) : undefined}
+        open={detailMarker !== null}
+        canEdit={detailMarker?.userId === store.activeUserId}
+        onClose={() => setDetailMarkerId(null)}
+        onUpdate={handleUpdateMarker}
+      />
     </div>
   );
 }

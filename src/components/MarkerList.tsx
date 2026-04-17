@@ -14,9 +14,10 @@ interface MarkerListProps {
   users: UserProfile[];
   activeUserId: string;
   onDelete: (markerId: string) => void;
+  onViewDetail: (markerId: string) => void;
 }
 
-export function MarkerList({ scope, markers, users, activeUserId, onDelete }: MarkerListProps) {
+export function MarkerList({ scope, markers, users, activeUserId, onDelete, onViewDetail }: MarkerListProps) {
   const [filterUserId, setFilterUserId] = useState<'all' | string>('all');
   const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({});
 
@@ -74,7 +75,11 @@ export function MarkerList({ scope, markers, users, activeUserId, onDelete }: Ma
             const imageUrls = marker.imageUrls ?? [];
 
             return (
-              <article key={marker.id} className="marker-item">
+              <article
+                key={marker.id}
+                className="marker-item marker-item-clickable"
+                onClick={() => onViewDetail(marker.id)}
+              >
                 <div className="marker-item-header">
                   <div className="stack gap-8 marker-content-main">
                     <div className="marker-chip-row">
@@ -99,10 +104,13 @@ export function MarkerList({ scope, markers, users, activeUserId, onDelete }: Ma
                     type="button"
                     className="ghost-button marker-delete-button"
                     disabled={!canDelete}
-                    title={canDelete ? '删除当前记录' : '仅当前记录所属用户可删除'}
-                    onClick={() => onDelete(marker.id)}
+                    title={canDelete ? '删除当前记录' : '切换到该旅伴后可删除'}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDelete(marker.id);
+                    }}
                   >
-                    删除
+                    {canDelete ? '删除' : '仅本人可删'}
                   </button>
                 </div>
                 <div className="marker-note-block">
@@ -146,6 +154,18 @@ export function MarkerList({ scope, markers, users, activeUserId, onDelete }: Ma
                     </div>
                   </div>
                 ) : null}
+                <div className="marker-item-footer">
+                  <button
+                    type="button"
+                    className="marker-detail-button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onViewDetail(marker.id);
+                    }}
+                  >
+                    查看详情
+                  </button>
+                </div>
               </article>
             );
           })}
