@@ -9,7 +9,8 @@ type TravelIconName =
   | 'globe'
   | 'spark'
   | 'palette'
-  | 'plus';
+  | 'plus'
+  | 'edit';
 
 interface TravelIconProps extends SVGProps<SVGSVGElement> {
   name: TravelIconName;
@@ -99,6 +100,13 @@ export function TravelIcon({ name, size = 18, style, ...props }: TravelIconProps
         <svg {...common}>
           <path d="M12 6v12" />
           <path d="M6 12h12" />
+        </svg>
+      );
+    case 'edit':
+      return (
+        <svg {...common}>
+          <path d="M4 20h4l9.5-9.5a1.8 1.8 0 0 0 0-2.5l-1.5-1.5a1.8 1.8 0 0 0-2.5 0L4 16v4Z" />
+          <path d="M12.5 7.5 16.5 11.5" />
         </svg>
       );
     default:
