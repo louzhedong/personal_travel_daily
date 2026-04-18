@@ -10,6 +10,8 @@ const DB_NAME = 'voyage-atlas-db';
 const USERS_STORE = 'users';
 const MARKERS_STORE = 'markers';
 const META_STORE = 'meta';
+const SAVED_GUIDES_STORE = 'savedGuides';
+const GUIDE_SEARCH_HISTORY_STORE = 'guideSearchHistory';
 const LEGACY_APP_STORE = 'app';
 const LEGACY_APP_STORE_KEY = 'travel-store';
 
@@ -86,6 +88,29 @@ describe('travelStoreRepository', () => {
         },
       ],
       activeUserId: 'u2',
+      savedGuides: [
+        {
+          id: 'g1',
+          savedByUserId: 'u2',
+          keyword: '新疆 旅游 攻略',
+          result: {
+            id: 'r1',
+            title: '新疆环线攻略',
+            summary: '适合 7 到 10 天自驾。',
+            sourceName: 'Mock Travel',
+            sourceUrl: 'https://example.com/guide/xj',
+          },
+          savedAt: '2026-04-11T00:00:00.000Z',
+        },
+      ],
+      guideSearchHistory: [
+        {
+          id: 'h1',
+          keyword: '新疆 旅游 攻略',
+          scope: 'domestic',
+          createdAt: '2026-04-11T00:00:00.000Z',
+        },
+      ],
     };
 
     await saveTravelStoreSnapshot(store);
@@ -95,23 +120,29 @@ describe('travelStoreRepository', () => {
       users: store.users,
       markers: store.markers,
       activeUserId: 'u2',
+      savedGuides: store.savedGuides,
+      guideSearchHistory: store.guideSearchHistory,
     });
 
     const database = await openDatabase(DB_NAME);
     try {
       expect(Array.from(database.objectStoreNames)).toEqual(
-        expect.arrayContaining([USERS_STORE, MARKERS_STORE, META_STORE]),
+        expect.arrayContaining([USERS_STORE, MARKERS_STORE, META_STORE, SAVED_GUIDES_STORE, GUIDE_SEARCH_HISTORY_STORE]),
       );
 
-      const [users, markers, activeUserMeta] = await Promise.all([
+      const [users, markers, activeUserMeta, savedGuides, guideSearchHistory] = await Promise.all([
         getAllFromStore<{ id: string }>(database, USERS_STORE),
         getAllFromStore<{ id: string }>(database, MARKERS_STORE),
         getFromStore<{ key: string; value: string }>(database, META_STORE, 'activeUserId'),
+        getAllFromStore<{ id: string }>(database, SAVED_GUIDES_STORE),
+        getAllFromStore<{ id: string }>(database, GUIDE_SEARCH_HISTORY_STORE),
       ]);
 
       expect(users).toHaveLength(2);
       expect(markers).toHaveLength(1);
       expect(activeUserMeta).toEqual({ key: 'activeUserId', value: 'u2' });
+      expect(savedGuides).toHaveLength(1);
+      expect(guideSearchHistory).toHaveLength(1);
     } finally {
       database.close();
     }
@@ -138,6 +169,29 @@ describe('travelStoreRepository', () => {
             },
           ],
           activeUserId: 'u1',
+          savedGuides: [
+            {
+              id: 'g-old',
+              savedByUserId: 'u1',
+              keyword: '日本 樱花 攻略',
+              result: {
+                id: 'r-old',
+                title: '日本樱花攻略',
+                summary: '东京和京都都适合。',
+                sourceName: 'Mock Travel',
+                sourceUrl: 'https://example.com/guide/jp',
+              },
+              savedAt: '2025-03-22T00:00:00.000Z',
+            },
+          ],
+          guideSearchHistory: [
+            {
+              id: 'h-old',
+              keyword: '日本 樱花 攻略',
+              scope: 'international',
+              createdAt: '2025-03-22T00:00:00.000Z',
+            },
+          ],
         },
         LEGACY_APP_STORE_KEY,
       );
@@ -156,14 +210,28 @@ describe('travelStoreRepository', () => {
         }),
       ],
       activeUserId: 'u1',
+      savedGuides: [
+        expect.objectContaining({
+          id: 'g-old',
+          keyword: '日本 樱花 攻略',
+        }),
+      ],
+      guideSearchHistory: [
+        expect.objectContaining({
+          id: 'h-old',
+          keyword: '日本 樱花 攻略',
+        }),
+      ],
     });
 
     const database = await openDatabase(DB_NAME);
     try {
-      const [users, markers, activeUserMeta] = await Promise.all([
+      const [users, markers, activeUserMeta, savedGuides, guideSearchHistory] = await Promise.all([
         getAllFromStore<{ id: string; name: string }>(database, USERS_STORE),
         getAllFromStore<{ id: string; imageUrl?: string; visitedAt?: string }>(database, MARKERS_STORE),
         getFromStore<{ key: string; value: string }>(database, META_STORE, 'activeUserId'),
+        getAllFromStore<{ id: string; keyword: string }>(database, SAVED_GUIDES_STORE),
+        getAllFromStore<{ id: string; keyword: string }>(database, GUIDE_SEARCH_HISTORY_STORE),
       ]);
 
       expect(users).toEqual([{ id: 'u1', name: '小悠', color: '#2563eb' }]);
@@ -175,6 +243,18 @@ describe('travelStoreRepository', () => {
         }),
       ]);
       expect(activeUserMeta).toEqual({ key: 'activeUserId', value: 'u1' });
+      expect(savedGuides).toEqual([
+        expect.objectContaining({
+          id: 'g-old',
+          keyword: '日本 樱花 攻略',
+        }),
+      ]);
+      expect(guideSearchHistory).toEqual([
+        expect.objectContaining({
+          id: 'h-old',
+          keyword: '日本 樱花 攻略',
+        }),
+      ]);
     } finally {
       database.close();
     }

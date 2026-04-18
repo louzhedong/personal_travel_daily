@@ -27,6 +27,7 @@ interface MarkerDetailPanelProps {
   canEdit: boolean;
   onClose: () => void;
   onUpdate: (markerId: string, updates: { note: string; imageUrls?: string[] }) => Promise<void> | void;
+  onOpenGuideSearch?: (query: string, scope: VisitMarker['scope']) => void;
 }
 
 export function MarkerDetailPanel({
@@ -36,6 +37,7 @@ export function MarkerDetailPanel({
   canEdit,
   onClose,
   onUpdate,
+  onOpenGuideSearch,
 }: MarkerDetailPanelProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftNote, setDraftNote] = useState('');
@@ -189,6 +191,18 @@ export function MarkerDetailPanel({
                     <TravelIcon name="edit" size={13} />
                   </span>
                   编辑记录
+                </button>
+              ) : null}
+              {!isEditing && onOpenGuideSearch ? (
+                <button
+                  type="button"
+                  className="ghost-button detail-guide-button"
+                  onClick={() => onOpenGuideSearch(`${marker.scopeName} ${marker.city} 攻略`, marker.scope)}
+                >
+                  <span className="travel-icon-inline detail-action-icon">
+                    <TravelIcon name="globe" size={13} />
+                  </span>
+                  查找攻略
                 </button>
               ) : null}
               <button

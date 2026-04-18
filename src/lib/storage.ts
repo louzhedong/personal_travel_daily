@@ -5,7 +5,15 @@ import {
   supportsIndexedDb,
   type TravelStoreSnapshot,
 } from './repositories/travelStoreRepository';
-import type { TravelStore, UserProfile, VisitMarker } from '../types';
+import type {
+  GuideDocument,
+  GuideSearchHistoryItem,
+  GuideSearchResult,
+  SavedGuide,
+  TravelStore,
+  UserProfile,
+  VisitMarker,
+} from '../types';
 
 const LEGACY_STORAGE_KEY = 'personal-travel-diary-store';
 
@@ -14,6 +22,8 @@ export function createDefaultStore(): TravelStore {
     users: defaultUsers,
     markers: [],
     activeUserId: defaultUsers[0].id,
+    savedGuides: [],
+    guideSearchHistory: [],
   };
 }
 
@@ -85,6 +95,116 @@ function normalizeUsers(users: unknown): UserProfile[] {
   return normalizedUsers.length > 0 ? normalizedUsers : defaultUsers;
 }
 
+function normalizeGuideResult(result: unknown): GuideSearchResult | GuideDocument | null {
+  if (!result || typeof result !== 'object') {
+    return null;
+  }
+
+  const candidate = result as Partial<GuideSearchResult & GuideDocument>;
+  if (
+    typeof candidate.id !== 'string' ||
+    typeof candidate.title !== 'string' ||
+    typeof candidate.summary !== 'string' ||
+    typeof candidate.sourceName !== 'string' ||
+    typeof candidate.sourceUrl !== 'string'
+  ) {
+    return null;
+  }
+
+  const base: GuideSearchResult = {
+    id: candidate.id,
+    title: candidate.title,
+    summary: candidate.summary,
+    coverImageUrl: typeof candidate.coverImageUrl === 'string' ? candidate.coverImageUrl : undefined,
+    sourceName: candidate.sourceName,
+    sourceUrl: candidate.sourceUrl,
+    authorName: typeof candidate.authorName === 'string' ? candidate.authorName : undefined,
+    publishedAt: typeof candidate.publishedAt === 'string' ? candidate.publishedAt : undefined,
+    destinationLabel: typeof candidate.destinationLabel === 'string' ? candidate.destinationLabel : undefined,
+    tags: Array.isArray(candidate.tags)
+      ? candidate.tags.filter((item): item is string => typeof item === 'string' && !!item)
+      : undefined,
+  };
+
+  if (!Array.isArray(candidate.blocks) || typeof candidate.fetchedAt !== 'string') {
+    return base;
+  }
+
+  const isGuideContentBlockType = (value: unknown): value is GuideDocument['blocks'][number]['type'] =>
+    value === 'paragraph' || value === 'bullet-list' || value === 'section-title' || value === 'tips';
+
+  const blocks = candidate.blocks
+    .filter(
+      (item): item is GuideDocument['blocks'][number] =>
+        !!item &&
+        typeof item === 'object' &&
+        typeof item.id === 'string' &&
+        isGuideContentBlockType(item.type) &&
+        typeof item.text === 'string',
+    )
+    .map((item) => ({
+      id: item.id,
+      type: item.type,
+      text: item.text,
+    }));
+
+  return {
+    ...base,
+    blocks,
+    fetchedAt: candidate.fetchedAt,
+  };
+}
+
+function normalizeSavedGuides(savedGuides: unknown): SavedGuide[] {
+  if (!Array.isArray(savedGuides)) {
+    return [];
+  }
+
+  return savedGuides.reduce<SavedGuide[]>((accumulator, item) => {
+    if (
+      !item ||
+      typeof item !== 'object' ||
+      typeof item.id !== 'string' ||
+      typeof item.savedByUserId !== 'string' ||
+      typeof item.keyword !== 'string' ||
+      typeof item.savedAt !== 'string'
+    ) {
+      return accumulator;
+    }
+
+    const result = normalizeGuideResult((item as Partial<SavedGuide>).result);
+    if (!result) {
+      return accumulator;
+    }
+
+    accumulator.push({
+      id: item.id,
+      markerId: typeof (item as Partial<SavedGuide>).markerId === 'string' ? (item as Partial<SavedGuide>).markerId : undefined,
+      savedByUserId: item.savedByUserId,
+      keyword: item.keyword,
+      result,
+      savedAt: item.savedAt,
+    });
+    return accumulator;
+  }, []);
+}
+
+function normalizeGuideSearchHistory(history: unknown): GuideSearchHistoryItem[] {
+  if (!Array.isArray(history)) {
+    return [];
+  }
+
+  return history.filter(
+    (item): item is GuideSearchHistoryItem =>
+      !!item &&
+      typeof item === 'object' &&
+      typeof item.id === 'string' &&
+      typeof item.keyword === 'string' &&
+      (item.scope === 'domestic' || item.scope === 'international' || item.scope === 'all') &&
+      typeof item.createdAt === 'string',
+  );
+}
+
 function normalizeStore(
   rawStore:
     | Partial<TravelStore>
@@ -106,8 +226,10 @@ function normalizeStore(
       typeof parsed.activeUserId === 'string' && normalizedUsers.some((item) => item.id === parsed.activeUserId)
         ? parsed.activeUserId
         : normalizedUsers[0].id;
+    const savedGuides = normalizeSavedGuides(parsed.savedGuides);
+    const guideSearchHistory = normalizeGuideSearchHistory(parsed.guideSearchHistory);
 
-    return { users: normalizedUsers, markers, activeUserId };
+    return { users: normalizedUsers, markers, activeUserId, savedGuides, guideSearchHistory };
   } catch {
     return createDefaultStore();
   }
@@ -183,6 +305,26 @@ export function createMarker(marker: Omit<VisitMarker, 'id' | 'createdAt'>): Vis
   return {
     ...marker,
     id: `marker-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+export function createSavedGuide(savedGuide: Omit<SavedGuide, 'id' | 'savedAt'>): SavedGuide {
+  return {
+    ...savedGuide,
+    id: `guide-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    savedAt: new Date().toISOString(),
+  };
+}
+
+export function createGuideSearchHistoryItem(
+  keyword: string,
+  scope: GuideSearchHistoryItem['scope'],
+): GuideSearchHistoryItem {
+  return {
+    id: `guide-history-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    keyword,
+    scope,
     createdAt: new Date().toISOString(),
   };
 }

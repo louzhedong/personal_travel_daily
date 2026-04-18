@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import GuideSearchPanel from '../components/GuideSearchPanel';
 import MarkerForm, { type MarkerFormValue } from '../components/MarkerForm';
 import MarkerDetailPanel from '../components/MarkerDetailPanel';
 import MarkerList from '../components/MarkerList';
@@ -17,6 +18,9 @@ function App() {
   const [storeReady, setStoreReady] = useState(false);
   const [selectedRegionId, setSelectedRegionId] = useState<string>('');
   const [detailMarkerId, setDetailMarkerId] = useState<string | null>(null);
+  const [guideSearchOpen, setGuideSearchOpen] = useState(false);
+  const [guideSearchQuery, setGuideSearchQuery] = useState('');
+  const [guideSearchScope, setGuideSearchScope] = useState<Scope | 'all'>('all');
   const [markerModalOpen, setMarkerModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('点击地图区域即可弹出表单，快速记录你的旅行足迹。');
@@ -192,6 +196,12 @@ function App() {
     setMessage(`已更新 ${target.scopeName} · ${target.city} 的旅行记录。`);
   };
 
+  const openGuideSearch = (query: string, nextScope: Scope | 'all') => {
+    setGuideSearchQuery(query);
+    setGuideSearchScope(nextScope);
+    setGuideSearchOpen(true);
+  };
+
   return (
     <div className="app-shell">
       <header className="hero card">
@@ -301,6 +311,16 @@ function App() {
             </strong>
             <p className="hero-tip-text">{message}</p>
           </div>
+          <button
+            type="button"
+            className="primary-button hero-guide-button"
+            onClick={() => openGuideSearch('', 'all')}
+          >
+            <span className="travel-icon-inline hero-guide-button-icon">
+              <TravelIcon name="globe" size={16} />
+            </span>
+            搜索旅游攻略
+          </button>
         </div>
       </header>
 
@@ -408,6 +428,16 @@ function App() {
         canEdit={detailMarker?.userId === store.activeUserId}
         onClose={() => setDetailMarkerId(null)}
         onUpdate={handleUpdateMarker}
+        onOpenGuideSearch={(query, markerScope) => {
+          setDetailMarkerId(null);
+          openGuideSearch(query, markerScope);
+        }}
+      />
+      <GuideSearchPanel
+        open={guideSearchOpen}
+        initialQuery={guideSearchQuery}
+        initialScope={guideSearchScope}
+        onClose={() => setGuideSearchOpen(false)}
       />
     </div>
   );
