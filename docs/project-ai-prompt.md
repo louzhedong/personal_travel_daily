@@ -15,6 +15,7 @@
 - 多人记录：支持多个旅伴用户，以不同颜色区分足迹
 - 时间线轨迹：在地图上按时间顺序串联同一用户的旅行路径
 - 品牌体验：整体风格偏轻、克制、旅行产品化，而不是后台管理系统
+- 攻略搜索：围绕目的地快速搜索、浏览和回看攻略摘要与正文片段
 
 ## 当前核心功能
 
@@ -81,6 +82,23 @@
   - 颜色主题名
   - 品牌化表单条布局
 
+### 5. 攻略搜索
+
+- 首页 Hero 区已提供 `搜索旅游攻略` 入口
+- `MarkerDetailPanel` 已提供 `查找攻略` 入口
+- 当前使用 `GuideSearchPanel` 承载攻略搜索交互
+- 支持：
+  - 按关键词搜索攻略
+  - 范围切换：`all / domestic / international`
+  - 查看结果卡片的标题、摘要、封面、来源、标签、发布时间
+  - 查看结构化正文片段
+  - 跳转原始来源链接
+  - 最近搜索词展示
+- 当前已接入：
+  - `mock provider`
+  - `remote provider`
+  - 本地 `guide-api` 服务
+
 ## 技术栈
 
 - React 19
@@ -91,6 +109,7 @@
 - Vitest + Testing Library
 - ImgBB API（图片上传）
 - IndexedDB（主存储）
+- 本地 `guide-api` 服务（攻略搜索 / 文档聚合）
 - `localStorage`（仅兼容旧数据迁移 / fallback）
 
 ## 当前数据模型
@@ -122,8 +141,21 @@ interface TravelStore {
   users: UserProfile[];
   markers: VisitMarker[];
   activeUserId: string;
+  savedGuides: SavedGuide[];
+  guideSearchHistory: GuideSearchHistoryItem[];
 }
 ```
+
+当前攻略搜索相关类型还包括：
+
+- `GuideSearchParams`
+- `GuideSearchResult`
+- `GuideDocument`
+- `GuideSearchResponse`
+- `SavedGuide`
+- `GuideSearchHistoryItem`
+- `GuideSearchCacheRecord`
+- `GuideDocumentCacheRecord`
 
 ## 当前存储架构
 
@@ -134,6 +166,10 @@ interface TravelStore {
 - `users`
 - `markers`
 - `meta`
+- `savedGuides`
+- `guideSearchHistory`
+- `guideSearchCache`
+- `guideDocumentCache`
 
 ### 当前分层
 
@@ -143,6 +179,8 @@ interface TravelStore {
   - 负责默认 store、数据归一化、旧数据迁移、`createUser / createMarker`
 - `src/modules/App.tsx`
   - 负责异步加载持久化数据和保存状态
+- `src/lib/repositories/guideRepository.ts`
+  - 负责攻略搜索历史、缓存、正文缓存的读写
 
 ### 存储要求
 
@@ -167,6 +205,18 @@ interface TravelStore {
 
 - `src/components/MarkerForm.tsx`
 - `src/components/MarkerList.tsx`
+- `src/components/MarkerDetailPanel.tsx`
+
+### 攻略搜索相关
+
+- `src/components/GuideSearchPanel.tsx`
+- `src/lib/guides/guideSearchService.ts`
+- `src/lib/guides/guideContentService.ts`
+- `src/lib/guides/providers/mockGuideSearchProvider.ts`
+- `src/lib/guides/providers/remoteGuideSearchProvider.ts`
+- `server/guideApiServer.mjs`
+- `server/guideSearchEngine.mjs`
+- `server/adapters/`
 
 ### 用户相关
 
@@ -186,7 +236,11 @@ interface TravelStore {
 
 - `src/components/__tests__/TravelMap.spec.tsx`
 - `src/components/__tests__/UserManager.spec.tsx`
+- `src/components/__tests__/GuideSearchPanel.spec.tsx`
 - `src/lib/repositories/__tests__/travelStoreRepository.spec.ts`
+- `src/lib/repositories/__tests__/guideRepository.spec.ts`
+- `src/lib/guides/__tests__/guideSearchService.spec.ts`
+- `server/__tests__/guideSearchEngine.spec.ts`
 
 ## UI / 设计约束
 
@@ -229,8 +283,13 @@ interface TravelStore {
    - hover 和 tooltip 的稳定性
    - 不要让新交互遮挡地图主体
 4. 如果改 UI，必须延续现有品牌语言
-5. 新增逻辑后，优先补最小必要测试
-6. 改完后至少执行：
+5. 如果改攻略搜索，必须考虑：
+   - Hero 入口与详情入口是否仍然可用
+   - provider 抽象是否被保持
+   - `/api/guides/search` 与 `/api/guides/document` 是否兼容
+   - 缓存 TTL、搜索历史与 IndexedDB object store 是否受影响
+6. 新增逻辑后，优先补最小必要测试
+7. 改完后至少执行：
    - `npm run test`
    - `npm run build`
 
@@ -242,6 +301,21 @@ interface TravelStore {
 - 如果要新增模块，请说明它在当前架构中的职责
 - 如果涉及状态流或存储迁移，请明确说明数据流变化
 - 如果涉及 UI 改动，请说明为什么符合当前产品风格
+- 如果涉及攻略搜索，请说明是“面板层 / provider 层 / 服务端接口层 / 文档层”中的哪一层变更
+
+## 攻略搜索专项工作原则
+
+当任务和“搜索攻略”相关时，请优先遵循以下原则：
+
+1. 不把它做成搜索后台或内容管理系统
+2. 入口应贴近旅行上下文，优先服务“目的地探索”
+3. 前端优先复用 `GuideSearchPanel + service + provider + repository` 分层
+4. 服务端优先保持 `/api/guides/search` 与 `/api/guides/document` 的稳定合同
+5. 默认展示摘要和结构化片段，不做第三方全文镜像
+6. 文档或 prompt 更新时，要明确区分：
+   - 已落地能力
+   - 预留能力
+   - 暂未开放能力
 
 ## 当前 AI 的工作上下文
 

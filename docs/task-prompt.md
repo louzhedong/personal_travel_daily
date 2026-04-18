@@ -22,6 +22,7 @@
 - SVG + `d3-geo` 地图渲染
 - IndexedDB repository 持久化
 - ImgBB 图片上传
+- 本地 `guide-api` 服务 + provider 抽象
 - Vitest + Testing Library
 
 ## 当前数据模型
@@ -53,6 +54,8 @@ interface TravelStore {
   users: UserProfile[];
   markers: VisitMarker[];
   activeUserId: string;
+  savedGuides: SavedGuide[];
+  guideSearchHistory: GuideSearchHistoryItem[];
 }
 ```
 
@@ -66,10 +69,18 @@ interface TravelStore {
   - 旅行记录录入
 - `MarkerList.tsx`
   - 记录展示
+- `GuideSearchPanel.tsx`
+  - 攻略搜索面板、结果列表、正文片段查看
 - `UserManager.tsx`
   - 旅伴管理
 - `travelStoreRepository.ts`
   - IndexedDB repository
+- `guideRepository.ts`
+  - 搜索历史、搜索缓存、正文缓存
+- `guideSearchService.ts`
+  - 攻略搜索服务入口
+- `guideContentService.ts`
+  - 攻略正文片段服务入口
 - `storage.ts`
   - 数据归一化、迁移、domain helper
 
@@ -84,6 +95,7 @@ interface TravelStore {
    - 存储：说明 schema / migration 影响
    - 地图：说明缩放 / hover / tooltip 影响
    - UI：说明是否符合当前品牌风格
+   - 攻略搜索：说明入口、provider、缓存、接口合同是否受影响
 5. 修改后运行必要验证：
    - `npm run test`
    - `npm run build`
@@ -104,17 +116,22 @@ interface TravelStore {
 
 - 最小改动方案是什么
 - 是否需要新增状态 / 数据结构 / 样式 / 测试
+- 如果是攻略搜索功能：
+  - 优先说明是前端面板改动、provider 改动、服务端接口改动，还是文档 / prompt 改动
 
 ### 风险点
 
 - 是否影响已有交互
 - 是否影响存储兼容性
 - 是否影响地图性能
+- 是否影响攻略搜索历史、缓存命中或远程接口兼容性
 
 ### 验证
 
 - 运行哪些命令
 - 观察哪些行为
+- 如果是攻略搜索：
+  - 观察 Hero 入口、详情面板入口、搜索结果、正文片段、错误态是否正常
 
 ## 输出要求
 
@@ -124,6 +141,7 @@ interface TravelStore {
 - 保持样式集中在 `src/styles/index.css`
 - 测试只补必要覆盖，避免低价值测试
 - 不要无故改动无关文件
+- 如果有现成文档，优先同步更新 `README.md` 和 `docs/guide-search-feature.md`
 
 ## 示例任务说明
 
