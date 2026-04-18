@@ -27,6 +27,7 @@
 - `d3-geo`
 - IndexedDB
 - ImgBB API
+- 本地 `guide-api` 服务（攻略搜索 / 正文聚合）
 - Vitest + Testing Library
 
 ## 当前存储架构
@@ -47,6 +48,10 @@
 - `users`
 - `markers`
 - `meta`
+- `savedGuides`
+- `guideSearchHistory`
+- `guideSearchCache`
+- `guideDocumentCache`
 
 ### 存储要求
 
@@ -79,6 +84,15 @@
 - 日期范围
 - 多图上传
 - 记录列表卡片
+
+### 攻略搜索模块
+
+- 首页 Hero 区支持打开攻略搜索面板
+- 旅行记录详情支持一键带入关键词搜索
+- `GuideSearchPanel` 负责关键词搜索、结果展示、正文片段查看
+- 搜索范围支持 `all / domestic / international`
+- 搜索历史、搜索缓存、正文缓存存放在 IndexedDB
+- 支持 `mock provider` 与 `remote provider`
 
 ### 旅伴管理模块
 
@@ -121,6 +135,7 @@
 4. 改地图时考虑缩放下表现
 5. 新逻辑优先补最小必要测试
 6. 不引入无必要依赖
+7. 如果改攻略搜索功能，优先复用现有 provider / repository / panel 结构
 
 ## 工作流程要求
 
@@ -141,3 +156,7 @@
 - 如果改动存储层，说明 migration / schema 影响
 - 如果改动 UI，说明为什么符合当前视觉语言
 - 如果改动地图交互，说明缩放、hover、tooltip 是否受影响
+- 如果改动攻略搜索，说明：
+  - 是否影响 `GuideSearchPanel` 入口和状态流
+  - 是否影响 provider 接口或 `/api/guides/*` 合同
+  - 是否影响缓存 TTL、搜索历史或 IndexedDB schema

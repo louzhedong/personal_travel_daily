@@ -11,6 +11,7 @@
 - 图片上传到 `ImgBB`，保存公网图片链接并支持多图预览
 - 多用户 / 旅伴管理，支持独立颜色、当前用户切换和新增旅伴
 - 旅行记录列表支持按用户筛选、图片预览、仅当前用户删除自己的记录
+- 新增攻略搜索面板，支持关键词搜索、最近搜索词、结构化正文片段与原文跳转
 - 地图支持缩放、平移、hover 提示、标签阈值显示与性能优化
 - 响应式布局，兼容桌面端与移动端浏览
 
@@ -21,8 +22,13 @@
 ├── index.html
 ├── package.json
 ├── .env.example
+├── server
+│   ├── guideApiServer.mjs
+│   ├── guideSearchEngine.mjs
+│   └── adapters/
 ├── src
 │   ├── components
+│   │   ├── GuideSearchPanel.tsx
 │   │   ├── MapToggle.tsx
 │   │   ├── MarkerForm.tsx
 │   │   ├── MarkerList.tsx
@@ -35,6 +41,8 @@
 │   │   └── regions.ts
 │   ├── lib
 │   │   ├── imageUpload.ts
+│   │   ├── guides/
+│   │   ├── repositories/
 │   │   └── storage.ts
 │   ├── test
 │   │   └── setup.ts
@@ -92,6 +100,8 @@ interface TravelStore {
   users: UserProfile[];
   markers: VisitMarker[];
   activeUserId: string;
+  savedGuides: SavedGuide[];
+  guideSearchHistory: GuideSearchHistoryItem[];
 }
 ```
 
@@ -105,6 +115,12 @@ npm install
 npm run dev
 ```
 
+如需联调真实攻略搜索服务，请额外启动：
+
+```bash
+npm run dev:guide-api
+```
+
 如需开启图片上传，请在本地配置：
 
 ```bash
@@ -115,11 +131,17 @@ cp .env.example .env.local
 
 ```bash
 VITE_IMGBB_API_KEY=your_imgbb_api_key
+VITE_GUIDE_SEARCH_PROVIDER=remote
+VITE_GUIDE_SEARCH_API_BASE_URL=/api/guides
+VITE_GUIDE_SEARCH_API_KEY=
+VITE_GUIDE_CONTENT_MODE=summary
+GUIDE_POI_GEOAPIFY_API_KEY=your_geoapify_api_key
 ```
 
 开发地址默认是：
 
 - `http://localhost:5173/`
+- 攻略服务默认监听：`http://localhost:8787/`
 
 ## 打包构建
 
@@ -139,6 +161,8 @@ npm run test
 
 - `TravelMap` 缩放阈值标签显示与点击选择
 - `UserManager` 用户切换与新增用户交互
+- `GuideSearchPanel` 搜索、结果渲染与正文片段查看
+- 攻略搜索 service / repository / server engine 的基础能力
 
 ## 设计 Token
 
@@ -157,6 +181,8 @@ npm run test
 3. 录入城市、旅行时间段、描述，可按需上传多张旅行图片
 4. 在 `旅伴管理` 模块中切换当前记录者，或新增旅伴并设置地图颜色
 5. 在记录列表中按当前模式查看旅行记录，支持按用户筛选、预览图片和删除自己的记录
+6. 点击首页 `搜索旅游攻略`，或在旅行记录详情中点击 `查找攻略` 打开攻略搜索面板
+7. 输入目的地、季节或玩法关键词后执行搜索，查看摘要、标签、来源与正文片段
 
 ## 技术说明
 
@@ -168,6 +194,7 @@ npm run test
 - 国内地图：本地静态文件 `public/maps/china-provinces.json`
 - 国外地图：本地静态文件 `public/maps/world-countries.json`
 - 图片上传：ImgBB API（读取 `VITE_IMGBB_API_KEY`）
+- 攻略搜索：前端 `GuideSearchPanel` + provider 抽象 + 本地 `guide-api` 服务
 - 单元测试：Vitest + Testing Library
 
 ## 当前界面形态
@@ -177,11 +204,18 @@ npm run test
 - 地图模块：品牌化标题区、segmented header、滑块式视图切换、品牌化缩放工具
 - 旅伴管理：头像首字母徽章、在线光点、颜色主题名、品牌表单条
 - 记录列表：旅行内容卡片、多图网格、图片原图预览
+- 攻略搜索：右侧抽屉式搜索面板，支持列表结果与结构化正文片段联动
 
 ## 文档索引
 
 - 视觉 Token 文档：`docs/design-tokens.md`
 - 地图渲染与 hover 性能文档：`docs/map-rendering-and-hover-performance.md`
+- 攻略搜索功能说明：`docs/guide-search-feature.md`
+- 攻略搜索专项 Prompt：`docs/guide-search-prompt.md`
+- 攻略搜索前端实现 Prompt：`docs/guide-search-frontend-prompt.md`
+- 攻略搜索后端 Adapter Prompt：`docs/guide-search-adapter-prompt.md`
+- 攻略搜索 API 合同：`docs/guide-search-api-contract.md`
+- 攻略搜索设计文档：`docs/travel-guide-search-design.md`
 - AI System Prompt：`docs/system-prompt.md`
 - AI Task Prompt：`docs/task-prompt.md`
 - AI Design Prompt：`docs/design-prompt.md`
