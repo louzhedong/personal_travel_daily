@@ -20,6 +20,86 @@ export interface VisitMarker {
   createdAt: string;
 }
 
+export interface GuideSearchParams {
+  keyword: string;
+  scope?: Scope | 'all';
+  page?: number;
+  pageSize?: number;
+  markerId?: string;
+}
+
+export interface GuideSearchResult {
+  id: string;
+  title: string;
+  summary: string;
+  coverImageUrl?: string;
+  sourceName: string;
+  sourceUrl: string;
+  authorName?: string;
+  publishedAt?: string;
+  destinationLabel?: string;
+  tags?: string[];
+}
+
+export interface GuideContentBlock {
+  id: string;
+  type: 'paragraph' | 'bullet-list' | 'section-title' | 'tips';
+  text: string;
+}
+
+export interface GuideDocument {
+  id: string;
+  title: string;
+  summary: string;
+  coverImageUrl?: string;
+  sourceName: string;
+  sourceUrl: string;
+  authorName?: string;
+  publishedAt?: string;
+  destinationLabel?: string;
+  tags?: string[];
+  blocks: GuideContentBlock[];
+  fetchedAt: string;
+}
+
+export interface GuideSearchResponse {
+  items: GuideSearchResult[];
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+  provider: string;
+  fetchedAt: string;
+}
+
+export interface SavedGuide {
+  id: string;
+  markerId?: string;
+  savedByUserId: string;
+  keyword: string;
+  result: GuideSearchResult | GuideDocument;
+  savedAt: string;
+}
+
+export interface GuideSearchHistoryItem {
+  id: string;
+  keyword: string;
+  scope: Scope | 'all';
+  createdAt: string;
+}
+
+export interface GuideSearchCacheRecord {
+  key: string;
+  params: GuideSearchParams;
+  response: GuideSearchResponse;
+  expiresAt: string;
+}
+
+export interface GuideDocumentCacheRecord {
+  key: string;
+  document: GuideDocument;
+  expiresAt: string;
+}
+
 export interface RegionOption {
   id: string;
   name: string;
@@ -38,4 +118,6 @@ export interface TravelStore {
   users: UserProfile[];
   markers: VisitMarker[];
   activeUserId: string;
+  savedGuides: SavedGuide[];
+  guideSearchHistory: GuideSearchHistoryItem[];
 }
