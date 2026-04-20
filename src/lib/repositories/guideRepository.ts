@@ -36,6 +36,14 @@ export function buildGuideDocumentCacheKey(sourceUrl: string) {
   return sourceUrl.trim().toLowerCase();
 }
 
+function buildSavedGuideIdentity(
+  savedGuide: Pick<SavedGuide, 'savedByUserId' | 'markerId' | 'result'>,
+) {
+  return `${savedGuide.savedByUserId}::${savedGuide.markerId ?? '__favorite__'}::${buildGuideDocumentCacheKey(
+    savedGuide.result.sourceUrl,
+  )}`;
+}
+
 export async function loadSavedGuides(): Promise<SavedGuide[]> {
   if (!supportsIndexedDb()) {
     return [];
@@ -43,10 +51,31 @@ export async function loadSavedGuides(): Promise<SavedGuide[]> {
 
   const database = await openDatabase();
   try {
-    return await readAllFromStore<SavedGuide>(database, SAVED_GUIDES_STORE);
+    const items = await readAllFromStore<SavedGuide>(database, SAVED_GUIDES_STORE);
+    return items.sort((a, b) => b.savedAt.localeCompare(a.savedAt));
   } finally {
     database.close();
   }
+}
+
+export async function loadSavedGuidesByUserId(userId: string): Promise<SavedGuide[]> {
+  const items = await loadSavedGuides();
+  return items.filter((item) => item.savedByUserId === userId);
+}
+
+export async function loadSavedGuidesByMarkerId(markerId: string): Promise<SavedGuide[]> {
+  const items = await loadSavedGuides();
+  return items.filter((item) => item.markerId === markerId);
+}
+
+export async function findSavedGuideBySourceUrl(
+  savedByUserId: string,
+  sourceUrl: string,
+  markerId?: string,
+): Promise<SavedGuide | null> {
+  const items = await loadSavedGuides();
+  const identity = `${savedByUserId}::${markerId ?? '__favorite__'}::${buildGuideDocumentCacheKey(sourceUrl)}`;
+  return items.find((item) => buildSavedGuideIdentity(item) === identity) ?? null;
 }
 
 export async function saveSavedGuide(savedGuide: SavedGuide): Promise<void> {
@@ -57,6 +86,30 @@ export async function saveSavedGuide(savedGuide: SavedGuide): Promise<void> {
   const database = await openDatabase();
   try {
     await putRecord(database, SAVED_GUIDES_STORE, savedGuide);
+  } finally {
+    database.close();
+  }
+}
+
+export async function upsertSavedGuide(savedGuide: SavedGuide): Promise<SavedGuide> {
+  if (!supportsIndexedDb()) {
+    return savedGuide;
+  }
+
+  const database = await openDatabase();
+  try {
+    const items = await readAllFromStore<SavedGuide>(database, SAVED_GUIDES_STORE);
+    const duplicate = items.find((item) => buildSavedGuideIdentity(item) === buildSavedGuideIdentity(savedGuide));
+    const nextSavedGuide = duplicate
+      ? {
+          ...savedGuide,
+          id: duplicate.id,
+          savedAt: duplicate.savedAt,
+        }
+      : savedGuide;
+
+    await putRecord(database, SAVED_GUIDES_STORE, nextSavedGuide);
+    return nextSavedGuide;
   } finally {
     database.close();
   }

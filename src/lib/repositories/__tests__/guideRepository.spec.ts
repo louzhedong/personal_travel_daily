@@ -2,15 +2,19 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   buildGuideDocumentCacheKey,
   buildGuideSearchCacheKey,
+  findSavedGuideBySourceUrl,
   loadGuideDocumentCache,
   loadGuideSearchCache,
   loadGuideSearchHistory,
   loadSavedGuides,
+  loadSavedGuidesByMarkerId,
+  loadSavedGuidesByUserId,
   removeSavedGuide,
   saveGuideDocumentCache,
   saveGuideSearchCache,
   saveGuideSearchHistoryItem,
   saveSavedGuide,
+  upsertSavedGuide,
 } from '../guideRepository';
 
 const DB_NAME = 'voyage-atlas-db';
@@ -49,6 +53,113 @@ describe('guideRepository', () => {
     await removeSavedGuide('saved-1');
 
     expect(await loadSavedGuides()).toEqual([]);
+  });
+
+  it('loads saved guides by user and marker', async () => {
+    await saveSavedGuide({
+      id: 'saved-1',
+      savedByUserId: 'u1',
+      keyword: 'kyoto sakura',
+      result: {
+        id: 'guide-1',
+        title: 'Kyoto Sakura Guide',
+        summary: 'Great for spring.',
+        sourceName: 'Mock Travel',
+        sourceUrl: 'https://example.com/guide/1',
+      },
+      savedAt: '2026-04-17T00:00:00.000Z',
+    });
+    await saveSavedGuide({
+      id: 'saved-2',
+      savedByUserId: 'u1',
+      markerId: 'marker-1',
+      keyword: 'kyoto temple',
+      result: {
+        id: 'guide-2',
+        title: 'Kyoto Temple Guide',
+        summary: 'Temple route.',
+        sourceName: 'Mock Travel',
+        sourceUrl: 'https://example.com/guide/2',
+      },
+      savedAt: '2026-04-18T00:00:00.000Z',
+    });
+    await saveSavedGuide({
+      id: 'saved-3',
+      savedByUserId: 'u2',
+      markerId: 'marker-2',
+      keyword: 'osaka food',
+      result: {
+        id: 'guide-3',
+        title: 'Osaka Food Guide',
+        summary: 'Eat more.',
+        sourceName: 'Mock Travel',
+        sourceUrl: 'https://example.com/guide/3',
+      },
+      savedAt: '2026-04-19T00:00:00.000Z',
+    });
+
+    expect((await loadSavedGuidesByUserId('u1')).map((item) => item.id)).toEqual(['saved-2', 'saved-1']);
+    expect((await loadSavedGuidesByMarkerId('marker-1')).map((item) => item.id)).toEqual(['saved-2']);
+  });
+
+  it('upserts favorite guides by source url without duplicates', async () => {
+    const firstSavedGuide = await upsertSavedGuide({
+      id: 'saved-1',
+      savedByUserId: 'u1',
+      keyword: 'kyoto sakura',
+      result: {
+        id: 'guide-1',
+        title: 'Kyoto Sakura Guide',
+        summary: 'Great for spring.',
+        sourceName: 'Mock Travel',
+        sourceUrl: 'https://example.com/guide/1',
+      },
+      savedAt: '2026-04-17T00:00:00.000Z',
+    });
+
+    const secondSavedGuide = await upsertSavedGuide({
+      id: 'saved-2',
+      savedByUserId: 'u1',
+      keyword: 'kyoto sakura trip',
+      result: {
+        id: 'guide-1b',
+        title: 'Kyoto Sakura Guide Updated',
+        summary: 'Updated summary.',
+        sourceName: 'Mock Travel',
+        sourceUrl: 'https://example.com/guide/1',
+      },
+      savedAt: '2026-04-19T00:00:00.000Z',
+    });
+
+    const savedGuides = await loadSavedGuides();
+    expect(savedGuides).toHaveLength(1);
+    expect(firstSavedGuide.id).toBe('saved-1');
+    expect(secondSavedGuide.id).toBe('saved-1');
+    expect(savedGuides[0].result.title).toBe('Kyoto Sakura Guide Updated');
+    expect(savedGuides[0].savedAt).toBe('2026-04-17T00:00:00.000Z');
+  });
+
+  it('finds and removes marker-linked guides by source url', async () => {
+    await upsertSavedGuide({
+      id: 'saved-1',
+      savedByUserId: 'u1',
+      markerId: 'marker-1',
+      keyword: 'kyoto sakura',
+      result: {
+        id: 'guide-1',
+        title: 'Kyoto Sakura Guide',
+        summary: 'Great for spring.',
+        sourceName: 'Mock Travel',
+        sourceUrl: 'https://example.com/guide/1',
+      },
+      savedAt: '2026-04-17T00:00:00.000Z',
+    });
+
+    const found = await findSavedGuideBySourceUrl('u1', 'https://example.com/guide/1', 'marker-1');
+    expect(found?.id).toBe('saved-1');
+
+    await removeSavedGuide('saved-1');
+    expect(await loadSavedGuidesByMarkerId('marker-1')).toEqual([]);
   });
 
   it('returns guide search history sorted by createdAt desc', async () => {

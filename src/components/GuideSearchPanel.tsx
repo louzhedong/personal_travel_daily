@@ -4,13 +4,19 @@ import { searchGuides } from '../lib/guides/guideSearchService';
 import { loadGuideSearchHistory, saveGuideSearchHistoryItem } from '../lib/repositories/guideRepository';
 import { createGuideSearchHistoryItem } from '../lib/storage';
 import TravelIcon from './TravelIcon';
-import type { GuideDocument, GuideSearchHistoryItem, GuideSearchResult, Scope } from '../types';
+import type { GuideDocument, GuideSearchHistoryItem, GuideSearchResult, SavedGuide, Scope } from '../types';
 
 interface GuideSearchPanelProps {
   open: boolean;
   initialQuery?: string;
   initialScope?: Scope | 'all';
+  activeUserId: string;
+  linkedMarkerId?: string | null;
+  savedGuides: SavedGuide[];
   onClose: () => void;
+  onSaveGuide: (guide: GuideSearchResult, keyword: string) => void;
+  onAttachGuideToMarker: (guide: GuideSearchResult, keyword: string, markerId: string) => void;
+  onRemoveSavedGuide: (savedGuideId: string) => void;
 }
 
 function canOpenOriginalSource(sourceUrl: string) {
@@ -25,8 +31,16 @@ export function GuideSearchPanel({
   open,
   initialQuery = '',
   initialScope = 'all',
+  activeUserId,
+  linkedMarkerId = null,
+  savedGuides,
   onClose,
+  onSaveGuide,
+  onAttachGuideToMarker,
+  onRemoveSavedGuide,
 }: GuideSearchPanelProps) {
+  const [shouldRender, setShouldRender] = useState(open);
+  const [visible, setVisible] = useState(false);
   const [query, setQuery] = useState(initialQuery);
   const [scope, setScope] = useState<Scope | 'all'>(initialScope);
   const [items, setItems] = useState<GuideSearchResult[]>([]);
@@ -41,6 +55,24 @@ export function GuideSearchPanel({
   const [documentError, setDocumentError] = useState('');
 
   useEffect(() => {
+    let timeoutId: number | undefined;
+
+    if (open) {
+      setShouldRender(true);
+      timeoutId = window.setTimeout(() => setVisible(true), 16);
+    } else if (shouldRender) {
+      setVisible(false);
+      timeoutId = window.setTimeout(() => setShouldRender(false), 260);
+    }
+
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [open, shouldRender]);
+
+  useEffect(() => {
     if (!open) {
       return;
     }
@@ -50,7 +82,7 @@ export function GuideSearchPanel({
   }, [initialQuery, initialScope, open]);
 
   useEffect(() => {
-    if (!open) {
+    if (!shouldRender) {
       return;
     }
 
@@ -68,7 +100,7 @@ export function GuideSearchPanel({
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeydown);
     };
-  }, [onClose, open]);
+  }, [onClose, shouldRender]);
 
   useEffect(() => {
     if (!open) {
@@ -98,6 +130,16 @@ export function GuideSearchPanel({
 
     return '攻略搜索';
   }, [selectedGuide]);
+
+  const normalizedKeyword = searchedKeyword || query.trim();
+
+  const getSavedGuideBySourceUrl = (sourceUrl: string, markerId?: string) =>
+    savedGuides.find(
+      (item) =>
+        item.savedByUserId === activeUserId &&
+        item.markerId === markerId &&
+        item.result.sourceUrl.trim().toLowerCase() === sourceUrl.trim().toLowerCase(),
+    );
 
   const runSearch = async (nextQuery = query, nextScope = scope) => {
     const trimmed = nextQuery.trim();
@@ -154,18 +196,21 @@ export function GuideSearchPanel({
     }
   };
 
-  if (!open) {
+  if (!shouldRender) {
     return null;
   }
 
   return (
-    <div className="guide-search-backdrop" onClick={onClose}>
+    <div
+      className={visible ? 'guide-search-backdrop is-visible' : 'guide-search-backdrop'}
+      onClick={onClose}
+    >
       <aside
-        className="guide-search-panel"
+        className={visible ? 'guide-search-panel is-visible' : 'guide-search-panel'}
         aria-label="攻略搜索"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="guide-search-header">
+        <div className={visible ? 'guide-search-header guide-search-animate in' : 'guide-search-header guide-search-animate'}>
           <div className="guide-search-heading">
             <span className="travel-icon-badge travel-icon-badge-teal guide-search-heading-icon">
               <TravelIcon name="globe" size={16} />
@@ -186,7 +231,7 @@ export function GuideSearchPanel({
           </button>
         </div>
 
-        <div className="guide-search-toolbar">
+        <div className={visible ? 'guide-search-toolbar guide-search-animate in delay-1' : 'guide-search-toolbar guide-search-animate delay-1'}>
           <div className="guide-search-input-row">
             <input
               value={query}
@@ -257,7 +302,7 @@ export function GuideSearchPanel({
           ) : null}
         </div>
 
-        <div className="guide-search-layout">
+        <div className={visible ? 'guide-search-layout guide-search-animate in delay-2' : 'guide-search-layout guide-search-animate delay-2'}>
           <section className="guide-search-results">
             <div className="guide-section-heading">
               <strong>搜索结果</strong>
@@ -310,6 +355,52 @@ export function GuideSearchPanel({
                         >
                           查看片段
                         </button>
+                        {getSavedGuideBySourceUrl(item.sourceUrl) ? (
+                          <button
+                            type="button"
+                            className="ghost-button guide-action-button"
+                            onClick={() => {
+                              const existingGuide = getSavedGuideBySourceUrl(item.sourceUrl);
+                              if (existingGuide) {
+                                onRemoveSavedGuide(existingGuide.id);
+                              }
+                            }}
+                          >
+                            取消收藏
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="ghost-button guide-action-button"
+                            onClick={() => onSaveGuide(item, normalizedKeyword)}
+                          >
+                            收藏攻略
+                          </button>
+                        )}
+                        {linkedMarkerId ? (
+                          getSavedGuideBySourceUrl(item.sourceUrl, linkedMarkerId) ? (
+                            <button
+                              type="button"
+                              className="ghost-button guide-action-button"
+                              onClick={() => {
+                                const existingGuide = getSavedGuideBySourceUrl(item.sourceUrl, linkedMarkerId);
+                                if (existingGuide) {
+                                  onRemoveSavedGuide(existingGuide.id);
+                                }
+                              }}
+                            >
+                              解除关联
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="ghost-button guide-action-button"
+                              onClick={() => onAttachGuideToMarker(item, normalizedKeyword, linkedMarkerId)}
+                            >
+                              关联到当前记录
+                            </button>
+                          )
+                        ) : null}
                         {canOpenOriginalSource(item.sourceUrl) ? (
                           <a
                             href={item.sourceUrl}
@@ -319,6 +410,14 @@ export function GuideSearchPanel({
                           >
                             {getSourceLinkLabel(item)}
                           </a>
+                        ) : null}
+                      </div>
+                      <div className="guide-result-status-row">
+                        {getSavedGuideBySourceUrl(item.sourceUrl) ? (
+                          <span className="guide-result-status">已收藏</span>
+                        ) : null}
+                        {linkedMarkerId && getSavedGuideBySourceUrl(item.sourceUrl, linkedMarkerId) ? (
+                          <span className="guide-result-status">已关联当前记录</span>
                         ) : null}
                       </div>
                     </div>
