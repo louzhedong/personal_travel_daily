@@ -10,12 +10,54 @@ import type {
   GuideSearchHistoryItem,
   GuideSearchResult,
   SavedGuide,
+  Scope,
   TravelStore,
   UserProfile,
   VisitMarker,
 } from '../types';
 
 const LEGACY_STORAGE_KEY = 'personal-travel-diary-store';
+
+interface NormalizedImportedStore {
+  users: UserProfile[];
+  markers: VisitMarker[];
+  activeUserId: string | null;
+}
+
+export interface TravelStoreMergeStats {
+  usersAdded: number;
+  usersUpdated: number;
+  markersAdded: number;
+  markersUpdated: number;
+  markersSkippedInvalidUser: number;
+}
+
+export interface TravelStoreImportPreviewUserItem extends UserProfile {
+  action: 'add' | 'update';
+}
+
+export interface TravelStoreImportPreviewMarkerItem {
+  action: 'add' | 'update' | 'skip';
+  id: string;
+  userId: string;
+  userName: string | null;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note: string;
+  visitedStartAt: string;
+  visitedEndAt: string;
+  createdAt: string;
+  reason?: string;
+}
+
+export interface TravelStoreImportPreview {
+  mergedStore: TravelStore;
+  stats: TravelStoreMergeStats;
+  users: TravelStoreImportPreviewUserItem[];
+  markers: TravelStoreImportPreviewMarkerItem[];
+}
 
 export function createDefaultStore(): TravelStore {
   return {
@@ -93,6 +135,171 @@ function normalizeUsers(users: unknown): UserProfile[] {
   );
 
   return normalizedUsers.length > 0 ? normalizedUsers : defaultUsers;
+}
+
+function normalizeImportedUsers(users: unknown): UserProfile[] {
+  if (!Array.isArray(users)) {
+    return [];
+  }
+
+  return users.filter(
+    (item): item is UserProfile =>
+      !!item &&
+      typeof item === 'object' &&
+      typeof item.id === 'string' &&
+      typeof item.name === 'string' &&
+      typeof item.color === 'string',
+  );
+}
+
+export function isTravelStoreImportPayload(
+  rawStore: unknown,
+): rawStore is Partial<TravelStore> | TravelStoreSnapshot {
+  if (!rawStore || typeof rawStore !== 'object' || Array.isArray(rawStore)) {
+    return false;
+  }
+
+  const parsed = rawStore as Record<string, unknown>;
+  const hasKnownKey = 'users' in parsed || 'markers' in parsed || 'activeUserId' in parsed;
+  if (!hasKnownKey) {
+    return false;
+  }
+
+  if ('users' in parsed && parsed.users !== undefined && !Array.isArray(parsed.users)) {
+    return false;
+  }
+
+  if ('markers' in parsed && parsed.markers !== undefined && !Array.isArray(parsed.markers)) {
+    return false;
+  }
+
+  if (
+    'activeUserId' in parsed &&
+    parsed.activeUserId !== undefined &&
+    parsed.activeUserId !== null &&
+    typeof parsed.activeUserId !== 'string'
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+export function normalizeImportedStore(
+  rawStore: Partial<TravelStore> | TravelStoreSnapshot,
+): NormalizedImportedStore {
+  const normalizedUsers = normalizeImportedUsers(rawStore.users);
+  const markers = Array.isArray(rawStore.markers)
+    ? rawStore.markers
+        .map((item) =>
+          normalizeMarker(item as Partial<VisitMarker> & { visitedAt?: string; imageUrl?: string }),
+        )
+        .filter((item): item is VisitMarker => item !== null)
+    : [];
+
+  return {
+    users: normalizedUsers,
+    markers,
+    activeUserId: typeof rawStore.activeUserId === 'string' ? rawStore.activeUserId : null,
+  };
+}
+
+export function mergeTravelStoreById(
+  currentStore: TravelStore,
+  importedStore: NormalizedImportedStore,
+): TravelStore {
+  return mergeTravelStoreByIdWithStats(currentStore, importedStore).store;
+}
+
+function analyzeTravelStoreImport(
+  currentStore: TravelStore,
+  importedStore: NormalizedImportedStore,
+): TravelStoreImportPreview {
+  const stats: TravelStoreMergeStats = {
+    usersAdded: 0,
+    usersUpdated: 0,
+    markersAdded: 0,
+    markersUpdated: 0,
+    markersSkippedInvalidUser: 0,
+  };
+
+  const userMap = new Map(currentStore.users.map((user) => [user.id, user]));
+  const previewUsers: TravelStoreImportPreviewUserItem[] = importedStore.users.map((user) => {
+    const action = userMap.has(user.id) ? 'update' : 'add';
+    if (action === 'update') {
+      stats.usersUpdated += 1;
+    } else {
+      stats.usersAdded += 1;
+    }
+    userMap.set(user.id, user);
+
+    return { ...user, action };
+  });
+  const users = Array.from(userMap.values());
+
+  const validUsers = new Map(users.map((user) => [user.id, user]));
+  const markerMap = new Map(currentStore.markers.map((marker) => [marker.id, marker]));
+  const previewMarkers: TravelStoreImportPreviewMarkerItem[] = importedStore.markers.map((marker) => {
+    const relatedUser = validUsers.get(marker.userId);
+    if (!relatedUser) {
+      stats.markersSkippedInvalidUser += 1;
+      return {
+        ...marker,
+        action: 'skip',
+        userName: null,
+        reason: '关联用户不存在',
+      };
+    }
+
+    const action = markerMap.has(marker.id) ? 'update' : 'add';
+    if (action === 'update') {
+      stats.markersUpdated += 1;
+    } else {
+      stats.markersAdded += 1;
+    }
+    markerMap.set(marker.id, marker);
+
+    return {
+      ...marker,
+      action,
+      userName: relatedUser.name,
+    };
+  });
+  const markers = Array.from(markerMap.values()).filter((marker) => validUsers.has(marker.userId));
+
+  const activeUserId = validUsers.has(currentStore.activeUserId)
+    ? currentStore.activeUserId
+    : importedStore.activeUserId && validUsers.has(importedStore.activeUserId)
+      ? importedStore.activeUserId
+      : users[0]?.id ?? createDefaultStore().activeUserId;
+
+  return {
+    mergedStore: {
+      users,
+      markers,
+      activeUserId,
+      savedGuides: currentStore.savedGuides,
+      guideSearchHistory: currentStore.guideSearchHistory,
+    },
+    stats,
+    users: previewUsers,
+    markers: previewMarkers,
+  };
+}
+
+export function createTravelStoreImportPreview(
+  currentStore: TravelStore,
+  importedStore: NormalizedImportedStore,
+): TravelStoreImportPreview {
+  return analyzeTravelStoreImport(currentStore, importedStore);
+}
+
+export function mergeTravelStoreByIdWithStats(
+  currentStore: TravelStore,
+  importedStore: NormalizedImportedStore,
+): { store: TravelStore; stats: TravelStoreMergeStats } {
+  const preview = analyzeTravelStoreImport(currentStore, importedStore);
+  return { store: preview.mergedStore, stats: preview.stats };
 }
 
 function normalizeGuideResult(result: unknown): GuideSearchResult | GuideDocument | null {

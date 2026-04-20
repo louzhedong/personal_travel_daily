@@ -7,6 +7,7 @@ import StatsPanel from '../components/StatsPanel';
 import TravelMap from '../components/TravelMap';
 import TravelIcon from '../components/TravelIcon';
 import UserManager from '../components/UserManager';
+import DataSync from '../components/DataSync';
 import { getRegionsByScope } from '../data/regions';
 import { loadGeoForScope } from '../geo/loader';
 import { createDefaultStore, createMarker, createUser, loadPersistedStore, persistStore } from '../lib/storage';
@@ -367,6 +368,13 @@ function App() {
               }
             }}
             onCreate={handleCreateUser}
+          />
+          <DataSync 
+            store={store} 
+            onRestore={(restoredStore) => {
+              setStore(restoredStore);
+              setMessage('数据导入成功，已按 ID 合并现有数据。');
+            }} 
           />
         </aside>
       </section>
