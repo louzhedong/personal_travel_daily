@@ -3,6 +3,7 @@ import GuideSearchPanel from '../components/GuideSearchPanel';
 import MarkerForm, { type MarkerFormValue } from '../components/MarkerForm';
 import MarkerDetailPanel from '../components/MarkerDetailPanel';
 import MarkerList from '../components/MarkerList';
+import SavedGuidesPanel from '../components/SavedGuidesPanel';
 import StatsPanel from '../components/StatsPanel';
 import TravelMap from '../components/TravelMap';
 import TravelIcon from '../components/TravelIcon';
@@ -10,8 +11,15 @@ import UserManager from '../components/UserManager';
 import DataSync from '../components/DataSync';
 import { getRegionsByScope } from '../data/regions';
 import { loadGeoForScope } from '../geo/loader';
-import { createDefaultStore, createMarker, createUser, loadPersistedStore, persistStore } from '../lib/storage';
-import type { RegionOption, Scope, TravelStore } from '../types';
+import {
+  createDefaultStore,
+  createMarker,
+  createSavedGuide,
+  createUser,
+  loadPersistedStore,
+  persistStore,
+} from '../lib/storage';
+import type { GuideSearchResult, RegionOption, SavedGuide, Scope, TravelStore } from '../types';
 
 function App() {
   const [scope, setScope] = useState<Scope>('domestic');
@@ -22,6 +30,7 @@ function App() {
   const [guideSearchOpen, setGuideSearchOpen] = useState(false);
   const [guideSearchQuery, setGuideSearchQuery] = useState('');
   const [guideSearchScope, setGuideSearchScope] = useState<Scope | 'all'>('all');
+  const [guideSearchMarkerId, setGuideSearchMarkerId] = useState<string | null>(null);
   const [markerModalOpen, setMarkerModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('点击地图区域即可弹出表单，快速记录你的旅行足迹。');
@@ -62,6 +71,16 @@ function App() {
   const detailMarker = useMemo(
     () => store.markers.find((item) => item.id === detailMarkerId) ?? null,
     [detailMarkerId, store.markers],
+  );
+
+  const detailMarkerGuides = useMemo(
+    () =>
+      detailMarkerId
+        ? store.savedGuides
+            .filter((item) => item.markerId === detailMarkerId)
+            .sort((a, b) => b.savedAt.localeCompare(a.savedAt))
+        : [],
+    [detailMarkerId, store.savedGuides],
   );
 
   useEffect(() => {
@@ -166,6 +185,7 @@ function App() {
     setStore((current) => ({
       ...current,
       markers: current.markers.filter((item) => item.id !== markerId),
+      savedGuides: current.savedGuides.filter((item) => item.markerId !== markerId),
     }));
     if (detailMarkerId === markerId) {
       setDetailMarkerId(null);
@@ -197,9 +217,128 @@ function App() {
     setMessage(`已更新 ${target.scopeName} · ${target.city} 的旅行记录。`);
   };
 
-  const openGuideSearch = (query: string, nextScope: Scope | 'all') => {
+  const findSavedGuide = (
+    savedGuides: SavedGuide[],
+    savedByUserId: string,
+    sourceUrl: string,
+    markerId?: string,
+  ) =>
+    savedGuides.find(
+      (item) =>
+        item.savedByUserId === savedByUserId &&
+        item.markerId === markerId &&
+        item.result.sourceUrl.trim().toLowerCase() === sourceUrl.trim().toLowerCase(),
+    );
+
+  const handleSaveGuide = (guide: GuideSearchResult, keyword: string) => {
+    let nextSavedGuide: SavedGuide | null = null;
+    let alreadySaved = false;
+
+    setStore((current) => {
+      const existingGuide = findSavedGuide(current.savedGuides, current.activeUserId, guide.sourceUrl);
+      if (existingGuide) {
+        alreadySaved = true;
+        return current;
+      }
+
+      nextSavedGuide = createSavedGuide({
+        savedByUserId: current.activeUserId,
+        keyword,
+        result: guide,
+      });
+
+      return {
+        ...current,
+        savedGuides: [nextSavedGuide, ...current.savedGuides],
+      };
+    });
+
+    if (alreadySaved) {
+      setMessage('这篇攻略已经收藏过了。');
+      return;
+    }
+
+    if (nextSavedGuide) {
+      setMessage(`已收藏攻略《${guide.title}》。`);
+    }
+  };
+
+  const handleAttachGuideToMarker = (guide: GuideSearchResult, keyword: string, markerId: string) => {
+    const targetMarker = store.markers.find((item) => item.id === markerId);
+    if (!targetMarker) {
+      setMessage('当前旅行记录不存在，暂时无法关联攻略。');
+      return;
+    }
+
+    let nextSavedGuide: SavedGuide | null = null;
+    let alreadyAttached = false;
+
+    setStore((current) => {
+      const existingGuide = findSavedGuide(current.savedGuides, current.activeUserId, guide.sourceUrl, markerId);
+      if (existingGuide) {
+        alreadyAttached = true;
+        return current;
+      }
+
+      nextSavedGuide = createSavedGuide({
+        savedByUserId: current.activeUserId,
+        markerId,
+        keyword,
+        result: guide,
+      });
+
+      return {
+        ...current,
+        savedGuides: [nextSavedGuide, ...current.savedGuides],
+      };
+    });
+
+    if (alreadyAttached) {
+      setMessage(`《${guide.title}》已经关联到这条旅行记录。`);
+      return;
+    }
+
+    if (nextSavedGuide) {
+      setMessage(`已将《${guide.title}》关联到 ${targetMarker.scopeName} · ${targetMarker.city}。`);
+    }
+  };
+
+  const handleRemoveSavedGuide = (savedGuideId: string) => {
+    const targetGuide = store.savedGuides.find((item) => item.id === savedGuideId);
+    if (!targetGuide) {
+      return;
+    }
+
+    setStore((current) => ({
+      ...current,
+      savedGuides: current.savedGuides.filter((item) => item.id !== savedGuideId),
+    }));
+
+    setMessage(
+      targetGuide.markerId
+        ? `已解除攻略《${targetGuide.result.title}》与旅行记录的关联。`
+        : `已取消收藏攻略《${targetGuide.result.title}》。`,
+    );
+  };
+
+  const handleOpenMarkerDetailFromGuide = (markerId: string) => {
+    const targetMarker = store.markers.find((item) => item.id === markerId);
+    if (!targetMarker) {
+      setMessage('关联的旅行记录已不存在。');
+      return;
+    }
+
+    setGuideSearchOpen(false);
+    setGuideSearchMarkerId(null);
+    setScope(targetMarker.scope);
+    setDetailMarkerId(targetMarker.id);
+    setMessage(`已定位到 ${targetMarker.scopeName} · ${targetMarker.city} 的旅行记录。`);
+  };
+
+  const openGuideSearch = (query: string, nextScope: Scope | 'all', markerId?: string | null) => {
     setGuideSearchQuery(query);
     setGuideSearchScope(nextScope);
+    setGuideSearchMarkerId(markerId ?? null);
     setGuideSearchOpen(true);
   };
 
@@ -369,6 +508,14 @@ function App() {
             }}
             onCreate={handleCreateUser}
           />
+          <SavedGuidesPanel
+            savedGuides={store.savedGuides}
+            activeUserId={store.activeUserId}
+            users={store.users}
+            markers={store.markers}
+            onOpenMarkerDetail={handleOpenMarkerDetailFromGuide}
+            onRemoveSavedGuide={handleRemoveSavedGuide}
+          />
           <DataSync 
             store={store} 
             onRestore={(restoredStore) => {
@@ -432,20 +579,31 @@ function App() {
       <MarkerDetailPanel
         marker={detailMarker}
         user={detailMarker ? store.users.find((item) => item.id === detailMarker.userId) : undefined}
+        relatedGuides={detailMarkerGuides}
         open={detailMarker !== null}
         canEdit={detailMarker?.userId === store.activeUserId}
         onClose={() => setDetailMarkerId(null)}
         onUpdate={handleUpdateMarker}
+        onRemoveRelatedGuide={handleRemoveSavedGuide}
         onOpenGuideSearch={(query, markerScope) => {
           setDetailMarkerId(null);
-          openGuideSearch(query, markerScope);
+          openGuideSearch(query, markerScope, detailMarker?.id ?? null);
         }}
       />
       <GuideSearchPanel
         open={guideSearchOpen}
         initialQuery={guideSearchQuery}
         initialScope={guideSearchScope}
-        onClose={() => setGuideSearchOpen(false)}
+        activeUserId={store.activeUserId}
+        linkedMarkerId={guideSearchMarkerId}
+        savedGuides={store.savedGuides}
+        onClose={() => {
+          setGuideSearchOpen(false);
+          setGuideSearchMarkerId(null);
+        }}
+        onSaveGuide={handleSaveGuide}
+        onAttachGuideToMarker={handleAttachGuideToMarker}
+        onRemoveSavedGuide={handleRemoveSavedGuide}
       />
     </div>
   );

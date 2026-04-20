@@ -35,10 +35,19 @@ body,
 #root {
   margin: 0;
   min-height: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 body {
   color: #0f172a;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 button,
@@ -678,6 +687,7 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(340px, 420px);
   gap: 20px;
+  align-items: start;
 }
 
 .sidebar {
@@ -941,6 +951,230 @@ button {
   background:
     radial-gradient(circle at top right, rgba(249, 115, 22, 0.08), transparent 28%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.98));
+}
+
+.saved-guides-panel {
+  background:
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.98));
+  border-radius: var(--radius-panel);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
+  padding: 18px 18px 16px;
+  display: grid;
+  gap: 14px;
+  max-height: 560px;
+  overflow: hidden;
+}
+
+.saved-guides-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.saved-guides-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.saved-guides-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: rgba(255, 255, 255, 0.9);
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.saved-guides-toggle:hover {
+  border-color: rgba(148, 163, 184, 0.9);
+  color: #0f172a;
+  background: rgba(248, 250, 252, 0.98);
+}
+
+.saved-guides-toggle-text {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.saved-guides-toggle-arrow {
+  font-size: 12px;
+  line-height: 1;
+  transform: rotate(-90deg);
+  transition: transform 0.28s ease;
+}
+
+.saved-guides-toggle.active .saved-guides-toggle-arrow {
+  transform: rotate(0deg);
+}
+
+.saved-guides-drawer {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    grid-template-rows 0.28s ease,
+    opacity 0.2s ease,
+    transform 0.28s ease;
+}
+
+.saved-guides-drawer.expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.saved-guides-drawer-inner {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  gap: 14px;
+}
+
+.saved-guides-title-row h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.saved-guides-title-row p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.saved-guides-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.saved-guides-list {
+  display: grid;
+  gap: 10px;
+  max-height: 320px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.saved-guides-scroll-shell {
+  position: relative;
+  min-height: 0;
+}
+
+.saved-guides-scroll-shell::before,
+.saved-guides-scroll-shell::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 4px;
+  height: 18px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  z-index: 1;
+}
+
+.saved-guides-scroll-shell::before {
+  top: 0;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(248, 250, 252, 0));
+}
+
+.saved-guides-scroll-shell::after {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(248, 250, 252, 0.96), rgba(248, 250, 252, 0));
+}
+
+.saved-guides-scroll-shell.has-top-shadow::before,
+.saved-guides-scroll-shell.has-bottom-shadow::after {
+  opacity: 1;
+}
+
+.saved-guide-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.saved-guide-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.saved-guide-top strong {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.saved-guide-top span {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.saved-guide-summary {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.7;
+}
+
+.saved-guide-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.saved-guide-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(239, 246, 255, 0.96);
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.saved-guide-date {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.saved-guide-linked-marker {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.saved-guide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.saved-guides-empty {
+  margin: 0;
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.6;
 }
 
 .user-manager-heading {
@@ -1865,19 +2099,33 @@ button {
   right: 14px;
 }
 
+.detail-header-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(10px);
+}
+
 .detail-close-button {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  min-height: 36px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
   padding: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(226, 232, 240, 0.72);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(226, 232, 240, 0.88);
   color: #475569;
   font-size: 20px;
   line-height: 1;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
 }
 
 .detail-close-button:hover {
@@ -1887,24 +2135,61 @@ button {
 
 .detail-edit-button {
   min-width: auto;
-  min-height: 36px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.56);
-  border: 1px solid rgba(226, 232, 240, 0.72);
-  color: #64748b;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #475569;
   font-size: 13px;
   font-weight: 700;
   box-shadow: none;
+  opacity: 0.82;
 }
 
 .detail-edit-button:hover {
-  background: rgba(255, 255, 255, 0.74);
-  color: #334155;
+  background: rgba(248, 250, 252, 0.95);
+  color: #0f172a;
+  opacity: 0.96;
 }
 
 .detail-action-icon {
-  color: rgba(71, 85, 105, 0.78);
+  width: 16px;
+  height: 16px;
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+.detail-action-icon svg {
+  display: block;
+}
+
+.detail-guide-button {
+  min-width: auto;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+  background: rgba(219, 234, 254, 0.82);
+  border: 1px solid rgba(191, 219, 254, 0.95);
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 1;
+}
+
+.detail-guide-button:hover {
+  background: rgba(219, 234, 254, 0.96);
+  color: #1d4ed8;
 }
 
 .detail-eyebrow {
@@ -1916,7 +2201,7 @@ button {
   align-items: baseline;
   gap: 10px;
   flex-wrap: wrap;
-  padding-right: 128px;
+  padding-right: 244px;
 }
 
 .detail-title {
@@ -2212,19 +2497,6 @@ button {
   color: rgba(255, 255, 255, 0.92);
 }
 
-.detail-guide-button {
-  min-width: auto;
-  min-height: 36px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: rgba(219, 234, 254, 0.68);
-  border: 1px solid rgba(191, 219, 254, 0.72);
-  color: #1d4ed8;
-  font-size: 13px;
-  font-weight: 700;
-  box-shadow: none;
-}
-
 .guide-search-backdrop {
   position: fixed;
   inset: 0;
@@ -2233,6 +2505,14 @@ button {
   justify-content: flex-end;
   background: rgba(15, 23, 42, 0.24);
   backdrop-filter: blur(4px);
+  opacity: 0;
+  transition:
+    opacity 0.24s ease,
+    background-color 0.24s ease;
+}
+
+.guide-search-backdrop.is-visible {
+  opacity: 1;
 }
 
 .guide-search-panel {
@@ -2245,6 +2525,37 @@ button {
     radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 22%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98));
   box-shadow: -16px 0 42px rgba(15, 23, 42, 0.18);
+  opacity: 0;
+  transform: translateX(36px);
+  transition:
+    transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.24s ease;
+}
+
+.guide-search-panel.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.guide-search-animate {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.24s ease;
+}
+
+.guide-search-animate.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.guide-search-animate.delay-1 {
+  transition-delay: 0.04s;
+}
+
+.guide-search-animate.delay-2 {
+  transition-delay: 0.08s;
 }
 
 .guide-search-header {
@@ -2479,6 +2790,75 @@ button {
   gap: 10px;
 }
 
+.guide-action-button {
+  min-width: 104px;
+}
+
+.guide-result-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.guide-result-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.12);
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detail-related-guides {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-related-guide-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.detail-related-guide-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail-related-guide-top strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.detail-related-guide-top span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.detail-related-guide-card p,
+.detail-related-guide-empty {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+}
+
+.detail-related-guide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .guide-document-top {
   display: grid;
   gap: 10px;
@@ -2596,6 +2976,11 @@ button {
 
   .detail-header-actions {
     position: static;
+    justify-content: flex-end;
+  }
+
+  .detail-header-action-group {
+    flex-wrap: wrap;
     justify-content: flex-end;
   }
 

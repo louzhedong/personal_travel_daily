@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MarkerDetailPanel from '../MarkerDetailPanel';
-import type { UserProfile, VisitMarker } from '../../types';
+import type { SavedGuide, UserProfile, VisitMarker } from '../../types';
 
 const user: UserProfile = { id: 'u1', name: '小悠', color: '#2563eb' };
 
@@ -94,5 +94,48 @@ describe('MarkerDetailPanel', () => {
     await userEvent.click(screen.getByRole('button', { name: '查找攻略' }));
 
     expect(onOpenGuideSearch).toHaveBeenCalledWith('青海 西宁 攻略', 'domestic');
+  });
+
+  it('shows related guides and allows unlinking', async () => {
+    const relatedGuides: SavedGuide[] = [
+      {
+        id: 'saved-1',
+        savedByUserId: 'u1',
+        markerId: 'm1',
+        keyword: '青海',
+        savedAt: '2026-05-04T00:00:00.000Z',
+        result: {
+          id: 'guide-1',
+          title: '青海湖环线攻略',
+          summary: '经典环线路线和高原适应建议。',
+          sourceName: '示例来源',
+          sourceUrl: 'https://example.com/guide/1',
+        },
+      },
+    ];
+    const onRemoveRelatedGuide = vi.fn();
+
+    render(
+      <MarkerDetailPanel
+        marker={marker}
+        user={user}
+        open
+        canEdit
+        onClose={() => {}}
+        onUpdate={() => {}}
+        relatedGuides={relatedGuides}
+        onRemoveRelatedGuide={onRemoveRelatedGuide}
+      />,
+    );
+
+    expect(screen.getByText('相关攻略')).toBeInTheDocument();
+    expect(screen.getByText('青海湖环线攻略')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '查看原文' })).toHaveAttribute(
+      'href',
+      'https://example.com/guide/1',
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '解除关联' }));
+    expect(onRemoveRelatedGuide).toHaveBeenCalledWith('saved-1');
   });
 });

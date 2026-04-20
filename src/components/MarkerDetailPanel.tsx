@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { uploadImageToImgBB } from '../lib/imageUpload';
 import TravelIcon from './TravelIcon';
-import type { UserProfile, VisitMarker } from '../types';
+import type { SavedGuide, UserProfile, VisitMarker } from '../types';
 
 function formatVisitedRange(marker: VisitMarker) {
   return marker.visitedStartAt === marker.visitedEndAt
@@ -27,6 +27,8 @@ interface MarkerDetailPanelProps {
   canEdit: boolean;
   onClose: () => void;
   onUpdate: (markerId: string, updates: { note: string; imageUrls?: string[] }) => Promise<void> | void;
+  relatedGuides?: SavedGuide[];
+  onRemoveRelatedGuide?: (savedGuideId: string) => void;
   onOpenGuideSearch?: (query: string, scope: VisitMarker['scope']) => void;
 }
 
@@ -37,6 +39,8 @@ export function MarkerDetailPanel({
   canEdit,
   onClose,
   onUpdate,
+  relatedGuides = [],
+  onRemoveRelatedGuide,
   onOpenGuideSearch,
 }: MarkerDetailPanelProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -181,30 +185,32 @@ export function MarkerDetailPanel({
         <div className="detail-panel-header">
           <div className="detail-heading-card stack gap-10">
             <div className="detail-header-actions">
-              {canEdit && !isEditing ? (
-                <button
-                  type="button"
-                  className="ghost-button detail-edit-button"
-                  onClick={() => setIsEditing(true)}
-                >
-                  <span className="travel-icon-inline detail-action-icon">
-                    <TravelIcon name="edit" size={13} />
-                  </span>
-                  编辑记录
-                </button>
-              ) : null}
-              {!isEditing && onOpenGuideSearch ? (
-                <button
-                  type="button"
-                  className="ghost-button detail-guide-button"
-                  onClick={() => onOpenGuideSearch(`${marker.scopeName} ${marker.city} 攻略`, marker.scope)}
-                >
-                  <span className="travel-icon-inline detail-action-icon">
-                    <TravelIcon name="globe" size={13} />
-                  </span>
-                  查找攻略
-                </button>
-              ) : null}
+              <div className="detail-header-action-group">
+                {canEdit && !isEditing ? (
+                  <button
+                    type="button"
+                    className="ghost-button detail-edit-button"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <span className="travel-icon-inline detail-action-icon">
+                      <TravelIcon name="edit" size={13} />
+                    </span>
+                    编辑记录
+                  </button>
+                ) : null}
+                {!isEditing && onOpenGuideSearch ? (
+                  <button
+                    type="button"
+                    className="ghost-button detail-guide-button"
+                    onClick={() => onOpenGuideSearch(`${marker.scopeName} ${marker.city} 攻略`, marker.scope)}
+                  >
+                    <span className="travel-icon-inline detail-action-icon">
+                      <TravelIcon name="globe" size={13} />
+                    </span>
+                    查找攻略
+                  </button>
+                ) : null}
+              </div>
               <button
                 type="button"
                 className="modal-close-button detail-close-button"
@@ -370,6 +376,46 @@ export function MarkerDetailPanel({
               <strong>旅行印象</strong>
             </div>
             <p className="detail-note">{marker.note || '这条记录还没有填写旅行印象。'}</p>
+          </section>
+        ) : null}
+
+        {!isEditing ? (
+          <section className="detail-section stack gap-10">
+            <div className="detail-section-heading">
+              <strong>相关攻略</strong>
+              <span>{relatedGuides.length} 条</span>
+            </div>
+            {relatedGuides.length > 0 ? (
+              <div className="detail-related-guides">
+                {relatedGuides.map((guide) => (
+                  <article key={guide.id} className="detail-related-guide-card">
+                    <div className="detail-related-guide-top">
+                      <strong>{guide.result.title}</strong>
+                      <span>{guide.result.sourceName}</span>
+                    </div>
+                    <p>{guide.result.summary}</p>
+                    <div className="detail-related-guide-actions">
+                      {/^https?:\/\//.test(guide.result.sourceUrl) ? (
+                        <a href={guide.result.sourceUrl} target="_blank" rel="noreferrer" className="guide-result-link">
+                          查看原文
+                        </a>
+                      ) : null}
+                      {onRemoveRelatedGuide ? (
+                        <button
+                          type="button"
+                          className="ghost-button"
+                          onClick={() => onRemoveRelatedGuide(guide.id)}
+                        >
+                          解除关联
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="detail-related-guide-empty">还没有关联攻略，可点击上方“查找攻略”后进行关联。</p>
+            )}
           </section>
         ) : null}
 
