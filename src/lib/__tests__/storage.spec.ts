@@ -42,6 +42,8 @@ describe('storage import merge', () => {
         },
       ],
       activeUserId: 'u1',
+      savedGuides: [],
+      guideSearchHistory: [],
     };
 
     const importedStore = normalizeImportedStore({
@@ -152,6 +154,8 @@ describe('storage import merge', () => {
         },
       ],
       activeUserId: 'u1',
+      savedGuides: [],
+      guideSearchHistory: [],
     };
 
     const importedStore = normalizeImportedStore({
@@ -205,6 +209,8 @@ describe('storage import merge', () => {
       users: [{ id: 'u1', name: '小悠', color: '#2563eb' }],
       markers: [],
       activeUserId: 'u1',
+      savedGuides: [],
+      guideSearchHistory: [],
     };
 
     const importedStore = normalizeImportedStore({

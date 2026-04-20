@@ -75,4 +75,24 @@ describe('MarkerDetailPanel', () => {
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByText('1 / 2')).not.toBeInTheDocument();
   });
+
+  it('opens guide search from the detail panel', async () => {
+    const onOpenGuideSearch = vi.fn();
+
+    render(
+      <MarkerDetailPanel
+        marker={marker}
+        user={user}
+        open
+        canEdit
+        onClose={() => {}}
+        onUpdate={() => {}}
+        onOpenGuideSearch={onOpenGuideSearch}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '查找攻略' }));
+
+    expect(onOpenGuideSearch).toHaveBeenCalledWith('青海 西宁 攻略', 'domestic');
+  });
 });

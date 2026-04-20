@@ -1,6 +1,11 @@
 .env.local
 dist
 node_modules
+.npm-cache
+.tools
+.vite.log
+.vite.err.log
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts
+server/cache/

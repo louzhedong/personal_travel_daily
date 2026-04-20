@@ -61,6 +61,8 @@ describe('DataSync', () => {
         },
       ],
       activeUserId: 'u1',
+      savedGuides: [],
+      guideSearchHistory: [],
     };
 
     const importedPayload = {
