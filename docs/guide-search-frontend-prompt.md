@@ -51,6 +51,9 @@
   - 结果卡片展示
   - 正文片段查看
   - 原始来源跳转
+  - 独立收藏
+  - 记录关联
+  - `SavedGuidesPanel` 收藏侧栏
 
 前端工作要求：
 
@@ -59,7 +62,8 @@
 3. 保持当前旅行品牌感和抽屉式交互语言
 4. 优先复用现有 service / provider / repository 分层
 5. 如果涉及缓存、搜索历史或数据结构，明确说明影响
-6. 修改后给出必要验证结果
+6. 如果涉及收藏 / 关联，明确说明权限边界和 identity 规则
+7. 修改后给出必要验证结果
 ```
 
 ## 3. 前端开发 Prompt
@@ -97,6 +101,7 @@
 
 - 不要把它做成后台搜索页
 - 继续保持 `GuideSearchPanel` 像旅行内容抽屉，而不是检索工具
+- 如果改收藏 / 关联逻辑，优先把身份判定收敛到 repository helper，而不是在组件里重复维护
 - 尽量复用现有 state 字段：
   - `query`
   - `scope`
@@ -115,6 +120,10 @@
   - `remote`
   - `/api/guides/search`
   - `/api/guides/document`
+- 如需改收藏 / 关联，说明是否影响：
+  - `SavedGuidesPanel`
+  - `MarkerDetailPanel` 中的相关攻略区域
+  - `savedGuides` 的去重或排序语义
 - 补最小必要测试
 
 输出时请使用以下结构：
@@ -224,11 +233,13 @@
 
 ## 7. 推荐参考文件
 
-- [src/modules/App.tsx](C:/Users/Administrator/Desktop/personal_travel_daily-main/src/modules/App.tsx)
-- [src/components/GuideSearchPanel.tsx](C:/Users/Administrator/Desktop/personal_travel_daily-main/src/components/GuideSearchPanel.tsx)
-- [src/components/MarkerDetailPanel.tsx](C:/Users/Administrator/Desktop/personal_travel_daily-main/src/components/MarkerDetailPanel.tsx)
-- [src/lib/guides/guideSearchService.ts](C:/Users/Administrator/Desktop/personal_travel_daily-main/src/lib/guides/guideSearchService.ts)
-- [src/lib/guides/guideContentService.ts](C:/Users/Administrator/Desktop/personal_travel_daily-main/src/lib/guides/guideContentService.ts)
-- [src/lib/guides/providers/remoteGuideSearchProvider.ts](C:/Users/Administrator/Desktop/personal_travel_daily-main/src/lib/guides/providers/remoteGuideSearchProvider.ts)
-- [src/lib/repositories/guideRepository.ts](C:/Users/Administrator/Desktop/personal_travel_daily-main/src/lib/repositories/guideRepository.ts)
-- [src/styles/index.css](C:/Users/Administrator/Desktop/personal_travel_daily-main/src/styles/index.css)
+- [src/modules/App.tsx](../src/modules/App.tsx)
+- [src/components/GuideSearchPanel.tsx](../src/components/GuideSearchPanel.tsx)
+- [src/components/MarkerDetailPanel.tsx](../src/components/MarkerDetailPanel.tsx)
+- [src/components/SavedGuidesPanel.tsx](../src/components/SavedGuidesPanel.tsx)
+- [src/lib/guides/guideSearchService.ts](../src/lib/guides/guideSearchService.ts)
+- [src/lib/guides/guideContentService.ts](../src/lib/guides/guideContentService.ts)
+- [src/lib/guides/providers/remoteGuideSearchProvider.ts](../src/lib/guides/providers/remoteGuideSearchProvider.ts)
+- [src/lib/repositories/guideRepository.ts](../src/lib/repositories/guideRepository.ts)
+- [src/styles/index.css](../src/styles/index.css)
+- [docs/travel-guide-search-design.md](./travel-guide-search-design.md)
