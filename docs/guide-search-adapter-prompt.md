@@ -50,6 +50,7 @@
 - 目录搜索与排序由 `server/guideSearchEngine.mjs` 负责
 - 文件缓存由 `server/guideFileStore.mjs` 负责
 - 文档结构化解析可复用 `server/adapters/htmlGuideUtils.mjs`
+- 前端当前消费边界是“搜索结果 + 结构化正文片段 + 原文跳转”，不是第三方全文镜像
 
 后端工作要求：
 
@@ -57,6 +58,7 @@
 2. 保持 `/api/guides/search` 与 `/api/guides/document` 合同稳定
 3. 不要把 adapter 改成与现有聚合器不兼容的结构
 4. 如涉及缓存、抓取、解析规则，明确说明影响
+5. 不要默认扩大为第三方全文镜像或破坏当前版权 / 合规边界
 5. 修改后给出必要验证结果
 ```
 
@@ -178,6 +180,7 @@
 - `docs/guide-search-api-contract.md`
 - `docs/guide-search-feature.md`
 - `docs/guide-search-prompt.md`
+- `docs/travel-guide-search-design.md`
 - `README.md`
 ```
 
@@ -203,11 +206,11 @@
 
 ## 8. 推荐参考文件
 
-- [server/guideApiServer.mjs](C:/Users/Administrator/Desktop/personal_travel_daily-main/server/guideApiServer.mjs)
-- [server/guideSearchEngine.mjs](C:/Users/Administrator/Desktop/personal_travel_daily-main/server/guideSearchEngine.mjs)
-- [server/guideFileStore.mjs](C:/Users/Administrator/Desktop/personal_travel_daily-main/server/guideFileStore.mjs)
-- [server/adapters/index.mjs](C:/Users/Administrator/Desktop/personal_travel_daily-main/server/adapters/index.mjs)
-- [server/adapters/types.mjs](C:/Users/Administrator/Desktop/personal_travel_daily-main/server/adapters/types.mjs)
-- [server/adapters/htmlGuideUtils.mjs](C:/Users/Administrator/Desktop/personal_travel_daily-main/server/adapters/htmlGuideUtils.mjs)
-- [server/adapters/zhWikivoyageAdapter.mjs](C:/Users/Administrator/Desktop/personal_travel_daily-main/server/adapters/zhWikivoyageAdapter.mjs)
-- [docs/guide-search-api-contract.md](C:/Users/Administrator/Desktop/personal_travel_daily-main/docs/guide-search-api-contract.md)
+- [server/guideApiServer.mjs](../server/guideApiServer.mjs)
+- [server/guideSearchEngine.mjs](../server/guideSearchEngine.mjs)
+- [server/guideFileStore.mjs](../server/guideFileStore.mjs)
+- [server/adapters/index.mjs](../server/adapters/index.mjs)
+- [server/adapters/types.mjs](../server/adapters/types.mjs)
+- [server/adapters/htmlGuideUtils.mjs](../server/adapters/htmlGuideUtils.mjs)
+- [server/adapters/zhWikivoyageAdapter.mjs](../server/adapters/zhWikivoyageAdapter.mjs)
+- [docs/guide-search-api-contract.md](./guide-search-api-contract.md)

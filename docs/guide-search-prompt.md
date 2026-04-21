@@ -34,6 +34,9 @@
   - 结果卡片展示
   - 正文片段查看
   - 原始来源链接跳转
+  - 独立收藏攻略
+  - 将攻略关联到当前记录
+  - 在 `SavedGuidesPanel` 查看当前用户收藏
 
 工作要求：
 
@@ -42,7 +45,8 @@
 3. 保持当前旅行品牌感和抽屉式交互语言
 4. 优先做最小可维护改动
 5. 若改动数据结构、缓存或接口，必须说明影响范围
-6. 若改动完成，执行必要验证并说明结果
+6. 若改动收藏 / 关联逻辑，必须说明权限边界与去重规则
+7. 若改动完成，执行必要验证并说明结果
 ```
 
 ## 2. 开发实现 Prompt
@@ -71,6 +75,7 @@
 - 优先复用已有 provider / repository / panel 架构
 - 不要粗暴重写搜索面板
 - 不要把 UI 做成重工具化的后台搜索页
+- 如果涉及收藏 / 关联，优先统一 identity 规则，不要在 UI 和 repository 里各写一套判定
 - 如果涉及 IndexedDB，说明是否需要 migration
 - 如果涉及服务端接口，说明是否影响 `/api/guides/search` 或 `/api/guides/document`
 - 如果涉及样式，保持与现有 `MarkerDetailPanel` 一致的品牌化抽屉语言
@@ -177,13 +182,14 @@
 
 如果是继续开发或排查，建议同时参考以下文档：
 
-- [docs/guide-search-feature.md](C:/Users/Administrator/Desktop/personal_travel_daily-main/docs/guide-search-feature.md)
-- [docs/guide-search-api-contract.md](C:/Users/Administrator/Desktop/personal_travel_daily-main/docs/guide-search-api-contract.md)
-- [docs/travel-guide-search-design.md](C:/Users/Administrator/Desktop/personal_travel_daily-main/docs/travel-guide-search-design.md)
+- [docs/guide-search-feature.md](./guide-search-feature.md)
+- [docs/guide-search-api-contract.md](./guide-search-api-contract.md)
+- [docs/travel-guide-search-design.md](./travel-guide-search-design.md)
+- [docs/project-overview.md](./project-overview.md)
 
 ## 7. 细化版本
 
 如果你希望直接按职责拆分使用，可继续使用这两份细化版：
 
-- 前端实现版：[docs/guide-search-frontend-prompt.md](C:/Users/Administrator/Desktop/personal_travel_daily-main/docs/guide-search-frontend-prompt.md)
-- 后端 adapter 版：[docs/guide-search-adapter-prompt.md](C:/Users/Administrator/Desktop/personal_travel_daily-main/docs/guide-search-adapter-prompt.md)
+- 前端实现版：[docs/guide-search-frontend-prompt.md](./guide-search-frontend-prompt.md)
+- 后端 adapter 版：[docs/guide-search-adapter-prompt.md](./guide-search-adapter-prompt.md)

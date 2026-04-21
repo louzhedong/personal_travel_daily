@@ -14,6 +14,7 @@
 - 旅行相册
 - 多人 / 旅伴记录
 - 时间线轨迹
+- 攻略搜索、收藏与记录关联
 - 品牌化旅行体验
 
 ## 技术背景
@@ -70,13 +71,15 @@ interface TravelStore {
 - `MarkerList.tsx`
   - 记录展示
 - `GuideSearchPanel.tsx`
-  - 攻略搜索面板、结果列表、正文片段查看
+  - 攻略搜索面板、结果列表、正文片段、收藏 / 关联动作
 - `UserManager.tsx`
   - 旅伴管理
+- `SavedGuidesPanel.tsx`
+  - 当前用户的攻略收藏侧栏
 - `travelStoreRepository.ts`
   - IndexedDB repository
 - `guideRepository.ts`
-  - 搜索历史、搜索缓存、正文缓存
+  - 搜索历史、搜索缓存、正文缓存、收藏相关读写
 - `guideSearchService.ts`
   - 攻略搜索服务入口
 - `guideContentService.ts`
@@ -96,6 +99,7 @@ interface TravelStore {
    - 地图：说明缩放 / hover / tooltip 影响
    - UI：说明是否符合当前品牌风格
    - 攻略搜索：说明入口、provider、缓存、接口合同是否受影响
+   - 收藏 / 关联：说明权限边界、归属约束、去重规则是否受影响
 5. 修改后运行必要验证：
    - `npm run test`
    - `npm run build`
@@ -125,6 +129,7 @@ interface TravelStore {
 - 是否影响存储兼容性
 - 是否影响地图性能
 - 是否影响攻略搜索历史、缓存命中或远程接口兼容性
+- 是否引入收藏 / 关联语义分叉
 
 ### 验证
 
@@ -142,6 +147,7 @@ interface TravelStore {
 - 测试只补必要覆盖，避免低价值测试
 - 不要无故改动无关文件
 - 如果有现成文档，优先同步更新 `README.md` 和 `docs/guide-search-feature.md`
+- 如果涉及权限、归属或去重规则，优先同步更新 `docs/travel-guide-search-design.md`
 
 ## 示例任务说明
 

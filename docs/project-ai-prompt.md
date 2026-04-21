@@ -2,6 +2,15 @@
 
 本文档用于给 AI 助手提供当前项目的统一上下文，帮助其理解产品目标、技术栈、核心模块、数据模型与开发约束。
 
+使用建议：
+
+- 这份文档适合做“项目总上下文”
+- 如果任务和攻略能力有关，请同时参考：
+  - `docs/guide-search-feature.md`
+  - `docs/travel-guide-search-design.md`
+  - `docs/guide-search-api-contract.md`
+- 如果任务是界面调整，请再结合 `docs/design-tokens.md` 和 `docs/design-prompt.md`
+
 ## 项目定位
 
 项目名为 `旅迹地图 / Voyage Atlas`。
@@ -94,6 +103,9 @@
   - 查看结构化正文片段
   - 跳转原始来源链接
   - 最近搜索词展示
+  - 收藏攻略
+  - 将攻略关联到当前记录
+  - 在侧栏查看当前用户的攻略收藏
 - 当前已接入：
   - `mock provider`
   - `remote provider`
@@ -176,11 +188,11 @@ interface TravelStore {
 - `src/lib/repositories/travelStoreRepository.ts`
   - 负责 IndexedDB schema、升级、读写
 - `src/lib/storage.ts`
-  - 负责默认 store、数据归一化、旧数据迁移、`createUser / createMarker`
+  - 负责默认 store、数据归一化、旧数据迁移、`createUser / createMarker / createSavedGuide`
 - `src/modules/App.tsx`
   - 负责异步加载持久化数据和保存状态
 - `src/lib/repositories/guideRepository.ts`
-  - 负责攻略搜索历史、缓存、正文缓存的读写
+  - 负责攻略搜索历史、缓存、正文缓存、收藏相关读写
 
 ### 存储要求
 
@@ -258,6 +270,23 @@ interface TravelStore {
 - 过重边框
 - 太强烈的黑色描边
 - 控件层层套边框
+
+## 额外实现约束
+
+- 优先做增量修改，不要脱离现有模块重写
+- 如果改动攻略收藏 / 关联逻辑，必须同时考虑：
+  - 记录归属权限
+  - 收藏归属权限
+  - `savedGuides` 去重规则
+  - UI 和 repository 是否仍在维护两套语义
+- 如果文档与实现不一致，先说明“当前实现”与“建议规则”的差异，再动手修改
+
+## 推荐参考顺序
+
+1. `README.md`
+2. `docs/project-overview.md`
+3. 与任务直接相关的功能 / 设计文档
+4. 对应源码和测试
 - 太“工具化”的勾选感
 
 ### 倾向
