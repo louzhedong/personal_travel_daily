@@ -12,6 +12,7 @@ import {
 interface DataSyncProps {
   store: TravelStore;
   onRestore: (store: TravelStore) => void;
+  variant?: 'panel' | 'dialog';
 }
 
 type PreviewFilter = 'all' | 'users' | 'records' | 'skipped';
@@ -48,7 +49,7 @@ function escapeCsvCell(value: unknown): string {
   return raw;
 }
 
-export default function DataSync({ store, onRestore }: DataSyncProps) {
+export default function DataSync({ store, onRestore, variant = 'panel' }: DataSyncProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [mergeStats, setMergeStats] = useState<TravelStoreMergeStats>(createEmptyStats);
@@ -235,7 +236,7 @@ export default function DataSync({ store, onRestore }: DataSyncProps) {
   };
 
   return (
-    <div className="data-sync-panel">
+    <div className={variant === 'dialog' ? 'data-sync-panel data-sync-panel-dialog' : 'data-sync-panel'}>
       <div className="data-sync-header">
         <div className="data-sync-title-group">
           <TravelIcon name="route" size={16} />

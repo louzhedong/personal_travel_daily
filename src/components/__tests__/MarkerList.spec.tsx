@@ -43,4 +43,24 @@ describe('MarkerList', () => {
 
     expect(onViewDetail).toHaveBeenCalledWith('m1');
   });
+
+  it('opens data sync modal entry from marker module', async () => {
+    const onOpenDataSync = vi.fn();
+
+    render(
+      <MarkerList
+        scope="domestic"
+        markers={markers}
+        users={users}
+        activeUserId="u1"
+        onDelete={() => {}}
+        onViewDetail={() => {}}
+        onOpenDataSync={onOpenDataSync}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '数据备份与恢复' }));
+
+    expect(onOpenDataSync).toHaveBeenCalledTimes(1);
+  });
 });

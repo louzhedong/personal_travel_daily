@@ -15,9 +15,18 @@ interface MarkerListProps {
   activeUserId: string;
   onDelete: (markerId: string) => void;
   onViewDetail: (markerId: string) => void;
+  onOpenDataSync?: () => void;
 }
 
-export function MarkerList({ scope, markers, users, activeUserId, onDelete, onViewDetail }: MarkerListProps) {
+export function MarkerList({
+  scope,
+  markers,
+  users,
+  activeUserId,
+  onDelete,
+  onViewDetail,
+  onOpenDataSync,
+}: MarkerListProps) {
   const [filterUserId, setFilterUserId] = useState<'all' | string>('all');
   const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({});
 
@@ -44,21 +53,30 @@ export function MarkerList({ scope, markers, users, activeUserId, onDelete, onVi
           <h3>{scope === 'domestic' ? '国内旅行记录' : '国际旅行记录'}</h3>
           <p>按时间查看当前范围下的所有标记，支持按用户筛选和删除。</p>
         </div>
-        <label className="field compact-field">
-          <span className="field-label">筛选用户</span>
-          <FancySelect
-            value={filterUserId}
-            onChange={setFilterUserId}
-            placeholder="全部用户"
-            options={[
-              { value: 'all', label: '全部用户' },
-              ...users.map((user) => ({
-                value: user.id,
-                label: user.name,
-              })),
-            ]}
-          />
-        </label>
+        <div className="marker-list-controls">
+          <div className="marker-user-filter">
+            <span className="marker-user-filter-label">筛选旅伴</span>
+            <FancySelect
+              value={filterUserId}
+              onChange={setFilterUserId}
+              placeholder="全部用户"
+              className="marker-user-filter-select"
+              triggerClassName="marker-user-filter-trigger"
+              options={[
+                { value: 'all', label: '全部用户' },
+                ...users.map((user) => ({
+                  value: user.id,
+                  label: user.name,
+                })),
+              ]}
+            />
+          </div>
+          {onOpenDataSync ? (
+            <button type="button" className="ghost-button marker-sync-entry-button" onClick={onOpenDataSync}>
+              数据备份与恢复
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {visibleMarkers.length === 0 ? (

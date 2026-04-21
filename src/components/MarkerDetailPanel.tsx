@@ -228,12 +228,14 @@ export function MarkerDetailPanel({
             </div>
             <div className="detail-title-row">
               <div className="detail-title-block">
-                <h3 className="detail-title">{marker.scopeName}</h3>
-                <span className="detail-city">{marker.city}</span>
+                <div className="detail-title-main">
+                  <h3 className="detail-title">{marker.scopeName}</h3>
+                  <span className="detail-city">{marker.city}</span>
+                </div>
+                <span className="marker-scope-tag detail-scope-tag">
+                  {marker.scope === 'domestic' ? '国内旅行' : '国际旅行'}
+                </span>
               </div>
-              <span className="marker-scope-tag detail-scope-tag">
-                {marker.scope === 'domestic' ? '国内旅行' : '国际旅行'}
-              </span>
             </div>
             <div className="detail-meta-row">
               <span className="user-pill" style={{ borderColor: user?.color ?? '#cbd5e1' }}>
