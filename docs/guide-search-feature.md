@@ -1,208 +1,72 @@
-# 攻略搜索功能说明
+﻿# 攻略搜索功能说明
 
-本文档描述当前仓库里已经落地的“攻略搜索、收藏与关联”能力，重点覆盖用户入口、核心交互、缓存机制、数据模型和当前已知边界。
+## 功能目标
 
-## 1. 当前功能范围
+攻略搜索模块用于补全旅行记录上下文，让用户不仅能记下“去过哪里”，还可以把“当时参考了什么攻略”一起留下。
 
-当前版本已经支持：
+## 用户可见能力
 
-- 在首页 Hero 区打开攻略搜索面板
-- 在旅行记录详情面板中，一键以 `${scopeName} ${city} 攻略` 打开搜索
-- 按关键词搜索攻略，支持 `全部 / 国内 / 国际` 范围切换
-- 查看结果摘要、来源、标签、封面和结构化正文片段
-- 跳转原始来源页面
-- 将攻略收藏为独立条目
-- 将攻略关联到当前打开的旅行记录
-- 在“我的攻略收藏”侧栏中查看当前用户的独立收藏和已关联条目
-- 保存最近搜索词到本地 `IndexedDB`
-- 缓存搜索结果与正文片段，减少重复请求
+### 搜索
 
-当前版本暂未完善：
+- 输入关键词搜索攻略
+- 按国内 / 国际 / 全部筛选范围
+- 支持本地 mock 或远程 API 数据源
+- 显示标题、摘要、来源、目的地标签、发布时间等摘要信息
 
-- 收藏 / 关联的权限边界仍需进一步收敛
-- 收藏去重与关联去重在 UI 和 repository 中还没有完全收敛成单一实现
-- 地图区域级快捷搜索入口尚未开放
-- “加载更多”与分页浏览尚未提供 UI
+### 正文查看
 
-## 2. 用户入口
+- 选中攻略后可查看结构化正文块
+- 当前前端展示模式默认使用摘要化正文（`summary`）
 
-当前有两个明确入口：
+### 收藏
 
-1. 首页 Hero 区按钮
-   - 行为：打开攻略搜索面板
-   - 初始关键词为空
-   - 初始范围为 `all`
+- 可把攻略保存到当前用户的“我的收藏”
+- 收藏是用户级语义，不依赖某条旅行记录
 
-2. 旅行记录详情面板按钮
-   - 行为：自动带入 `${scopeName} ${city} 攻略`
-   - 范围沿用当前记录的 `scope`
-   - 如果后续继续完善权限边界，这个入口应和记录的可编辑权限保持一致
+### 关联到旅行记录
 
-涉及文件：
+- 可把攻略直接关联到一条旅行记录
+- 详情面板和攻略面板都会展示已关联内容
 
-- [src/modules/App.tsx](../src/modules/App.tsx)
-- [src/components/GuideSearchPanel.tsx](../src/components/GuideSearchPanel.tsx)
-- [src/components/MarkerDetailPanel.tsx](../src/components/MarkerDetailPanel.tsx)
+### 搜索历史与缓存
 
-## 3. 主要交互
+- 搜索历史存储在本地
+- 搜索结果和正文会缓存到 IndexedDB，减少重复请求
 
-### 3.1 搜索攻略
+## 交互入口
 
-1. 打开攻略搜索面板
-2. 输入关键词
-3. 选择范围：`全部 / 国内 / 国际`
-4. 点击“搜索”或按回车
-5. 在结果列表中查看候选攻略
-6. 点击“查看片段”加载结构化正文片段
+- 首页 Hero 区域可直接打开攻略搜索
+- 旅行记录详情中可带着当前地点信息打开攻略搜索
+- 保存的攻略面板支持回到对应记录
 
-推荐关键词示例：
+## 当前数据流
 
-- `京都 樱花 攻略`
-- `杭州 周末 攻略`
-- `云南 自驾 攻略`
-- `首尔 美食 攻略`
+1. `GuideSearchPanel` 收集搜索参数
+2. `guideSearchService` 根据 provider 发起搜索
+3. `guideRepository` 管理搜索历史、缓存和已保存攻略
+4. `useTravelStoreActions` 负责把攻略写入当前前端 store
+5. `SavedGuidesPanel` 和 `MarkerDetailPanel` 消费保存结果
 
-### 3.2 收藏攻略
+## 约束与规则
 
-- 在搜索结果卡片中点击“收藏攻略”
-- 收藏后会进入当前用户的“我的攻略收藏”
-- 收藏状态通过 `savedGuides` 中“无 `markerId` 的 `SavedGuide`”表示
+- 收藏和关联是两种不同语义，去重规则也按语义区分
+- 同一用户对同一来源 URL 的“收藏”只允许一条
+- 同一用户将同一来源 URL 关联到同一条记录时只允许一条
+- 记录不存在时不允许继续建立关联
 
-当前实现状态：
+## 依赖的环境变量
 
-- 收藏判定按 `savedByUserId + sourceUrl` 组合去重
-- 当前 UI 会把重复收藏视为 no-op
-- repository 中同时存在 `upsertSavedGuide` 逻辑，但当前页面状态更新尚未完全复用这套实现
-
-### 3.3 关联到旅行记录
-
-- 只有当搜索面板是从某条记录上下文打开时，结果卡片才会出现“关联到当前记录”
-- 关联成功后，会新增一条带 `markerId` 的 `SavedGuide`
-- 在记录详情页的“相关攻略”区域可以看到这些关联内容
-
-注意：
-
-- `SavedGuide` 的“独立收藏”和“关联到记录”是两类不同条目
-- 同一来源可以同时存在一条独立收藏和一条记录关联
-
-### 3.4 我的攻略收藏
-
-`SavedGuidesPanel` 当前只展示当前用户的收藏，支持：
-
-- 查看全部
-- 只看已关联
-- 只看未关联
-- 定位到关联记录
-- 查看原文
-- 取消收藏 / 移除收藏
-
-涉及文件：
-
-- [src/components/SavedGuidesPanel.tsx](../src/components/SavedGuidesPanel.tsx)
-- [src/modules/App.tsx](../src/modules/App.tsx)
-
-## 4. 数据模型
-
-### 4.1 搜索结果
-
-```ts
-interface GuideSearchResult {
-  id: string;
-  title: string;
-  summary: string;
-  coverImageUrl?: string;
-  sourceName: string;
-  sourceUrl: string;
-  authorName?: string;
-  publishedAt?: string;
-  destinationLabel?: string;
-  tags?: string[];
-}
+```bash
+VITE_GUIDE_SEARCH_PROVIDER=remote
+VITE_GUIDE_SEARCH_API_BASE_URL=/api/guides
+VITE_GUIDE_CONTENT_MODE=summary
 ```
 
-### 4.2 收藏与关联
+## 推荐测试点
 
-```ts
-interface SavedGuide {
-  id: string;
-  markerId?: string;
-  savedByUserId: string;
-  keyword: string;
-  result: GuideSearchResult | GuideDocument;
-  savedAt: string;
-}
-```
-
-判定方式：
-
-- `markerId` 为空：独立收藏
-- `markerId` 有值：关联到某条旅行记录
-- `savedByUserId`：创建该收藏 / 关联的用户
-
-## 5. 本地缓存与持久化
-
-攻略相关数据保存在浏览器 `IndexedDB` 中，主要 object store 包括：
-
-- `savedGuides`
-- `guideSearchHistory`
-- `guideSearchCache`
-- `guideDocumentCache`
-
-当前缓存策略：
-
-- 搜索结果缓存 TTL：30 分钟
-- 正文缓存 TTL：24 小时
-- 最近搜索默认读取最近 20 条，搜索面板展示最近 6 条
-
-关键缓存键：
-
-- 搜索缓存：`v3:${scope}:${keyword}:${page}:${pageSize}`
-- 正文缓存：`sourceUrl.trim().toLowerCase()`
-- 收藏身份：`savedByUserId + markerId + normalized sourceUrl`
-
-涉及文件：
-
-- [src/lib/repositories/guideRepository.ts](../src/lib/repositories/guideRepository.ts)
-- [src/lib/storage.ts](../src/lib/storage.ts)
-
-## 6. 服务端接口
-
-当前 `remote provider` 默认依赖本地攻略服务：
-
-- `GET /health`
-- `POST /api/guides/search`
-- `POST /api/guides/document`
-
-详细请求 / 响应结构见：
-
-- [docs/guide-search-api-contract.md](./guide-search-api-contract.md)
-
-## 7. 当前已知边界
-
-当前仓库虽然已经有收藏和关联能力，但在后续开发中要特别注意下面三点：
-
-1. 收藏和关联的权限边界还需要继续收敛
-   - 尤其是“查看他人记录时是否允许继续搜索、关联或解除关联”
-
-2. 收藏去重与关联去重应收敛到一套单一规则
-   - 不应让 UI 状态流和 repository 各自维护不同语义
-
-3. 文档中的“预期规则”和代码中的“当前实现”可能暂时不完全一致
-   - 后续修复实现时，优先对齐 [攻略搜索 / 收藏 / 关联设计文档](./travel-guide-search-design.md)
-
-## 8. 相关测试
-
-当前仓库已有以下相关测试：
-
-- `src/components/__tests__/GuideSearchPanel.spec.tsx`
-- `src/components/__tests__/SavedGuidesPanel.spec.tsx`
-- `src/components/__tests__/MarkerDetailPanel.spec.tsx`
-- `src/lib/repositories/__tests__/guideRepository.spec.ts`
-
-建议在继续迭代前，优先补齐以下场景：
-
-- 当前用户操作自己的记录
-- 当前用户查看他人的记录
-- 重复收藏
-- 重复关联
-- 解除关联和取消收藏的差异
+- 搜索结果渲染
+- 搜索历史去重
+- 收藏去重
+- 关联去重
+- 从收藏面板回跳到记录
+- 记录删除后，关联攻略同步清理

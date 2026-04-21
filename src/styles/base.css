@@ -1,0 +1,63 @@
+﻿:root {
+  font-family: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #0f172a;
+  background: linear-gradient(180deg, #f9fcff 0%, #edf7f4 100%);
+  --radius-card: 24px;
+  --radius-panel: 18px;
+  --radius-control: 14px;
+  --radius-badge: 999px;
+  --shadow-card: 0 20px 40px rgba(15, 23, 42, 0.08);
+  --shadow-panel: 0 12px 28px rgba(15, 23, 42, 0.08);
+  --shadow-modal: 0 28px 64px rgba(15, 23, 42, 0.22);
+  --heading-main: 38px;
+  --heading-section: 20px;
+  --heading-modal: 18px;
+  --control-height: 44px;
+  --control-height-sm: 40px;
+  --brand-blue: #2563eb;
+  --brand-teal: #14b8a6;
+  --brand-orange: #f97316;
+  --brand-ink: #0f172a;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body {
+  color: #0f172a;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+

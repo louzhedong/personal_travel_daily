@@ -1,17 +1,18 @@
-# Voyage Atlas / 旅迹地图
+﻿# Voyage Atlas / 旅行足迹地图
 
-`旅迹地图` 是一个基于 React + Vite + TypeScript 的旅行记录产品原型。它围绕“地图足迹、多人记录、旅行相册、攻略搜索与本地持久化”展开，当前以浏览器端体验为主，强调轻量、直观和可持续迭代。
+`Voyage Atlas` 是一个基于 React 19、Vite 7 与 TypeScript 5 的旅行记录应用原型。它把地图选区、多人旅行记录、旅行图片、攻略搜索、攻略收藏/关联、时间线回看和本地数据备份整合到同一个浏览器端体验里。
 
 ## 当前能力
 
-- 国内 / 世界地图双视图切换，支持点击区域录入旅行记录
-- 旅行记录支持城市、日期范围、旅行印象与多图上传
-- 多旅伴视角切换，不同用户以不同颜色区分旅行足迹
-- 旅行记录详情面板，支持图片预览、编辑、查看同目的地攻略
-- 攻略搜索抽屉，支持关键词搜索、范围筛选、搜索历史、结构化正文片段
-- 攻略收藏与记录关联，支持在侧栏集中查看当前用户的收藏内容
-- 浏览器 `IndexedDB` 持久化，并兼容旧版 `localStorage` 数据迁移
-- 数据备份 / 恢复能力，便于导入导出本地快照
+- 国内 / 国际地图切换，并支持点击区域快速创建旅行记录
+- 旅行记录支持城市、起止日期、游记描述和多图上传
+- 多旅伴管理：切换当前记录用户、区分颜色、限制仅本人可编辑自己的记录
+- 旅行记录详情：查看图片、编辑游记、关联或解除攻略
+- 攻略搜索：支持关键词搜索、范围筛选、搜索历史、正文摘要展示
+- 攻略收藏与关联：同一用户在“收藏”和“关联到某条记录”两个语义下独立去重
+- 行程时间线：按当前用户聚合、按年份筛选、按国内/国际筛选，并与地图和详情面板联动
+- 数据备份与恢复：从旅行记录模块入口打开弹窗，导出或导入本地数据
+- 浏览器端持久化：`IndexedDB` 为主，兼容旧版 `localStorage` 数据迁移
 
 ## 技术栈
 
@@ -21,25 +22,40 @@
 - Vitest + Testing Library
 - `d3-geo`
 - IndexedDB
+- Node.js 20.19+
 
-## 快速开始
+## 本地启动
 
-```bash
-npm install
+项目依赖 Node.js `20.19+`。如果系统 Node 版本较低，优先使用仓库自带的 Node 20。
+
+### 推荐方式
+
+```powershell
+.\start-local-dev.cmd
+```
+
+这个脚本会使用仓库内置的 Node 20 启动前端开发服务。
+
+### 手动启动前端
+
+```powershell
+$env:PATH="$PWD\.tools\node-v20.19.0-win-x64;$env:PATH"
+$env:npm_config_cache="$PWD\.npm-cache"
 npm run dev
 ```
 
-前端默认地址：
+默认地址：
 
 - `http://localhost:5173/`
 
-如果需要联调真实攻略搜索服务，再额外启动：
+### 启动本地攻略 API
 
-```bash
+```powershell
+$env:PATH="$PWD\.tools\node-v20.19.0-win-x64;$env:PATH"
 npm run dev:guide-api
 ```
 
-服务默认地址：
+默认地址：
 
 - `http://localhost:8787/health`
 - `http://localhost:8787/api/guides/search`
@@ -47,13 +63,13 @@ npm run dev:guide-api
 
 ## 环境变量
 
-先创建本地配置：
+复制环境变量模板：
 
-```bash
-cp .env.example .env.local
+```powershell
+Copy-Item .env.example .env.local
 ```
 
-常用变量如下：
+示例：
 
 ```bash
 VITE_IMGBB_API_KEY=your_imgbb_api_key
@@ -66,38 +82,72 @@ GUIDE_POI_GEOAPIFY_API_KEY=your_geoapify_api_key
 
 说明：
 
-- `VITE_GUIDE_SEARCH_PROVIDER=mock` 时，前端使用内置 mock 数据，适合本地 UI 联调
-- `VITE_GUIDE_SEARCH_PROVIDER=remote` 时，前端会调用本地或远程攻略服务
-- `VITE_GUIDE_CONTENT_MODE` 当前建议保持 `summary`
+- `VITE_GUIDE_SEARCH_PROVIDER=mock`：前端只使用本地 mock 数据，适合纯 UI 联调
+- `VITE_GUIDE_SEARCH_PROVIDER=remote`：前端调用本地或远程攻略 API
+- `VITE_GUIDE_CONTENT_MODE=summary`：优先使用摘要化正文块，适合当前 UI
+- `GUIDE_POI_GEOAPIFY_API_KEY`：启用 Geoapify POI 适配器时需要配置
+
+## 常用命令
+
+```bash
+npm run dev
+npm run dev:guide-api
+npm run build
+npm run test
+```
+
+如果你在 Windows 本地使用系统 Node 低于 20，执行这些命令前先把 PATH 切到仓库内置 Node 20。
 
 ## 项目结构
 
 ```text
 .
-├── docs
-├── public
-├── server
-│   ├── adapters
-│   ├── cache
-│   ├── guideApiServer.mjs
-│   ├── guideFileStore.mjs
-│   ├── guideSearchEngine.mjs
-│   └── guideSeedData.mjs
-├── src
-│   ├── components
-│   ├── data
-│   ├── geo
-│   ├── lib
-│   │   ├── guides
-│   │   └── repositories
-│   ├── modules
-│   ├── styles
-│   └── test
-├── package.json
-└── vitest.config.ts
+├─ docs
+├─ public
+├─ server
+│  ├─ adapters
+│  ├─ cache
+│  ├─ __tests__
+│  ├─ guideApiServer.mjs
+│  ├─ guideFileStore.mjs
+│  ├─ guideSearchEngine.mjs
+│  └─ guideSeedData.mjs
+├─ src
+│  ├─ components
+│  ├─ data
+│  ├─ geo
+│  ├─ lib
+│  │  ├─ guides
+│  │  └─ repositories
+│  ├─ modules
+│  │  └─ app
+│  ├─ styles
+│  │  └─ components
+│  └─ test
+├─ README.md
+└─ package.json
 ```
 
-更详细的模块说明见 [docs/project-overview.md](docs/project-overview.md)。
+## 前端架构
+
+当前前端已经从“大一统 App”拆到更清晰的分层：
+
+- `src/modules/App.tsx`：容器层，负责组装页面、协调 store、弹窗和跨模块联动
+- `src/modules/app/useMapContext.ts`：地图范围、区域列表、当前选区和地图入口行为
+- `src/modules/app/useTravelStoreActions.ts`：用户、记录、攻略收藏/关联、数据恢复等写操作
+- `src/modules/app/markerNavigation.ts`：按记录 ID 统一聚焦地图并打开详情
+- `src/modules/app/AppHero.tsx`、`AppContent.tsx`、`AppOverlays.tsx`：页面组合层
+
+## 样式组织
+
+样式已从单一 `index.css` 拆分为模块化结构：
+
+- `src/styles/base.css`
+- `src/styles/layout.css`
+- `src/styles/home.css`
+- `src/styles/responsive.css`
+- `src/styles/components/*.css`
+- `src/styles/index.css` 仅负责聚合导入
 
 ## 数据模型
 
@@ -113,12 +163,12 @@ interface TravelStore {
 }
 ```
 
-说明：
+其中：
 
-- `users` 管理旅伴身份与颜色
-- `markers` 保存旅行记录主体
-- `savedGuides` 保存攻略收藏和与记录的关联关系
-- `guideSearchHistory` 保存攻略搜索历史
+- `users`：旅伴身份与配色
+- `markers`：旅行记录主体
+- `savedGuides`：攻略收藏或与记录的关联关系
+- `guideSearchHistory`：搜索历史
 
 ## 测试
 
@@ -126,28 +176,33 @@ interface TravelStore {
 npm run test
 ```
 
-当前测试主要覆盖：
+当前测试覆盖重点包括：
 
-- 地图交互与缩放标签策略
-- 旅伴切换与新增交互
-- 攻略搜索结果、正文片段与收藏/关联相关交互
-- 本地 repository 与服务端搜索引擎基础能力
+- 地图区域交互
+- 旅伴切换与新增
+- 攻略搜索、收藏、关联、移除
+- 时间线筛选和联动
+- 数据备份与恢复
+- 本地存储与仓库层行为
 
 ## 文档索引
 
+- [Docs Index](docs/README.md)
 - [项目总览](docs/project-overview.md)
+- [未来 Roadmap / TODO](docs/future-roadmap.md)
 - [攻略搜索功能说明](docs/guide-search-feature.md)
-- [攻略搜索 / 收藏 / 关联设计文档](docs/travel-guide-search-design.md)
+- [攻略搜索/收藏/关联设计](docs/travel-guide-search-design.md)
 - [Guide Search API Contract](docs/guide-search-api-contract.md)
 - [视觉 Token 说明](docs/design-tokens.md)
-- [地图绘制与 Hover 性能优化](docs/map-rendering-and-hover-performance.md)
+- [地图渲染与 Hover 性能说明](docs/map-rendering-and-hover-performance.md)
 - [项目 AI Prompt](docs/project-ai-prompt.md)
 - [System Prompt](docs/system-prompt.md)
 - [Task Prompt](docs/task-prompt.md)
 - [Design Prompt](docs/design-prompt.md)
+- [Changelog](CHANGELOG.md)
 
-## 当前注意点
+## 当前开发注意点
 
-- 仓库已经支持攻略收藏与记录关联，但这部分的权限边界和去重规则仍在收敛中
-- 文档层面已经把预期行为和实现边界单独整理在设计文档中，后续改动建议先对齐 [docs/travel-guide-search-design.md](docs/travel-guide-search-design.md)
-- 如果要继续扩展攻略功能，优先复用现有 `GuideSearchPanel`、`guideRepository` 和 provider 抽象，而不是旁路新增状态流
+- 地图、时间线、攻略收藏和详情面板已经通过 `markerNavigation` 统一了“按记录定位”的行为，新增入口尽量复用它
+- 攻略收藏和关联的去重语义已经下沉到仓库/动作层，不建议在 UI 组件里自行拼接判重逻辑
+- 样式已经拆分，新增样式时优先放到对应模块文件，不要继续回堆到单文件全局样式里
