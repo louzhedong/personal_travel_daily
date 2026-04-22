@@ -95,7 +95,7 @@ describe('SavedGuidesPanel', () => {
     await user.click(screen.getByRole('button', { name: '定位记录' }));
     expect(onOpenMarkerDetail).toHaveBeenCalledWith('m1');
 
-    await user.click(screen.getByRole('button', { name: '移除收藏' }));
+    await user.click(screen.getByRole('button', { name: '解除关联' }));
     expect(onRemoveSavedGuide).toHaveBeenCalledWith('saved-linked');
 
     await user.click(screen.getByRole('tab', { name: '未关联' }));

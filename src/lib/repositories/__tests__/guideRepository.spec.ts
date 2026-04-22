@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   buildGuideDocumentCacheKey,
   buildGuideSearchCacheKey,
+  buildSavedGuideIdentity,
   findSavedGuideBySourceUrl,
+  findSavedGuideInCollection,
   loadGuideDocumentCache,
   loadGuideSearchCache,
   loadGuideSearchHistory,
@@ -137,6 +139,32 @@ describe('guideRepository', () => {
     expect(secondSavedGuide.id).toBe('saved-1');
     expect(savedGuides[0].result.title).toBe('Kyoto Sakura Guide Updated');
     expect(savedGuides[0].savedAt).toBe('2026-04-17T00:00:00.000Z');
+  });
+
+  it('reuses the same identity helper for in-memory lookups', () => {
+    const savedGuide = {
+      id: 'saved-1',
+      savedByUserId: 'u1',
+      markerId: 'marker-1',
+      keyword: 'kyoto sakura',
+      result: {
+        id: 'guide-1',
+        title: 'Kyoto Sakura Guide',
+        summary: 'Great for spring.',
+        sourceName: 'Mock Travel',
+        sourceUrl: ' https://example.com/guide/1 ',
+      },
+      savedAt: '2026-04-17T00:00:00.000Z',
+    };
+
+    expect(buildSavedGuideIdentity(savedGuide)).toBe('u1::marker-1::https://example.com/guide/1');
+    expect(
+      findSavedGuideInCollection([savedGuide], {
+        savedByUserId: 'u1',
+        markerId: 'marker-1',
+        sourceUrl: 'https://example.com/guide/1',
+      })?.id,
+    ).toBe('saved-1');
   });
 
   it('finds and removes marker-linked guides by source url', async () => {

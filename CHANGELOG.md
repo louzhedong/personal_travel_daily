@@ -1,9 +1,43 @@
 # Changelog / 更新日志
 
-本文件同时记录已经合并到 `main` 的历史变更，以及当前分支尚未合并的工作内容。  
-This file tracks both the changes already merged into `main` and the current branch work that has not been merged yet.
+本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。  
+This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
-## Unreleased / 未发布
+## 2026-04-22
+
+### PR [#11](https://github.com/louzhedong/personal_travel_daily/pull/11) `feat: 优化攻略搜索体验与权限边界 / Refine guide search experience and permission boundary`
+
+### Added / 新增
+
+- 新增主页面右下角“回到顶部”按钮，仅在主页面离开顶部后显示。  
+  Added a bottom-right “back to top” button for the main page that only appears after the page scrolls away from the top.
+- 新增京都官网与穷游论坛站点级正文适配测试，并补充主页面回顶按钮测试。  
+  Added site-specific extraction tests for Kyoto Travel and Qyer Forum, plus a test for the main-page back-to-top button.
+
+### Changed / 变更
+
+- 优化攻略搜索阅读体验：支持目录、原文视图、主页面回顶入口，并调整搜索面板滚动与吸顶反馈。  
+  Improved the guide-search reading experience with an outline, original view, main-page back-to-top entry, and refined panel scroll/sticky behavior.
+- 强化攻略搜索与收藏联动，合并 `main` 新结构后继续保留自动搜索与权限边界逻辑。  
+  Tightened guide-search and saved-guide integration, preserving auto-search and permission boundaries after adopting the new `main` structure.
+- 针对 `kyoto.travel` 与穷游论坛增加站点级正文白名单/降级策略，让正文提取更稳定。  
+  Added site-specific whitelisting and fallback strategies for `kyoto.travel` and Qyer Forum to stabilize article extraction.
+
+### Fixed / 修复
+
+- 修复攻略搜索中他人旅行记录仍可出现“解除关联”或“关联到当前记录”的权限边界问题。  
+  Fixed permission-boundary regressions where other users' markers could still expose unlink or relink actions in the guide flow.
+- 修复攻略面板原文阅读的滚动、置顶反馈与回顶入口可用性问题。  
+  Fixed guide-panel original-reading issues around scrolling, sticky feedback, and top-return affordances.
+
+### Verified / 已验证
+
+- `vite build`
+- `vitest run --environment jsdom --run src/modules/__tests__/App.spec.tsx src/components/__tests__/GuideSearchPanel.spec.tsx`
+
+## 2026-04-21
+
+### PR [#10](https://github.com/louzhedong/personal_travel_daily/pull/10) `Add trip timeline, refactor app architecture, and refresh docs / 新增行程时间线、重构应用架构并刷新文档`
 
 ### Added / 新增
 
@@ -57,8 +91,6 @@ This file tracks both the changes already merged into `main` and the current bra
 ### Verified / 已验证
 
 - `vite build`
-
-## 2026-04-21
 
 ### Changed / 变更
 

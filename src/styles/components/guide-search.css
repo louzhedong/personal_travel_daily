@@ -1,4 +1,4 @@
-﻿.hero-guide-button {
+.hero-guide-button {
   display: inline-flex;
   align-items: center;
   width: 100%;
@@ -35,6 +35,7 @@
 }
 
 .guide-search-panel {
+  position: relative;
   width: min(1180px, 100vw);
   height: 100%;
   overflow-y: auto;
@@ -409,4 +410,3 @@
 .guide-document-block-tips {
   background: rgba(240, 253, 250, 0.92);
 }
-

@@ -8,6 +8,8 @@ describe('GuideSearchPanel', () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
     vi.stubEnv('VITE_GUIDE_SEARCH_PROVIDER', 'mock');
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    HTMLElement.prototype.scrollTo = vi.fn();
   });
 
   it('applies drawer animation classes when opened', async () => {
@@ -63,11 +65,42 @@ describe('GuideSearchPanel', () => {
 
     expect(await screen.findByText('Best Season')).toBeInTheDocument();
     expect(screen.getByText(/Late March to early April/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalled();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: '原文' }));
+    expect(screen.getByText(/Three days works well for first-time visitors/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '在原网站查看完整页面' })).toBeInTheDocument();
+    expect(screen.getByText('正文目录')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Best Season' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '回到顶部' })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: '收藏攻略' }));
     expect(onSaveGuide).toHaveBeenCalledTimes(1);
     expect(onAttachGuideToMarker).not.toHaveBeenCalled();
     expect(onRemoveSavedGuide).not.toHaveBeenCalled();
+  });
+
+  it('auto searches on open when requested', async () => {
+    render(
+      <GuideSearchPanel
+        open
+        initialQuery="Kyoto"
+        initialScope="international"
+        autoSearchOnOpen
+        activeUserId="u1"
+        linkedMarkerId={null}
+        savedGuides={[]}
+        onClose={() => {}}
+        onSaveGuide={() => {}}
+        onAttachGuideToMarker={() => {}}
+        onRemoveSavedGuide={() => {}}
+      />,
+    );
+
+    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(screen.getByText('来源: mock')).toBeInTheDocument();
   });
 
   it('renders linked marker actions and toggles by saved status', async () => {
