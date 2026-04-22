@@ -1,7 +1,11 @@
 // @vitest-environment node
 
 import { describe, expect, it, vi } from 'vitest';
-import { ensureAccount, findAccountById } from '../appApi/repositories/accountRepository.js';
+import {
+  ensureAccount,
+  findAccountById,
+  findAccountByUsername,
+} from '../appApi/repositories/accountRepository.js';
 import {
   createCompanion,
   getNextCompanionSortOrder,
@@ -34,16 +38,22 @@ describe('app api repositories', () => {
     await ensureAccount(prisma as never, {
       id: 'acct_default',
       name: 'Voyage Atlas',
+      username: 'demo',
+      passwordHash: 'hash',
     });
     await findAccountById(prisma as never, 'acct_default');
+    await findAccountByUsername(prisma as never, 'demo');
 
     expect(upsert).toHaveBeenCalledWith({
       where: { id: 'acct_default' },
-      update: { name: 'Voyage Atlas' },
-      create: { id: 'acct_default', name: 'Voyage Atlas' },
+      update: { name: 'Voyage Atlas', username: 'demo', passwordHash: 'hash' },
+      create: { id: 'acct_default', name: 'Voyage Atlas', username: 'demo', passwordHash: 'hash' },
     });
     expect(findUnique).toHaveBeenCalledWith({
       where: { id: 'acct_default' },
+    });
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { username: 'demo' },
     });
   });
 

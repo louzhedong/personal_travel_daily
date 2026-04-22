@@ -7,6 +7,8 @@ const envSchema = z.object({
   APP_API_CORS_ORIGIN: z.string().default('*'),
   APP_DEFAULT_ACCOUNT_ID: z.string().default('acct_default'),
   APP_DEFAULT_ACCOUNT_NAME: z.string().default('Voyage Atlas'),
+  APP_DEFAULT_ACCOUNT_USERNAME: z.string().default('demo'),
+  APP_DEFAULT_ACCOUNT_PASSWORD: z.string().default('demo123456'),
 });
 
 export type AppApiEnv = z.infer<typeof envSchema>;

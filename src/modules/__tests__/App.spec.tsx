@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../App';
 import type { TravelStore } from '../../types';
 
-const { remoteTravelStoreRepositoryMock } = vi.hoisted(() => {
+const { authApiMock, remoteTravelStoreRepositoryMock } = vi.hoisted(() => {
   const persistedStore: TravelStore = {
     users: [
       { id: 'u1', name: '当前用户', color: '#2563eb' },
@@ -45,6 +45,18 @@ const { remoteTravelStoreRepositoryMock } = vi.hoisted(() => {
   };
 
   return {
+    authApiMock: {
+      fetchSession: vi.fn(async () => ({
+        account: {
+          id: 'acct-1',
+          name: 'Voyage Atlas',
+          username: 'demo',
+        },
+      })),
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(async () => ({ success: true })),
+    },
     remoteTravelStoreRepositoryMock: {
       loadStore: vi.fn(async () => persistedStore),
       createCompanion: vi.fn(),
@@ -93,14 +105,83 @@ vi.mock('../../lib/repositories/remoteTravelStoreRepository', () => ({
   remoteTravelStoreRepository: remoteTravelStoreRepositoryMock,
 }));
 
-describe('App guide permissions', () => {
+vi.mock('../../lib/api/authApi', () => authApiMock);
+
+describe('App auth and guide permissions', () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
     vi.stubEnv('VITE_GUIDE_SEARCH_PROVIDER', 'mock');
+    window.history.replaceState({}, '', '/');
+
+    Object.values(authApiMock).forEach((mock) => {
+      if (typeof mock?.mockClear === 'function') {
+        mock.mockClear();
+      }
+    });
     Object.values(remoteTravelStoreRepositoryMock).forEach((mock) => {
       if (typeof mock?.mockClear === 'function') {
         mock.mockClear();
       }
+    });
+
+    authApiMock.fetchSession.mockResolvedValue({
+      account: {
+        id: 'acct-1',
+        name: 'Voyage Atlas',
+        username: 'demo',
+      },
+    });
+    authApiMock.login.mockResolvedValue({
+      account: {
+        id: 'acct-1',
+        name: 'Voyage Atlas',
+        username: 'demo',
+      },
+    });
+    authApiMock.register.mockResolvedValue({
+      account: {
+        id: 'acct-2',
+        name: '新用户',
+        username: 'new-user',
+      },
+    });
+  });
+
+  it('redirects unauthenticated users to the auth page and logs them in', async () => {
+    authApiMock.fetchSession.mockResolvedValueOnce({ account: null });
+
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: '登录 Voyage Atlas' })).toBeInTheDocument();
+    await userEvent.type(screen.getByPlaceholderText('输入用户名'), 'demo');
+    await userEvent.type(screen.getByPlaceholderText('至少 8 位密码'), 'demo123456');
+    await userEvent.click(screen.getByRole('button', { name: '登录并进入地图' }));
+
+    await screen.findByText('搜索旅游攻略');
+    expect(authApiMock.login).toHaveBeenCalledWith({
+      username: 'demo',
+      password: 'demo123456',
+    });
+    expect(window.location.pathname).toBe('/');
+  });
+
+  it('supports register mode and enters the app after success', async () => {
+    authApiMock.fetchSession.mockResolvedValueOnce({ account: null });
+
+    render(<App />);
+
+    await userEvent.click(await screen.findByRole('button', { name: '注册' }));
+    await userEvent.type(screen.getByPlaceholderText('例如：小悠的旅行档案'), '新用户');
+    await userEvent.type(screen.getByPlaceholderText('输入用户名'), 'new-user');
+    await userEvent.type(screen.getByPlaceholderText('至少 8 位密码'), 'demo123456');
+    await userEvent.type(screen.getByPlaceholderText('再次输入密码'), 'demo123456');
+    await userEvent.click(screen.getByRole('button', { name: '注册并进入地图' }));
+
+    await screen.findByText('搜索旅游攻略');
+    expect(authApiMock.register).toHaveBeenCalledWith({
+      nickname: '新用户',
+      username: 'new-user',
+      password: 'demo123456',
     });
   });
 
@@ -126,7 +207,7 @@ describe('App guide permissions', () => {
   it('shows a back-to-top button after the main page scrolls away from the top', async () => {
     render(<App />);
 
-    const button = screen.getByLabelText('回到主页面顶部');
+    const button = await screen.findByLabelText('回到主页面顶部');
     expect(button.parentElement?.className).not.toContain('is-visible');
 
     Object.defineProperty(window, 'scrollY', {
@@ -156,5 +237,15 @@ describe('App guide permissions', () => {
       keyword: 'Kyoto',
       scope: 'all',
     });
+  });
+
+  it('logs out from the hero action', async () => {
+    render(<App />);
+
+    await userEvent.click(await screen.findByRole('button', { name: '退出登录' }));
+
+    expect(authApiMock.logout).toHaveBeenCalledTimes(1);
+    expect(await screen.findByRole('heading', { name: '登录 Voyage Atlas' })).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/auth');
   });
 });

@@ -2,6 +2,7 @@ import cors from '@fastify/cors';
 import Fastify from 'fastify';
 import { getAppApiEnv } from './env.js';
 import { normalizeAppApiError } from './errors.js';
+import { registerAuthRoutes } from './routes/auth.js';
 import { registerBootstrapRoutes } from './routes/bootstrap.js';
 import { registerCompanionRoutes } from './routes/companions.js';
 import { registerGuideSearchHistoryRoutes } from './routes/guideSearchHistories.js';
@@ -17,8 +18,10 @@ export async function buildApp() {
 
   await app.register(cors, {
     origin: env.APP_API_CORS_ORIGIN === '*' ? true : env.APP_API_CORS_ORIGIN,
+    credentials: true,
   });
 
+  await registerAuthRoutes(app);
   await registerHealthRoutes(app);
   await registerBootstrapRoutes(app);
   await registerCompanionRoutes(app);

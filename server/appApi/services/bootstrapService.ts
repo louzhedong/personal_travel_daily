@@ -1,5 +1,3 @@
-import { defaultCompanions } from '../defaultCompanions.js';
-import { getAppApiEnv } from '../env.js';
 import { getPrismaClient } from '../prisma.js';
 import { listActiveGuideSearchHistoriesByAccountId } from '../repositories/guideSearchHistoryRepository.js';
 import { listActiveSavedGuidesByAccountId } from '../repositories/savedGuideRepository.js';
@@ -9,23 +7,20 @@ import {
   serializeBootstrapResponse,
   serializeBootstrapStore,
 } from '../serializers/bootstrapSerializer.js';
-import { ensureDefaultAppState } from './appContextService.js';
+import type { AuthenticatedAccount } from '../auth/requestAuth.js';
 
-export async function getBootstrapPayload() {
-  const env = getAppApiEnv();
+export async function getBootstrapPayload(account: AuthenticatedAccount) {
   const prisma = getPrismaClient();
 
   const data = await prisma.$transaction(async (tx) => {
-    await ensureDefaultAppState(tx);
-
     const [users, markers, savedGuides, guideSearchHistory] = await Promise.all([
-      listActiveCompanionsByAccountId(tx, env.APP_DEFAULT_ACCOUNT_ID),
-      listActiveMarkersByAccountId(tx, env.APP_DEFAULT_ACCOUNT_ID),
-      listActiveSavedGuidesByAccountId(tx, env.APP_DEFAULT_ACCOUNT_ID),
-      listActiveGuideSearchHistoriesByAccountId(tx, env.APP_DEFAULT_ACCOUNT_ID),
+      listActiveCompanionsByAccountId(tx, account.id),
+      listActiveMarkersByAccountId(tx, account.id),
+      listActiveSavedGuidesByAccountId(tx, account.id),
+      listActiveGuideSearchHistoriesByAccountId(tx, account.id),
     ]);
 
-    const activeUserId = users[0]?.id ?? defaultCompanions[0].id;
+    const activeUserId = users[0]?.id ?? '';
 
     return {
       users,
@@ -37,7 +32,7 @@ export async function getBootstrapPayload() {
   });
 
   return serializeBootstrapResponse({
-    accountId: env.APP_DEFAULT_ACCOUNT_ID,
+    account,
     fetchedAt: new Date(),
     store: serializeBootstrapStore(data),
   });

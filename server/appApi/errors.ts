@@ -1,5 +1,3 @@
-import { Prisma } from '@prisma/client';
-
 export class AppApiError extends Error {
   statusCode: number;
   code: string;
@@ -24,18 +22,33 @@ export function createConflictError(message: string) {
   return new AppApiError('CONFLICT', message, 409);
 }
 
+export function createUnauthorizedError(message: string) {
+  return new AppApiError('UNAUTHORIZED', message, 401);
+}
+
 export function normalizeAppApiError(error: unknown): AppApiError {
   if (error instanceof AppApiError) {
     return error;
   }
 
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 'P2002'
+  ) {
     return createConflictError('resource already exists');
   }
 
   if (
-    error instanceof Prisma.PrismaClientInitializationError ||
-    (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P1001')
+    (typeof error === 'object' &&
+      error !== null &&
+      'name' in error &&
+      error.name === 'PrismaClientInitializationError') ||
+    (typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === 'P1001')
   ) {
     return new AppApiError(
       'DATABASE_UNAVAILABLE',

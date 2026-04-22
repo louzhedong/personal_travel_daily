@@ -49,6 +49,7 @@ describe('httpClient', () => {
       'http://localhost:8788/api/guide-search-histories?companionId=user-alice&limit=6',
       {
         method: 'GET',
+        credentials: 'include',
         headers: undefined,
         body: undefined,
       },
@@ -68,6 +69,7 @@ describe('httpClient', () => {
     expect(response).toEqual({ saved: true });
     expect(fetchMock).toHaveBeenCalledWith('http://localhost:8788/api/saved-guides', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },

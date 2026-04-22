@@ -1,5 +1,11 @@
 export type Scope = 'domestic' | 'international';
 
+export interface CurrentAccountDto {
+  id: string;
+  name: string;
+  username: string;
+}
+
 export interface UserProfileDto {
   id: string;
   name: string;
@@ -95,6 +101,11 @@ export interface BootstrapResponseDto {
   store: TravelStoreDto;
   meta: {
     accountId: string;
+    account: CurrentAccountDto;
     fetchedAt: string;
   };
+}
+
+export interface AuthResponseDto {
+  account: CurrentAccountDto;
 }

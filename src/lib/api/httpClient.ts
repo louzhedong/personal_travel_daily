@@ -87,6 +87,7 @@ async function requestJson<T>(baseUrl: string, path: string, options: RequestOpt
     try {
       const response = await fetch(buildUrl(candidateBaseUrl, path, options.query), {
         method: options.method ?? 'GET',
+        credentials: 'include',
         headers:
           options.body !== undefined
             ? {

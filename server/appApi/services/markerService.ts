@@ -1,8 +1,7 @@
-import { ulid } from 'ulid';
+import { randomUUID } from 'node:crypto';
 import { createNotFoundError, createValidationError } from '../errors.js';
 import { getPrismaClient } from '../prisma.js';
 import type { CreateMarkerBody, UpdateMarkerBody } from '../schemas/markers.js';
-import { ensureDefaultAppState } from './appContextService.js';
 import {
   findActiveCompanionById,
 } from '../repositories/travelCompanionRepository.js';
@@ -19,19 +18,18 @@ function parseDateOnly(value: string) {
   return new Date(`${value}T00:00:00.000Z`);
 }
 
-export async function createMarkerRecord(input: CreateMarkerBody) {
+export async function createMarkerRecord(accountId: string, input: CreateMarkerBody) {
   const prisma = getPrismaClient();
 
-  const accountId = await prisma.$transaction(async (tx) => {
-    const context = await ensureDefaultAppState(tx);
-    const companion = await findActiveCompanionById(tx, context.accountId, input.companionId);
+  await prisma.$transaction(async (tx) => {
+    const companion = await findActiveCompanionById(tx, accountId, input.companionId);
     if (!companion) {
       throw createNotFoundError('companion not found');
     }
 
     await createMarker(tx, {
-      id: ulid(),
-      accountId: context.accountId,
+      id: randomUUID(),
+      accountId,
       companionId: input.companionId,
       scope: input.scope,
       scopeId: input.scopeId,
@@ -42,22 +40,20 @@ export async function createMarkerRecord(input: CreateMarkerBody) {
       visitedEndAt: parseDateOnly(input.visitedEndAt),
       imageUrls: input.imageUrls,
     });
-
-    return context.accountId;
   });
 
   return buildCurrentStoreSnapshot(accountId);
 }
 
 export async function updateMarkerRecord(
+  accountId: string,
   markerId: string,
   input: UpdateMarkerBody,
 ) {
   const prisma = getPrismaClient();
 
-  const accountId = await prisma.$transaction(async (tx) => {
-    const context = await ensureDefaultAppState(tx);
-    const marker = await findActiveMarkerById(tx, context.accountId, markerId);
+  await prisma.$transaction(async (tx) => {
+    const marker = await findActiveMarkerById(tx, accountId, markerId);
 
     if (!marker) {
       throw createNotFoundError('marker not found');
@@ -76,19 +72,16 @@ export async function updateMarkerRecord(
       ...(input.visitedEndAt !== undefined ? { visitedEndAt: parseDateOnly(input.visitedEndAt) } : {}),
       ...(input.imageUrls !== undefined ? { imageUrls: input.imageUrls } : {}),
     });
-
-    return context.accountId;
   });
 
   return buildCurrentStoreSnapshot(accountId);
 }
 
-export async function deleteMarkerRecord(markerId: string) {
+export async function deleteMarkerRecord(accountId: string, markerId: string) {
   const prisma = getPrismaClient();
 
-  const accountId = await prisma.$transaction(async (tx) => {
-    const context = await ensureDefaultAppState(tx);
-    const marker = await findActiveMarkerById(tx, context.accountId, markerId);
+  await prisma.$transaction(async (tx) => {
+    const marker = await findActiveMarkerById(tx, accountId, markerId);
 
     if (!marker) {
       throw createNotFoundError('marker not found');
@@ -97,8 +90,6 @@ export async function deleteMarkerRecord(markerId: string) {
     const deletedAt = new Date();
     await softDeleteMarker(tx, markerId, deletedAt);
     await softDeleteSavedGuidesByMarkerId(tx, markerId, deletedAt);
-
-    return context.accountId;
   });
 
   return buildCurrentStoreSnapshot(accountId);

@@ -7,6 +7,7 @@ import type {
 } from '@prisma/client';
 import type {
   BootstrapResponseDto,
+  CurrentAccountDto,
   DeleteSavedGuideResponseDto,
   GuideContentBlockDto,
   GuideSearchHistoryListResponseDto,
@@ -207,14 +208,15 @@ export function serializeBootstrapStore(input: {
 }
 
 export function serializeBootstrapResponse(input: {
-  accountId: string;
+  account: CurrentAccountDto;
   fetchedAt: Date;
   store: TravelStoreDto;
 }): BootstrapResponseDto {
   return {
     store: input.store,
     meta: {
-      accountId: input.accountId,
+      accountId: input.account.id,
+      account: input.account,
       fetchedAt: toIsoString(input.fetchedAt),
     },
   };
