@@ -13,11 +13,13 @@ import { useTravelStoreActions } from './app/useTravelStoreActions';
 function App() {
   const [store, setStore] = useState<TravelStore>(() => createDefaultStore());
   const [storeReady, setStoreReady] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [detailMarkerId, setDetailMarkerId] = useState<string | null>(null);
   const [guideSearchOpen, setGuideSearchOpen] = useState(false);
   const [guideSearchQuery, setGuideSearchQuery] = useState('');
   const [guideSearchScope, setGuideSearchScope] = useState<Scope | 'all'>('all');
   const [guideSearchMarkerId, setGuideSearchMarkerId] = useState<string | null>(null);
+  const [guideSearchAutoSearch, setGuideSearchAutoSearch] = useState(false);
   const [markerModalOpen, setMarkerModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dataSyncOpen, setDataSyncOpen] = useState(false);
@@ -28,6 +30,7 @@ function App() {
   const closeGuideSearch = () => {
     setGuideSearchOpen(false);
     setGuideSearchMarkerId(null);
+    setGuideSearchAutoSearch(false);
   };
 
   useLockedModal(markerModalOpen, closeMarkerModal);
@@ -60,6 +63,18 @@ function App() {
       void persistStore(store);
     }
   }, [store, storeReady]);
+
+  useEffect(() => {
+    const syncBackToTopVisibility = () => {
+      setShowBackToTop(window.scrollY > 80);
+    };
+
+    syncBackToTopVisibility();
+    window.addEventListener('scroll', syncBackToTopVisibility, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', syncBackToTopVisibility);
+    };
+  }, []);
 
   const {
     scope,
@@ -140,12 +155,26 @@ function App() {
     });
   };
 
-  const openGuideSearch = (query: string, nextScope: Scope | 'all', markerId?: string | null) => {
+  const openGuideSearch = (
+    query: string,
+    nextScope: Scope | 'all',
+    markerId?: string | null,
+    autoSearch = false,
+  ) => {
     setGuideSearchQuery(query);
     setGuideSearchScope(nextScope);
     setGuideSearchMarkerId(markerId ?? null);
+    setGuideSearchAutoSearch(autoSearch);
     setGuideSearchOpen(true);
   };
+
+  const handleBackToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setShowBackToTop(false);
+  };
+
+  const shouldShowMainBackToTop =
+    showBackToTop && !guideSearchOpen && !markerModalOpen && !dataSyncOpen && detailMarker === null;
 
   return (
     <div className="app-shell">
@@ -197,11 +226,17 @@ function App() {
         onRemoveSavedGuide={handleRemoveSavedGuide}
         onOpenGuideSearchFromDetail={(query, markerScope, markerId) => {
           setDetailMarkerId(null);
-          openGuideSearch(query, markerScope, markerId);
+          openGuideSearch(
+            query,
+            markerScope,
+            detailMarker?.userId === store.activeUserId ? markerId : null,
+            true,
+          );
         }}
         guideSearchOpen={guideSearchOpen}
         guideSearchQuery={guideSearchQuery}
         guideSearchScope={guideSearchScope}
+        guideSearchAutoSearch={guideSearchAutoSearch}
         guideSearchMarkerId={guideSearchMarkerId}
         savedGuides={store.savedGuides}
         activeUserId={store.activeUserId}
@@ -209,6 +244,17 @@ function App() {
         onSaveGuide={handleSaveGuide}
         onAttachGuideToMarker={handleAttachGuideToMarker}
       />
+
+      <div className={shouldShowMainBackToTop ? 'app-back-to-top is-visible' : 'app-back-to-top'}>
+        <button
+          type="button"
+          className="app-back-to-top-button"
+          aria-label="回到主页面顶部"
+          onClick={handleBackToTop}
+        >
+          ↑
+        </button>
+      </div>
     </div>
   );
 }

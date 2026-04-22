@@ -17,6 +17,20 @@ const MOCK_GUIDES: GuideDocument[] = [
     publishedAt: '2026-03-01',
     destinationLabel: 'Kyoto',
     tags: ['sakura', 'spring', '3-day'],
+    contentHtml: `
+      <h3>Best Season</h3>
+      <p>Late March to early April is usually the peak cherry blossom window, so book hotels at least 3 to 4 weeks ahead.</p>
+      <h3>Suggested Rhythm</h3>
+      <p>Three days works well for first-time visitors who want enough time for Higashiyama, a quieter morning walk and one west-side neighborhood.</p>
+      <h3>Recommended Route</h3>
+      <ul>
+        <li>Kiyomizu-dera and Ninenzaka</li>
+        <li>Philosopher&#39;s Path and Maruyama Park</li>
+        <li>Arashiyama before the tour buses arrive</li>
+      </ul>
+      <h3>Stay Advice</h3>
+      <p>Shijo Kawaramachi balances food options, bus access and an easy evening walk back to the hotel.</p>
+    `.trim(),
     fetchedAt: '2026-04-17T00:00:00.000Z',
     blocks: [
       { id: 'b1', type: 'section-title', text: 'Best Season' },

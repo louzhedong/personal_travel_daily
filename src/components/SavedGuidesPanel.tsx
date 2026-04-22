@@ -135,6 +135,7 @@ export default function SavedGuidesPanel({
               <div ref={listRef} className="saved-guides-list">
                 {visibleGuides.map((guide) => {
                   const relatedMarker = guide.markerId ? markerMap.get(guide.markerId) : undefined;
+                  const canRemoveGuide = !relatedMarker || relatedMarker.userId === activeUserId;
                   return (
                     <article key={guide.id} className="saved-guide-card">
                       <div className="saved-guide-top">
@@ -173,9 +174,11 @@ export default function SavedGuidesPanel({
                         <button
                           type="button"
                           className="ghost-button"
+                          disabled={!canRemoveGuide}
+                          title={canRemoveGuide ? undefined : '只能由该旅行记录的创建者解除关联'}
                           onClick={() => onRemoveSavedGuide(guide.id)}
                         >
-                          {guide.markerId ? '移除收藏' : '取消收藏'}
+                          {guide.markerId ? '解除关联' : '取消收藏'}
                         </button>
                       </div>
                     </article>

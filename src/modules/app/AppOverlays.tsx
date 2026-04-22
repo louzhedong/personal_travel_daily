@@ -36,6 +36,7 @@ interface AppOverlaysProps {
   guideSearchOpen: boolean;
   guideSearchQuery: string;
   guideSearchScope: Scope | 'all';
+  guideSearchAutoSearch?: boolean;
   guideSearchMarkerId: string | null;
   savedGuides: SavedGuide[];
   activeUserId: string;
@@ -68,6 +69,7 @@ export default function AppOverlays({
   guideSearchOpen,
   guideSearchQuery,
   guideSearchScope,
+  guideSearchAutoSearch = false,
   guideSearchMarkerId,
   savedGuides,
   activeUserId,
@@ -157,7 +159,7 @@ export default function AppOverlays({
         canEdit={detailMarker?.userId === activeUserId}
         onClose={closeDetail}
         onUpdate={onUpdateMarker}
-        onRemoveRelatedGuide={onRemoveSavedGuide}
+        onRemoveRelatedGuide={detailMarker?.userId === activeUserId ? onRemoveSavedGuide : undefined}
         onOpenGuideSearch={(query, markerScope) => {
           onOpenGuideSearchFromDetail(query, markerScope, detailMarker?.id ?? null);
         }}
@@ -166,6 +168,7 @@ export default function AppOverlays({
         open={guideSearchOpen}
         initialQuery={guideSearchQuery}
         initialScope={guideSearchScope}
+        autoSearchOnOpen={guideSearchAutoSearch}
         activeUserId={activeUserId}
         linkedMarkerId={guideSearchMarkerId}
         savedGuides={savedGuides}

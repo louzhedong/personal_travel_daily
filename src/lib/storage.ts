@@ -357,6 +357,7 @@ function normalizeGuideResult(result: unknown): GuideSearchResult | GuideDocumen
 
   return {
     ...base,
+    contentHtml: typeof candidate.contentHtml === 'string' ? candidate.contentHtml : undefined,
     blocks,
     fetchedAt: candidate.fetchedAt,
   };

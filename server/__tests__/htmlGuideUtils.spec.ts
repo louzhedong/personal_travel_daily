@@ -41,7 +41,47 @@ describe('htmlGuideUtils', () => {
     expect(document.title).toBe('Discover Kyoto | Kyoto Travel');
     expect(document.summary).toBe('Learn how Kyoto blends temples, food culture, and seasonal scenery.');
     expect(document.coverImageUrl).toBe('https://cdn.example.com/kyoto.jpg');
+    expect(document.contentHtml).toContain('<h3>What to Expect</h3>');
+    expect(document.contentHtml).toContain('<ul>');
     expect(document.blocks.some((block) => block.type === 'section-title')).toBe(true);
     expect(document.blocks.some((block) => block.type === 'bullet-list')).toBe(true);
+  });
+
+  it('filters noisy wiki-like layout and keeps richer article blocks', () => {
+    const noisyHtml = `
+      <!doctype html>
+      <html>
+        <body>
+          <nav>导航菜单</nav>
+          <div class="mw-parser-output">
+            <div class="toc">目录</div>
+            <h1>京都</h1>
+            <p>京都适合第一次去日本自由行、又希望把文化体验和城市散步结合在一起的旅行者。</p>
+            <h2>推荐停留时间</h2>
+            <p>如果只去核心区域，2 到 3 天就能覆盖东山、岚山和市区经典路线。</p>
+            <h2>经典节奏</h2>
+            <ul>
+              <li>东山寺社与老街</li>
+              <li>哲学之道与冈崎公园</li>
+              <li>岚山与嵯峨野</li>
+            </ul>
+            <h2>住宿建议</h2>
+            <p>第一次去京都，住在四条河原町和京都站之间会更方便。</p>
+            <div class="reference">参考资料</div>
+          </div>
+          <footer>页脚信息</footer>
+        </body>
+      </html>
+    `;
+
+    const document = buildGuideDocumentFromHtml(sampleEntry, noisyHtml);
+
+    expect(document.blocks.length).toBeGreaterThanOrEqual(5);
+    expect(document.blocks.some((block) => block.text === '目录')).toBe(false);
+    expect(document.blocks.some((block) => block.text.includes('导航菜单'))).toBe(false);
+    expect(document.blocks.some((block) => block.text === '推荐停留时间')).toBe(true);
+    expect(document.blocks.some((block) => block.type === 'bullet-list')).toBe(true);
+    expect(document.contentHtml).toContain('<h3>推荐停留时间</h3>');
+    expect(document.contentHtml).not.toContain('导航菜单');
   });
 });

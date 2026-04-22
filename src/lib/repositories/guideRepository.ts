@@ -20,6 +20,12 @@ import {
 
 const GUIDE_SEARCH_CACHE_VERSION = 'v3';
 
+interface SavedGuideLookup {
+  savedByUserId: string;
+  sourceUrl: string;
+  markerId?: string;
+}
+
 function buildGuideSearchHistoryIdentity(item: Pick<GuideSearchHistoryItem, 'keyword' | 'scope'>) {
   return item.keyword.trim().toLowerCase();
 }
@@ -36,12 +42,26 @@ export function buildGuideDocumentCacheKey(sourceUrl: string) {
   return sourceUrl.trim().toLowerCase();
 }
 
-function buildSavedGuideIdentity(
+function buildSavedGuideLookupIdentity({ savedByUserId, sourceUrl, markerId }: SavedGuideLookup) {
+  return `${savedByUserId}::${markerId ?? '__favorite__'}::${buildGuideDocumentCacheKey(sourceUrl)}`;
+}
+
+export function buildSavedGuideIdentity(
   savedGuide: Pick<SavedGuide, 'savedByUserId' | 'markerId' | 'result'>,
 ) {
-  return `${savedGuide.savedByUserId}::${savedGuide.markerId ?? '__favorite__'}::${buildGuideDocumentCacheKey(
-    savedGuide.result.sourceUrl,
-  )}`;
+  return buildSavedGuideLookupIdentity({
+    savedByUserId: savedGuide.savedByUserId,
+    markerId: savedGuide.markerId,
+    sourceUrl: savedGuide.result.sourceUrl,
+  });
+}
+
+export function findSavedGuideInCollection(
+  savedGuides: SavedGuide[],
+  lookup: SavedGuideLookup,
+): SavedGuide | null {
+  const identity = buildSavedGuideLookupIdentity(lookup);
+  return savedGuides.find((item) => buildSavedGuideIdentity(item) === identity) ?? null;
 }
 
 export async function loadSavedGuides(): Promise<SavedGuide[]> {
@@ -74,8 +94,7 @@ export async function findSavedGuideBySourceUrl(
   markerId?: string,
 ): Promise<SavedGuide | null> {
   const items = await loadSavedGuides();
-  const identity = `${savedByUserId}::${markerId ?? '__favorite__'}::${buildGuideDocumentCacheKey(sourceUrl)}`;
-  return items.find((item) => buildSavedGuideIdentity(item) === identity) ?? null;
+  return findSavedGuideInCollection(items, { savedByUserId, sourceUrl, markerId });
 }
 
 export async function saveSavedGuide(savedGuide: SavedGuide): Promise<void> {

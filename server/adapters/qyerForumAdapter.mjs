@@ -73,6 +73,53 @@ function buildEntry(thread) {
   });
 }
 
+function buildThreadId(sourceUrl) {
+  return `qyer-forum-${encodeURIComponent(sourceUrl)}`;
+}
+
+export function isQyerVerificationPage(html) {
+  return (
+    typeof html === 'string' &&
+    (html.includes('验证过程仅需几秒钟') ||
+      html.includes('/st_res/web/check') ||
+      html.includes('window.__INITIAL_STATE__={"userInfo"'))
+  );
+}
+
+export function buildQyerFallbackDocument(entry) {
+  const contentHtml = `
+    <h3>帖子摘要</h3>
+    <p>${entry.summary}</p>
+    <h3>当前状态</h3>
+    <p>穷游论坛当前对该帖子启用了访问验证，暂时无法稳定抓取完整正文。你仍然可以先参考帖子标题、摘要和发布时间，再跳转原网站继续阅读。</p>
+    <h3>建议操作</h3>
+    <ul>
+      <li>先根据摘要判断内容方向是否匹配你的目的地和玩法</li>
+      <li>点击下方原网站链接，在浏览器中查看完整帖子</li>
+      <li>如果只是想快速收藏或关联，这个摘要版已经可以继续使用</li>
+    </ul>
+  `.trim();
+
+  return {
+    id: entry.id,
+    title: entry.title,
+    summary: entry.summary,
+    sourceName: entry.sourceName,
+    sourceUrl: entry.sourceUrl,
+    authorName: entry.authorName,
+    publishedAt: entry.publishedAt,
+    destinationLabel: entry.destinationLabel,
+    tags: entry.tags,
+    contentHtml,
+    blocks: [
+      { id: 'qyer-fallback-1', type: 'section-title', text: '帖子摘要' },
+      { id: 'qyer-fallback-2', type: 'paragraph', text: entry.summary },
+      { id: 'qyer-fallback-3', type: 'tips', text: '该帖子当前触发了站点验证，建议点击原网站继续阅读完整正文。' },
+    ],
+    fetchedAt: new Date().toISOString(),
+  };
+}
+
 function parseForumThreads(html) {
   const threads = [];
   const threadPattern =
@@ -135,17 +182,28 @@ export const qyerForumAdapter = {
       return null;
     }
 
-    const html = await fetchRemoteHtml(sourceUrl);
-    return buildGuideDocumentFromHtml(
-      createCatalogEntry({
-        id: `qyer-forum-${encodeURIComponent(sourceUrl)}`,
-        adapterId: 'qyer-forum',
-        scope: 'domestic',
+    const forumPages = await Promise.all(QYER_FORUM_PAGES.map((url) => fetchRemoteHtml(url).catch(() => '')));
+    const thread = forumPages
+      .flatMap((html) => (html ? parseForumThreads(html) : []))
+      .find((item) => item.sourceUrl === sourceUrl);
+    const entry = buildEntry(
+      thread ?? {
+        sourceUrl,
         title: '穷游论坛攻略',
         summary: '来自穷游论坛的国内旅行经验整理',
-        sourceName: '穷游论坛',
-        sourceUrl,
-        tags: ['中文攻略', '游记帖子', '穷游论坛'],
+      },
+    );
+
+    const html = await fetchRemoteHtml(sourceUrl);
+    if (isQyerVerificationPage(html)) {
+      return buildQyerFallbackDocument(entry);
+    }
+
+    return buildGuideDocumentFromHtml(
+      createCatalogEntry({
+        ...entry,
+        id: buildThreadId(sourceUrl),
+        adapterId: 'qyer-forum',
       }),
       html,
     );

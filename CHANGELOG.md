@@ -25,6 +25,10 @@ This file tracks both the changes already merged into `main` and the current bra
   Added `docs/future-roadmap.md` as the agreed future roadmap.
 - 新增 `CHANGELOG.md` 作为项目长期变更记录。  
   Added `CHANGELOG.md` as a durable project history file.
+- 新增主页面右下角“回到顶部”按钮，仅在主页面离开顶部后显示。  
+  Added a bottom-right “back to top” button for the main page that only appears after the page scrolls away from the top.
+- 新增京都官网与穷游论坛站点级正文适配测试，并补充主页面回顶按钮测试。  
+  Added site-specific extraction tests for Kyoto Travel and Qyer Forum, plus a test for the main-page back-to-top button.
 
 ### Changed / 变更
 
@@ -44,6 +48,12 @@ This file tracks both the changes already merged into `main` and the current bra
   Refreshed README and the docs set so they match the current product, code structure, and local Node 20 workflow.
 - 扩展未来功能路线图，并将“数据库升级到 MySQL”提升为最优先事项。  
   Expanded the roadmap and promoted “migrate the database to MySQL” to the top future priority.
+- 优化攻略搜索阅读体验：支持目录、原文视图、主页面回顶入口，并调整搜索面板滚动与吸顶反馈。  
+  Improved the guide-search reading experience with an outline, original view, main-page back-to-top entry, and refined panel scroll/sticky behavior.
+- 强化攻略搜索与收藏联动，合并 `main` 新结构后继续保留自动搜索与权限边界逻辑。  
+  Tightened guide-search and saved-guide integration, preserving auto-search and permission boundaries after adopting the new `main` structure.
+- 针对 `kyoto.travel` 与穷游论坛增加站点级正文白名单/降级策略，让正文提取更稳定。  
+  Added site-specific whitelisting and fallback strategies for `kyoto.travel` and Qyer Forum to stabilize article extraction.
 
 ### Fixed / 修复
 
@@ -53,10 +63,15 @@ This file tracks both the changes already merged into `main` and the current bra
   Fixed unstable placement of the travel scope badge in the marker detail panel.
 - 修复本地启动说明与实际 Node.js 20 要求不一致的问题。  
   Fixed local startup guidance so it reflects the actual Node.js 20 requirement.
+- 修复攻略搜索中他人旅行记录仍可出现“解除关联”或“关联到当前记录”的权限边界问题。  
+  Fixed permission-boundary regressions where other users' markers could still expose unlink or relink actions in the guide flow.
+- 修复攻略面板原文阅读的滚动、置顶反馈与回顶入口可用性问题。  
+  Fixed guide-panel original-reading issues around scrolling, sticky feedback, and top-return affordances.
 
 ### Verified / 已验证
 
 - `vite build`
+- `vitest run --environment jsdom --run src/modules/__tests__/App.spec.tsx src/components/__tests__/GuideSearchPanel.spec.tsx`
 
 ## 2026-04-21
 

@@ -138,4 +138,40 @@ describe('MarkerDetailPanel', () => {
     await userEvent.click(screen.getByRole('button', { name: '解除关联' }));
     expect(onRemoveRelatedGuide).toHaveBeenCalledWith('saved-1');
   });
+
+  it('keeps guide search available for read-only records without showing unlink actions', () => {
+    const relatedGuides: SavedGuide[] = [
+      {
+        id: 'saved-1',
+        savedByUserId: 'u2',
+        markerId: 'm1',
+        keyword: '青海',
+        savedAt: '2026-05-04T00:00:00.000Z',
+        result: {
+          id: 'guide-1',
+          title: '青海湖环线攻略',
+          summary: '经典环线路线和高原适应建议。',
+          sourceName: '示例来源',
+          sourceUrl: 'https://example.com/guide/1',
+        },
+      },
+    ];
+    const onOpenGuideSearch = vi.fn();
+
+    render(
+      <MarkerDetailPanel
+        marker={marker}
+        user={user}
+        open
+        canEdit={false}
+        onClose={() => {}}
+        onUpdate={() => {}}
+        relatedGuides={relatedGuides}
+        onOpenGuideSearch={onOpenGuideSearch}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: '查找攻略' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '解除关联' })).not.toBeInTheDocument();
+  });
 });

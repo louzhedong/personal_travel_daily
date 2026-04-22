@@ -58,6 +58,7 @@ export interface GuideDocument {
   publishedAt?: string;
   destinationLabel?: string;
   tags?: string[];
+  contentHtml?: string;
   blocks: GuideContentBlock[];
   fetchedAt: string;
 }
