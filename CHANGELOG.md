@@ -1,30 +1,14 @@
 # Changelog / 更新日志
 
-本文件同时记录已经合并到 `main` 的历史变更，以及当前分支尚未合并的工作内容。  
-This file tracks both the changes already merged into `main` and the current branch work that has not been merged yet.
+本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。  
+This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
-## Unreleased / 未发布
+## 2026-04-22
+
+### PR [#11](https://github.com/louzhedong/personal_travel_daily/pull/11) `feat: 优化攻略搜索体验与权限边界 / Refine guide search experience and permission boundary`
 
 ### Added / 新增
 
-- 新增行程时间线面板，支持按当前用户生成时间线、按年份筛选、按国内/国际筛选，并与地图和详情面板联动。  
-  Added the new trip timeline panel with year filtering, domestic/international filtering, and map/detail linking.
-- 新增 `useMapContext.ts`，统一地图范围、区域列表、选区和当前范围 marker 派生。  
-  Added `useMapContext.ts` to centralize map scope, region options, selected region, and scope-level marker derivation.
-- 新增 `useTravelStoreActions.ts`，统一 TravelStore 写操作。  
-  Added `useTravelStoreActions.ts` to centralize TravelStore write actions.
-- 新增 `AppHero.tsx`、`AppContent.tsx`、`AppOverlays.tsx`，拆分页面组合层。  
-  Added `AppHero.tsx`, `AppContent.tsx`, and `AppOverlays.tsx` to split page composition out of `App.tsx`.
-- 新增 `markerNavigation.ts`，统一按记录 ID 定位并打开详情的联动行为。  
-  Added `markerNavigation.ts` to unify “focus marker by id and open detail” flows.
-- 新增 `useLockedModal.ts`，统一弹窗 body lock 和 `Escape` 关闭逻辑。  
-  Added `useLockedModal.ts` to unify body locking and `Escape` handling for modals.
-- 新增 `docs/README.md` 作为文档索引页。  
-  Added `docs/README.md` as the docs index.
-- 新增 `docs/future-roadmap.md` 作为后续功能规划文档。  
-  Added `docs/future-roadmap.md` as the agreed future roadmap.
-- 新增 `CHANGELOG.md` 作为项目长期变更记录。  
-  Added `CHANGELOG.md` as a durable project history file.
 - 新增主页面右下角“回到顶部”按钮，仅在主页面离开顶部后显示。  
   Added a bottom-right “back to top” button for the main page that only appears after the page scrolls away from the top.
 - 新增京都官网与穷游论坛站点级正文适配测试，并补充主页面回顶按钮测试。  
@@ -32,22 +16,6 @@ This file tracks both the changes already merged into `main` and the current bra
 
 ### Changed / 变更
 
-- 将数据备份与恢复从侧栏常驻模块调整为由旅行记录模块触发的弹窗交互。  
-  Moved backup and restore into a modal launched from the travel records module.
-- 优化时间线筛选文案、下拉样式、隐藏滚动条和边缘渐隐效果。  
-  Refined the timeline filter copy, dropdown styling, hidden scrollbar behavior, and edge fade treatment.
-- 调整旅行记录详情头部布局，稳定“国内旅行 / 国际旅行”标签的位置。  
-  Refined the marker detail header layout and stabilized the placement of the travel scope tag.
-- 优化旅行记录模块中的旅伴筛选控件样式。  
-  Restyled the travel companion filter in the records module.
-- 将样式系统从单一超大 `src/styles/index.css` 拆分为 `base.css`、`layout.css`、`home.css`、`responsive.css` 和 `components/*.css`。  
-  Split the style system from the old monolithic `src/styles/index.css` into `base.css`, `layout.css`, `home.css`, `responsive.css`, and `components/*.css`.
-- 重构 `App.tsx`，通过提取页面组合层、travel store actions 和地图上下文，让其更接近容器层。  
-  Refactored `App.tsx` into a thinner container by extracting page composition, travel store actions, and map context handling.
-- 刷新 README 与 `docs/` 文档，使其与当前功能、代码结构和本地 Node 20 工作流保持一致。  
-  Refreshed README and the docs set so they match the current product, code structure, and local Node 20 workflow.
-- 扩展未来功能路线图，并将“数据库升级到 MySQL”提升为最优先事项。  
-  Expanded the roadmap and promoted “migrate the database to MySQL” to the top future priority.
 - 优化攻略搜索阅读体验：支持目录、原文视图、主页面回顶入口，并调整搜索面板滚动与吸顶反馈。  
   Improved the guide-search reading experience with an outline, original view, main-page back-to-top entry, and refined panel scroll/sticky behavior.
 - 强化攻略搜索与收藏联动，合并 `main` 新结构后继续保留自动搜索与权限边界逻辑。  
@@ -57,12 +25,6 @@ This file tracks both the changes already merged into `main` and the current bra
 
 ### Fixed / 修复
 
-- 修复时间线渐隐效果不明显的问题。  
-  Fixed timeline fade behavior so the scroll affordance is visible.
-- 修复旅行记录详情中范围标签位置不稳定的问题。  
-  Fixed unstable placement of the travel scope badge in the marker detail panel.
-- 修复本地启动说明与实际 Node.js 20 要求不一致的问题。  
-  Fixed local startup guidance so it reflects the actual Node.js 20 requirement.
 - 修复攻略搜索中他人旅行记录仍可出现“解除关联”或“关联到当前记录”的权限边界问题。  
   Fixed permission-boundary regressions where other users' markers could still expose unlink or relink actions in the guide flow.
 - 修复攻略面板原文阅读的滚动、置顶反馈与回顶入口可用性问题。  
