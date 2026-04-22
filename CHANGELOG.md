@@ -37,6 +37,61 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-21
 
+### PR [#10](https://github.com/louzhedong/personal_travel_daily/pull/10) `Add trip timeline, refactor app architecture, and refresh docs / 新增行程时间线、重构应用架构并刷新文档`
+
+### Added / 新增
+
+- 新增行程时间线面板，支持按当前用户生成时间线、按年份筛选、按国内/国际筛选，并与地图和详情面板联动。  
+  Added the new trip timeline panel with year filtering, domestic/international filtering, and map/detail linking.
+- 新增 `useMapContext.ts`，统一地图范围、区域列表、选区和当前范围 marker 派生。  
+  Added `useMapContext.ts` to centralize map scope, region options, selected region, and scope-level marker derivation.
+- 新增 `useTravelStoreActions.ts`，统一 TravelStore 写操作。  
+  Added `useTravelStoreActions.ts` to centralize TravelStore write actions.
+- 新增 `AppHero.tsx`、`AppContent.tsx`、`AppOverlays.tsx`，拆分页面组合层。  
+  Added `AppHero.tsx`, `AppContent.tsx`, and `AppOverlays.tsx` to split page composition out of `App.tsx`.
+- 新增 `markerNavigation.ts`，统一按记录 ID 定位并打开详情的联动行为。  
+  Added `markerNavigation.ts` to unify “focus marker by id and open detail” flows.
+- 新增 `useLockedModal.ts`，统一弹窗 body lock 和 `Escape` 关闭逻辑。  
+  Added `useLockedModal.ts` to unify body locking and `Escape` handling for modals.
+- 新增 `docs/README.md` 作为文档索引页。  
+  Added `docs/README.md` as the docs index.
+- 新增 `docs/future-roadmap.md` 作为后续功能规划文档。  
+  Added `docs/future-roadmap.md` as the agreed future roadmap.
+- 新增 `CHANGELOG.md` 作为项目长期变更记录。  
+  Added `CHANGELOG.md` as a durable project history file.
+
+### Changed / 变更
+
+- 将数据备份与恢复从侧栏常驻模块调整为由旅行记录模块触发的弹窗交互。  
+  Moved backup and restore into a modal launched from the travel records module.
+- 优化时间线筛选文案、下拉样式、隐藏滚动条和边缘渐隐效果。  
+  Refined the timeline filter copy, dropdown styling, hidden scrollbar behavior, and edge fade treatment.
+- 调整旅行记录详情头部布局，稳定“国内旅行 / 国际旅行”标签的位置。  
+  Refined the marker detail header layout and stabilized the placement of the travel scope tag.
+- 优化旅行记录模块中的旅伴筛选控件样式。  
+  Restyled the travel companion filter in the records module.
+- 将样式系统从单一超大 `src/styles/index.css` 拆分为 `base.css`、`layout.css`、`home.css`、`responsive.css` 和 `components/*.css`。  
+  Split the style system from the old monolithic `src/styles/index.css` into `base.css`, `layout.css`, `home.css`, `responsive.css`, and `components/*.css`.
+- 重构 `App.tsx`，通过提取页面组合层、travel store actions 和地图上下文，让其更接近容器层。  
+  Refactored `App.tsx` into a thinner container by extracting page composition, travel store actions, and map context handling.
+- 刷新 README 与 `docs/` 文档，使其与当前功能、代码结构和本地 Node 20 工作流保持一致。  
+  Refreshed README and the docs set so they match the current product, code structure, and local Node 20 workflow.
+- 扩展未来功能路线图，并将“数据库升级到 MySQL”提升为最优先事项。  
+  Expanded the roadmap and promoted “migrate the database to MySQL” to the top future priority.
+
+### Fixed / 修复
+
+- 修复时间线渐隐效果不明显的问题。  
+  Fixed timeline fade behavior so the scroll affordance is visible.
+- 修复旅行记录详情中范围标签位置不稳定的问题。  
+  Fixed unstable placement of the travel scope badge in the marker detail panel.
+- 修复本地启动说明与实际 Node.js 20 要求不一致的问题。  
+  Fixed local startup guidance so it reflects the actual Node.js 20 requirement.
+
+### Verified / 已验证
+
+- `vite build`
+
 ### Changed / 变更
 
 - 合并 PR [#9](https://github.com/louzhedong/personal_travel_daily/pull/9) `[codex] Align project docs and prompts`。  
