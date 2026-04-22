@@ -5,6 +5,176 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-22
 
+### PR TBD `ops: 切换到 Docker MySQL 本地方案 / Switch local database runtime to Docker MySQL`
+
+### Added / 新增
+
+- 新增 `scripts/start-local-dev-docker.sh` 与 `scripts/stop-local-dev-docker.sh`，提供明确的 Docker 本地联调入口。  
+  Added `scripts/start-local-dev-docker.sh` and `scripts/stop-local-dev-docker.sh` as explicit Docker-based local dev entry points.
+
+### Changed / 变更
+
+- 更新 `package.json`，增加 `dev:all:docker` 与 `dev:stop:docker`。  
+  Updated `package.json` with `dev:all:docker` and `dev:stop:docker`.
+- 更新 README 与本地排查文档，补充 Docker MySQL 方案的启动与停止命令。  
+  Updated the README and local troubleshooting docs to document Docker MySQL startup and shutdown commands.
+- 将当前 Homebrew MySQL 中的 `personal_travel_daily` 数据导出并导入到 Docker MySQL 容器，切换后验证 `bootstrap` 数据链路仍然正常。  
+  Exported the existing `personal_travel_daily` data from Homebrew MySQL and imported it into Docker MySQL, then verified the bootstrap data flow still works after the switch.
+
+### Verified / 已验证
+
+- `npm run dev:all:docker`
+- `docker compose ps`
+- `GET /api/app/bootstrap`
+
+### PR TBD `db: 引入首份 Prisma migration 历史 / Introduce the first Prisma migration history`
+
+### Added / 新增
+
+- 新增 `server/prisma/migrations/20260422_init/migration.sql`，将当前 MySQL 主数据 schema 固化为首份正式 Prisma migration。  
+  Added `server/prisma/migrations/20260422_init/migration.sql` to capture the current MySQL app-data schema as the first formal Prisma migration.
+
+### Changed / 变更
+
+- 更新 `package.json`，新增 `db:migrate:deploy` 与 `db:migrate:status`，让开发/部署流程显式区分 migration 管理与快速实验同步。  
+  Updated `package.json` with `db:migrate:deploy` and `db:migrate:status` to distinguish formal migration workflows from quick schema sync.
+- 更新 README 与 MySQL 迁移设计稿，将 Prisma 工作流从默认 `db:push` 切换为默认 `db:migrate`。  
+  Updated the README and MySQL migration design doc to make `db:migrate` the default Prisma workflow instead of `db:push`.
+
+### Verified / 已验证
+
+- `npx prisma migrate resolve --applied 20260422_init --schema server/prisma/schema.prisma`
+- `npm run db:migrate:status`
+- `npm run build`
+
+### PR TBD `docs/tooling: 增加一键联调脚本与环境排查文档 / Add one-click dev tooling and troubleshooting docs`
+
+### Added / 新增
+
+- 新增 `scripts/start-local-dev.sh` 与 `scripts/stop-local-dev.sh`，用于在 macOS / Linux 下串起 MySQL、`guide-api`、`app-api` 与前端 dev server。  
+  Added `scripts/start-local-dev.sh` and `scripts/stop-local-dev.sh` to orchestrate MySQL, `guide-api`, `app-api`, and the frontend dev server on macOS / Linux.
+- 新增 `docs/local-dev-troubleshooting.md`，覆盖 MySQL、Prisma、端口占用、双后端联调与日志定位。  
+  Added `docs/local-dev-troubleshooting.md` covering MySQL, Prisma, port conflicts, dual-backend local debugging, and log locations.
+
+### Changed / 变更
+
+- 更新 `package.json`，增加 `dev:all` 与 `dev:stop`。  
+  Updated `package.json` with `dev:all` and `dev:stop`.
+- 更新 README、docs 索引与 MySQL 迁移设计稿，补齐联调脚本和环境排查文档入口，并将 `PR-12` 进度写回设计稿。  
+  Updated the README, docs index, and MySQL migration design doc to include the new tooling and mark `PR-12` progress.
+
+### Verified / 已验证
+
+- `npm run build`
+
+### PR TBD `docs/test: 收尾数据库迁移文档与 repository 测试 / Finish migration document and repository coverage`
+
+### Added / 新增
+
+- 新增 `server/__tests__/appApiRepositories.spec.ts`，覆盖账户、旅伴、记录、收藏和搜索历史 repository 的关键 Prisma 调用契约。  
+  Added `server/__tests__/appApiRepositories.spec.ts` to cover core Prisma call contracts for account, companion, marker, saved-guide, and guide-history repositories.
+
+### Changed / 变更
+
+- 更新 `.env.example`，补齐 MySQL / App API / Frontend / Guide API 分组说明。  
+  Updated `.env.example` with clearer sections for MySQL, App API, frontend, and Guide API settings.
+- 更新 `README.md` 与 `mysql-upgrade-design.md`，收尾数据库迁移文档中的剩余未完成项，并补充 Homebrew MySQL 启动方式、本期能力边界与后续待办。  
+  Updated `README.md` and `mysql-upgrade-design.md` to finish the remaining migration-document items and add Homebrew MySQL setup, scope boundaries, and follow-up tasks.
+
+### Verified / 已验证
+
+- `npm run test -- --run server/__tests__/appApiRepositories.spec.ts`
+- `npm run build`
+
+### PR TBD `test: 补齐前端 API client 与细粒度 CRUD 测试 / Add API client and fine-grained CRUD tests`
+
+### Added / 新增
+
+- 新增 `src/lib/api/__tests__/httpClient.spec.ts`，覆盖主业务 API client 的 base url 推导、query 拼接、JSON body、404 回退与错误消息提取。  
+  Added `src/lib/api/__tests__/httpClient.spec.ts` to cover app API client base-url resolution, query serialization, JSON bodies, 404 fallback, and backend error extraction.
+- 新增 `src/lib/api/__tests__/apiModules.spec.ts`，覆盖 bootstrap、companions、markers、saved-guides、guide-search-histories 的模块级 path / payload 转发。  
+  Added `src/lib/api/__tests__/apiModules.spec.ts` to cover path and payload forwarding for bootstrap, companions, markers, saved guides, and guide search histories.
+
+### Changed / 变更
+
+- 扩展 `server/__tests__/appApiRoutes.spec.ts`，补齐旅伴更新、记录更新/删除、收藏查询过滤/删除、搜索历史创建等更细粒度的 CRUD 路由测试。  
+  Expanded `server/__tests__/appApiRoutes.spec.ts` with finer CRUD route tests for companion updates, marker updates/deletes, saved-guide filter/delete flows, and guide-history creation.
+- 更新 MySQL 设计稿中的测试清单与当前进度，将前端 API client 测试和记录 CRUD 测试标记为完成。  
+  Updated the MySQL design doc to mark API client coverage and marker CRUD tests as completed.
+
+### Verified / 已验证
+
+- `npm run test -- --run src/lib/api/__tests__/httpClient.spec.ts src/lib/api/__tests__/apiModules.spec.ts server/__tests__/appApiRoutes.spec.ts`
+- `npm run build`
+
+### PR TBD `test: 补齐主业务 API 与前端远端主链路回归测试 / Add regression coverage for app API and remote data flow`
+
+### Added / 新增
+
+- 新增 `server/__tests__/appApiRoutes.spec.ts`，覆盖主业务 API 的 bootstrap、旅伴校验、记录错误格式、攻略收藏与搜索历史路由级测试。  
+  Added `server/__tests__/appApiRoutes.spec.ts` to cover bootstrap, companion validation, marker error formatting, saved guide, and guide history route-level tests for the application API.
+- 更新 `src/modules/__tests__/App.spec.tsx`，将 `App` 主链路测试切到远端仓库模式，并校验远端 bootstrap 与搜索历史回写。  
+  Updated `src/modules/__tests__/App.spec.tsx` to use the remote repository flow and verify remote bootstrap plus search-history writes.
+- 更新 `DataSync` 与 `GuideSearchPanel` 相关回归测试，使其与云端主数据版本的真实行为保持一致。  
+  Updated regression tests around `DataSync` and `GuideSearchPanel` so they match the cloud-first data flow.
+
+### Verified / 已验证
+
+- `npm run test -- --run server/__tests__/appApiRoutes.spec.ts src/modules/__tests__/App.spec.tsx src/components/__tests__/GuideSearchPanel.spec.tsx src/components/__tests__/DataSync.spec.tsx`
+- `npm run build`
+
+### PR TBD `docs: 补齐主业务 API Contract 与文档索引 / Add app API contract and document index entries`
+
+### Added / 新增
+
+- 新增 `docs/app-api-contract.md`，系统化说明主业务 API 的健康检查、bootstrap、旅伴、记录、攻略收藏与搜索历史接口契约。  
+  Added `docs/app-api-contract.md` to document health, bootstrap, companions, markers, saved guides, and guide search history contracts for the application API.
+
+### Changed / 变更
+
+- 更新 README、`docs/README.md` 与 MySQL 设计稿中的文档入口和开发清单，补齐 `PR-8`、`PR-9` 当前进度。  
+  Updated the README, `docs/README.md`, and the MySQL design doc with document entry points and the latest `PR-8` / `PR-9` progress.
+
+### PR TBD `feat: 收口云端版 DataSync 与文档说明 / Refine cloud-mode DataSync and documentation`
+
+### Changed / 变更
+
+- 调整 `DataSync` 为云端版形态，仅保留导出当前聚合快照的能力，暂停应用内 JSON 导入恢复入口。  
+  Refined `DataSync` for cloud mode by keeping export-only backup snapshots and disabling the in-app JSON restore entry.
+- 将 `App.tsx`、`useTravelStoreActions.ts` 与 `GuideSearchPanel` 的主数据写入链路切到主业务 API，并同步收口“数据备份与恢复”相关文案。  
+  Switched the main data write flow in `App.tsx`, `useTravelStoreActions.ts`, and `GuideSearchPanel` to the application API, and aligned backup-related copy with the cloud-first model.
+- 更新 README 与 MySQL 技术设计文档，明确当前版本以 MySQL 主数据为准、JSON 仅作人工备份。  
+  Updated the README and MySQL design document to clarify that MySQL is now the source of truth and JSON exports are manual backups only.
+
+### Verified / 已验证
+
+- `npm run build`
+
+### PR TBD `feat: 搭建 MySQL 应用 API 基础设施 / Bootstrap MySQL app API infrastructure`
+
+### Added / 新增
+
+- 新增 `server/appApiServer.ts` 与 `server/appApi/*` 骨架，提供独立的主业务 API 入口和健康检查路由。  
+  Added `server/appApiServer.ts` and the `server/appApi/*` scaffold as the dedicated application API entry with health routes.
+- 新增 `server/prisma/schema.prisma` 与 `server/prisma/seed.ts`，初始化 MySQL 数据模型和默认账户 seed。  
+  Added `server/prisma/schema.prisma` and `server/prisma/seed.ts` to bootstrap the MySQL data model and default account seed.
+- 新增 `docker-compose.yml`，提供本地 MySQL 8 与 Adminer 启动能力。  
+  Added `docker-compose.yml` to provision local MySQL 8 and Adminer.
+- 新增 `tsconfig.server.json` 与服务端 TypeScript 环境配置。  
+  Added `tsconfig.server.json` and the TypeScript setup for the new server-side code.
+
+### Changed / 变更
+
+- 扩展 `package.json` 脚本和依赖，加入 `Fastify`、`Prisma`、`mysql2`、`tsx`、`zod` 与数据库初始化命令。  
+  Expanded `package.json` scripts and dependencies with `Fastify`, `Prisma`, `mysql2`, `tsx`, `zod`, and database bootstrap commands.
+- 更新 `.env.example`、README 和文档索引，补充主业务 API 与 MySQL 本地启动说明。  
+  Updated `.env.example`, the README, and docs entry points with local startup guidance for the main API and MySQL.
+
+### Verified / 已验证
+
+- `npm run db:generate`
+- `npm run build`
+
 ### PR [#11](https://github.com/louzhedong/personal_travel_daily/pull/11) `feat: 优化攻略搜索体验与权限边界 / Refine guide search experience and permission boundary`
 
 ### Added / 新增

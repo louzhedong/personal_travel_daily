@@ -3,6 +3,7 @@ import GuideSearchPanel from '../../components/GuideSearchPanel';
 import MarkerDetailPanel from '../../components/MarkerDetailPanel';
 import MarkerForm, { type MarkerFormValue } from '../../components/MarkerForm';
 import type {
+  GuideSearchHistoryItem,
   GuideSearchResult,
   RegionOption,
   SavedGuide,
@@ -25,7 +26,6 @@ interface AppOverlaysProps {
   dataSyncOpen: boolean;
   closeDataSync: () => void;
   store: TravelStore;
-  onRestoreStore: (store: TravelStore) => void;
   detailMarker: VisitMarker | null;
   detailUser?: UserProfile;
   detailMarkerGuides: SavedGuide[];
@@ -43,6 +43,8 @@ interface AppOverlaysProps {
   closeGuideSearch: () => void;
   onSaveGuide: (guide: GuideSearchResult, keyword: string) => void;
   onAttachGuideToMarker: (guide: GuideSearchResult, keyword: string, markerId: string) => void;
+  guideSearchHistory: GuideSearchHistoryItem[];
+  onSaveSearchHistory: (keyword: string, scope: Scope | 'all') => Promise<GuideSearchHistoryItem[]>;
 }
 
 export default function AppOverlays({
@@ -58,7 +60,6 @@ export default function AppOverlays({
   dataSyncOpen,
   closeDataSync,
   store,
-  onRestoreStore,
   detailMarker,
   detailUser,
   detailMarkerGuides,
@@ -76,6 +77,8 @@ export default function AppOverlays({
   closeGuideSearch,
   onSaveGuide,
   onAttachGuideToMarker,
+  guideSearchHistory,
+  onSaveSearchHistory,
 }: AppOverlaysProps) {
   return (
     <>
@@ -134,8 +137,8 @@ export default function AppOverlays({
           <div className="modal-panel data-sync-modal-panel" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <h3 className="modal-title">数据备份与恢复</h3>
-                <p className="modal-subtitle">导出本地数据快照，或从备份文件按 ID 合并恢复。</p>
+                <h3 className="modal-title">数据备份</h3>
+                <p className="modal-subtitle">导出当前云端聚合快照，用于手动备份；应用内导入恢复已暂停开放。</p>
               </div>
               <button
                 type="button"
@@ -146,7 +149,7 @@ export default function AppOverlays({
                 ×
               </button>
             </div>
-            <DataSync store={store} onRestore={onRestoreStore} variant="dialog" />
+            <DataSync store={store} variant="dialog" />
           </div>
         </div>
       ) : null}
@@ -172,10 +175,12 @@ export default function AppOverlays({
         activeUserId={activeUserId}
         linkedMarkerId={guideSearchMarkerId}
         savedGuides={savedGuides}
+        searchHistory={guideSearchHistory}
         onClose={closeGuideSearch}
         onSaveGuide={onSaveGuide}
         onAttachGuideToMarker={onAttachGuideToMarker}
         onRemoveSavedGuide={onRemoveSavedGuide}
+        onSaveSearchHistory={onSaveSearchHistory}
       />
     </>
   );

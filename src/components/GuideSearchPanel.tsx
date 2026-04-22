@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getGuideDocument } from '../lib/guides/guideContentService';
 import { searchGuides } from '../lib/guides/guideSearchService';
-import {
-  findSavedGuideInCollection,
-  loadGuideSearchHistory,
-  saveGuideSearchHistoryItem,
-} from '../lib/repositories/guideRepository';
-import { createGuideSearchHistoryItem } from '../lib/storage';
+import { findSavedGuideInCollection } from '../lib/repositories/guideRepository';
 import TravelIcon from './TravelIcon';
 import type { GuideDocument, GuideSearchHistoryItem, GuideSearchResult, SavedGuide, Scope } from '../types';
 
@@ -22,6 +17,8 @@ interface GuideSearchPanelProps {
   onSaveGuide: (guide: GuideSearchResult, keyword: string) => void;
   onAttachGuideToMarker: (guide: GuideSearchResult, keyword: string, markerId: string) => void;
   onRemoveSavedGuide: (savedGuideId: string) => void;
+  searchHistory: GuideSearchHistoryItem[];
+  onSaveSearchHistory: (keyword: string, scope: Scope | 'all') => Promise<GuideSearchHistoryItem[]>;
 }
 
 function canOpenOriginalSource(sourceUrl: string) {
@@ -155,6 +152,8 @@ export function GuideSearchPanel({
   onSaveGuide,
   onAttachGuideToMarker,
   onRemoveSavedGuide,
+  searchHistory,
+  onSaveSearchHistory,
 }: GuideSearchPanelProps) {
   const [shouldRender, setShouldRender] = useState(open);
   const [visible, setVisible] = useState(false);
@@ -250,21 +249,10 @@ export function GuideSearchPanel({
   }, [onClose, shouldRender]);
 
   useEffect(() => {
-    if (!open) {
-      return;
+    if (open) {
+      setHistory(searchHistory);
     }
-
-    let cancelled = false;
-    void loadGuideSearchHistory(6).then((nextHistory) => {
-      if (!cancelled) {
-        setHistory(nextHistory);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [open]);
+  }, [open, searchHistory]);
 
   const canSearch = query.trim().length > 0 && !loading;
   const hasResult = items.length > 0;
@@ -310,9 +298,7 @@ export function GuideSearchPanel({
       setItems(response.items);
       setProvider(response.provider);
 
-      const historyItem = createGuideSearchHistoryItem(trimmed, nextScope);
-      await saveGuideSearchHistoryItem(historyItem);
-      setHistory(await loadGuideSearchHistory(6));
+      setHistory(await onSaveSearchHistory(trimmed, nextScope));
     } catch (searchError) {
       setItems([]);
       setProvider('');
@@ -344,7 +330,7 @@ export function GuideSearchPanel({
 
     autoSearchKeyRef.current = autoSearchKey;
     void runSearch(initialQuery, initialScope);
-  }, [autoSearchOnOpen, initialQuery, initialScope, open]);
+  }, [autoSearchOnOpen, initialQuery, initialScope, onSaveSearchHistory, open]);
 
   useEffect(() => {
     if (!open) {

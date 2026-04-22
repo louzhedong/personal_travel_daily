@@ -1,16 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DataSync from '../DataSync';
 import type { TravelStore } from '../../types';
-
-function getFileInput(container: HTMLElement): HTMLInputElement {
-  const input = container.querySelector('input[type="file"]');
-  if (!input) {
-    throw new Error('Missing file input');
-  }
-  return input as HTMLInputElement;
-}
 
 function readBlobAsText(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -22,8 +14,7 @@ function readBlobAsText(blob: Blob): Promise<string> {
 }
 
 describe('DataSync', () => {
-  it('shows import preview details before confirming and then imports merged data', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+  it('exports current snapshot and shows cloud mode notes', async () => {
     const user = userEvent.setup();
     const originalCreateObjectURL = URL.createObjectURL;
     const originalRevokeObjectURL = URL.revokeObjectURL;
@@ -62,159 +53,35 @@ describe('DataSync', () => {
       ],
       activeUserId: 'u1',
       savedGuides: [],
-      guideSearchHistory: [],
-    };
-
-    const importedPayload = {
-      users: [
-        { id: 'u1', name: '小悠（更新）', color: '#1d4ed8' },
-        { id: 'u2', name: '阿泽', color: '#f97316' },
-      ],
-      markers: [
+      guideSearchHistory: [
         {
-          id: 'm1',
-          userId: 'u1',
-          scope: 'domestic',
-          scopeId: 'zhejiang',
-          scopeName: '浙江',
-          city: '杭州',
-          note: '新内容',
-          visitedStartAt: '2026-04-01',
-          visitedEndAt: '2026-04-02',
-          createdAt: '2026-04-03T00:00:00.000Z',
-        },
-        {
-          id: 'm2',
-          userId: 'u2',
+          id: 'history-1',
+          keyword: '京都',
           scope: 'international',
-          scopeId: 'japan',
-          scopeName: '日本',
-          city: '大阪',
-          note: '新增记录',
-          visitedStartAt: '2026-05-01',
-          visitedEndAt: '2026-05-02',
-          createdAt: '2026-05-03T00:00:00.000Z',
-        },
-        {
-          id: 'm-invalid',
-          userId: 'ghost',
-          scope: 'domestic',
-          scopeId: 'fujian',
-          scopeName: '福建',
-          city: '厦门',
-          note: '无效记录',
-          visitedStartAt: '2026-06-01',
-          visitedEndAt: '2026-06-02',
-          createdAt: '2026-06-03T00:00:00.000Z',
+          createdAt: '2026-04-22T00:00:00.000Z',
         },
       ],
-      activeUserId: 'u2',
     };
 
-    const onRestore = vi.fn();
+    render(<DataSync store={store} />);
 
-    const { container } = render(<DataSync store={store} onRestore={onRestore} />);
+    expect(screen.getByText('当前版本以云端主数据为准。这里保留导出当前聚合快照的能力，用于手动备份；本地 JSON 导入恢复已暂停开放。')).toBeInTheDocument();
+    expect(screen.getByText('云端版说明')).toBeInTheDocument();
+    expect(screen.getByText('当前主数据默认从主业务 API 加载，并写入 MySQL。')).toBeInTheDocument();
+    expect(screen.getByText('导出的 JSON 仅作为人工备份快照，不再作为应用内恢复入口。')).toBeInTheDocument();
 
-    // Trigger upload by targeting the hidden input directly.
-    const file = new File([JSON.stringify(importedPayload)], 'backup.json', { type: 'application/json' });
-    Object.defineProperty(file, 'text', {
-      value: vi.fn().mockResolvedValue(JSON.stringify(importedPayload)),
-    });
-    await user.upload(getFileInput(container), file);
+    await user.click(screen.getByRole('button', { name: '导出备份' }));
 
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('确认后才会写入本地数据')).toBeInTheDocument();
-    expect(screen.getByText('用户明细')).toBeInTheDocument();
-    expect(screen.getByText('记录明细')).toBeInTheDocument();
-    const userList = screen.getByLabelText('用户导入明细');
-    const markerList = screen.getByLabelText('记录导入明细');
-    expect(userList).toBeInTheDocument();
-    expect(markerList).toBeInTheDocument();
-    expect(within(userList).getByText('小悠（更新）')).toBeInTheDocument();
-    expect(within(userList).getByText('阿泽')).toBeInTheDocument();
-    expect(within(markerList).getByText('浙江 · 杭州')).toBeInTheDocument();
-    expect(within(markerList).getByText('日本 · 大阪')).toBeInTheDocument();
-    expect(within(markerList).getByText('未知用户 · 关联用户不存在')).toBeInTheDocument();
-    expect(screen.getByText('有 1 条记录因缺少有效关联用户而将被跳过。')).toBeInTheDocument();
-    expect(within(userList).getByText('新增')).toHaveClass('data-sync-preview-tag-add');
-    expect(within(userList).getByText('更新')).toHaveClass('data-sync-preview-tag-update');
-    expect(within(markerList).getByText('跳过')).toHaveClass('data-sync-preview-tag-skip');
-    expect(onRestore).not.toHaveBeenCalled();
-
-    await user.click(screen.getByRole('tab', { name: '跳过项' }));
-    expect(screen.getByRole('tab', { name: '跳过项' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.queryByLabelText('用户导入明细')).not.toBeInTheDocument();
-    const skippedList = screen.getByLabelText('跳过项导入明细');
-    expect(skippedList).toBeInTheDocument();
-    expect(within(skippedList).getByText('福建 · 厦门')).toBeInTheDocument();
-    expect(within(skippedList).queryByText('浙江 · 杭州')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: '导出 CSV' }));
     expect(createObjectURLSpy).toHaveBeenCalledTimes(1);
     expect(anchorClickSpy).toHaveBeenCalledTimes(1);
-    expect(exportedFilename).toContain('voyage-atlas-import-preview-skipped-');
+    expect(exportedFilename).toContain('voyage-atlas-backup-');
     const createObjectUrlCall = createObjectURLSpy.mock.calls[0];
     expect(createObjectUrlCall).toBeDefined();
     const exportedBlob = createObjectUrlCall[0] as Blob;
     const exportedText = await readBlobAsText(exportedBlob);
-    expect(exportedText).toContain('category,action,id,name,color,userId,userName');
-    expect(exportedText).toContain('skipped,skip,m-invalid');
-    expect(exportedText).toContain('福建');
-    expect(exportedText).not.toContain('m1');
-
-    await user.click(screen.getByRole('tab', { name: '用户' }));
-    expect(screen.getByRole('tab', { name: '用户' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByLabelText('用户导入明细')).toBeInTheDocument();
-    expect(screen.queryByLabelText('记录导入明细')).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole('tab', { name: '全部' }));
-    await user.click(screen.getByRole('button', { name: '确认导入' }));
-
-    expect(onRestore).toHaveBeenCalledTimes(1);
-
-    const mergedStore = onRestore.mock.calls[0][0] as TravelStore;
-    expect(mergedStore.users).toEqual([
-      { id: 'u1', name: '小悠（更新）', color: '#1d4ed8' },
-      { id: 'u2', name: '阿泽', color: '#f97316' },
-    ]);
-    expect(mergedStore.markers).toEqual([
-      {
-        id: 'm1',
-        userId: 'u1',
-        scope: 'domestic',
-        scopeId: 'zhejiang',
-        scopeName: '浙江',
-        city: '杭州',
-        note: '新内容',
-        visitedStartAt: '2026-04-01',
-        visitedEndAt: '2026-04-02',
-        createdAt: '2026-04-03T00:00:00.000Z',
-      },
-      {
-        id: 'm2',
-        userId: 'u2',
-        scope: 'international',
-        scopeId: 'japan',
-        scopeName: '日本',
-        city: '大阪',
-        note: '新增记录',
-        visitedStartAt: '2026-05-01',
-        visitedEndAt: '2026-05-02',
-        createdAt: '2026-05-03T00:00:00.000Z',
-      },
-    ]);
-
-    // Result modal should show merged summary after confirmation.
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('已按 ID 合并本地数据')).toBeInTheDocument();
-    expect(screen.getByText('新增用户')).toBeInTheDocument();
-    expect(screen.getByText('更新用户')).toBeInTheDocument();
-    expect(screen.getByText('新增记录')).toBeInTheDocument();
-    expect(screen.getByText('更新记录')).toBeInTheDocument();
-    expect(screen.getAllByText('1')).toHaveLength(4);
-    expect(screen.getByText('有 1 条记录因缺少有效关联用户而被跳过。')).toBeInTheDocument();
-
-    // No error alerts on success.
-    expect(alertSpy).not.toHaveBeenCalled();
+    expect(exportedText).toContain('"activeUserId": "u1"');
+    expect(exportedText).toContain('"guideSearchHistory"');
+    expect(exportedText).toContain('"keyword": "京都"');
 
     anchorClickSpy.mockRestore();
     Object.defineProperty(URL, 'createObjectURL', {
@@ -226,6 +93,5 @@ describe('DataSync', () => {
       value: originalRevokeObjectURL,
     });
     expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:preview');
-    alertSpy.mockRestore();
   });
 });

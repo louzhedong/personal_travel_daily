@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum TravelScope {
+  domestic
+  international
+}
+
+enum GuideSearchScope {
+  domestic
+  international
+  all
+}
+
+model Account {
+  id          String               @id
+  name        String
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+  companions  TravelCompanion[]
+  markers     VisitMarker[]
+  savedGuides SavedGuide[]
+  histories   GuideSearchHistory[]
+
+  @@map("accounts")
+}
+
+model TravelCompanion {
+  id         String               @id
+  accountId  String               @map("account_id")
+  name       String
+  color      String
+  sortOrder  Int                  @default(0) @map("sort_order")
+  isDeleted  Boolean              @default(false) @map("is_deleted")
+  createdAt  DateTime             @default(now()) @map("created_at")
+  updatedAt  DateTime             @updatedAt @map("updated_at")
+  deletedAt  DateTime?            @map("deleted_at")
+  account    Account              @relation(fields: [accountId], references: [id])
+  markers    VisitMarker[]
+  guides     SavedGuide[]
+  histories  GuideSearchHistory[]
+
+  @@index([accountId], map: "idx_travel_companions_account_id")
+  @@unique([accountId, name, isDeleted], map: "uq_travel_companions_account_name_active")
+  @@map("travel_companions")
+}
+
+model VisitMarker {
+  id             String             @id
+  accountId      String             @map("account_id")
+  companionId    String             @map("companion_id")
+  scope          TravelScope
+  scopeId        String             @map("scope_id")
+  scopeName      String             @map("scope_name")
+  city           String
+  note           String             @db.Text
+  isDeleted      Boolean            @default(false) @map("is_deleted")
+  visitedStartAt DateTime           @map("visited_start_at")
+  visitedEndAt   DateTime           @map("visited_end_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  deletedAt      DateTime?          @map("deleted_at")
+  account        Account            @relation(fields: [accountId], references: [id])
+  companion      TravelCompanion    @relation(fields: [companionId], references: [id])
+  images         VisitMarkerImage[]
+  savedGuides    SavedGuide[]
+
+  @@index([accountId], map: "idx_visit_markers_account_id")
+  @@index([companionId], map: "idx_visit_markers_companion_id")
+  @@index([scope, scopeId], map: "idx_visit_markers_scope_scope_id")
+  @@index([visitedStartAt], map: "idx_visit_markers_visited_start_at")
+  @@map("visit_markers")
+}
+
+model VisitMarkerImage {
+  id        String      @id
+  markerId  String      @map("marker_id")
+  imageUrl  String      @map("image_url")
+  sortOrder Int         @map("sort_order")
+  createdAt DateTime    @default(now()) @map("created_at")
+  marker    VisitMarker @relation(fields: [markerId], references: [id])
+
+  @@index([markerId], map: "idx_visit_marker_images_marker_id")
+  @@unique([markerId, sortOrder], map: "uq_visit_marker_images_marker_sort_order")
+  @@map("visit_marker_images")
+}
+
+model SavedGuide {
+  id                    String          @id
+  accountId             String          @map("account_id")
+  savedByCompanionId    String          @map("saved_by_companion_id")
+  markerId              String?         @map("marker_id")
+  saveContextKey        String          @map("save_context_key")
+  keyword               String
+  guideIdentity         String          @map("guide_identity")
+  guideTitle            String          @map("guide_title")
+  guideSummary          String          @map("guide_summary") @db.Text
+  guideSourceName       String          @map("guide_source_name")
+  guideSourceUrl        String          @map("guide_source_url")
+  guideCoverImageUrl    String?         @map("guide_cover_image_url")
+  guideAuthorName       String?         @map("guide_author_name")
+  guidePublishedAt      DateTime?       @map("guide_published_at")
+  guideDestinationLabel String?         @map("guide_destination_label")
+  guidePayloadJson      Json            @map("guide_payload_json")
+  isDeleted             Boolean         @default(false) @map("is_deleted")
+  savedAt               DateTime        @map("saved_at")
+  deletedAt             DateTime?       @map("deleted_at")
+  account               Account         @relation(fields: [accountId], references: [id])
+  companion             TravelCompanion @relation(fields: [savedByCompanionId], references: [id])
+  marker                VisitMarker?    @relation(fields: [markerId], references: [id])
+
+  @@index([accountId], map: "idx_saved_guides_account_id")
+  @@index([savedByCompanionId], map: "idx_saved_guides_companion_id")
+  @@index([markerId], map: "idx_saved_guides_marker_id")
+  @@unique([savedByCompanionId, saveContextKey, guideIdentity, isDeleted], map: "uq_saved_guides_context_identity_active")
+  @@map("saved_guides")
+}
+
+model GuideSearchHistory {
+  id                String           @id
+  accountId         String           @map("account_id")
+  companionId       String           @map("companion_id")
+  keyword           String
+  keywordNormalized String           @map("keyword_normalized")
+  scope             GuideSearchScope
+  isDeleted         Boolean          @default(false) @map("is_deleted")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  deletedAt         DateTime?        @map("deleted_at")
+  account           Account          @relation(fields: [accountId], references: [id])
+  companion         TravelCompanion  @relation(fields: [companionId], references: [id])
+
+  @@index([accountId], map: "idx_guide_search_histories_account_id")
+  @@index([companionId], map: "idx_guide_search_histories_companion_id")
+  @@unique([companionId, keywordNormalized, scope, isDeleted], map: "uq_guide_search_histories_scope_keyword_active")
+  @@map("guide_search_histories")
+}
