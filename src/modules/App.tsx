@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import StatsPanel from '../components/StatsPanel';
-import { createDefaultStore, loadPersistedStore, persistStore } from '../lib/storage';
+import { createDefaultStore } from '../lib/storage';
+import { remoteTravelStoreRepository } from '../lib/repositories/remoteTravelStoreRepository';
 import type { Scope, TravelStore } from '../types';
 import AppContent from './app/AppContent';
 import AppHero from './app/AppHero';
@@ -12,7 +13,6 @@ import { useTravelStoreActions } from './app/useTravelStoreActions';
 
 function App() {
   const [store, setStore] = useState<TravelStore>(() => createDefaultStore());
-  const [storeReady, setStoreReady] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [detailMarkerId, setDetailMarkerId] = useState<string | null>(null);
   const [guideSearchOpen, setGuideSearchOpen] = useState(false);
@@ -39,17 +39,16 @@ function App() {
   useEffect(() => {
     let cancelled = false;
 
-    loadPersistedStore()
+    remoteTravelStoreRepository
+      .loadStore()
       .then((nextStore) => {
         if (!cancelled) {
           setStore(nextStore);
-          setStoreReady(true);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setStore(createDefaultStore());
-          setStoreReady(true);
         }
       });
 
@@ -57,12 +56,6 @@ function App() {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (storeReady) {
-      void persistStore(store);
-    }
-  }, [store, storeReady]);
 
   useEffect(() => {
     const syncBackToTopVisibility = () => {
@@ -117,7 +110,7 @@ function App() {
     handleSaveGuide,
     handleAttachGuideToMarker,
     handleRemoveSavedGuide,
-    handleRestoreStore,
+    handleSaveSearchHistory,
   } = useTravelStoreActions({
     store,
     setStore,
@@ -217,7 +210,6 @@ function App() {
         dataSyncOpen={dataSyncOpen}
         closeDataSync={closeDataSync}
         store={store}
-        onRestoreStore={handleRestoreStore}
         detailMarker={detailMarker}
         detailUser={detailMarker ? store.users.find((item) => item.id === detailMarker.userId) : undefined}
         detailMarkerGuides={detailMarkerGuides}
@@ -239,10 +231,12 @@ function App() {
         guideSearchAutoSearch={guideSearchAutoSearch}
         guideSearchMarkerId={guideSearchMarkerId}
         savedGuides={store.savedGuides}
+        guideSearchHistory={store.guideSearchHistory}
         activeUserId={store.activeUserId}
         closeGuideSearch={closeGuideSearch}
         onSaveGuide={handleSaveGuide}
         onAttachGuideToMarker={handleAttachGuideToMarker}
+        onSaveSearchHistory={handleSaveSearchHistory}
       />
 
       <div className={shouldShowMainBackToTop ? 'app-back-to-top is-visible' : 'app-back-to-top'}>

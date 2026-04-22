@@ -5,11 +5,14 @@ import GuideSearchPanel from '../GuideSearchPanel';
 import type { SavedGuide } from '../../types';
 
 describe('GuideSearchPanel', () => {
+  const onSaveSearchHistory = vi.fn(async () => []);
+
   beforeEach(() => {
     vi.unstubAllEnvs();
     vi.stubEnv('VITE_GUIDE_SEARCH_PROVIDER', 'mock');
     HTMLElement.prototype.scrollIntoView = vi.fn();
     HTMLElement.prototype.scrollTo = vi.fn();
+    onSaveSearchHistory.mockClear();
   });
 
   it('applies drawer animation classes when opened', async () => {
@@ -25,6 +28,8 @@ describe('GuideSearchPanel', () => {
         onSaveGuide={() => {}}
         onAttachGuideToMarker={() => {}}
         onRemoveSavedGuide={() => {}}
+        searchHistory={[]}
+        onSaveSearchHistory={onSaveSearchHistory}
       />,
     );
 
@@ -52,6 +57,8 @@ describe('GuideSearchPanel', () => {
         onSaveGuide={onSaveGuide}
         onAttachGuideToMarker={onAttachGuideToMarker}
         onRemoveSavedGuide={onRemoveSavedGuide}
+        searchHistory={[]}
+        onSaveSearchHistory={onSaveSearchHistory}
       />,
     );
 
@@ -96,6 +103,8 @@ describe('GuideSearchPanel', () => {
         onSaveGuide={() => {}}
         onAttachGuideToMarker={() => {}}
         onRemoveSavedGuide={() => {}}
+        searchHistory={[]}
+        onSaveSearchHistory={onSaveSearchHistory}
       />,
     );
 
@@ -150,6 +159,8 @@ describe('GuideSearchPanel', () => {
         onSaveGuide={onSaveGuide}
         onAttachGuideToMarker={onAttachGuideToMarker}
         onRemoveSavedGuide={onRemoveSavedGuide}
+        searchHistory={[]}
+        onSaveSearchHistory={onSaveSearchHistory}
       />,
     );
 

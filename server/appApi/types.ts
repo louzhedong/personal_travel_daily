@@ -1,0 +1,100 @@
+export type Scope = 'domestic' | 'international';
+
+export interface UserProfileDto {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface VisitMarkerDto {
+  id: string;
+  userId: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note: string;
+  imageUrls?: string[];
+  visitedStartAt: string;
+  visitedEndAt: string;
+  createdAt: string;
+}
+
+export interface GuideSearchResultDto {
+  id: string;
+  title: string;
+  summary: string;
+  coverImageUrl?: string;
+  sourceName: string;
+  sourceUrl: string;
+  authorName?: string;
+  publishedAt?: string;
+  destinationLabel?: string;
+  tags?: string[];
+}
+
+export interface GuideContentBlockDto {
+  id: string;
+  type: 'paragraph' | 'bullet-list' | 'section-title' | 'tips';
+  text: string;
+}
+
+export interface GuideDocumentDto extends GuideSearchResultDto {
+  contentHtml?: string;
+  blocks: GuideContentBlockDto[];
+  fetchedAt: string;
+}
+
+export interface SavedGuideDto {
+  id: string;
+  markerId?: string;
+  savedByUserId: string;
+  keyword: string;
+  result: GuideSearchResultDto | GuideDocumentDto;
+  savedAt: string;
+}
+
+export interface GuideSearchHistoryItemDto {
+  id: string;
+  keyword: string;
+  scope: Scope | 'all';
+  createdAt: string;
+}
+
+export interface SavedGuideListResponseDto {
+  items: SavedGuideDto[];
+}
+
+export interface SavedGuideMutationResponseDto {
+  item: SavedGuideDto;
+  deduplicated?: boolean;
+}
+
+export interface DeleteSavedGuideResponseDto {
+  deletedId: string;
+}
+
+export interface GuideSearchHistoryListResponseDto {
+  items: GuideSearchHistoryItemDto[];
+}
+
+export interface GuideSearchHistoryMutationResponseDto {
+  item: GuideSearchHistoryItemDto;
+  deduplicated?: boolean;
+}
+
+export interface TravelStoreDto {
+  users: UserProfileDto[];
+  markers: VisitMarkerDto[];
+  activeUserId: string;
+  savedGuides: SavedGuideDto[];
+  guideSearchHistory: GuideSearchHistoryItemDto[];
+}
+
+export interface BootstrapResponseDto {
+  store: TravelStoreDto;
+  meta: {
+    accountId: string;
+    fetchedAt: string;
+  };
+}

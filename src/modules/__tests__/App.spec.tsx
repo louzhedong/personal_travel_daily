@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../App';
 import type { TravelStore } from '../../types';
 
-const { loadPersistedStoreMock, persistStoreMock } = vi.hoisted(() => {
+const { remoteTravelStoreRepositoryMock } = vi.hoisted(() => {
   const persistedStore: TravelStore = {
     users: [
       { id: 'u1', name: '当前用户', color: '#2563eb' },
@@ -45,8 +45,27 @@ const { loadPersistedStoreMock, persistStoreMock } = vi.hoisted(() => {
   };
 
   return {
-    loadPersistedStoreMock: vi.fn(async () => persistedStore),
-    persistStoreMock: vi.fn(async () => {}),
+    remoteTravelStoreRepositoryMock: {
+      loadStore: vi.fn(async () => persistedStore),
+      createCompanion: vi.fn(),
+      updateCompanion: vi.fn(),
+      createMarker: vi.fn(),
+      updateMarker: vi.fn(),
+      deleteMarker: vi.fn(),
+      listSavedGuides: vi.fn(),
+      createSavedGuide: vi.fn(),
+      deleteSavedGuide: vi.fn(),
+      listGuideSearchHistories: vi.fn(),
+      createGuideSearchHistory: vi.fn(async () => ({
+        item: {
+          id: 'history-new',
+          keyword: 'Kyoto',
+          scope: 'international',
+          createdAt: '2026-05-05T00:00:00.000Z',
+        },
+        deduplicated: false,
+      })),
+    },
   };
 });
 
@@ -70,21 +89,19 @@ vi.mock('../../components/MarkerForm', () => ({
   default: () => <div data-testid="marker-form">marker-form</div>,
 }));
 
-vi.mock('../../lib/storage', async () => {
-  const actual = await vi.importActual<typeof import('../../lib/storage')>('../../lib/storage');
-  return {
-    ...actual,
-    loadPersistedStore: loadPersistedStoreMock,
-    persistStore: persistStoreMock,
-  };
-});
+vi.mock('../../lib/repositories/remoteTravelStoreRepository', () => ({
+  remoteTravelStoreRepository: remoteTravelStoreRepositoryMock,
+}));
 
 describe('App guide permissions', () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
     vi.stubEnv('VITE_GUIDE_SEARCH_PROVIDER', 'mock');
-    loadPersistedStoreMock.mockClear();
-    persistStoreMock.mockClear();
+    Object.values(remoteTravelStoreRepositoryMock).forEach((mock) => {
+      if (typeof mock?.mockClear === 'function') {
+        mock.mockClear();
+      }
+    });
   });
 
   it('allows searching from another user marker but prevents link management', async () => {
@@ -103,6 +120,7 @@ describe('App guide permissions', () => {
 
     expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '关联到当前记录' })).not.toBeInTheDocument();
+    expect(remoteTravelStoreRepositoryMock.loadStore).toHaveBeenCalledTimes(1);
   });
 
   it('shows a back-to-top button after the main page scrolls away from the top', async () => {
@@ -120,6 +138,23 @@ describe('App guide permissions', () => {
 
     await waitFor(() => {
       expect(button.parentElement?.className).toContain('is-visible');
+    });
+  });
+
+  it('writes guide search history through the remote repository', async () => {
+    render(<App />);
+
+    await userEvent.click(await screen.findByRole('button', { name: '搜索旅游攻略' }));
+    const searchInput = await screen.findByPlaceholderText('输入目的地、季节或玩法，例如：舟山 海岛 攻略');
+    await userEvent.clear(searchInput);
+    await userEvent.type(searchInput, 'Kyoto');
+    await userEvent.click(screen.getByRole('button', { name: '搜索' }));
+
+    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(remoteTravelStoreRepositoryMock.createGuideSearchHistory).toHaveBeenCalledWith({
+      companionId: 'u1',
+      keyword: 'Kyoto',
+      scope: 'all',
     });
   });
 });
