@@ -34,10 +34,34 @@
 ### 通用错误码
 
 - `400 INVALID_REQUEST`
+- `401 UNAUTHORIZED`
+- `403 FORBIDDEN`
 - `404 NOT_FOUND`
 - `409 CONFLICT`
 - `503 DATABASE_UNAVAILABLE`
 - `500 INTERNAL_SERVER_ERROR`
+
+## 认证接口
+
+### `GET /api/auth/session`
+
+响应示例：
+
+```json
+{
+  "account": {
+    "id": "acct_default",
+    "name": "Voyage Atlas",
+    "username": "demo",
+    "role": "admin"
+  }
+}
+```
+
+规则：
+
+- 未登录时返回 `{ "account": null }`
+- `role` 目前有 `admin` 与 `member` 两种
 
 ## 健康检查
 
@@ -111,6 +135,63 @@
 
 - 若默认账户或默认旅伴不存在，接口会自动兜底创建
 - 若数据库不可用，返回 `503 DATABASE_UNAVAILABLE`
+
+## 后台管理接口
+
+### `GET /api/admin/overview`
+
+用途：
+
+- 仅供管理员查看全量系统账号总览
+- 按“账号 -> 同行人 -> 旅行记录 / 收藏攻略 / 搜索历史”返回只读树状数据
+
+权限：
+
+- 需要登录
+- 当前会话账号必须为 `admin`
+
+成功响应示例：
+
+```json
+{
+  "accounts": [
+    {
+      "id": "acct_default",
+      "name": "Voyage Atlas",
+      "username": "demo",
+      "role": "admin",
+      "createdAt": "2026-04-22T00:00:00.000Z",
+      "companions": [
+        {
+          "id": "user-alice",
+          "name": "小悠",
+          "color": "#2563eb",
+          "createdAt": "2026-04-22T00:00:00.000Z",
+          "markers": [],
+          "savedGuides": [],
+          "guideSearchHistory": []
+        }
+      ],
+      "stats": {
+        "companionCount": 1,
+        "markerCount": 0,
+        "savedGuideCount": 0,
+        "guideSearchHistoryCount": 0
+      }
+    }
+  ],
+  "meta": {
+    "fetchedAt": "2026-04-23T00:00:00.000Z",
+    "accountCount": 1
+  }
+}
+```
+
+错误：
+
+- `401 UNAUTHORIZED`
+- `403 FORBIDDEN`
+- `503 DATABASE_UNAVAILABLE`
 
 ## 旅伴接口
 

@@ -2,6 +2,7 @@ import cors from '@fastify/cors';
 import Fastify from 'fastify';
 import { getAppApiEnv } from './env.js';
 import { normalizeAppApiError } from './errors.js';
+import { registerAdminRoutes } from './routes/admin.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerBootstrapRoutes } from './routes/bootstrap.js';
 import { registerCompanionRoutes } from './routes/companions.js';
@@ -23,6 +24,7 @@ export async function buildApp() {
   });
 
   await registerAuthRoutes(app);
+  await registerAdminRoutes(app);
   await registerHealthRoutes(app);
   await registerBootstrapRoutes(app);
   await registerCompanionRoutes(app);

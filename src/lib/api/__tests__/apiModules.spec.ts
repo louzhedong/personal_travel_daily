@@ -21,6 +21,7 @@ vi.mock('../httpClient', () => ({
 }));
 
 import { fetchAppBootstrap } from '../appBootstrapApi';
+import { fetchAdminOverview } from '../adminApi';
 import { fetchSession, login, logout, register } from '../authApi';
 import { createCompanion, updateCompanion } from '../companionsApi';
 import { createGuideSearchHistory, fetchGuideSearchHistories } from '../guideSearchHistoryApi';
@@ -59,6 +60,12 @@ describe('app api modules', () => {
       password: 'demo123456',
     });
     expect(mocks.postMock).toHaveBeenCalledWith('/api', '/auth/logout');
+  });
+
+  it('routes admin overview requests through the resource base url', async () => {
+    await fetchAdminOverview();
+
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/admin/overview');
   });
 
   it('forwards companion create and update payloads', async () => {

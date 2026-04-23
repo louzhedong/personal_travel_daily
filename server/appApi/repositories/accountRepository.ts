@@ -1,11 +1,13 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 
 type PrismaExecutor = PrismaClient | Prisma.TransactionClient;
+type AccountRoleValue = 'admin' | 'member';
 
 export interface EnsureAccountInput {
   id: string;
   name: string;
   username: string;
+  role?: AccountRoleValue;
   passwordHash: string;
 }
 
@@ -18,12 +20,14 @@ export async function ensureAccount(
     update: {
       name: input.name,
       username: input.username,
+      role: input.role ?? 'member',
       passwordHash: input.passwordHash,
     },
     create: {
       id: input.id,
       name: input.name,
       username: input.username,
+      role: input.role ?? 'member',
       passwordHash: input.passwordHash,
     },
   });
@@ -56,6 +60,7 @@ export async function createAccount(
       id: input.id,
       name: input.name,
       username: input.username,
+      role: input.role ?? 'member',
       passwordHash: input.passwordHash,
     },
   });

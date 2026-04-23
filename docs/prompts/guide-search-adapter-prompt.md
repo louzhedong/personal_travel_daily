@@ -29,5 +29,5 @@
 ## 新增适配器后的同步工作
 
 - 更新 `/health` 的适配器列表
-- 更新 `docs/guide-search-api-contract.md` 中的说明
+- 更新 `docs/technical/guide-search-api-contract.md` 中的说明
 - 如涉及环境变量，更新 `.env.example` 与 README

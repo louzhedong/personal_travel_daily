@@ -15,9 +15,11 @@ import { useTravelStoreActions } from './app/useTravelStoreActions';
 interface TravelAppProps {
   account: AuthAccount;
   onLogout: () => Promise<void> | void;
+  onOpenAdmin?: () => void;
+  entryMessage?: string | null;
 }
 
-function TravelApp({ account, onLogout }: TravelAppProps) {
+function TravelApp({ account, onLogout, onOpenAdmin, entryMessage }: TravelAppProps) {
   const [store, setStore] = useState<TravelStore>(() => createDefaultStore());
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [detailMarkerId, setDetailMarkerId] = useState<string | null>(null);
@@ -30,7 +32,7 @@ function TravelApp({ account, onLogout }: TravelAppProps) {
   const [saving, setSaving] = useState(false);
   const [dataSyncOpen, setDataSyncOpen] = useState(false);
   const [pendingDeleteMarkerId, setPendingDeleteMarkerId] = useState<string | null>(null);
-  const [message, setMessage] = useState('点击地图区域即可弹出表单，快速记录你的旅行足迹。');
+  const [message, setMessage] = useState(entryMessage ?? '点击地图区域即可弹出表单，快速记录你的旅行足迹。');
 
   const closeMarkerModal = () => setMarkerModalOpen(false);
   const closeDataSync = () => setDataSyncOpen(false);
@@ -42,6 +44,12 @@ function TravelApp({ account, onLogout }: TravelAppProps) {
 
   useLockedModal(markerModalOpen, closeMarkerModal);
   useLockedModal(dataSyncOpen, closeDataSync);
+
+  useEffect(() => {
+    if (entryMessage) {
+      setMessage(entryMessage);
+    }
+  }, [entryMessage]);
 
   useEffect(() => {
     let cancelled = false;
@@ -192,6 +200,7 @@ function TravelApp({ account, onLogout }: TravelAppProps) {
         onOpenGuideSearch={() => openGuideSearch('', 'all')}
         account={account}
         onLogout={onLogout}
+        onOpenAdmin={onOpenAdmin}
       />
 
       <StatsPanel scope={scope} markers={currentMarkers} users={store.users} />

@@ -18,18 +18,24 @@ enum GuideSearchScope {
   all
 }
 
+enum AccountRole {
+  admin
+  member
+}
+
 model Account {
-  id          String               @id
-  name        String
-  username    String               @unique
-  passwordHash String              @map("password_hash")
-  createdAt   DateTime             @default(now()) @map("created_at")
-  updatedAt   DateTime             @updatedAt @map("updated_at")
-  companions  TravelCompanion[]
-  markers     VisitMarker[]
-  savedGuides SavedGuide[]
-  histories   GuideSearchHistory[]
-  sessions    AuthSession[]
+  id           String               @id
+  name         String
+  username     String               @unique
+  role         AccountRole          @default(member)
+  passwordHash String               @map("password_hash")
+  createdAt    DateTime             @default(now()) @map("created_at")
+  updatedAt    DateTime             @updatedAt @map("updated_at")
+  companions   TravelCompanion[]
+  markers      VisitMarker[]
+  savedGuides  SavedGuide[]
+  histories    GuideSearchHistory[]
+  sessions     AuthSession[]
 
   @@map("accounts")
 }

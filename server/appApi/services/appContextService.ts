@@ -1,5 +1,8 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
-import { defaultCompanions } from '../defaultCompanions.js';
+import {
+  buildSingleDefaultCompanion,
+  defaultCompanions,
+} from '../defaultCompanions.js';
 import { getAppApiEnv } from '../env.js';
 import { hashPassword } from '../auth/password.js';
 import { ensureAccount } from '../repositories/accountRepository.js';
@@ -7,8 +10,21 @@ import { ensureDefaultCompanions } from '../repositories/travelCompanionReposito
 
 type PrismaExecutor = PrismaClient | Prisma.TransactionClient;
 
-export async function createInitialAccountState(prisma: PrismaExecutor, accountId: string) {
-  await ensureDefaultCompanions(prisma, accountId, defaultCompanions);
+export async function createInitialAccountState(
+  prisma: PrismaExecutor,
+  accountId: string,
+  options?: {
+    primaryCompanionName?: string;
+    singleCompanion?: boolean;
+  },
+) {
+  await ensureDefaultCompanions(
+    prisma,
+    accountId,
+    options?.singleCompanion
+      ? buildSingleDefaultCompanion(options.primaryCompanionName)
+      : defaultCompanions,
+  );
 }
 
 export async function ensureDefaultAppState(prisma: PrismaExecutor) {
