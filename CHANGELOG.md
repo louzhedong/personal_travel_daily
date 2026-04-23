@@ -15,6 +15,8 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
   Moved active-user preservation and guide-search history dedupe helpers out of store actions for clearer reuse.
 - 更新 README 和项目总览文档，补齐重构后的目录职责与新增开发原则。  
   Updated README and the project overview docs with the refactored module responsibilities and development guidance.
+- 补充协作约定：PR 标题、PR 正文、CHANGELOG 和面向协作的文档更新需保持中英双语。  
+  Added a collaboration rule requiring bilingual Chinese/English PR titles, PR bodies, CHANGELOG entries, and collaboration-facing documentation updates.
 
 ### Verified / 已验证
 
