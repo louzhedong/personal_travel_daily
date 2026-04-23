@@ -65,7 +65,7 @@ Windows：
 
 - `npm run dev:all` 会通过 `docker compose` 启动 `mysql + adminer`，再启动 `guide-api`、`app-api` 和前端，并把日志写入 `.tools/dev-logs/`
 - 一键启动会在启动服务前自动执行 `db:generate`、`db:migrate:deploy` 和 `db:seed`
-- `start-local-dev.cmd` 会使用仓库内置的 Node 20 启动前端和 `guide-api`
+- `start-local-dev.cmd` 会使用仓库内置的 Node 20，一键启动 `mysql + adminer`、同步 Prisma、执行 seed，并启动 `guide-api`、`app-api` 和前端；npm 会优先使用项目内 `.npm-cache` 和 `npmmirror` 源
 
 停止 macOS / Linux 下一键联调进程：
 
@@ -252,10 +252,16 @@ npm run test
 当前前端已经从“大一统 App”拆到更清晰的分层：
 
 - `src/modules/App.tsx`：容器层，负责组装页面、协调 store、弹窗和跨模块联动
+- `src/modules/admin/adminPageModel.ts`：后台管理页的展示模型、日期格式化和汇总统计
 - `src/modules/app/useMapContext.ts`：地图范围、区域列表、当前选区和地图入口行为
 - `src/modules/app/useTravelStoreActions.ts`：用户、记录、攻略收藏/关联、搜索历史等写操作
+- `src/modules/app/travelStoreActionHelpers.ts`：store 写操作中的通用辅助逻辑
 - `src/modules/app/markerNavigation.ts`：按记录 ID 统一聚焦地图并打开详情
 - `src/modules/app/AppHero.tsx`、`AppContent.tsx`、`AppOverlays.tsx`：页面组合层
+- `src/lib/date.ts`：日期区间、年份和天数等通用日期工具
+- `src/lib/markerSorting.ts`：旅行记录按访问时间排序的通用工具
+- `src/lib/mapJourneyArcs.ts`：地图旅程弧线的纯计算逻辑
+- `src/lib/guides/guideDocumentView.tsx`：攻略正文视图、高亮和 HTML 清洗逻辑
 
 ## 样式组织
 
@@ -341,5 +347,8 @@ npm run test
 
 - 地图、时间线、攻略收藏和详情面板已经通过 `markerNavigation` 统一了“按记录定位”的行为，新增入口尽量复用它
 - 攻略收藏和关联的去重语义已经下沉到仓库/动作层，不建议在 UI 组件里自行拼接判重逻辑
+- 通用纯逻辑优先放到 `src/lib`；页面/模块组装放在 `src/modules`；组件里尽量只保留 UI、交互和必要的局部状态
 - 每次创建 PR 时，需同步更新 `CHANGELOG.md`，并补齐本次改动涉及的 README / `docs/` 文档说明
+- PR 默认直接创建为 Ready for review；除非用户明确要求 Draft，不要创建 Draft PR
+- PR 标题、PR 正文、CHANGELOG 和面向协作的文档更新需保持中英双语：中文在前，英文跟随
 - 样式已经拆分，新增样式时优先放到对应模块文件，不要继续回堆到单文件全局样式里

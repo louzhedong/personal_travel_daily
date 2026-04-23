@@ -2,12 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import TravelIcon from '../../components/ui/TravelIcon';
 import { fetchAdminOverview } from '../../lib/api/adminApi';
 import type {
-  AdminAccountNodeDto,
   AdminCompanionNodeDto,
   AdminOverviewResponseDto,
   AdminTripNodeDto,
 } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
+import {
+  formatAdminDate,
+  formatAdminDateOnly,
+  getAccountDetailCollections,
+  getAdminSummary,
+  type AdminDetailTab,
+} from './adminPageModel';
 
 interface AdminPageProps {
   account: AuthAccount;
@@ -15,58 +21,8 @@ interface AdminPageProps {
   onNavigateHome: () => void;
 }
 
-function formatDate(value: string) {
-  try {
-    return new Date(value).toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return value;
-  }
-}
-
-function formatDateOnly(value: string) {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value;
-  }
-
-  try {
-    return new Date(value).toISOString().slice(0, 10);
-  } catch {
-    return value;
-  }
-}
-
-type AdminDetailTab = 'trips' | 'markers' | 'savedGuides' | 'guideSearchHistory';
-
 function AdminSummaryCards({ overview }: { overview: AdminOverviewResponseDto }) {
-  const summary = useMemo(
-    () =>
-      overview.accounts.reduce(
-        (acc, account) => ({
-          accountCount: acc.accountCount + 1,
-          tripCount: acc.tripCount + account.stats.tripCount,
-          companionCount: acc.companionCount + account.stats.companionCount,
-          markerCount: acc.markerCount + account.stats.markerCount,
-          savedGuideCount: acc.savedGuideCount + account.stats.savedGuideCount,
-          guideSearchHistoryCount:
-            acc.guideSearchHistoryCount + account.stats.guideSearchHistoryCount,
-        }),
-        {
-          accountCount: 0,
-          tripCount: 0,
-          companionCount: 0,
-          markerCount: 0,
-          savedGuideCount: 0,
-          guideSearchHistoryCount: 0,
-        },
-      ),
-    [overview.accounts],
-  );
+  const summary = useMemo(() => getAdminSummary(overview), [overview]);
 
   const items = [
     { label: '系统用户', value: summary.accountCount, tone: 'blue' },
@@ -87,38 +43,6 @@ function AdminSummaryCards({ overview }: { overview: AdminOverviewResponseDto })
       ))}
     </section>
   );
-}
-
-function getAccountDetailCollections(account: AdminAccountNodeDto) {
-  const companions = account.companions;
-  const tripById = new Map(account.trips.map((trip) => [trip.id, trip]));
-  const markers = companions.flatMap((companion) =>
-    companion.markers.map((marker) => ({
-      ...marker,
-      companionName: companion.name,
-      tripName: marker.tripId ? tripById.get(marker.tripId)?.name ?? '未知行程' : '未归入行程',
-    })),
-  );
-
-  return {
-    trips: account.trips.map((trip) => ({
-      ...trip,
-      markerCount: markers.filter((marker) => marker.tripId === trip.id).length,
-    })),
-    markers,
-    savedGuides: companions.flatMap((companion) =>
-      companion.savedGuides.map((guide) => ({
-        ...guide,
-        companionName: companion.name,
-      })),
-    ),
-    guideSearchHistory: companions.flatMap((companion) =>
-      companion.guideSearchHistory.map((history) => ({
-        ...history,
-        companionName: companion.name,
-      })),
-    ),
-  };
 }
 
 export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPageProps) {
@@ -272,7 +196,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                         </span>
                       </div>
                       <p className="admin-account-subtitle">
-                        @{selectedAccount.username} · 创建于 {formatDate(selectedAccount.createdAt)}
+                        @{selectedAccount.username} · 创建于 {formatAdminDate(selectedAccount.createdAt)}
                       </p>
                     </div>
                     <div className="admin-inline-stats">
@@ -331,7 +255,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                               <div>
                                 <strong>{trip.name}</strong>
                                 <p>
-                                  {formatDateOnly(trip.startsAt)} 至 {formatDateOnly(trip.endsAt)} · 记录{' '}
+                                  {formatAdminDateOnly(trip.startsAt)} 至 {formatAdminDateOnly(trip.endsAt)} · 记录{' '}
                                   {trip.markerCount}
                                 </p>
                               </div>
@@ -418,11 +342,11 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                                       <strong>{trip.name}</strong>
                                     </td>
                                     <td>
-                                      {formatDateOnly(trip.startsAt)} 至 {formatDateOnly(trip.endsAt)}
+                                      {formatAdminDateOnly(trip.startsAt)} 至 {formatAdminDateOnly(trip.endsAt)}
                                     </td>
                                     <td>{trip.markerCount}</td>
                                     <td className="admin-note-cell">{trip.note || '暂无备注'}</td>
-                                    <td>{formatDate(trip.createdAt)}</td>
+                                    <td>{formatAdminDate(trip.createdAt)}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -466,7 +390,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                                       <div>{marker.city}</div>
                                     </td>
                                     <td>
-                                      {formatDateOnly(marker.visitedStartAt)} 至 {formatDateOnly(marker.visitedEndAt)}
+                                      {formatAdminDateOnly(marker.visitedStartAt)} 至 {formatAdminDateOnly(marker.visitedEndAt)}
                                     </td>
                                     <td>{marker.scope === 'domestic' ? '国内' : '国际'}</td>
                                     <td>{marker.imageUrls?.length ?? 0}</td>
@@ -509,7 +433,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                                     <td className="admin-note-cell">{guide.result.title}</td>
                                     <td>{guide.keyword}</td>
                                     <td>{guide.result.sourceName}</td>
-                                    <td>{formatDate(guide.savedAt)}</td>
+                                    <td>{formatAdminDate(guide.savedAt)}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -552,7 +476,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                                           ? '国内'
                                           : '国际'}
                                     </td>
-                                    <td>{formatDate(history.createdAt)}</td>
+                                    <td>{formatAdminDate(history.createdAt)}</td>
                                   </tr>
                                 ))}
                               </tbody>

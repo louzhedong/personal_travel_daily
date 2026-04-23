@@ -3,6 +3,8 @@ import DateField from './ui/DateField';
 import Dialog from './ui/Dialog';
 import FancySelect from './ui/FancySelect';
 import TravelIcon from './ui/TravelIcon';
+import { formatDateRange, formatVisitedRange, getDateOnlyYear } from '../lib/date';
+import { sortMarkersDesc } from '../lib/markerSorting';
 import type { Scope, TripCollection, VisitMarker } from '../types';
 
 type TimelineScopeFilter = Scope | 'all';
@@ -29,20 +31,6 @@ interface TripTimelinePanelProps {
   activeUserName?: string;
   onOpenMarkerDetail: (markerId: string) => void;
   onCreateTrip: (payload: { name: string; startsAt: string; endsAt: string; note?: string }) => void;
-}
-
-function formatVisitedRange(marker: VisitMarker) {
-  return marker.visitedStartAt === marker.visitedEndAt
-    ? marker.visitedStartAt
-    : `${marker.visitedStartAt} - ${marker.visitedEndAt}`;
-}
-
-function sortMarkersDesc(left: VisitMarker, right: VisitMarker) {
-  return (
-    right.visitedStartAt.localeCompare(left.visitedStartAt) ||
-    right.visitedEndAt.localeCompare(left.visitedEndAt) ||
-    right.createdAt.localeCompare(left.createdAt)
-  );
 }
 
 export default function TripTimelinePanel({
@@ -90,7 +78,7 @@ export default function TripTimelinePanel({
   );
 
   const yearOptions = useMemo(() => {
-    return Array.from(new Set(currentUserMarkers.map((item) => item.visitedStartAt.slice(0, 4)))).sort(
+    return Array.from(new Set(currentUserMarkers.map((item) => getDateOnlyYear(item.visitedStartAt)))).sort(
       (left, right) => right.localeCompare(left),
     );
   }, [currentUserMarkers]);
@@ -100,7 +88,7 @@ export default function TripTimelinePanel({
       if (scopeFilter !== 'all' && item.scope !== scopeFilter) {
         return false;
       }
-      if (yearFilter !== 'all' && item.visitedStartAt.slice(0, 4) !== yearFilter) {
+      if (yearFilter !== 'all' && getDateOnlyYear(item.visitedStartAt) !== yearFilter) {
         return false;
       }
       return true;
@@ -144,7 +132,7 @@ export default function TripTimelinePanel({
         return {
           id: tripId,
           title: trip?.name ?? '未归入行程',
-          range: startsAt && endsAt ? (startsAt === endsAt ? startsAt : `${startsAt} - ${endsAt}`) : '暂无日期',
+          range: startsAt && endsAt ? formatDateRange(startsAt, endsAt) : '暂无日期',
           markers: sortedMarkers,
           startsAt,
           coverImageUrl: trip?.coverImageUrl,

@@ -1,25 +1,9 @@
 import { useEffect, useState } from 'react';
 import { uploadImageToImgBB } from '../lib/imageUpload';
+import { formatVisitedRange, getTripDays } from '../lib/date';
 import FancySelect from './ui/FancySelect';
 import TravelIcon from './ui/TravelIcon';
 import type { SavedGuide, TripCollection, UserProfile, VisitMarker } from '../types';
-
-function formatVisitedRange(marker: VisitMarker) {
-  return marker.visitedStartAt === marker.visitedEndAt
-    ? marker.visitedStartAt
-    : `${marker.visitedStartAt} - ${marker.visitedEndAt}`;
-}
-
-function getTripDays(startAt: string, endAt: string) {
-  if (!startAt || !endAt || endAt < startAt) {
-    return null;
-  }
-
-  const start = new Date(`${startAt}T00:00:00`);
-  const end = new Date(`${endAt}T00:00:00`);
-  const diff = end.getTime() - start.getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
-}
 
 interface MarkerDetailPanelProps {
   marker: VisitMarker | null;
