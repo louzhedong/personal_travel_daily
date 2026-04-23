@@ -4,10 +4,18 @@ import type { AuthAccount } from '../types';
 import AuthPage from './auth/AuthPage';
 import TravelApp from './TravelApp';
 
-type RoutePath = '/' | '/auth';
+type RoutePath = '/' | '/login' | '/register';
 
 function normalizePathname(pathname: string): RoutePath {
-  return pathname === '/auth' ? '/auth' : '/';
+  if (pathname === '/register') {
+    return '/register';
+  }
+
+  if (pathname === '/login' || pathname === '/auth') {
+    return '/login';
+  }
+
+  return '/';
 }
 
 function replaceRoute(pathname: RoutePath) {
@@ -41,15 +49,16 @@ function App() {
         }
 
         setAccount(response.account);
-        const nextPath = response.account ? '/' : '/auth';
+        const nextPath = response.account ? '/' : pathname === '/register' ? '/register' : '/login';
         replaceRoute(nextPath);
         setPathname(nextPath);
       })
       .catch(() => {
         if (!cancelled) {
           setAccount(null);
-          replaceRoute('/auth');
-          setPathname('/auth');
+          const nextPath = pathname === '/register' ? '/register' : '/login';
+          replaceRoute(nextPath);
+          setPathname(nextPath);
         }
       })
       .finally(() => {
@@ -82,8 +91,8 @@ function App() {
   const handleLogout = async () => {
     await logout();
     setAccount(null);
-    replaceRoute('/auth');
-    setPathname('/auth');
+    replaceRoute('/login');
+    setPathname('/login');
   };
 
   if (loading) {
@@ -97,8 +106,22 @@ function App() {
     );
   }
 
-  if (!account || pathname === '/auth') {
-    return <AuthPage onLogin={handleLogin} onRegister={handleRegister} />;
+  if (!account || pathname === '/login' || pathname === '/register') {
+    return (
+      <AuthPage
+        mode={pathname === '/register' ? 'register' : 'login'}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onNavigateLogin={() => {
+          replaceRoute('/login');
+          setPathname('/login');
+        }}
+        onNavigateRegister={() => {
+          replaceRoute('/register');
+          setPathname('/register');
+        }}
+      />
+    );
   }
 
   return <TravelApp account={account} onLogout={handleLogout} />;

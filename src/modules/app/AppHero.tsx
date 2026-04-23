@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import TravelIcon from '../../components/TravelIcon';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import type { AuthAccount } from '../../types';
 
 interface AppHeroProps {
@@ -9,6 +11,8 @@ interface AppHeroProps {
 }
 
 export default function AppHero({ message, onOpenGuideSearch, account, onLogout }: AppHeroProps) {
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
   return (
     <header className="hero card">
       <svg className="hero-map-watermark" viewBox="0 0 640 260" fill="none" aria-hidden="true">
@@ -81,13 +85,15 @@ export default function AppHero({ message, onOpenGuideSearch, account, onLogout 
       </div>
       <div className="hero-copy">
         <div className="hero-account-row">
-          <span className="hero-kicker">Voyage Atlas</span>
-          <div className="hero-account-actions">
-            <span className="hero-account-chip">{account.name} @{account.username}</span>
-            <button type="button" className="hero-logout-button" onClick={() => void onLogout()}>
-              退出登录
-            </button>
-          </div>
+          <button
+            type="button"
+            className="hero-kicker hero-kicker-button"
+            aria-label="打开退出登录确认"
+            onClick={() => setLogoutConfirmOpen(true)}
+          >
+            <span>Voyage Atlas · @{account.username}</span>
+            <span className="hero-kicker-logout-hint">退出登录</span>
+          </button>
         </div>
         <h1>旅行足迹地图</h1>
         <p>把每一次出发都留在地图上，记录城市、时间、照片与旅途印象，慢慢积累属于你的个人旅行档案。</p>
@@ -130,6 +136,20 @@ export default function AppHero({ message, onOpenGuideSearch, account, onLogout 
           搜索旅游攻略
         </button>
       </div>
+
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        eyebrow="账号操作"
+        title="确认退出当前账号？"
+        description="退出后会回到登录页，但当前账号的旅行记录、收藏和搜索历史都会保留。"
+        cancelText="取消"
+        confirmText="确认退出"
+        onCancel={() => setLogoutConfirmOpen(false)}
+        onConfirm={() => {
+          setLogoutConfirmOpen(false);
+          void onLogout();
+        }}
+      />
     </header>
   );
 }

@@ -34,7 +34,7 @@ describe('httpClient', () => {
     expect(getResourceBaseUrl()).toBe('/api');
   });
 
-  it('builds GET requests with query params against the app api port', async () => {
+  it('builds GET requests with query params against the same-origin app api path first', async () => {
     fetchMock.mockResolvedValueOnce(createJsonResponse({ ok: true }));
 
     const response = await httpClient.get<{ ok: boolean }>('/api', '/guide-search-histories', {
@@ -46,7 +46,7 @@ describe('httpClient', () => {
     expect(response).toEqual({ ok: true });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8788/api/guide-search-histories?companionId=user-alice&limit=6',
+      'http://localhost:3000/api/guide-search-histories?companionId=user-alice&limit=6',
       {
         method: 'GET',
         credentials: 'include',
@@ -67,7 +67,7 @@ describe('httpClient', () => {
     const response = await httpClient.post<{ saved: boolean }>('/api', '/saved-guides', payload);
 
     expect(response).toEqual({ saved: true });
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8788/api/saved-guides', {
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/api/saved-guides', {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -85,8 +85,8 @@ describe('httpClient', () => {
     const response = await httpClient.get<{ ok: boolean }>('/api/app', '/bootstrap');
 
     expect(response).toEqual({ ok: true });
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:8788/api/app/bootstrap');
-    expect(fetchMock.mock.calls[1]?.[0]).toBe('http://127.0.0.1:8788/api/app/bootstrap');
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3000/api/app/bootstrap');
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('http://localhost:8788/api/app/bootstrap');
   });
 
   it('surfaces backend error messages for non-404 failures', async () => {

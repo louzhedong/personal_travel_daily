@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import StatsPanel from '../components/StatsPanel';
 import { createDefaultStore } from '../lib/storage';
 import { remoteTravelStoreRepository } from '../lib/repositories/remoteTravelStoreRepository';
@@ -28,6 +29,7 @@ function TravelApp({ account, onLogout }: TravelAppProps) {
   const [markerModalOpen, setMarkerModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dataSyncOpen, setDataSyncOpen] = useState(false);
+  const [pendingDeleteMarkerId, setPendingDeleteMarkerId] = useState<string | null>(null);
   const [message, setMessage] = useState('点击地图区域即可弹出表单，快速记录你的旅行足迹。');
 
   const closeMarkerModal = () => setMarkerModalOpen(false);
@@ -105,6 +107,11 @@ function TravelApp({ account, onLogout }: TravelAppProps) {
     [detailMarkerId, store.savedGuides],
   );
 
+  const pendingDeleteMarker = useMemo(
+    () => store.markers.find((item) => item.id === pendingDeleteMarkerId) ?? null,
+    [pendingDeleteMarkerId, store.markers],
+  );
+
   const {
     activeUser,
     handleSwitchUser,
@@ -171,6 +178,10 @@ function TravelApp({ account, onLogout }: TravelAppProps) {
     setShowBackToTop(false);
   };
 
+  const handleRequestDeleteMarker = (markerId: string) => {
+    setPendingDeleteMarkerId(markerId);
+  };
+
   const shouldShowMainBackToTop =
     showBackToTop && !guideSearchOpen && !markerModalOpen && !dataSyncOpen && detailMarker === null;
 
@@ -197,7 +208,7 @@ function TravelApp({ account, onLogout }: TravelAppProps) {
         savedGuides={store.savedGuides}
         onScopeChange={handleScopeChange}
         onSelectRegion={handleSelectRegion}
-        onDeleteMarker={handleDeleteMarker}
+        onRequestDeleteMarker={handleRequestDeleteMarker}
         onViewMarkerDetail={setDetailMarkerId}
         onOpenDataSync={() => setDataSyncOpen(true)}
         onSwitchUser={handleSwitchUser}
@@ -247,6 +258,28 @@ function TravelApp({ account, onLogout }: TravelAppProps) {
         onSaveGuide={handleSaveGuide}
         onAttachGuideToMarker={handleAttachGuideToMarker}
         onSaveSearchHistory={handleSaveSearchHistory}
+      />
+
+      <ConfirmDialog
+        open={pendingDeleteMarker !== null}
+        eyebrow="危险操作"
+        title="确认删除这条旅行记录？"
+        description={
+          pendingDeleteMarker
+            ? `删除后会从地图、时间线和详情中移除：${pendingDeleteMarker.scopeName} · ${pendingDeleteMarker.city}。`
+            : '删除后会从地图、时间线和详情中移除这条记录。'
+        }
+        cancelText="先保留"
+        confirmText="确认删除"
+        onCancel={() => setPendingDeleteMarkerId(null)}
+        onConfirm={() => {
+          if (!pendingDeleteMarkerId) {
+            return;
+          }
+          const markerId = pendingDeleteMarkerId;
+          setPendingDeleteMarkerId(null);
+          void handleDeleteMarker(markerId);
+        }}
       />
 
       <div className={shouldShowMainBackToTop ? 'app-back-to-top is-visible' : 'app-back-to-top'}>

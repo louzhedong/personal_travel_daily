@@ -10,4 +10,5 @@
 @import './components/guide-search.css';
 @import './components/timeline.css';
 @import './components/data-sync.css';
+@import './components/dialog.css';
 @import './responsive.css';

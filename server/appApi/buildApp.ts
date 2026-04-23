@@ -19,6 +19,7 @@ export async function buildApp() {
   await app.register(cors, {
     origin: env.APP_API_CORS_ORIGIN === '*' ? true : env.APP_API_CORS_ORIGIN,
     credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   await registerAuthRoutes(app);

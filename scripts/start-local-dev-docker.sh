@@ -71,6 +71,17 @@ ensure_env_file() {
   printf '[info] .env missing, copied from .env.example\n'
 }
 
+prepare_database() {
+  printf '[sync] prisma client\n'
+  npm run db:generate >/dev/null
+
+  printf '[sync] prisma migrations\n'
+  npm run db:migrate:deploy >/dev/null
+
+  printf '[sync] prisma seed\n'
+  npm run db:seed >/dev/null
+}
+
 DOCKER_BIN="$(find_docker_bin || true)"
 if [[ -z "$DOCKER_BIN" ]]; then
   echo "[error] Docker CLI not found. Please install/start Docker Desktop." >&2
@@ -88,11 +99,14 @@ fi
 printf '[start] docker compose mysql + adminer\n'
 "$DOCKER_BIN" compose up -d mysql adminer
 
-start_process "guide-api" 8787 npm run dev:guide-api
+wait_for_url "http://127.0.0.1:8080/" "adminer" || true
+prepare_database
+
+start_process "guide-api" 8383 npm run dev:guide-api
 start_process "app-api" 8788 npm run dev:app-api
 start_process "frontend" 5173 npm run dev -- --host 0.0.0.0
 
-wait_for_url "http://127.0.0.1:8787/health" "guide-api" || true
+wait_for_url "http://127.0.0.1:8383/health" "guide-api" || true
 wait_for_url "http://127.0.0.1:8788/health" "app-api" || true
 wait_for_url "http://127.0.0.1:5173/" "frontend" || true
 
@@ -101,7 +115,7 @@ cat <<EOF
 Docker local dev services:
   frontend : http://127.0.0.1:5173/
   app-api  : http://127.0.0.1:8788/health
-  guide-api: http://127.0.0.1:8787/health
+  guide-api: http://127.0.0.1:8383/health
   mysql    : 127.0.0.1:3306
   adminer  : http://127.0.0.1:8080/
 

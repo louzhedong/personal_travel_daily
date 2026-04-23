@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../App';
+import type { AuthResponseDto, SessionResponseDto } from '../../lib/api/types';
 import type { TravelStore } from '../../types';
 
 const { authApiMock, remoteTravelStoreRepositoryMock } = vi.hoisted(() => {
@@ -11,6 +12,18 @@ const { authApiMock, remoteTravelStoreRepositoryMock } = vi.hoisted(() => {
       { id: 'u2', name: '另一位旅伴', color: '#f97316' },
     ],
     markers: [
+      {
+        id: 'marker-self',
+        userId: 'u1',
+        scope: 'domestic',
+        scopeId: '浙江',
+        scopeName: '浙江',
+        city: '杭州',
+        note: '西湖的晚风很舒服。',
+        visitedStartAt: '2026-05-05',
+        visitedEndAt: '2026-05-06',
+        createdAt: '2026-05-06T00:00:00.000Z',
+      },
       {
         id: 'marker-other',
         userId: 'u2',
@@ -43,18 +56,19 @@ const { authApiMock, remoteTravelStoreRepositoryMock } = vi.hoisted(() => {
     ],
     guideSearchHistory: [],
   };
-
   return {
     authApiMock: {
-      fetchSession: vi.fn(async () => ({
+      fetchSession: vi.fn<() => Promise<SessionResponseDto>>(async () => ({
         account: {
           id: 'acct-1',
           name: 'Voyage Atlas',
           username: 'demo',
         },
       })),
-      login: vi.fn(),
-      register: vi.fn(),
+      login: vi.fn<(input: { username: string; password: string }) => Promise<AuthResponseDto>>(),
+      register: vi.fn<
+        (input: { nickname: string; username: string; password: string }) => Promise<AuthResponseDto>
+      >(),
       logout: vi.fn(async () => ({ success: true })),
     },
     remoteTravelStoreRepositoryMock: {
@@ -108,6 +122,79 @@ vi.mock('../../lib/repositories/remoteTravelStoreRepository', () => ({
 vi.mock('../../lib/api/authApi', () => authApiMock);
 
 describe('App auth and guide permissions', () => {
+  const unauthenticatedSession: SessionResponseDto = { account: null };
+  const authenticatedSession: SessionResponseDto = {
+    account: {
+      id: 'acct-1',
+      name: 'Voyage Atlas',
+      username: 'demo',
+    },
+  };
+  const loginResponse: AuthResponseDto = {
+    account: {
+      id: 'acct-1',
+      name: 'Voyage Atlas',
+      username: 'demo',
+    },
+  };
+  const registerResponse: AuthResponseDto = {
+    account: {
+      id: 'acct-2',
+      name: '新用户',
+      username: 'new-user',
+    },
+  };
+  const defaultStore: TravelStore = {
+    users: [
+      { id: 'u1', name: '当前用户', color: '#2563eb' },
+      { id: 'u2', name: '另一位旅伴', color: '#f97316' },
+    ],
+    markers: [
+      {
+        id: 'marker-self',
+        userId: 'u1',
+        scope: 'domestic',
+        scopeId: '浙江',
+        scopeName: '浙江',
+        city: '杭州',
+        note: '西湖的晚风很舒服。',
+        visitedStartAt: '2026-05-05',
+        visitedEndAt: '2026-05-06',
+        createdAt: '2026-05-06T00:00:00.000Z',
+      },
+      {
+        id: 'marker-other',
+        userId: 'u2',
+        scope: 'domestic',
+        scopeId: '青海',
+        scopeName: '青海',
+        city: '西宁',
+        note: '和朋友一起看青海湖。',
+        visitedStartAt: '2026-05-01',
+        visitedEndAt: '2026-05-03',
+        createdAt: '2026-05-04T00:00:00.000Z',
+      },
+    ],
+    activeUserId: 'u1',
+    savedGuides: [
+      {
+        id: 'saved-other-link',
+        savedByUserId: 'u2',
+        markerId: 'marker-other',
+        keyword: '青海',
+        savedAt: '2026-05-04T00:00:00.000Z',
+        result: {
+          id: 'guide-other',
+          title: '青海湖环线攻略',
+          summary: '经典环线路线和高原适应建议。',
+          sourceName: '示例来源',
+          sourceUrl: 'https://example.com/guide/1',
+        },
+      },
+    ],
+    guideSearchHistory: [],
+  };
+
   beforeEach(() => {
     vi.unstubAllEnvs();
     vi.stubEnv('VITE_GUIDE_SEARCH_PROVIDER', 'mock');
@@ -124,35 +211,23 @@ describe('App auth and guide permissions', () => {
       }
     });
 
-    authApiMock.fetchSession.mockResolvedValue({
-      account: {
-        id: 'acct-1',
-        name: 'Voyage Atlas',
-        username: 'demo',
-      },
-    });
-    authApiMock.login.mockResolvedValue({
-      account: {
-        id: 'acct-1',
-        name: 'Voyage Atlas',
-        username: 'demo',
-      },
-    });
-    authApiMock.register.mockResolvedValue({
-      account: {
-        id: 'acct-2',
-        name: '新用户',
-        username: 'new-user',
-      },
-    });
+    authApiMock.fetchSession.mockResolvedValue(authenticatedSession);
+    authApiMock.login.mockResolvedValue(loginResponse);
+    authApiMock.register.mockResolvedValue(registerResponse);
+    remoteTravelStoreRepositoryMock.loadStore.mockResolvedValue(defaultStore);
+    remoteTravelStoreRepositoryMock.deleteMarker.mockImplementation(async (markerId: string) => ({
+      ...defaultStore,
+      markers: defaultStore.markers.filter((item) => item.id !== markerId),
+    }));
   });
 
-  it('redirects unauthenticated users to the auth page and logs them in', async () => {
-    authApiMock.fetchSession.mockResolvedValueOnce({ account: null });
+  it('redirects unauthenticated users to /login and logs them in', async () => {
+    authApiMock.fetchSession.mockResolvedValueOnce(unauthenticatedSession);
 
     render(<App />);
 
     expect(await screen.findByRole('heading', { name: '登录 Voyage Atlas' })).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/login');
     await userEvent.type(screen.getByPlaceholderText('输入用户名'), 'demo');
     await userEvent.type(screen.getByPlaceholderText('至少 8 位密码'), 'demo123456');
     await userEvent.click(screen.getByRole('button', { name: '登录并进入地图' }));
@@ -165,12 +240,14 @@ describe('App auth and guide permissions', () => {
     expect(window.location.pathname).toBe('/');
   });
 
-  it('supports register mode and enters the app after success', async () => {
-    authApiMock.fetchSession.mockResolvedValueOnce({ account: null });
+  it('supports the standalone /register route and enters the app after success', async () => {
+    window.history.replaceState({}, '', '/register');
+    authApiMock.fetchSession.mockResolvedValueOnce(unauthenticatedSession);
 
     render(<App />);
 
-    await userEvent.click(await screen.findByRole('button', { name: '注册' }));
+    expect(await screen.findByRole('heading', { name: '注册新账号' })).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/register');
     await userEvent.type(screen.getByPlaceholderText('例如：小悠的旅行档案'), '新用户');
     await userEvent.type(screen.getByPlaceholderText('输入用户名'), 'new-user');
     await userEvent.type(screen.getByPlaceholderText('至少 8 位密码'), 'demo123456');
@@ -183,12 +260,23 @@ describe('App auth and guide permissions', () => {
       username: 'new-user',
       password: 'demo123456',
     });
+    expect(window.location.pathname).toBe('/');
+  });
+
+  it('redirects legacy /auth to /login', async () => {
+    window.history.replaceState({}, '', '/auth');
+    authApiMock.fetchSession.mockResolvedValueOnce(unauthenticatedSession);
+
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: '登录 Voyage Atlas' })).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/login');
   });
 
   it('allows searching from another user marker but prevents link management', async () => {
     render(<App />);
 
-    await userEvent.click(await screen.findByRole('button', { name: '查看详情' }));
+    await userEvent.click((await screen.findAllByRole('button', { name: '查看详情' }))[1]!);
 
     expect(await screen.findByText('青海湖环线攻略')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '解除关联' })).not.toBeInTheDocument();
@@ -242,10 +330,28 @@ describe('App auth and guide permissions', () => {
   it('logs out from the hero action', async () => {
     render(<App />);
 
-    await userEvent.click(await screen.findByRole('button', { name: '退出登录' }));
+    await userEvent.click(await screen.findByRole('button', { name: '打开退出登录确认' }));
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('确认退出当前账号？')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '确认退出' }));
 
     expect(authApiMock.logout).toHaveBeenCalledTimes(1);
     expect(await screen.findByRole('heading', { name: '登录 Voyage Atlas' })).toBeInTheDocument();
-    expect(window.location.pathname).toBe('/auth');
+    expect(window.location.pathname).toBe('/login');
+  });
+
+  it('requires confirmation before deleting a marker', async () => {
+    render(<App />);
+
+    await userEvent.click(await screen.findByRole('button', { name: '删除' }));
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('确认删除这条旅行记录？')).toBeInTheDocument();
+    expect(remoteTravelStoreRepositoryMock.deleteMarker).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole('button', { name: '确认删除' }));
+
+    await waitFor(() => {
+      expect(remoteTravelStoreRepositoryMock.deleteMarker).toHaveBeenCalledTimes(1);
+    });
   });
 });

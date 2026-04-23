@@ -1,0 +1,53 @@
+.dialog-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 68px 28px 0;
+  background: rgba(248, 250, 252, 0.52);
+  backdrop-filter: blur(6px);
+}
+
+.dialog-card {
+  width: min(360px, 100%);
+  display: grid;
+  gap: 10px;
+  padding: 18px 18px 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.14);
+}
+
+.dialog-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.dialog-title {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.dialog-description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #475569;
+}
+
+.dialog-description p {
+  margin: 0;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}

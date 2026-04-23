@@ -108,14 +108,26 @@ EOF
   exit 1
 }
 
+prepare_database() {
+  printf '[sync] prisma client\n'
+  npm run db:generate >/dev/null
+
+  printf '[sync] prisma migrations\n'
+  npm run db:migrate:deploy >/dev/null
+
+  printf '[sync] prisma seed\n'
+  npm run db:seed >/dev/null
+}
+
 ensure_env_file
 ensure_mysql
+prepare_database
 
-start_process "guide-api" 8787 npm run dev:guide-api
+start_process "guide-api" 8383 npm run dev:guide-api
 start_process "app-api" 8788 npm run dev:app-api
 start_process "frontend" 5173 npm run dev -- --host 0.0.0.0
 
-wait_for_url "http://127.0.0.1:8787/health" "guide-api" || true
+wait_for_url "http://127.0.0.1:8383/health" "guide-api" || true
 wait_for_url "http://127.0.0.1:8788/health" "app-api" || true
 wait_for_url "http://127.0.0.1:5173/" "frontend" || true
 
@@ -124,7 +136,7 @@ cat <<EOF
 Local dev services:
   frontend : http://127.0.0.1:5173/
   app-api  : http://127.0.0.1:8788/health
-  guide-api: http://127.0.0.1:8787/health
+  guide-api: http://127.0.0.1:8383/health
   mysql    : 127.0.0.1:3306
 
 Logs:

@@ -1,6 +1,6 @@
-﻿# Guide Search API Contract
+# Guide Search API Contract
 
-本地攻略 API 由 `server/guideApiServer.mjs` 提供，默认监听 `http://0.0.0.0:8787`。
+本地攻略 API 由 `server/guideApiServer.mjs` 提供，默认监听 `http://0.0.0.0:8383`。
 
 ## 健康检查
 
