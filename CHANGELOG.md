@@ -5,6 +5,22 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-23
 
+### PR TBD `refactor: 拆分前端纯逻辑和展示模型 / Split frontend pure logic and view models`
+
+### Changed / 变更
+
+- 抽取日期格式化、旅行记录排序、地图旅程弧线计算、攻略正文视图和后台页展示模型，减少组件内重复逻辑。  
+  Extracted date formatting, marker sorting, map journey arc calculation, guide document rendering, and admin-page view models to reduce duplicated component logic.
+- 将 store 写操作中的当前用户保持和搜索历史去重逻辑拆到辅助模块，便于后续复用和测试。  
+  Moved active-user preservation and guide-search history dedupe helpers out of store actions for clearer reuse.
+- 更新 README 和项目总览文档，补齐重构后的目录职责与新增开发原则。  
+  Updated README and the project overview docs with the refactored module responsibilities and development guidance.
+
+### Verified / 已验证
+
+- `npm.cmd run build`
+- `npm.cmd run test`
+
 ### PR TBD `feat: 增加行程集合 / Add trip collections`
 
 ### Added / 新增

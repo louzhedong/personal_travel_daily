@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import FancySelect from './ui/FancySelect';
 import DateField from './ui/DateField';
+import { getTodayDateOnly, getTripDays } from '../lib/date';
 import { uploadImageToImgBB } from '../lib/imageUpload';
 import type { RegionOption, Scope, TripCollection } from '../types';
 
@@ -35,21 +36,6 @@ interface FormErrors {
   image?: string;
 }
 
-function getToday() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function getTripDays(startAt: string, endAt: string) {
-  if (!startAt || !endAt || endAt < startAt) {
-    return null;
-  }
-
-  const start = new Date(`${startAt}T00:00:00`);
-  const end = new Date(`${endAt}T00:00:00`);
-  const diff = end.getTime() - start.getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
-}
-
 export function MarkerForm({
   scope,
   regions,
@@ -65,8 +51,8 @@ export function MarkerForm({
   const [note, setNote] = useState(initialValue?.note ?? '');
   const [imageUrls, setImageUrls] = useState(initialValue?.imageUrls ?? []);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [visitedStartAt, setVisitedStartAt] = useState(initialValue?.visitedStartAt ?? getToday());
-  const [visitedEndAt, setVisitedEndAt] = useState(initialValue?.visitedEndAt ?? initialValue?.visitedStartAt ?? getToday());
+  const [visitedStartAt, setVisitedStartAt] = useState(initialValue?.visitedStartAt ?? getTodayDateOnly());
+  const [visitedEndAt, setVisitedEndAt] = useState(initialValue?.visitedEndAt ?? initialValue?.visitedStartAt ?? getTodayDateOnly());
   const [tripId, setTripId] = useState(initialValue?.tripId ?? '');
   const [errors, setErrors] = useState<FormErrors>({});
 

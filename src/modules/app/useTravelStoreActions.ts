@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { MarkerFormValue } from '../../components/MarkerForm';
 import { remoteTravelStoreRepository } from '../../lib/repositories/remoteTravelStoreRepository';
 import type { GuideSearchResult, TravelStore, UserProfile } from '../../types';
+import { keepCurrentActiveUser, upsertRecentSearchHistory } from './travelStoreActionHelpers';
 
 interface UseTravelStoreActionsArgs {
   store: TravelStore;
@@ -56,10 +57,7 @@ export function useTravelStoreActions({
   }) => {
     try {
       const nextStore = await remoteTravelStoreRepository.createTrip(input);
-      setStore((current) => ({
-        ...nextStore,
-        activeUserId: current.activeUserId,
-      }));
+      setStore((current) => keepCurrentActiveUser(nextStore, current));
       setMessage(`已创建行程「${input.name}」，新增旅行记录时可以归入这个行程。`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '创建行程失败，请稍后重试。');
@@ -86,10 +84,7 @@ export function useTravelStoreActions({
         visitedEndAt: value.visitedEndAt,
       });
 
-      setStore((current) => ({
-        ...nextStore,
-        activeUserId: current.activeUserId,
-      }));
+      setStore((current) => keepCurrentActiveUser(nextStore, current));
       setSelectedRegionId(value.scopeId);
       setMarkerModalOpen(false);
       setMessage(`已保存 ${activeUser.name} 在 ${value.scopeName} · ${value.city} 的旅行记录。`);
@@ -108,10 +103,7 @@ export function useTravelStoreActions({
 
     try {
       const nextStore = await remoteTravelStoreRepository.deleteMarker(markerId);
-      setStore((current) => ({
-        ...nextStore,
-        activeUserId: current.activeUserId,
-      }));
+      setStore((current) => keepCurrentActiveUser(nextStore, current));
       setDetailMarkerId((current) => (current === markerId ? null : current));
       setMessage(`已删除 ${target.scopeName} · ${target.city} 的旅行记录。`);
     } catch (error) {
@@ -134,10 +126,7 @@ export function useTravelStoreActions({
         imageUrls: updates.imageUrls,
         tripId: updates.tripId,
       });
-      setStore((current) => ({
-        ...nextStore,
-        activeUserId: current.activeUserId,
-      }));
+      setStore((current) => keepCurrentActiveUser(nextStore, current));
       setMessage(`已更新 ${target.scopeName} · ${target.city} 的旅行记录。`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '更新旅行记录失败，请稍后重试。');
@@ -228,31 +217,12 @@ export function useTravelStoreActions({
         scope,
       });
 
-      setStore((current) => {
-        const remaining = current.guideSearchHistory.filter(
-          (item) =>
-            !(
-              item.scope === response.item.scope &&
-              item.keyword.trim().toLowerCase() === response.item.keyword.trim().toLowerCase()
-            ),
-        );
+      setStore((current) => ({
+        ...current,
+        guideSearchHistory: upsertRecentSearchHistory(current.guideSearchHistory, response.item),
+      }));
 
-        return {
-          ...current,
-          guideSearchHistory: [response.item, ...remaining].slice(0, 6),
-        };
-      });
-
-      return [
-        response.item,
-        ...store.guideSearchHistory.filter(
-          (item) =>
-            !(
-              item.scope === response.item.scope &&
-              item.keyword.trim().toLowerCase() === response.item.keyword.trim().toLowerCase()
-            ),
-        ),
-      ].slice(0, 6);
+      return upsertRecentSearchHistory(store.guideSearchHistory, response.item);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存搜索历史失败，请稍后重试。');
       return store.guideSearchHistory.slice(0, 6);

@@ -46,8 +46,8 @@ describe('app api repositories', () => {
 
     expect(upsert).toHaveBeenCalledWith({
       where: { id: 'acct_default' },
-      update: { name: 'Voyage Atlas', username: 'demo', passwordHash: 'hash' },
-      create: { id: 'acct_default', name: 'Voyage Atlas', username: 'demo', passwordHash: 'hash' },
+      update: { name: 'Voyage Atlas', username: 'demo', role: 'member', passwordHash: 'hash' },
+      create: { id: 'acct_default', name: 'Voyage Atlas', username: 'demo', role: 'member', passwordHash: 'hash' },
     });
     expect(findUnique).toHaveBeenCalledWith({
       where: { id: 'acct_default' },

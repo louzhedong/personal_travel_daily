@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getGuideDocument } from '../lib/guides/guideContentService';
+import {
+  buildHighlightTokens,
+  buildOriginalDocumentView,
+  renderHighlightedText,
+} from '../lib/guides/guideDocumentView';
 import { searchGuides } from '../lib/guides/guideSearchService';
 import { findSavedGuideInCollection } from '../lib/repositories/guideRepository';
 import TravelIcon from './ui/TravelIcon';
@@ -27,117 +32,6 @@ function canOpenOriginalSource(sourceUrl: string) {
 
 function getSourceLinkLabel(item: GuideSearchResult) {
   return item.sourceName.includes('POI') ? '查看来源' : '查看原文';
-}
-
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function buildHighlightTokens(keyword: string) {
-  const trimmed = keyword.trim();
-  if (!trimmed) {
-    return [];
-  }
-
-  const tokens = [trimmed, ...trimmed.split(/\s+/)]
-    .map((item) => item.trim())
-    .filter((item) => item.length >= 2);
-
-  return Array.from(new Set(tokens)).sort((left, right) => right.length - left.length);
-}
-
-function renderHighlightedText(text: string, tokens: string[]) {
-  if (!tokens.length || !text) {
-    return text;
-  }
-
-  const matcher = new RegExp(`(${tokens.map(escapeRegExp).join('|')})`, 'gi');
-  const parts = text.split(matcher);
-
-  return parts.map((part, index) =>
-    tokens.some((token) => token.toLowerCase() === part.toLowerCase()) ? (
-      <mark key={`${part}-${index}`} className="guide-highlight">
-        {part}
-      </mark>
-    ) : (
-      <span key={`${part}-${index}`}>{part}</span>
-    ),
-  );
-}
-
-function buildOriginalDocumentView(contentHtml: string, tokens: string[]) {
-  if (!contentHtml) {
-    return { html: '', sections: [] as Array<{ id: string; title: string }> };
-  }
-
-  const parser = new DOMParser();
-  const document = parser.parseFromString(`<div>${contentHtml}</div>`, 'text/html');
-  const root = document.body.firstElementChild as HTMLDivElement | null;
-  if (!root) {
-    return { html: contentHtml, sections: [] as Array<{ id: string; title: string }> };
-  }
-
-  const sections: Array<{ id: string; title: string }> = [];
-  root.querySelectorAll('h3').forEach((heading, index) => {
-    const title = heading.textContent?.trim();
-    if (!title) {
-      return;
-    }
-    const id = `guide-section-${index + 1}`;
-    heading.setAttribute('id', id);
-    sections.push({ id, title });
-  });
-
-  if (tokens.length) {
-    const matcher = new RegExp(`(${tokens.map(escapeRegExp).join('|')})`, 'gi');
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    const textNodes: Text[] = [];
-
-    while (walker.nextNode()) {
-      const current = walker.currentNode as Text;
-      if (!current.textContent?.trim()) {
-        continue;
-      }
-      const parentTag = current.parentElement?.tagName.toLowerCase();
-      if (parentTag === 'script' || parentTag === 'style' || parentTag === 'mark') {
-        continue;
-      }
-      textNodes.push(current);
-    }
-
-    textNodes.forEach((node) => {
-      const text = node.textContent ?? '';
-      if (!matcher.test(text)) {
-        matcher.lastIndex = 0;
-        return;
-      }
-      matcher.lastIndex = 0;
-
-      const fragment = document.createDocumentFragment();
-      let lastIndex = 0;
-
-      for (const match of text.matchAll(matcher)) {
-        const matched = match[0];
-        const offset = match.index ?? 0;
-        if (offset > lastIndex) {
-          fragment.appendChild(document.createTextNode(text.slice(lastIndex, offset)));
-        }
-        const mark = document.createElement('mark');
-        mark.className = 'guide-highlight';
-        mark.textContent = matched;
-        fragment.appendChild(mark);
-        lastIndex = offset + matched.length;
-      }
-
-      if (lastIndex < text.length) {
-        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
-      }
-
-      node.parentNode?.replaceChild(fragment, node);
-    });
-  }
-
-  return { html: root.innerHTML, sections };
 }
 
 export function GuideSearchPanel({

@@ -68,13 +68,17 @@
 
 - `App.tsx`：应用顶层容器
 - `app/`：页面组合组件与 hook
+- `admin/`：后台管理页与展示模型
 
 ### `src/lib`
 
 前端基础设施和数据层。
 
 - `storage.ts`：TravelStore 持久化与迁移
-- `guides/`：攻略搜索与正文服务
+- `date.ts`：日期区间、年份和天数等通用日期工具
+- `markerSorting.ts`：旅行记录访问时间排序工具
+- `mapJourneyArcs.ts`：地图旅程弧线纯计算
+- `guides/`：攻略搜索、正文服务、正文视图和 HTML 清洗
 - `repositories/`：IndexedDB 仓库和缓存层
 
 ### `server`
@@ -103,10 +107,19 @@
 - `useMapContext.ts`
 - `useTravelStoreActions.ts`
 - `useLockedModal.ts`
+- `travelStoreActionHelpers.ts`
 
 ### 跨模块导航辅助
 
 - `markerNavigation.ts`
+
+### 纯计算与展示模型
+
+- `src/lib/date.ts`
+- `src/lib/markerSorting.ts`
+- `src/lib/mapJourneyArcs.ts`
+- `src/lib/guides/guideDocumentView.tsx`
+- `src/modules/admin/adminPageModel.ts`
 
 ## 当前样式结构
 
@@ -118,7 +131,8 @@
 
 ## 建议的新增开发原则
 
-- 业务规则优先放入 `lib/` 或 `modules/app/*Actions`，不要散落在组件 JSX 内
+- 通用纯逻辑优先放入 `src/lib/`，页面级展示模型优先放入对应 `src/modules/*` 目录，不要散落在组件 JSX 内
+- store 写操作的公共逻辑优先复用 `travelStoreActionHelpers.ts`
 - 新的“按记录跳转”入口优先复用 `markerNavigation.ts`
 - 新的地图相关状态优先扩展 `useMapContext.ts`
 - 新的文档优先写在 `docs/`，README 保持入口级信息

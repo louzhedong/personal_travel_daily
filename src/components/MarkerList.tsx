@@ -1,12 +1,8 @@
 import { useMemo, useState } from 'react';
 import FancySelect from './ui/FancySelect';
+import { formatVisitedRange } from '../lib/date';
+import { sortMarkersDesc } from '../lib/markerSorting';
 import type { Scope, UserProfile, VisitMarker } from '../types';
-
-function formatVisitedRange(marker: VisitMarker) {
-  return marker.visitedStartAt === marker.visitedEndAt
-    ? marker.visitedStartAt
-    : `${marker.visitedStartAt} - ${marker.visitedEndAt}`;
-}
 
 interface MarkerListProps {
   scope: Scope;
@@ -33,13 +29,7 @@ export function MarkerList({
   const userMap = useMemo(() => new Map(users.map((item) => [item.id, item])), [users]);
 
   const visibleMarkers = useMemo(() => {
-    const list = [...markers].sort((a, b) => {
-      const endCompare = b.visitedEndAt.localeCompare(a.visitedEndAt);
-      if (endCompare !== 0) {
-        return endCompare;
-      }
-      return b.visitedStartAt.localeCompare(a.visitedStartAt);
-    });
+    const list = [...markers].sort(sortMarkersDesc);
     if (filterUserId === 'all') {
       return list;
     }
