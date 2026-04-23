@@ -27,7 +27,10 @@
 - 登录成功后会回到主页面 `/`
 - 退出登录需要二次确认
 - 删除旅行记录也需要二次确认
-- 更多交互与接口说明见 [docs/auth-login-register.md](file:///Users/bytedance/project/personal_travel_daily/docs/auth-login-register.md)
+- 更多交互与接口说明见 [docs/technical/auth-login-register.md](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-login-register.md)
+- 完整技术设计见 [docs/technical/auth-technical-design.md](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-technical-design.md)
+- 模块架构图见 [docs/technical/auth-architecture-diagram.md](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-architecture-diagram.md)
+- 评审时序图见 [docs/technical/auth-sequence-diagrams.md](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-sequence-diagrams.md)
 
 ## 技术栈
 
@@ -334,20 +337,28 @@ npm run test
 ## 文档索引
 
 - [Docs Index](docs/README.md)
-- [项目总览](docs/project-overview.md)
-- [未来 Roadmap / TODO](docs/future-roadmap.md)
-- [MySQL 升级技术方案](docs/mysql-upgrade-design.md)
-- [App API Contract](docs/app-api-contract.md)
-- [本地联调排查文档](docs/local-dev-troubleshooting.md)
-- [攻略搜索功能说明](docs/guide-search-feature.md)
-- [攻略搜索/收藏/关联设计](docs/travel-guide-search-design.md)
-- [Guide Search API Contract](docs/guide-search-api-contract.md)
-- [视觉 Token 说明](docs/design-tokens.md)
-- [地图渲染与 Hover 性能说明](docs/map-rendering-and-hover-performance.md)
-- [项目 AI Prompt](docs/project-ai-prompt.md)
-- [System Prompt](docs/system-prompt.md)
-- [Task Prompt](docs/task-prompt.md)
-- [Design Prompt](docs/design-prompt.md)
+- [项目总览](docs/technical/project-overview.md)
+- [未来 Roadmap / TODO](docs/technical/future-roadmap.md)
+- [登录注册 + 会话 + 管理员权限技术方案](docs/technical/auth-technical-design.md)
+- [认证模块架构图](docs/technical/auth-architecture-diagram.md)
+- [登录注册与会话管理时序图](docs/technical/auth-sequence-diagrams.md)
+- [MySQL 升级技术方案](docs/technical/mysql-upgrade-design.md)
+- [App API Contract](docs/technical/app-api-contract.md)
+- [本地联调排查文档](docs/technical/local-dev-troubleshooting.md)
+- [攻略搜索功能说明](docs/technical/guide-search-feature.md)
+- [攻略搜索/收藏/关联设计](docs/technical/travel-guide-search-design.md)
+- [Guide Search API Contract](docs/technical/guide-search-api-contract.md)
+- [视觉 Token 说明](docs/design/design-tokens.md)
+- [地图渲染与 Hover 性能说明](docs/technical/map-rendering-and-hover-performance.md)
+- [项目 AI Prompt](docs/prompts/project-ai-prompt.md)
+- [System Prompt](docs/prompts/system-prompt.md)
+- [Task Prompt](docs/prompts/task-prompt.md)
+- [Design Prompt](docs/prompts/design-prompt.md)
+- [Auth Prompt](docs/prompts/auth-prompt.md)
+- [Admin Backoffice Prompt](docs/prompts/admin-backoffice-prompt.md)
+- [App API Prompt](docs/prompts/app-api-prompt.md)
+- [Prisma MySQL Prompt](docs/prompts/prisma-mysql-prompt.md)
+- [Local Dev Prompt](docs/prompts/local-dev-prompt.md)
 - [Changelog](CHANGELOG.md)
 
 ## 当前开发注意点

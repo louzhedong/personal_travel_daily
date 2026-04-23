@@ -1,9 +1,11 @@
 export type Scope = 'domestic' | 'international';
+export type AccountRoleDto = 'admin' | 'member';
 
 export interface CurrentAccountDto {
   id: string;
   name: string;
   username: string;
+  role: AccountRoleDto;
 }
 
 export interface UserProfileDto {
@@ -108,4 +110,65 @@ export interface BootstrapResponseDto {
 
 export interface AuthResponseDto {
   account: CurrentAccountDto;
+}
+
+export interface AdminMarkerNodeDto {
+  id: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note: string;
+  imageUrls?: string[];
+  visitedStartAt: string;
+  visitedEndAt: string;
+  createdAt: string;
+}
+
+export interface AdminSavedGuideNodeDto {
+  id: string;
+  markerId?: string;
+  keyword: string;
+  result: GuideSearchResultDto | GuideDocumentDto;
+  savedAt: string;
+}
+
+export interface AdminGuideSearchHistoryNodeDto {
+  id: string;
+  keyword: string;
+  scope: Scope | 'all';
+  createdAt: string;
+}
+
+export interface AdminCompanionNodeDto {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: string;
+  markers: AdminMarkerNodeDto[];
+  savedGuides: AdminSavedGuideNodeDto[];
+  guideSearchHistory: AdminGuideSearchHistoryNodeDto[];
+}
+
+export interface AdminAccountNodeDto {
+  id: string;
+  name: string;
+  username: string;
+  role: AccountRoleDto;
+  createdAt: string;
+  companions: AdminCompanionNodeDto[];
+  stats: {
+    companionCount: number;
+    markerCount: number;
+    savedGuideCount: number;
+    guideSearchHistoryCount: number;
+  };
+}
+
+export interface AdminOverviewResponseDto {
+  accounts: AdminAccountNodeDto[];
+  meta: {
+    fetchedAt: string;
+    accountCount: number;
+  };
 }

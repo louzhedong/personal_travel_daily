@@ -1,8 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AdminOverviewResponseDto, AuthResponseDto, SessionResponseDto } from '../../lib/api/types';
+import { fetchAdminOverview } from '../../lib/api/adminApi';
 import App from '../App';
-import type { AuthResponseDto, SessionResponseDto } from '../../lib/api/types';
 import type { TravelStore } from '../../types';
 
 const { authApiMock, remoteTravelStoreRepositoryMock } = vi.hoisted(() => {
@@ -63,6 +64,7 @@ const { authApiMock, remoteTravelStoreRepositoryMock } = vi.hoisted(() => {
           id: 'acct-1',
           name: 'Voyage Atlas',
           username: 'demo',
+          role: 'admin',
         },
       })),
       login: vi.fn<(input: { username: string; password: string }) => Promise<AuthResponseDto>>(),
@@ -120,6 +122,9 @@ vi.mock('../../lib/repositories/remoteTravelStoreRepository', () => ({
 }));
 
 vi.mock('../../lib/api/authApi', () => authApiMock);
+vi.mock('../../lib/api/adminApi', () => ({
+  fetchAdminOverview: vi.fn(),
+}));
 
 describe('App auth and guide permissions', () => {
   const unauthenticatedSession: SessionResponseDto = { account: null };
@@ -128,6 +133,7 @@ describe('App auth and guide permissions', () => {
       id: 'acct-1',
       name: 'Voyage Atlas',
       username: 'demo',
+      role: 'admin',
     },
   };
   const loginResponse: AuthResponseDto = {
@@ -135,6 +141,7 @@ describe('App auth and guide permissions', () => {
       id: 'acct-1',
       name: 'Voyage Atlas',
       username: 'demo',
+      role: 'admin',
     },
   };
   const registerResponse: AuthResponseDto = {
@@ -142,6 +149,29 @@ describe('App auth and guide permissions', () => {
       id: 'acct-2',
       name: '新用户',
       username: 'new-user',
+      role: 'member',
+    },
+  };
+  const adminOverviewResponse: AdminOverviewResponseDto = {
+    accounts: [
+      {
+        id: 'acct-1',
+        name: 'Voyage Atlas',
+        username: 'demo',
+        role: 'admin',
+        createdAt: '2026-04-22T00:00:00.000Z',
+        companions: [],
+        stats: {
+          companionCount: 0,
+          markerCount: 0,
+          savedGuideCount: 0,
+          guideSearchHistoryCount: 0,
+        },
+      },
+    ],
+    meta: {
+      fetchedAt: '2026-04-22T00:00:00.000Z',
+      accountCount: 1,
     },
   };
   const defaultStore: TravelStore = {
@@ -214,6 +244,7 @@ describe('App auth and guide permissions', () => {
     authApiMock.fetchSession.mockResolvedValue(authenticatedSession);
     authApiMock.login.mockResolvedValue(loginResponse);
     authApiMock.register.mockResolvedValue(registerResponse);
+    vi.mocked(fetchAdminOverview).mockResolvedValue(adminOverviewResponse);
     remoteTravelStoreRepositoryMock.loadStore.mockResolvedValue(defaultStore);
     remoteTravelStoreRepositoryMock.deleteMarker.mockImplementation(async (markerId: string) => ({
       ...defaultStore,
@@ -271,6 +302,33 @@ describe('App auth and guide permissions', () => {
 
     expect(await screen.findByRole('heading', { name: '登录 Voyage Atlas' })).toBeInTheDocument();
     expect(window.location.pathname).toBe('/login');
+  });
+
+  it('allows admins to access /admin and renders the admin page', async () => {
+    window.history.replaceState({}, '', '/admin');
+
+    render(<App />);
+
+    expect(await screen.findByText('系统用户总览')).toBeInTheDocument();
+    expect(fetchAdminOverview).toHaveBeenCalledTimes(1);
+    expect(window.location.pathname).toBe('/admin');
+  });
+
+  it('redirects non-admin users from /admin back to the main app', async () => {
+    window.history.replaceState({}, '', '/admin');
+    authApiMock.fetchSession.mockResolvedValueOnce({
+      account: {
+        id: 'acct-3',
+        name: '普通用户',
+        username: 'member',
+        role: 'member',
+      },
+    });
+
+    render(<App />);
+
+    expect(await screen.findByText('当前账号没有后台权限，已为你返回旅行主页。')).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/');
   });
 
   it('allows searching from another user marker but prevents link management', async () => {

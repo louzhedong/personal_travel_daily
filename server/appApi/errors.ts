@@ -26,6 +26,10 @@ export function createUnauthorizedError(message: string) {
   return new AppApiError('UNAUTHORIZED', message, 401);
 }
 
+export function createForbiddenError(message: string) {
+  return new AppApiError('FORBIDDEN', message, 403);
+}
+
 export function normalizeAppApiError(error: unknown): AppApiError {
   if (error instanceof AppApiError) {
     return error;

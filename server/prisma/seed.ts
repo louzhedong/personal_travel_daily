@@ -1,5 +1,5 @@
 import '../loadServerEnv.js';
-import { PrismaClient } from '@prisma/client';
+import { AccountRole, PrismaClient } from '@prisma/client';
 import { defaultCompanions } from '../appApi/defaultCompanions.js';
 import { hashPassword } from '../appApi/auth/password.js';
 import { getAppApiEnv } from '../appApi/env.js';
@@ -17,12 +17,14 @@ async function main() {
       update: {
         name: env.APP_DEFAULT_ACCOUNT_NAME,
         username: env.APP_DEFAULT_ACCOUNT_USERNAME,
+        role: AccountRole.admin,
         passwordHash,
       },
       create: {
         id: env.APP_DEFAULT_ACCOUNT_ID,
         name: env.APP_DEFAULT_ACCOUNT_NAME,
         username: env.APP_DEFAULT_ACCOUNT_USERNAME,
+        role: AccountRole.admin,
         passwordHash,
       },
     });

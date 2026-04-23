@@ -5,6 +5,118 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-22
 
+### PR TBD `docs: 补齐业务专项 prompt / Add domain-specific prompts`
+
+### Added / 新增
+
+- 新增 `docs/prompts/auth-prompt.md`、`admin-backoffice-prompt.md`、`app-api-prompt.md`、`prisma-mysql-prompt.md` 与 `local-dev-prompt.md`，分别覆盖认证、后台管理、主业务 API、Prisma/MySQL 以及本地联调场景。  
+  Added `docs/prompts/auth-prompt.md`, `admin-backoffice-prompt.md`, `app-api-prompt.md`, `prisma-mysql-prompt.md`, and `local-dev-prompt.md` to cover authentication, admin backoffice, app API, Prisma/MySQL, and local dev workflows.
+
+### Changed / 变更
+
+- 更新 `docs/README.md` 与 `README.md` 的 Prompt 索引，按业务领域补充新的专项 Prompt 入口。  
+  Updated the prompt indexes in `docs/README.md` and `README.md` to add the new domain-specific prompt entries.
+
+### Verified / 已验证
+
+- 手工校对新增 Prompt 与当前认证、后台、API、数据库和联调约束一致  
+  Manually verified that the new prompts align with the current auth, admin, API, database, and local-development constraints.
+
+### PR TBD `docs: 重组文档目录分层 / Reorganize docs into grouped directories`
+
+### Added / 新增
+
+- 新增 `docs/technical/`、`docs/design/` 与 `docs/prompts/` 三层目录，用于分离技术文档、设计资料和 Prompt 文档。  
+  Added `docs/technical/`, `docs/design/`, and `docs/prompts/` to separate technical docs, design assets, and prompt documents.
+
+### Changed / 变更
+
+- 将现有认证、接口、联调、性能、Roadmap 等技术文档迁移到 `docs/technical/`。  
+  Moved the authentication, API, troubleshooting, performance, and roadmap documents into `docs/technical/`.
+- 将 AI 协作文档与专项 Prompt 迁移到 `docs/prompts/`，将设计 Token 文档迁移到 `docs/design/`。  
+  Moved AI collaboration and feature prompts into `docs/prompts/`, and moved the design-token document into `docs/design/`.
+- 更新 `docs/README.md`、`README.md` 及相关文档互链，适配新的分类目录结构。  
+  Updated `docs/README.md`, `README.md`, and inter-document links to match the new categorized layout.
+
+### Verified / 已验证
+
+- 手工检查新的目录结构与 Markdown 链接，确认旧路径引用已清理  
+  Manually verified the new folder layout and Markdown links, confirming that old doc-path references were removed.
+
+### PR TBD `docs: 增加认证模块架构图 / Add auth module architecture diagram`
+
+### Added / 新增
+
+- 新增 `docs/technical/auth-architecture-diagram.md`，用 Mermaid 模块图梳理前端、路由、服务、会话、仓储、数据库与管理员权限的认证架构关系。  
+  Added `docs/technical/auth-architecture-diagram.md` with Mermaid architecture diagrams covering the frontend, routes, services, sessions, repositories, database, and admin-permission boundaries.
+
+### Changed / 变更
+
+- 更新 `docs/README.md`、`README.md`、`docs/technical/auth-technical-design.md` 与 `docs/technical/auth-sequence-diagrams.md`，补充认证架构图入口。  
+  Updated `docs/README.md`, `README.md`, `docs/technical/auth-technical-design.md`, and `docs/technical/auth-sequence-diagrams.md` to add entry points to the auth architecture diagrams.
+
+### Verified / 已验证
+
+- 手工校对架构图中的模块职责、依赖关系与当前认证代码结构一致  
+  Manually verified that the module responsibilities and dependencies in the diagrams match the current authentication code structure.
+
+### PR TBD `docs: 增加认证时序图评审文档 / Add auth sequence-diagram review document`
+
+### Added / 新增
+
+- 新增 `docs/technical/auth-sequence-diagrams.md`，用 Mermaid 时序图展示注册、登录、会话恢复、登出与管理员访问后台的关键链路。  
+  Added `docs/technical/auth-sequence-diagrams.md` with Mermaid sequence diagrams covering register, login, session restore, logout, and admin access.
+
+### Changed / 变更
+
+- 更新 `docs/README.md`、`README.md` 与 `docs/technical/auth-technical-design.md`，补充时序图文档入口。  
+  Updated `docs/README.md`, `README.md`, and `docs/technical/auth-technical-design.md` to add entry points to the sequence-diagram document.
+
+### Verified / 已验证
+
+- 手工校对时序图与当前认证实现、Cookie Session 机制、管理员权限判断逻辑一致  
+  Manually verified that the sequence diagrams match the current auth implementation, Cookie Session flow, and admin-permission checks.
+
+### PR TBD `docs: 补充认证与管理员权限技术方案 / Add auth, session, and admin-permission technical design`
+
+### Added / 新增
+
+- 新增 `docs/technical/auth-technical-design.md`，系统收口登录注册、Cookie Session、会话恢复、默认账号/默认同行人初始化以及管理员权限设计。  
+  Added `docs/technical/auth-technical-design.md` to consolidate the login/register flow, Cookie Session design, session restore, default account/companion initialization, and admin-permission design.
+
+### Changed / 变更
+
+- 更新 `docs/README.md`、`README.md` 与 `docs/technical/auth-login-register.md`，补充正式认证技术方案文档入口。  
+  Updated `docs/README.md`, `README.md`, and `docs/technical/auth-login-register.md` to add entry points for the formal authentication technical design.
+
+### Verified / 已验证
+
+- 手工校对文档中的实现链路、接口、角色策略与当前代码一致  
+  Manually verified that the documented flows, APIs, role strategy, and implementation paths match the current codebase.
+
+### PR TBD `feat: 新增管理员后台总览页 / Add admin backoffice overview page`
+
+### Added / 新增
+
+- 新增 `Account.role` 角色字段、后台管理员鉴权能力和 `GET /api/admin/overview` 只读聚合接口。  
+  Added the `Account.role` field, admin authorization support, and the read-only `GET /api/admin/overview` aggregate endpoint.
+- 新增独立 `\/admin` 后台管理页，可查看系统用户、同行人、旅行记录、收藏攻略与搜索历史。  
+  Added the standalone `\/admin` backoffice page to inspect accounts, companions, trip records, saved guides, and search history.
+
+### Changed / 变更
+
+- 默认种子账号现在会自动写入 `admin` 角色，普通注册用户默认保持 `member`。  
+  The default seeded account now persists as `admin`, while newly registered users remain `member` by default.
+- 前端 `App` 路由分流扩展到 `\/admin`，并在管理员主页面 Hero 中加入后台快捷入口。  
+  The frontend `App` route switch now supports `\/admin`, and the main-app hero exposes a backoffice shortcut for admins.
+- 更新 `docs/technical/app-api-contract.md`，补充 session `role` 返回与后台接口契约。  
+  Updated `docs/technical/app-api-contract.md` with the session `role` response and the admin API contract.
+
+### Verified / 已验证
+
+- `npm run test -- --run server/__tests__/appApiRoutes.spec.ts src/lib/api/__tests__/apiModules.spec.ts src/modules/__tests__/App.spec.tsx src/modules/__tests__/AdminPage.spec.tsx`
+- `npm run build`
+
 ### PR TBD `feat: 新增注册登录与独立认证入口 / Add account registration, login, and authenticated app entry`
 
 ### Added / 新增
@@ -77,8 +189,8 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 - 新增 `scripts/start-local-dev.sh` 与 `scripts/stop-local-dev.sh`，用于在 macOS / Linux 下串起 MySQL、`guide-api`、`app-api` 与前端 dev server。  
   Added `scripts/start-local-dev.sh` and `scripts/stop-local-dev.sh` to orchestrate MySQL, `guide-api`, `app-api`, and the frontend dev server on macOS / Linux.
-- 新增 `docs/local-dev-troubleshooting.md`，覆盖 MySQL、Prisma、端口占用、双后端联调与日志定位。  
-  Added `docs/local-dev-troubleshooting.md` covering MySQL, Prisma, port conflicts, dual-backend local debugging, and log locations.
+- 新增 `docs/technical/local-dev-troubleshooting.md`，覆盖 MySQL、Prisma、端口占用、双后端联调与日志定位。  
+  Added `docs/technical/local-dev-troubleshooting.md` covering MySQL, Prisma, port conflicts, dual-backend local debugging, and log locations.
 
 ### Changed / 变更
 
@@ -151,8 +263,8 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ### Added / 新增
 
-- 新增 `docs/app-api-contract.md`，系统化说明主业务 API 的健康检查、bootstrap、旅伴、记录、攻略收藏与搜索历史接口契约。  
-  Added `docs/app-api-contract.md` to document health, bootstrap, companions, markers, saved guides, and guide search history contracts for the application API.
+- 新增 `docs/technical/app-api-contract.md`，系统化说明主业务 API 的健康检查、bootstrap、旅伴、记录、攻略收藏与搜索历史接口契约。  
+  Added `docs/technical/app-api-contract.md` to document health, bootstrap, companions, markers, saved guides, and guide search history contracts for the application API.
 
 ### Changed / 变更
 
@@ -249,8 +361,8 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
   Added `useLockedModal.ts` to unify body locking and `Escape` handling for modals.
 - 新增 `docs/README.md` 作为文档索引页。  
   Added `docs/README.md` as the docs index.
-- 新增 `docs/future-roadmap.md` 作为后续功能规划文档。  
-  Added `docs/future-roadmap.md` as the agreed future roadmap.
+- 新增 `docs/technical/future-roadmap.md` 作为后续功能规划文档。  
+  Added `docs/technical/future-roadmap.md` as the agreed future roadmap.
 - 新增 `CHANGELOG.md` 作为项目长期变更记录。  
   Added `CHANGELOG.md` as a durable project history file.
 

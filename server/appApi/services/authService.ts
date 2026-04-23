@@ -12,11 +12,12 @@ import { createAuthSession, deleteAuthSessionByTokenHash } from '../repositories
 import type { LoginBody, RegisterBody } from '../schemas/auth.js';
 import { createInitialAccountState } from './appContextService.js';
 
-function serializeAccount(account: { id: string; name: string; username: string }) {
+function serializeAccount(account: { id: string; name: string; username: string; role: 'admin' | 'member' }) {
   return {
     id: account.id,
     name: account.name,
     username: account.username,
+    role: account.role,
   };
 }
 
@@ -35,10 +36,14 @@ export async function registerAccount(input: RegisterBody) {
       id: randomUUID(),
       name: nickname,
       username,
+      role: 'member',
       passwordHash: await hashPassword(input.password),
     });
 
-    await createInitialAccountState(tx, account.id);
+    await createInitialAccountState(tx, account.id, {
+      primaryCompanionName: nickname,
+      singleCompanion: true,
+    });
 
     const sessionToken = createSessionToken();
     const expiresAt = getSessionExpiresAt();

@@ -1079,7 +1079,7 @@ model GuideSearchHistory {
 
 - 新增 `scripts/start-local-dev.sh`
 - 新增 `scripts/stop-local-dev.sh`
-- 新增 `docs/local-dev-troubleshooting.md`
+- 新增 `docs/technical/local-dev-troubleshooting.md`
 - 更新 `package.json` 增加 `dev:all` / `dev:stop`
 - 更新 `README.md` 与 `docs/README.md` 的入口说明
 

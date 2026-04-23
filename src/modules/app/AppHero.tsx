@@ -8,9 +8,10 @@ interface AppHeroProps {
   onOpenGuideSearch: () => void;
   account: AuthAccount;
   onLogout: () => Promise<void> | void;
+  onOpenAdmin?: () => void;
 }
 
-export default function AppHero({ message, onOpenGuideSearch, account, onLogout }: AppHeroProps) {
+export default function AppHero({ message, onOpenGuideSearch, account, onLogout, onOpenAdmin }: AppHeroProps) {
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   return (
@@ -117,6 +118,13 @@ export default function AppHero({ message, onOpenGuideSearch, account, onLogout 
             多人同行
           </span>
         </div>
+        {account.role === 'admin' && onOpenAdmin ? (
+          <div className="hero-admin-row">
+            <button type="button" className="ghost-button hero-admin-button" onClick={onOpenAdmin}>
+              进入后台管理
+            </button>
+          </div>
+        ) : null}
       </div>
       <div className="hero-actions">
         <div className="hero-tip-card">

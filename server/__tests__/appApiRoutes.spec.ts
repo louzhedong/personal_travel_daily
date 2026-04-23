@@ -5,6 +5,7 @@ import { AppApiError } from '../appApi/errors.js';
 
 const mocks = vi.hoisted(() => ({
   getBootstrapPayloadMock: vi.fn(),
+  getAdminOverviewMock: vi.fn(),
   createCompanionRecordMock: vi.fn(),
   updateCompanionRecordMock: vi.fn(),
   createMarkerRecordMock: vi.fn(),
@@ -19,11 +20,16 @@ const mocks = vi.hoisted(() => ({
   loginAccountMock: vi.fn(),
   logoutAccountMock: vi.fn(),
   requireAuthenticatedAccountMock: vi.fn(),
+  requireAdminAccountMock: vi.fn(),
   getAuthenticatedAccountMock: vi.fn(),
 }));
 
 vi.mock('../appApi/services/bootstrapService.js', () => ({
   getBootstrapPayload: mocks.getBootstrapPayloadMock,
+}));
+
+vi.mock('../appApi/services/adminService.js', () => ({
+  getAdminOverview: mocks.getAdminOverviewMock,
 }));
 
 vi.mock('../appApi/services/companionService.js', () => ({
@@ -56,6 +62,7 @@ vi.mock('../appApi/services/authService.js', () => ({
 
 vi.mock('../appApi/auth/requestAuth.js', () => ({
   requireAuthenticatedAccount: mocks.requireAuthenticatedAccountMock,
+  requireAdminAccount: mocks.requireAdminAccountMock,
   getAuthenticatedAccount: mocks.getAuthenticatedAccountMock,
 }));
 
@@ -65,6 +72,7 @@ const currentAccount = {
   id: 'acct-1',
   name: 'Voyage Atlas',
   username: 'demo',
+  role: 'admin' as const,
 };
 
 describe('app api routes', () => {
@@ -80,6 +88,7 @@ describe('app api routes', () => {
 
     Object.values(mocks).forEach((mock) => mock.mockReset());
     mocks.requireAuthenticatedAccountMock.mockResolvedValue(currentAccount);
+    mocks.requireAdminAccountMock.mockResolvedValue(currentAccount);
     mocks.getAuthenticatedAccountMock.mockResolvedValue(currentAccount);
   });
 
@@ -130,6 +139,45 @@ describe('app api routes', () => {
       expect(response.json()).toEqual({
         account: currentAccount,
       });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('returns admin overview payload for admin accounts', async () => {
+    mocks.getAdminOverviewMock.mockResolvedValue({
+      accounts: [
+        {
+          id: 'acct-1',
+          name: 'Voyage Atlas',
+          username: 'demo',
+          role: 'admin',
+          createdAt: '2026-04-22T00:00:00.000Z',
+          companions: [],
+          stats: {
+            companionCount: 0,
+            markerCount: 0,
+            savedGuideCount: 0,
+            guideSearchHistoryCount: 0,
+          },
+        },
+      ],
+      meta: {
+        fetchedAt: '2026-04-22T00:00:00.000Z',
+        accountCount: 1,
+      },
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/admin/overview',
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().accounts[0].role).toBe('admin');
+      expect(mocks.getAdminOverviewMock).toHaveBeenCalledTimes(1);
     } finally {
       await app.close();
     }
@@ -208,6 +256,30 @@ describe('app api routes', () => {
         error: {
           code: 'UNAUTHORIZED',
           message: 'authentication required',
+        },
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('returns FORBIDDEN when admin routes are accessed by non-admin accounts', async () => {
+    mocks.requireAdminAccountMock.mockRejectedValueOnce(
+      new AppApiError('FORBIDDEN', 'admin access required', 403),
+    );
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/admin/overview',
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json()).toEqual({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'admin access required',
         },
       });
     } finally {

@@ -4,6 +4,7 @@ export interface AuthAccount {
   id: string;
   name: string;
   username: string;
+  role: 'admin' | 'member';
 }
 
 export interface UserProfile {

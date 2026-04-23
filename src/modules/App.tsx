@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import { fetchSession, login, logout, register } from '../lib/api/authApi';
 import type { AuthAccount } from '../types';
+import AdminPage from './admin/AdminPage';
 import AuthPage from './auth/AuthPage';
 import TravelApp from './TravelApp';
 
-type RoutePath = '/' | '/login' | '/register';
+type RoutePath = '/' | '/login' | '/register' | '/admin';
 
 function normalizePathname(pathname: string): RoutePath {
+  if (pathname === '/admin') {
+    return '/admin';
+  }
+
   if (pathname === '/register') {
     return '/register';
   }
@@ -30,6 +35,7 @@ function App() {
   );
   const [account, setAccount] = useState<AuthAccount | null>(null);
   const [loading, setLoading] = useState(true);
+  const [entryMessage, setEntryMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const syncPathname = () => setPathname(normalizePathname(window.location.pathname));
@@ -49,7 +55,17 @@ function App() {
         }
 
         setAccount(response.account);
-        const nextPath = response.account ? '/' : pathname === '/register' ? '/register' : '/login';
+        let nextPath: RoutePath;
+        if (!response.account) {
+          nextPath = pathname === '/register' ? '/register' : '/login';
+        } else if (pathname === '/admin' && response.account.role !== 'admin') {
+          nextPath = '/';
+          setEntryMessage('当前账号没有后台权限，已为你返回旅行主页。');
+        } else if (pathname === '/admin' && response.account.role === 'admin') {
+          nextPath = '/admin';
+        } else {
+          nextPath = '/';
+        }
         replaceRoute(nextPath);
         setPathname(nextPath);
       })
@@ -74,6 +90,7 @@ function App() {
 
   const handleAuthenticated = (nextAccount: AuthAccount) => {
     setAccount(nextAccount);
+    setEntryMessage(null);
     replaceRoute('/');
     setPathname('/');
   };
@@ -91,6 +108,7 @@ function App() {
   const handleLogout = async () => {
     await logout();
     setAccount(null);
+    setEntryMessage(null);
     replaceRoute('/login');
     setPathname('/login');
   };
@@ -124,7 +142,36 @@ function App() {
     );
   }
 
-  return <TravelApp account={account} onLogout={handleLogout} />;
+  if (pathname === '/admin') {
+    return (
+      <AdminPage
+        account={account}
+        onLogout={handleLogout}
+        onNavigateHome={() => {
+          setEntryMessage(null);
+          replaceRoute('/');
+          setPathname('/');
+        }}
+      />
+    );
+  }
+
+  return (
+    <TravelApp
+      account={account}
+      onLogout={handleLogout}
+      onOpenAdmin={
+        account.role === 'admin'
+          ? () => {
+              setEntryMessage(null);
+              replaceRoute('/admin');
+              setPathname('/admin');
+            }
+          : undefined
+      }
+      entryMessage={entryMessage}
+    />
+  );
 }
 
 export default App;

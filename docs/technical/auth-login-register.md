@@ -1,5 +1,9 @@
 # 登录注册说明
 
+这份文档主要面向快速上手与联调。若需要查看完整技术设计，请阅读：
+
+- [登录注册 + 会话 + 管理员权限技术方案](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-technical-design.md)
+
 ## 当前能力
 
 - 前端认证入口已经拆分为两个独立路由：
