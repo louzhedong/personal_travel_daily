@@ -23,11 +23,11 @@ function resolveCandidateBaseUrls(baseUrl: string) {
     const guideApiProtocol = protocol === 'https:' ? 'https:' : 'http:';
 
     if (hostname) {
-      candidates.push(`${guideApiProtocol}//${hostname}:8787${baseUrl}`);
+      candidates.push(`${guideApiProtocol}//${hostname}:8383${baseUrl}`);
     }
 
-    candidates.push(`http://127.0.0.1:8787${baseUrl}`);
-    candidates.push(`http://localhost:8787${baseUrl}`);
+    candidates.push(`http://127.0.0.1:8383${baseUrl}`);
+    candidates.push(`http://localhost:8383${baseUrl}`);
   }
 
   candidates.push(baseUrl);

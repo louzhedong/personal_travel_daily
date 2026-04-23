@@ -63,4 +63,23 @@ describe('MarkerList', () => {
 
     expect(onOpenDataSync).toHaveBeenCalledTimes(1);
   });
+
+  it('emits delete intent when clicking the delete button', async () => {
+    const onDelete = vi.fn();
+
+    render(
+      <MarkerList
+        scope="domestic"
+        markers={markers}
+        users={users}
+        activeUserId="u1"
+        onDelete={onDelete}
+        onViewDetail={() => {}}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '删除' }));
+
+    expect(onDelete).toHaveBeenCalledWith('m1');
+  });
 });

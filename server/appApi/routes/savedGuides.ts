@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { requireAuthenticatedAccount } from '../auth/requestAuth.js';
 import {
   createSavedGuideResource,
   deleteSavedGuideResource,
@@ -13,17 +14,20 @@ import { parseWithSchema } from '../schemas/utils.js';
 
 export async function registerSavedGuideRoutes(app: FastifyInstance) {
   app.get('/api/saved-guides', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
     const query = parseWithSchema(listSavedGuidesQuerySchema, request.query);
-    return listSavedGuidesResource(query);
+    return listSavedGuidesResource(account.id, query);
   });
 
   app.post('/api/saved-guides', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
     const body = parseWithSchema(createSavedGuideBodySchema, request.body);
-    return createSavedGuideResource(body);
+    return createSavedGuideResource(account.id, body);
   });
 
   app.delete('/api/saved-guides/:id', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
     const params = parseWithSchema(savedGuideParamsSchema, request.params);
-    return deleteSavedGuideResource(params.id);
+    return deleteSavedGuideResource(account.id, params.id);
   });
 }

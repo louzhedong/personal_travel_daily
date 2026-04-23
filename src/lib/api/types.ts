@@ -1,4 +1,5 @@
 import type {
+  AuthAccount,
   GuideDocument,
   GuideSearchHistoryItem,
   GuideSearchResult,
@@ -18,8 +19,17 @@ export interface BootstrapResponseDto {
   store: TravelStore;
   meta: {
     accountId: string;
+    account: AuthAccount;
     fetchedAt: string;
   };
+}
+
+export interface AuthResponseDto {
+  account: AuthAccount;
+}
+
+export interface SessionResponseDto {
+  account: AuthAccount | null;
 }
 
 export interface CreateCompanionInput {

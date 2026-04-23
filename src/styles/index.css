@@ -1,5 +1,6 @@
 @import './base.css';
 @import './layout.css';
+@import './auth.css';
 @import './home.css';
 @import './components/map.css';
 @import './components/sidebar-panels.css';
@@ -9,4 +10,5 @@
 @import './components/guide-search.css';
 @import './components/timeline.css';
 @import './components/data-sync.css';
+@import './components/dialog.css';
 @import './responsive.css';

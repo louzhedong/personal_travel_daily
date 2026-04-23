@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { Prisma, PrismaClient } from '@prisma/client';
 import type { DefaultCompanion } from '../defaultCompanions.js';
 
@@ -8,20 +9,22 @@ export async function ensureDefaultCompanions(
   accountId: string,
   companions: DefaultCompanion[],
 ) {
+  const existingCount = await prisma.travelCompanion.count({
+    where: {
+      accountId,
+      isDeleted: false,
+    },
+  });
+
+  if (existingCount > 0) {
+    return;
+  }
+
   await Promise.all(
     companions.map((companion) =>
-      prisma.travelCompanion.upsert({
-        where: { id: companion.id },
-        update: {
-          accountId,
-          name: companion.name,
-          color: companion.color,
-          sortOrder: companion.sortOrder,
-          isDeleted: false,
-          deletedAt: null,
-        },
-        create: {
-          id: companion.id,
+      prisma.travelCompanion.create({
+        data: {
+          id: randomUUID(),
           accountId,
           name: companion.name,
           color: companion.color,

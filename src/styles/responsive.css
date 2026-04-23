@@ -1,4 +1,27 @@
-﻿@media (max-width: 1100px) {
+@media (max-width: 1100px) {
+  .auth-shell {
+    padding: 24px;
+  }
+
+  .auth-hero-panel {
+    min-height: calc(100vh - 48px);
+    padding: 40px 28px;
+    justify-content: flex-end;
+  }
+
+  .auth-hero-copy {
+    top: 40px;
+    left: 28px;
+    width: min(320px, calc(100% - 56px));
+    max-width: 320px;
+  }
+
+  .auth-card {
+    width: min(440px, calc(100% - 388px));
+    margin-right: 20px;
+    min-height: 500px;
+  }
+
   .content-grid {
     grid-template-columns: 1fr;
   }
@@ -17,6 +40,47 @@
 }
 
 @media (max-width: 720px) {
+  .auth-shell {
+    padding: 16px;
+  }
+
+  .auth-stage {
+    width: 100%;
+  }
+
+  .auth-hero-panel {
+    min-height: auto;
+    padding: 28px 18px 36px;
+    gap: 24px;
+    display: grid;
+    justify-items: center;
+  }
+
+  .auth-hero-panel::before {
+    inset: auto auto 72px 4%;
+    width: 84%;
+  }
+
+  .auth-hero-panel::after {
+    inset: auto 8% 28px auto;
+    width: 48%;
+  }
+
+  .auth-card {
+    width: 100%;
+    margin-right: 0;
+    min-height: 0;
+    padding: 22px 18px;
+  }
+
+  .auth-hero-copy {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    transform: none;
+  }
+
   .app-shell {
     padding: 16px;
   }
@@ -156,4 +220,3 @@
     flex-direction: column;
   }
 }
-

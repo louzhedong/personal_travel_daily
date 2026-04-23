@@ -17,7 +17,7 @@ interface AppContentProps {
   savedGuides: SavedGuide[];
   onScopeChange: (scope: Scope) => void;
   onSelectRegion: (region: RegionOption) => void;
-  onDeleteMarker: (markerId: string) => void;
+  onRequestDeleteMarker: (markerId: string) => void;
   onViewMarkerDetail: (markerId: string) => void;
   onOpenDataSync: () => void;
   onSwitchUser: (userId: string) => void;
@@ -39,7 +39,7 @@ export default function AppContent({
   savedGuides,
   onScopeChange,
   onSelectRegion,
-  onDeleteMarker,
+  onRequestDeleteMarker,
   onViewMarkerDetail,
   onOpenDataSync,
   onSwitchUser,
@@ -66,7 +66,7 @@ export default function AppContent({
           markers={currentMarkers}
           users={users}
           activeUserId={activeUserId}
-          onDelete={onDeleteMarker}
+          onDelete={onRequestDeleteMarker}
           onViewDetail={onViewMarkerDetail}
           onOpenDataSync={onOpenDataSync}
         />

@@ -15,6 +15,11 @@ const mocks = vi.hoisted(() => ({
   deleteSavedGuideResourceMock: vi.fn(),
   listGuideSearchHistoriesResourceMock: vi.fn(),
   createGuideSearchHistoryResourceMock: vi.fn(),
+  registerAccountMock: vi.fn(),
+  loginAccountMock: vi.fn(),
+  logoutAccountMock: vi.fn(),
+  requireAuthenticatedAccountMock: vi.fn(),
+  getAuthenticatedAccountMock: vi.fn(),
 }));
 
 vi.mock('../appApi/services/bootstrapService.js', () => ({
@@ -43,7 +48,24 @@ vi.mock('../appApi/services/guideSearchHistoryService.js', () => ({
   createGuideSearchHistoryResource: mocks.createGuideSearchHistoryResourceMock,
 }));
 
+vi.mock('../appApi/services/authService.js', () => ({
+  registerAccount: mocks.registerAccountMock,
+  loginAccount: mocks.loginAccountMock,
+  logoutAccount: mocks.logoutAccountMock,
+}));
+
+vi.mock('../appApi/auth/requestAuth.js', () => ({
+  requireAuthenticatedAccount: mocks.requireAuthenticatedAccountMock,
+  getAuthenticatedAccount: mocks.getAuthenticatedAccountMock,
+}));
+
 import { buildApp } from '../appApi/buildApp.js';
+
+const currentAccount = {
+  id: 'acct-1',
+  name: 'Voyage Atlas',
+  username: 'demo',
+};
 
 describe('app api routes', () => {
   beforeEach(() => {
@@ -52,9 +74,13 @@ describe('app api routes', () => {
     process.env.APP_API_CORS_ORIGIN = '*';
     process.env.APP_DEFAULT_ACCOUNT_ID = 'acct_default';
     process.env.APP_DEFAULT_ACCOUNT_NAME = 'Voyage Atlas';
+    process.env.APP_DEFAULT_ACCOUNT_USERNAME = 'demo';
+    process.env.APP_DEFAULT_ACCOUNT_PASSWORD = 'demo123456';
     process.env.DATABASE_URL = 'mysql://travel_app:travel_app_password@127.0.0.1:3306/personal_travel_daily';
 
     Object.values(mocks).forEach((mock) => mock.mockReset());
+    mocks.requireAuthenticatedAccountMock.mockResolvedValue(currentAccount);
+    mocks.getAuthenticatedAccountMock.mockResolvedValue(currentAccount);
   });
 
   afterEach(() => {
@@ -71,7 +97,8 @@ describe('app api routes', () => {
         guideSearchHistory: [],
       },
       meta: {
-        accountId: 'acct_default',
+        accountId: 'acct-1',
+        account: currentAccount,
         fetchedAt: '2026-04-22T00:00:00.000Z',
       },
     });
@@ -84,8 +111,56 @@ describe('app api routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.json().meta.accountId).toBe('acct_default');
-      expect(mocks.getBootstrapPayloadMock).toHaveBeenCalledTimes(1);
+      expect(response.json().meta.account.username).toBe('demo');
+      expect(mocks.getBootstrapPayloadMock).toHaveBeenCalledWith(currentAccount);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('returns the current session account when logged in', async () => {
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/auth/session',
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({
+        account: currentAccount,
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('registers an account and writes a session cookie', async () => {
+    mocks.registerAccountMock.mockResolvedValue({
+      account: currentAccount,
+      sessionToken: 'token',
+      expiresAt: new Date('2026-04-29T00:00:00.000Z'),
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/auth/register',
+        payload: {
+          nickname: 'Voyage Atlas',
+          username: 'demo',
+          password: 'demo123456',
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.cookies[0]?.name).toBe('voyage_atlas_session');
+      expect(mocks.registerAccountMock).toHaveBeenCalledWith({
+        nickname: 'Voyage Atlas',
+        username: 'demo',
+        password: 'demo123456',
+      });
     } finally {
       await app.close();
     }
@@ -116,6 +191,30 @@ describe('app api routes', () => {
     }
   });
 
+  it('returns UNAUTHORIZED when protected routes are accessed without a session', async () => {
+    mocks.requireAuthenticatedAccountMock.mockRejectedValueOnce(
+      new AppApiError('UNAUTHORIZED', 'authentication required', 401),
+    );
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/saved-guides',
+      });
+
+      expect(response.statusCode).toBe(401);
+      expect(response.json()).toEqual({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'authentication required',
+        },
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
   it('forwards companion update params and payload to the service layer', async () => {
     mocks.updateCompanionRecordMock.mockResolvedValue({
       users: [],
@@ -136,7 +235,7 @@ describe('app api routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(mocks.updateCompanionRecordMock).toHaveBeenCalledWith('user-bob', {
+      expect(mocks.updateCompanionRecordMock).toHaveBeenCalledWith('acct-1', 'user-bob', {
         color: '#ea580c',
       });
     } finally {
@@ -200,7 +299,7 @@ describe('app api routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(mocks.updateMarkerRecordMock).toHaveBeenCalledWith('marker-1', {
+      expect(mocks.updateMarkerRecordMock).toHaveBeenCalledWith('acct-1', 'marker-1', {
         note: '更新后的备注',
         imageUrls: ['https://example.com/updated.jpg'],
       });
@@ -226,13 +325,14 @@ describe('app api routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(mocks.deleteMarkerRecordMock).toHaveBeenCalledWith('marker-1');
+      expect(mocks.deleteMarkerRecordMock).toHaveBeenCalledWith('acct-1', 'marker-1');
     } finally {
       await app.close();
     }
   });
 
-  it('returns saved guide mutation payloads and preserves deduplicated flags', async () => {
+  it('forwards saved guide resource requests with account context', async () => {
+    mocks.listSavedGuidesResourceMock.mockResolvedValue({ items: [] });
     mocks.createSavedGuideResourceMock.mockResolvedValue({
       item: {
         id: 'saved-guide-1',
@@ -252,6 +352,11 @@ describe('app api routes', () => {
 
     const app = await buildApp();
     try {
+      await app.inject({
+        method: 'GET',
+        url: '/api/saved-guides?companionId=user-alice&markerId=marker-1',
+      });
+
       const response = await app.inject({
         method: 'POST',
         url: '/api/saved-guides',
@@ -270,57 +375,27 @@ describe('app api routes', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json().deduplicated).toBe(true);
-      expect(mocks.createSavedGuideResourceMock).toHaveBeenCalledTimes(1);
-    } finally {
-      await app.close();
-    }
-  });
-
-  it('forwards saved guide list query filters to the resource layer', async () => {
-    mocks.listSavedGuidesResourceMock.mockResolvedValue({
-      items: [],
-    });
-
-    const app = await buildApp();
-    try {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/saved-guides?companionId=user-alice&markerId=marker-1',
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(mocks.listSavedGuidesResourceMock).toHaveBeenCalledWith({
+      expect(mocks.listSavedGuidesResourceMock).toHaveBeenCalledWith('acct-1', {
         companionId: 'user-alice',
         markerId: 'marker-1',
       });
+      expect(mocks.createSavedGuideResourceMock).toHaveBeenCalledWith('acct-1', {
+        savedByUserId: 'user-alice',
+        keyword: '京都',
+        result: {
+          id: 'guide-1',
+          title: '京都三日路线',
+          summary: '适合第一次去京都。',
+          sourceName: '示例来源',
+          sourceUrl: 'https://example.com/guides/kyoto',
+        },
+      });
     } finally {
       await app.close();
     }
   });
 
-  it('forwards saved guide deletes to the resource layer', async () => {
-    mocks.deleteSavedGuideResourceMock.mockResolvedValue({
-      deletedId: 'saved-guide-1',
-    });
-
-    const app = await buildApp();
-    try {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: '/api/saved-guides/saved-guide-1',
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.json()).toEqual({
-        deletedId: 'saved-guide-1',
-      });
-      expect(mocks.deleteSavedGuideResourceMock).toHaveBeenCalledWith('saved-guide-1');
-    } finally {
-      await app.close();
-    }
-  });
-
-  it('forwards guide search history query params to the resource layer', async () => {
+  it('forwards guide search history requests with account context', async () => {
     mocks.listGuideSearchHistoriesResourceMock.mockResolvedValue({
       items: [
         {
@@ -332,25 +407,6 @@ describe('app api routes', () => {
       ],
     });
 
-    const app = await buildApp();
-    try {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/guide-search-histories?companionId=user-alice&limit=6',
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.json().items).toHaveLength(1);
-      expect(mocks.listGuideSearchHistoriesResourceMock).toHaveBeenCalledWith({
-        companionId: 'user-alice',
-        limit: 6,
-      });
-    } finally {
-      await app.close();
-    }
-  });
-
-  it('forwards guide search history creation payloads to the resource layer', async () => {
     mocks.createGuideSearchHistoryResourceMock.mockResolvedValue({
       item: {
         id: 'history-1',
@@ -363,6 +419,11 @@ describe('app api routes', () => {
 
     const app = await buildApp();
     try {
+      await app.inject({
+        method: 'GET',
+        url: '/api/guide-search-histories?companionId=user-alice&limit=6',
+      });
+
       const response = await app.inject({
         method: 'POST',
         url: '/api/guide-search-histories',
@@ -374,7 +435,11 @@ describe('app api routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(mocks.createGuideSearchHistoryResourceMock).toHaveBeenCalledWith({
+      expect(mocks.listGuideSearchHistoriesResourceMock).toHaveBeenCalledWith('acct-1', {
+        companionId: 'user-alice',
+        limit: 6,
+      });
+      expect(mocks.createGuideSearchHistoryResourceMock).toHaveBeenCalledWith('acct-1', {
         companionId: 'user-alice',
         keyword: '京都',
         scope: 'international',

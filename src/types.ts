@@ -1,5 +1,11 @@
 export type Scope = 'domestic' | 'international';
 
+export interface AuthAccount {
+  id: string;
+  name: string;
+  username: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;

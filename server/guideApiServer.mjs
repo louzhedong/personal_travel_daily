@@ -5,7 +5,7 @@ import { loadCachedGuideCatalog, loadCachedGuideDocument, saveCachedGuideDocumen
 import { findGuideDocumentBySourceUrl, searchGuideDocuments } from './guideSearchEngine.mjs';
 import { GUIDE_SEED_DOCUMENTS } from './guideSeedData.mjs';
 
-const PORT = Number(process.env.GUIDE_API_PORT || 8787);
+const PORT = Number(process.env.GUIDE_API_PORT || 8383);
 const HOST = process.env.GUIDE_API_HOST || '0.0.0.0';
 
 function dedupeBySourceUrl(items) {

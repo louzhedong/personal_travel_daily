@@ -21,6 +21,7 @@ vi.mock('../httpClient', () => ({
 }));
 
 import { fetchAppBootstrap } from '../appBootstrapApi';
+import { fetchSession, login, logout, register } from '../authApi';
 import { createCompanion, updateCompanion } from '../companionsApi';
 import { createGuideSearchHistory, fetchGuideSearchHistories } from '../guideSearchHistoryApi';
 import { createMarker, deleteMarker, updateMarker } from '../markersApi';
@@ -39,6 +40,25 @@ describe('app api modules', () => {
     await fetchAppBootstrap();
 
     expect(mocks.getMock).toHaveBeenCalledWith('/api/app', '/bootstrap');
+  });
+
+  it('routes auth requests through the resource base url', async () => {
+    await fetchSession();
+    await login({ username: 'demo', password: 'demo123456' });
+    await register({ nickname: 'Voyage Atlas', username: 'demo', password: 'demo123456' });
+    await logout();
+
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/auth/session');
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/auth/login', {
+      username: 'demo',
+      password: 'demo123456',
+    });
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/auth/register', {
+      nickname: 'Voyage Atlas',
+      username: 'demo',
+      password: 'demo123456',
+    });
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/auth/logout');
   });
 
   it('forwards companion create and update payloads', async () => {

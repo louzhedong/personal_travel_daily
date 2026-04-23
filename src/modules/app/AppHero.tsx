@@ -1,11 +1,18 @@
+import { useState } from 'react';
 import TravelIcon from '../../components/TravelIcon';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import type { AuthAccount } from '../../types';
 
 interface AppHeroProps {
   message: string;
   onOpenGuideSearch: () => void;
+  account: AuthAccount;
+  onLogout: () => Promise<void> | void;
 }
 
-export default function AppHero({ message, onOpenGuideSearch }: AppHeroProps) {
+export default function AppHero({ message, onOpenGuideSearch, account, onLogout }: AppHeroProps) {
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
   return (
     <header className="hero card">
       <svg className="hero-map-watermark" viewBox="0 0 640 260" fill="none" aria-hidden="true">
@@ -41,10 +48,10 @@ export default function AppHero({ message, onOpenGuideSearch }: AppHeroProps) {
       <div className="hero-illustration" aria-hidden="true">
         <div className="hero-orbit hero-orbit-one" />
         <div className="hero-orbit hero-orbit-two" />
-        <span className="hero-route-dot hero-route-dot-one">✦</span>
-        <span className="hero-route-dot hero-route-dot-two">●</span>
-        <span className="hero-route-dot hero-route-dot-three">●</span>
-        <span className="hero-route-dot hero-route-dot-four">✦</span>
+        <span className="hero-route-dot hero-route-dot-one">+</span>
+        <span className="hero-route-dot hero-route-dot-two">o</span>
+        <span className="hero-route-dot hero-route-dot-three">o</span>
+        <span className="hero-route-dot hero-route-dot-four">+</span>
         <svg className="hero-route-line" viewBox="0 0 360 220" fill="none">
           <path
             className="hero-route-path-glow"
@@ -68,14 +75,7 @@ export default function AppHero({ message, onOpenGuideSearch }: AppHeroProps) {
               <stop offset="0.55" stopColor="#2563EB" />
               <stop offset="1" stopColor="#F97316" />
             </linearGradient>
-            <linearGradient
-              id="heroRouteGlow"
-              x1="22"
-              y1="148"
-              x2="338"
-              y2="72"
-              gradientUnits="userSpaceOnUse"
-            >
+            <linearGradient id="heroRouteGlow" x1="22" y1="148" x2="338" y2="72" gradientUnits="userSpaceOnUse">
               <stop stopColor="#67E8F9" />
               <stop offset="0.55" stopColor="#60A5FA" />
               <stop offset="1" stopColor="#FDBA74" />
@@ -84,8 +84,18 @@ export default function AppHero({ message, onOpenGuideSearch }: AppHeroProps) {
         </svg>
       </div>
       <div className="hero-copy">
-        <span className="hero-kicker">Voyage Atlas</span>
-        <h1>旅迹地图</h1>
+        <div className="hero-account-row">
+          <button
+            type="button"
+            className="hero-kicker hero-kicker-button"
+            aria-label="打开退出登录确认"
+            onClick={() => setLogoutConfirmOpen(true)}
+          >
+            <span>Voyage Atlas · @{account.username}</span>
+            <span className="hero-kicker-logout-hint">退出登录</span>
+          </button>
+        </div>
+        <h1>旅行足迹地图</h1>
         <p>把每一次出发都留在地图上，记录城市、时间、照片与旅途印象，慢慢积累属于你的个人旅行档案。</p>
         <div className="hero-highlight-row">
           <span className="hero-highlight-chip">
@@ -126,6 +136,20 @@ export default function AppHero({ message, onOpenGuideSearch }: AppHeroProps) {
           搜索旅游攻略
         </button>
       </div>
+
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        eyebrow="账号操作"
+        title="确认退出当前账号？"
+        description="退出后会回到登录页，但当前账号的旅行记录、收藏和搜索历史都会保留。"
+        cancelText="取消"
+        confirmText="确认退出"
+        onCancel={() => setLogoutConfirmOpen(false)}
+        onConfirm={() => {
+          setLogoutConfirmOpen(false);
+          void onLogout();
+        }}
+      />
     </header>
   );
 }

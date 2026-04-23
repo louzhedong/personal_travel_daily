@@ -1,8 +1,7 @@
-import { ulid } from 'ulid';
+import { randomUUID } from 'node:crypto';
 import { createConflictError, createNotFoundError } from '../errors.js';
 import { getPrismaClient } from '../prisma.js';
 import type { CreateCompanionBody, UpdateCompanionBody } from '../schemas/companions.js';
-import { ensureDefaultAppState } from './appContextService.js';
 import {
   createCompanion,
   findActiveCompanionById,
@@ -11,14 +10,13 @@ import {
 } from '../repositories/travelCompanionRepository.js';
 import { buildCurrentStoreSnapshot } from './storeSnapshotService.js';
 
-export async function createCompanionRecord(input: CreateCompanionBody) {
+export async function createCompanionRecord(accountId: string, input: CreateCompanionBody) {
   const prisma = getPrismaClient();
 
-  const accountId = await prisma.$transaction(async (tx) => {
-    const context = await ensureDefaultAppState(tx);
+  await prisma.$transaction(async (tx) => {
     const existing = await tx.travelCompanion.findFirst({
       where: {
-        accountId: context.accountId,
+        accountId,
         isDeleted: false,
         name: input.name,
       },
@@ -28,30 +26,28 @@ export async function createCompanionRecord(input: CreateCompanionBody) {
       throw createConflictError('companion name already exists');
     }
 
-    const sortOrder = await getNextCompanionSortOrder(tx, context.accountId);
+    const sortOrder = await getNextCompanionSortOrder(tx, accountId);
     await createCompanion(tx, {
-      id: ulid(),
-      accountId: context.accountId,
+      id: randomUUID(),
+      accountId,
       name: input.name,
       color: input.color,
       sortOrder,
     });
-
-    return context.accountId;
   });
 
   return buildCurrentStoreSnapshot(accountId);
 }
 
 export async function updateCompanionRecord(
+  accountId: string,
   companionId: string,
   input: UpdateCompanionBody,
 ) {
   const prisma = getPrismaClient();
 
-  const accountId = await prisma.$transaction(async (tx) => {
-    const context = await ensureDefaultAppState(tx);
-    const current = await findActiveCompanionById(tx, context.accountId, companionId);
+  await prisma.$transaction(async (tx) => {
+    const current = await findActiveCompanionById(tx, accountId, companionId);
 
     if (!current) {
       throw createNotFoundError('companion not found');
@@ -60,7 +56,7 @@ export async function updateCompanionRecord(
     if (input.name !== undefined && input.name !== current.name) {
       const duplicate = await tx.travelCompanion.findFirst({
         where: {
-          accountId: context.accountId,
+          accountId,
           isDeleted: false,
           name: input.name,
           id: {
@@ -75,7 +71,6 @@ export async function updateCompanionRecord(
     }
 
     await updateCompanion(tx, companionId, input);
-    return context.accountId;
   });
 
   return buildCurrentStoreSnapshot(accountId);

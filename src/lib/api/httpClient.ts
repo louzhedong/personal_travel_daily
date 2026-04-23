@@ -32,7 +32,7 @@ function readAppApiConfig(): AppApiConfig {
 }
 
 function resolveCandidateBaseUrls(baseUrl: string) {
-  const candidates: string[] = [];
+  const candidates: string[] = [baseUrl];
 
   if (typeof window !== 'undefined' && baseUrl.startsWith('/')) {
     const { hostname, protocol } = window.location;
@@ -45,8 +45,6 @@ function resolveCandidateBaseUrls(baseUrl: string) {
     candidates.push(`http://127.0.0.1:8788${baseUrl}`);
     candidates.push(`http://localhost:8788${baseUrl}`);
   }
-
-  candidates.push(baseUrl);
 
   return [...new Set(candidates)];
 }
@@ -87,6 +85,7 @@ async function requestJson<T>(baseUrl: string, path: string, options: RequestOpt
     try {
       const response = await fetch(buildUrl(candidateBaseUrl, path, options.query), {
         method: options.method ?? 'GET',
+        credentials: 'include',
         headers:
           options.body !== undefined
             ? {

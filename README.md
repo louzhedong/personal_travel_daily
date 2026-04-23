@@ -5,6 +5,7 @@
 ## 当前能力
 
 - 国内 / 国际地图切换，并支持点击区域快速创建旅行记录
+- 账号认证：未登录默认进入 `/login`，注册页为 `/register`，旧 `/auth` 会自动兼容到 `/login`
 - 旅行记录支持城市、起止日期、游记描述和多图上传
 - 多旅伴管理：切换当前记录用户、区分颜色、限制仅本人可编辑自己的记录
 - 旅行记录详情：查看图片、编辑游记、关联或解除攻略
@@ -14,6 +15,19 @@
 - 行程时间线：按当前用户聚合、按年份筛选、按国内/国际筛选，并与地图和详情面板联动
 - 数据备份：从旅行记录模块入口打开弹窗，导出当前聚合快照作为 JSON 备份
 - 云端主数据：旅行记录、旅伴、攻略收藏/关联与搜索历史默认由主业务 API + MySQL 承载
+
+## 认证说明
+
+- 登录页：`/login`
+- 注册页：`/register`
+- 旧认证入口：`/auth` 会自动跳转到 `/login`
+- 默认演示账号：
+  - 用户名：`demo`
+  - 密码：`demo123456`
+- 登录成功后会回到主页面 `/`
+- 退出登录需要二次确认
+- 删除旅行记录也需要二次确认
+- 更多交互与接口说明见 [docs/auth-login-register.md](file:///Users/bytedance/project/personal_travel_daily/docs/auth-login-register.md)
 
 ## 技术栈
 
@@ -53,6 +67,7 @@ Windows：
 
 - `npm run dev:all` 会尝试启动 MySQL、`guide-api`、`app-api` 和前端，并把日志写入 `.tools/dev-logs/`
 - `npm run dev:all:docker` 会优先停止 Homebrew MySQL，并切换到 `docker compose` 的 `mysql + adminer`
+- 两种一键启动都会在启动服务前自动执行 `db:generate`、`db:migrate:deploy` 和 `db:seed`
 - `start-local-dev.cmd` 会使用仓库内置的 Node 20 启动前端和 `guide-api`
 
 停止 macOS / Linux 下一键联调进程：
@@ -83,9 +98,9 @@ npm run dev:guide-api
 
 默认地址：
 
-- `http://localhost:8787/health`
-- `http://localhost:8787/api/guides/search`
-- `http://localhost:8787/api/guides/document`
+- `http://localhost:8383/health`
+- `http://localhost:8383/api/guides/search`
+- `http://localhost:8383/api/guides/document`
 
 ### 启动本地 MySQL
 
@@ -177,6 +192,7 @@ APP_API_PORT=8788
 APP_API_CORS_ORIGIN=*
 APP_DEFAULT_ACCOUNT_ID=acct_default
 APP_DEFAULT_ACCOUNT_NAME=Voyage Atlas
+GUIDE_API_PORT=8383
 VITE_IMGBB_API_KEY=your_imgbb_api_key
 VITE_APP_API_BASE_URL=/api/app
 VITE_GUIDE_SEARCH_PROVIDER=remote

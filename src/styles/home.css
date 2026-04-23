@@ -1,4 +1,4 @@
-﻿.hero {
+.hero {
   display: flex;
   justify-content: space-between;
   align-items: stretch;
@@ -70,12 +70,56 @@
 
 .hero-kicker {
   display: inline-flex;
+  align-items: center;
   padding: 6px 12px;
   border-radius: 999px;
   background: rgba(37, 99, 235, 0.12);
   color: var(--brand-blue);
   font-size: 13px;
   font-weight: 700;
+}
+
+.hero-kicker-button {
+  border: 0;
+  cursor: pointer;
+  gap: 0;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.hero-kicker-button:hover,
+.hero-kicker-button:focus-visible {
+  background: rgba(37, 99, 235, 0.18);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+  transform: translateY(-1px);
+}
+
+.hero-kicker-button:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.28);
+  outline-offset: 2px;
+}
+
+.hero-kicker-logout-hint {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    max-width 200ms ease,
+    opacity 160ms ease,
+    transform 160ms ease,
+    margin-left 200ms ease;
+}
+
+.hero-kicker-button:hover .hero-kicker-logout-hint,
+.hero-kicker-button:focus-visible .hero-kicker-logout-hint {
+  max-width: 84px;
+  margin-left: 8px;
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .hero-actions {
@@ -467,4 +511,3 @@
     transition: none !important;
   }
 }
-

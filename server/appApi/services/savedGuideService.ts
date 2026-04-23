@@ -1,9 +1,8 @@
 import type { Prisma } from '@prisma/client';
-import { ulid } from 'ulid';
+import { randomUUID } from 'node:crypto';
 import { createNotFoundError } from '../errors.js';
 import { getPrismaClient } from '../prisma.js';
 import type { CreateSavedGuideBody, ListSavedGuidesQuery } from '../schemas/savedGuides.js';
-import { ensureDefaultAppState } from './appContextService.js';
 import { findActiveCompanionById } from '../repositories/travelCompanionRepository.js';
 import { findActiveMarkerById } from '../repositories/visitMarkerRepository.js';
 import {
@@ -36,10 +35,9 @@ function parseGuidePublishedAt(value?: string) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
 
-export async function listSavedGuidesResource(query: ListSavedGuidesQuery) {
+export async function listSavedGuidesResource(accountId: string, query: ListSavedGuidesQuery) {
   const prisma = getPrismaClient();
-  const context = await prisma.$transaction(async (tx) => ensureDefaultAppState(tx));
-  const savedGuides = await listActiveSavedGuidesByAccountId(prisma, context.accountId);
+  const savedGuides = await listActiveSavedGuidesByAccountId(prisma, accountId);
 
   const filtered = savedGuides.filter((item) => {
     if (query.companionId && item.savedByCompanionId !== query.companionId) {
@@ -54,18 +52,17 @@ export async function listSavedGuidesResource(query: ListSavedGuidesQuery) {
   return serializeSavedGuidesList(filtered);
 }
 
-export async function createSavedGuideResource(input: CreateSavedGuideBody) {
+export async function createSavedGuideResource(accountId: string, input: CreateSavedGuideBody) {
   const prisma = getPrismaClient();
 
   const result = await prisma.$transaction(async (tx) => {
-    const context = await ensureDefaultAppState(tx);
-    const companion = await findActiveCompanionById(tx, context.accountId, input.savedByUserId);
+    const companion = await findActiveCompanionById(tx, accountId, input.savedByUserId);
     if (!companion) {
       throw createNotFoundError('companion not found');
     }
 
     if (input.markerId) {
-      const marker = await findActiveMarkerById(tx, context.accountId, input.markerId);
+      const marker = await findActiveMarkerById(tx, accountId, input.markerId);
       if (!marker) {
         throw createNotFoundError('marker not found');
       }
@@ -74,7 +71,7 @@ export async function createSavedGuideResource(input: CreateSavedGuideBody) {
     const guideIdentity = normalizeGuideIdentity(input.result.sourceUrl);
     const saveContextKey = buildSaveContextKey(input.markerId);
     const duplicate = await findActiveSavedGuideByIdentity(tx, {
-      accountId: context.accountId,
+      accountId,
       savedByCompanionId: input.savedByUserId,
       saveContextKey,
       guideIdentity,
@@ -89,8 +86,8 @@ export async function createSavedGuideResource(input: CreateSavedGuideBody) {
 
     const payload = input.result as Prisma.InputJsonValue;
     const created = await createSavedGuide(tx, {
-      id: ulid(),
-      accountId: context.accountId,
+      id: randomUUID(),
+      accountId,
       savedByCompanionId: input.savedByUserId,
       markerId: input.markerId,
       saveContextKey,
@@ -117,12 +114,11 @@ export async function createSavedGuideResource(input: CreateSavedGuideBody) {
   return serializeSavedGuideMutation(result.savedGuide, result.deduplicated);
 }
 
-export async function deleteSavedGuideResource(savedGuideId: string) {
+export async function deleteSavedGuideResource(accountId: string, savedGuideId: string) {
   const prisma = getPrismaClient();
 
   await prisma.$transaction(async (tx) => {
-    const context = await ensureDefaultAppState(tx);
-    const existing = await findActiveSavedGuideById(tx, context.accountId, savedGuideId);
+    const existing = await findActiveSavedGuideById(tx, accountId, savedGuideId);
     if (!existing) {
       throw createNotFoundError('saved guide not found');
     }

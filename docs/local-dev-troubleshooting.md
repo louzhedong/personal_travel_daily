@@ -38,6 +38,7 @@ npm run dev:stop:docker
 
 - 检查并补 `.env`
 - 尝试启动 MySQL
+- 自动执行 `db:generate`、`db:migrate:deploy`、`db:seed`
 - 启动 `guide-api`
 - 启动 `app-api`
 - 启动前端 Vite
@@ -52,7 +53,7 @@ npm run dev:stop:docker
 
 - 前端：`http://127.0.0.1:5173/`
 - 主业务 API：`http://127.0.0.1:8788/health`
-- 攻略 API：`http://127.0.0.1:8787/health`
+- 攻略 API：`http://127.0.0.1:8383/health`
 - MySQL：`127.0.0.1:3306`
 
 ## 日志位置
@@ -225,7 +226,7 @@ npm run dev:guide-api
 健康检查：
 
 ```bash
-curl -s http://127.0.0.1:8787/health
+curl -s http://127.0.0.1:8383/health
 ```
 
 ### 2. 页面搜索攻略失败
@@ -234,7 +235,7 @@ curl -s http://127.0.0.1:8787/health
 
 - `.env` 中 `VITE_GUIDE_SEARCH_PROVIDER`
 - `guide-api` 是否已启动
-- 浏览器网络请求是否命中 `8787`
+- 浏览器网络请求是否命中 `8383`
 
 ## 前端排查
 
@@ -273,7 +274,7 @@ curl -s http://127.0.0.1:8788/api/app/bootstrap
 ```bash
 lsof -nP -iTCP:3306 -sTCP:LISTEN
 lsof -nP -iTCP:5173 -sTCP:LISTEN
-lsof -nP -iTCP:8787 -sTCP:LISTEN
+lsof -nP -iTCP:8383 -sTCP:LISTEN
 lsof -nP -iTCP:8788 -sTCP:LISTEN
 ```
 

@@ -5,6 +5,30 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-22
 
+### PR TBD `feat: 新增注册登录与独立认证入口 / Add account registration, login, and authenticated app entry`
+
+### Added / 新增
+
+- 新增 `POST /api/auth/register`、`POST /api/auth/login`、`POST /api/auth/logout` 与 `GET /api/auth/session`，提供基础账号认证闭环。  
+  Added `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, and `GET /api/auth/session` for a basic account-auth flow.
+- 新增 `auth_sessions` Prisma 模型与 migration，并为 `accounts` 增加 `username`、`password_hash` 字段。  
+  Added the `auth_sessions` Prisma model and migration, and extended `accounts` with `username` and `password_hash`.
+- 新增独立登录/注册页，未登录时默认进入 `/auth`，登录后进入主旅行地图应用。  
+  Added a dedicated auth page so unauthenticated users land on `/auth` before entering the travel app.
+
+### Changed / 变更
+
+- 现有业务接口改为根据当前登录会话解析 `accountId`，不再直接依赖默认账号作为运行时上下文。  
+  Existing business APIs now resolve `accountId` from the active session instead of relying on the default account at runtime.
+- 默认同行人初始化改为“按账号首次创建”，每个登录账号都有自己的初始旅行成员与独立数据空间。  
+  Default companions are now initialized per account on first creation so each login gets its own seeded travel members and isolated data.
+- 前端 `App` 入口升级为“会话恢复 + 独立认证页 + 已登录主应用”三层结构，并在首页 Hero 增加当前账号与退出登录入口。  
+  The frontend `App` entry now handles session restore, a standalone auth screen, and the authenticated app shell, including account identity and logout in the hero.
+
+### Verified / 已验证
+
+- `vitest run src/lib/api/__tests__/httpClient.spec.ts src/lib/api/__tests__/apiModules.spec.ts src/modules/__tests__/App.spec.tsx server/__tests__/appApiRepositories.spec.ts`
+
 ### PR TBD `ops: 切换到 Docker MySQL 本地方案 / Switch local database runtime to Docker MySQL`
 
 ### Added / 新增
