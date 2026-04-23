@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import TravelIcon from './TravelIcon';
+import TravelIcon from './ui/TravelIcon';
 import type { SavedGuide, UserProfile, VisitMarker } from '../types';
 
 type SavedGuideFilter = 'all' | 'linked' | 'unlinked';

@@ -51,6 +51,7 @@ export async function createMarker(
     id: string;
     accountId: string;
     companionId: string;
+    tripId?: string;
     scope: 'domestic' | 'international';
     scopeId: string;
     scopeName: string;
@@ -66,6 +67,7 @@ export async function createMarker(
       id: input.id,
       accountId: input.accountId,
       companionId: input.companionId,
+      tripId: input.tripId,
       scope: input.scope,
       scopeId: input.scopeId,
       scopeName: input.scopeName,
@@ -101,6 +103,7 @@ export async function updateMarker(
     note?: string;
     visitedStartAt?: Date;
     visitedEndAt?: Date;
+    tripId?: string | null;
     imageUrls?: string[];
   },
 ) {
@@ -118,6 +121,7 @@ export async function updateMarker(
       ...(input.note !== undefined ? { note: input.note } : {}),
       ...(input.visitedStartAt !== undefined ? { visitedStartAt: input.visitedStartAt } : {}),
       ...(input.visitedEndAt !== undefined ? { visitedEndAt: input.visitedEndAt } : {}),
+      ...(input.tripId !== undefined ? { tripId: input.tripId } : {}),
       ...(input.imageUrls !== undefined
         ? {
             images: {

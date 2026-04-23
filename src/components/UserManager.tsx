@@ -1,7 +1,8 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, FormEvent } from 'react';
 import { useMemo, useState } from 'react';
-import FancySelect from './FancySelect';
-import TravelIcon from './TravelIcon';
+import Dialog from './ui/Dialog';
+import FancySelect from './ui/FancySelect';
+import TravelIcon from './ui/TravelIcon';
 import type { UserProfile } from '../types';
 
 const presetColors = ['#2563eb', '#f97316', '#14b8a6', '#8b5cf6', '#ef4444', '#22c55e'];
@@ -29,12 +30,29 @@ interface UserManagerProps {
 export function UserManager({ users, activeUserId, onSwitch, onCreate }: UserManagerProps) {
   const [name, setName] = useState('');
   const [color, setColor] = useState(presetColors[2]);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const activeUser = useMemo(
     () => users.find((item) => item.id === activeUserId),
     [activeUserId, users],
   );
   const toneStyle = (tone: string) => ({ '--tone-color': tone } as CSSProperties);
+  const resetCreateForm = () => {
+    setName('');
+    setColor(presetColors[2]);
+  };
+
+  const handleCreateSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    onCreate({ name: trimmed, color });
+    resetCreateForm();
+    setCreateOpen(false);
+  };
 
   return (
     <section className="card panel-card stack gap-20 user-manager-card">
@@ -101,31 +119,27 @@ export function UserManager({ users, activeUserId, onSwitch, onCreate }: UserMan
         </div>
       </div>
 
-      <form
-        className="inline-form user-manager-group"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const trimmed = name.trim();
-          if (!trimmed) {
-            return;
-          }
+      <button type="button" className="user-manager-create-entry" onClick={() => setCreateOpen(true)}>
+        <span className="travel-icon-badge travel-icon-badge-teal user-manager-subicon">
+          <TravelIcon name="plus" size={14} />
+        </span>
+        <span>
+          <strong>新增旅伴</strong>
+          <small>创建新的记录身份和地图标签颜色</small>
+        </span>
+      </button>
 
-          onCreate({ name: trimmed, color });
-          setName('');
-          const nextColor = presetColors[(presetColors.indexOf(color) + 1) % presetColors.length];
-          setColor(nextColor);
+      <Dialog
+        open={createOpen}
+        eyebrow="COMPANION"
+        title="新增旅伴"
+        description={<p>创建新的记录身份，为不同旅伴配置独立颜色与旅行视角。</p>}
+        onClose={() => {
+          resetCreateForm();
+          setCreateOpen(false);
         }}
       >
-        <div className="user-manager-group-header">
-          <span className="travel-icon-badge travel-icon-badge-teal user-manager-subicon">
-            <TravelIcon name="plus" size={14} />
-          </span>
-          <div>
-            <strong className="user-manager-group-title">新增旅伴</strong>
-            <p className="user-manager-group-text">创建新的记录身份，为不同旅伴配置独立颜色与旅行视角。</p>
-          </div>
-        </div>
-        <div className="user-manager-form-row">
+        <form className="inline-form user-manager-create-form" onSubmit={handleCreateSubmit}>
           <label className="field user-manager-name-field">
             <span className="field-label">新增用户</span>
             <input
@@ -135,40 +149,54 @@ export function UserManager({ users, activeUserId, onSwitch, onCreate }: UserMan
               placeholder="例如：家人、朋友、小队"
             />
           </label>
-          <button type="submit" className="primary-button user-manager-submit">
-            <span className="travel-icon-inline">
-              <TravelIcon name="plus" size={14} />
+
+          <label className="field">
+            <span className="field-label">标签颜色</span>
+            <span className="user-manager-color-tip">
+              <span className="travel-icon-inline">
+                <TravelIcon name="palette" size={14} />
+              </span>
+              为这位旅伴挑一个在地图上更容易识别的颜色
             </span>
-            添加用户
-          </button>
-        </div>
-        <label className="field">
-          <span className="field-label">标签颜色</span>
-          <span className="user-manager-color-tip">
-            <span className="travel-icon-inline">
-              <TravelIcon name="palette" size={14} />
-            </span>
-            为这位旅伴挑一个在地图上更容易识别的颜色
-          </span>
-          <div className="color-picker-row">
-            {colorThemes.map((item) => (
-              <button
-                key={item.color}
-                type="button"
-                aria-label={`选择颜色 ${item.name}`}
-                className={item.color === color ? 'color-swatch-card active' : 'color-swatch-card'}
-                onClick={() => setColor(item.color)}
-              >
-                <span
-                  className={item.color === color ? 'color-swatch active' : 'color-swatch'}
-                  style={toneStyle(item.color)}
-                />
-                <span className="color-theme-name">{item.name}</span>
-              </button>
-            ))}
+            <div className="color-picker-row">
+              {colorThemes.map((item) => (
+                <button
+                  key={item.color}
+                  type="button"
+                  aria-label={`选择颜色 ${item.name}`}
+                  className={item.color === color ? 'color-swatch-card active' : 'color-swatch-card'}
+                  onClick={() => setColor(item.color)}
+                >
+                  <span
+                    className={item.color === color ? 'color-swatch active' : 'color-swatch'}
+                    style={toneStyle(item.color)}
+                  />
+                  <span className="color-theme-name">{item.name}</span>
+                </button>
+              ))}
+            </div>
+          </label>
+
+          <div className="dialog-actions">
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={() => {
+                resetCreateForm();
+                setCreateOpen(false);
+              }}
+            >
+              取消
+            </button>
+            <button type="submit" className="primary-button user-manager-submit">
+              <span className="travel-icon-inline">
+                <TravelIcon name="plus" size={14} />
+              </span>
+              添加用户
+            </button>
           </div>
-        </label>
-      </form>
+        </form>
+      </Dialog>
     </section>
   );
 }

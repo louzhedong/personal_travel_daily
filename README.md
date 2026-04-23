@@ -12,6 +12,7 @@
 - 攻略搜索：支持关键词搜索、范围筛选、搜索历史、正文摘要展示
 - 攻略阅读增强：支持正文目录、原文视图、站点级正文清洗，以及主页面右下角回到顶部按钮
 - 攻略收藏与关联：同一用户在“收藏”和“关联到某条记录”两个语义下独立去重
+- 行程集合：支持创建行程，并将新增旅行记录归入同一个 Trip Collection
 - 行程时间线：按当前用户聚合、按年份筛选、按国内/国际筛选，并与地图和详情面板联动
 - 数据备份：从旅行记录模块入口打开弹窗，导出当前聚合快照作为 JSON 备份
 - 云端主数据：旅行记录、旅伴、攻略收藏/关联与搜索历史默认由主业务 API + MySQL 承载
@@ -54,12 +55,6 @@ macOS / Linux：
 npm run dev:all
 ```
 
-如果你想强制使用 Docker MySQL 方案：
-
-```bash
-npm run dev:all:docker
-```
-
 Windows：
 
 ```powershell
@@ -68,16 +63,14 @@ Windows：
 
 其中：
 
-- `npm run dev:all` 会尝试启动 MySQL、`guide-api`、`app-api` 和前端，并把日志写入 `.tools/dev-logs/`
-- `npm run dev:all:docker` 会优先停止 Homebrew MySQL，并切换到 `docker compose` 的 `mysql + adminer`
-- 两种一键启动都会在启动服务前自动执行 `db:generate`、`db:migrate:deploy` 和 `db:seed`
+- `npm run dev:all` 会通过 `docker compose` 启动 `mysql + adminer`，再启动 `guide-api`、`app-api` 和前端，并把日志写入 `.tools/dev-logs/`
+- 一键启动会在启动服务前自动执行 `db:generate`、`db:migrate:deploy` 和 `db:seed`
 - `start-local-dev.cmd` 会使用仓库内置的 Node 20 启动前端和 `guide-api`
 
 停止 macOS / Linux 下一键联调进程：
 
 ```bash
 npm run dev:stop
-npm run dev:stop:docker
 ```
 
 ### 手动启动前端
@@ -107,25 +100,10 @@ npm run dev:guide-api
 
 ### 启动本地 MySQL
 
-方式一：Docker
+项目本地只保留 Docker MySQL：
 
 ```bash
 docker compose up -d mysql adminer
-```
-
-方式二：Homebrew MySQL
-
-```bash
-brew install mysql
-brew services start mysql
-```
-
-如果是第一次在本机初始化 Homebrew MySQL，还需要执行：
-
-```bash
-mkdir -p /opt/homebrew/var/mysql
-/opt/homebrew/opt/mysql/bin/mysqld --initialize-insecure --user="$(whoami)" --basedir=/opt/homebrew/opt/mysql --datadir=/opt/homebrew/var/mysql
-brew services restart mysql
 ```
 
 默认地址：
@@ -221,9 +199,7 @@ GUIDE_POI_GEOAPIFY_API_KEY=your_geoapify_api_key
 ```bash
 npm run dev
 npm run dev:all
-npm run dev:all:docker
 npm run dev:stop
-npm run dev:stop:docker
 npm run dev:app-api
 npm run dev:guide-api
 npm run db:generate

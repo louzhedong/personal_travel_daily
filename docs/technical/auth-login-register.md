@@ -83,12 +83,6 @@
 npm run dev:all
 ```
 
-或 Docker MySQL 方案：
-
-```bash
-npm run dev:all:docker
-```
-
 启动脚本会自动执行：
 
 - `db:generate`

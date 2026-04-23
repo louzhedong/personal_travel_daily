@@ -23,6 +23,7 @@
 ## 关键目录
 
 - `src/components`: 业务组件
+- `src/components/ui`: 可复用基础 UI 组件，例如弹窗、确认框、标准下拉和图标
 - `src/modules/App.tsx`: 顶层容器
 - `src/modules/app`: 页面组合层、动作 hook、导航 helper
 - `src/lib`: 存储、仓库、攻略服务
@@ -36,6 +37,7 @@
 3. TravelStore 写操作优先放在 `useTravelStoreActions.ts` 或更细粒度的动作模块中。
 4. 攻略收藏与关联的去重语义，应复用 `guideRepository.ts` 与 `guideActions.ts`，不要在 UI 内重复实现。
 5. 样式新增时，优先写入对应的 `src/styles/components/*.css`，不要把 `src/styles/index.css` 重新变回大杂烩。
+6. 后续开发中，如果 UI 控件或交互模式能复用，优先抽离为 `src/components/ui/` 标准组件，提升一致性和可维护性。
 
 ## 输出偏好
 

@@ -13,6 +13,7 @@ function hasValidDateRange(startAt: string, endAt: string) {
 export const createMarkerBodySchema = z
   .object({
     companionId: z.string().trim().min(1, 'companionId is required'),
+    tripId: z.string().trim().min(1, 'tripId is required').optional(),
     scope: z.enum(['domestic', 'international']),
     scopeId: z.string().trim().min(1, 'scopeId is required'),
     scopeName: z.string().trim().min(1, 'scopeName is required').max(50),
@@ -37,13 +38,15 @@ export const updateMarkerBodySchema = z
     imageUrls: imageUrlsSchema,
     visitedStartAt: dateSchema.optional(),
     visitedEndAt: dateSchema.optional(),
+    tripId: z.string().trim().min(1, 'tripId is required').nullable().optional(),
   })
   .refine(
     (value) =>
       value.note !== undefined ||
       value.imageUrls !== undefined ||
       value.visitedStartAt !== undefined ||
-      value.visitedEndAt !== undefined,
+      value.visitedEndAt !== undefined ||
+      value.tripId !== undefined,
     {
       message: 'at least one field is required',
     },

@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TripTimelinePanel from '../TripTimelinePanel';
-import type { VisitMarker } from '../../types';
+import type { TripCollection, VisitMarker } from '../../types';
 
 const markers: VisitMarker[] = [
   {
@@ -55,6 +55,17 @@ const markers: VisitMarker[] = [
   },
 ];
 
+const trips: TripCollection[] = [
+  {
+    id: 'trip-1',
+    name: '江南春游',
+    note: '',
+    startsAt: '2026-05-01',
+    endsAt: '2026-05-03',
+    createdAt: '2026-04-01T00:00:00.000Z',
+  },
+];
+
 describe('TripTimelinePanel', () => {
   it('groups same-day markers and opens marker detail', async () => {
     const onOpenMarkerDetail = vi.fn();
@@ -63,9 +74,11 @@ describe('TripTimelinePanel', () => {
     render(
       <TripTimelinePanel
         markers={markers}
+        trips={[]}
         activeUserId="u1"
         activeUserName="小悠"
         onOpenMarkerDetail={onOpenMarkerDetail}
+        onCreateTrip={() => {}}
       />,
     );
 
@@ -83,8 +96,10 @@ describe('TripTimelinePanel', () => {
     render(
       <TripTimelinePanel
         markers={markers}
+        trips={[]}
         activeUserId="u1"
         onOpenMarkerDetail={() => {}}
+        onCreateTrip={() => {}}
       />,
     );
 
@@ -92,8 +107,62 @@ describe('TripTimelinePanel', () => {
     expect(screen.getByText('日本 · 京都')).toBeInTheDocument();
     expect(screen.queryByText('浙江 · 杭州')).not.toBeInTheDocument();
 
-    await user.selectOptions(screen.getByRole('combobox'), '2025');
+    await user.click(screen.getByRole('button', { name: '按年份筛选时间线' }));
+    await user.click(screen.getByRole('button', { name: '2025' }));
     expect(screen.queryByText('日本 · 京都')).not.toBeInTheDocument();
     expect(screen.getByText('当前筛选条件下暂无记录。')).toBeInTheDocument();
+  });
+
+  it('groups assigned markers by trip collection', () => {
+    render(
+      <TripTimelinePanel
+        markers={[{ ...markers[0], tripId: 'trip-1' }, markers[1]]}
+        trips={trips}
+        activeUserId="u1"
+        onOpenMarkerDetail={() => {}}
+        onCreateTrip={() => {}}
+      />,
+    );
+
+    expect(screen.getByText('江南春游')).toBeInTheDocument();
+    expect(screen.getByText(/2026-05-01 - 2026-05-03/)).toBeInTheDocument();
+    expect(screen.getByText('未归入行程')).toBeInTheDocument();
+  });
+
+  it('opens trip creation in a dialog', async () => {
+    const user = userEvent.setup();
+    const onCreateTrip = vi.fn();
+
+    render(
+      <TripTimelinePanel
+        markers={markers}
+        trips={[]}
+        activeUserId="u1"
+        onOpenMarkerDetail={() => {}}
+        onCreateTrip={onCreateTrip}
+      />,
+    );
+
+    expect(screen.queryByRole('dialog', { name: '创建行程' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '创建行程' }));
+    const dialog = screen.getByRole('dialog', { name: '创建行程' });
+    expect(dialog).toBeInTheDocument();
+
+    await user.type(within(dialog).getByPlaceholderText('新建行程，例如 2025 日本春游'), '2026 江南春游');
+    await user.click(within(dialog).getByRole('button', { name: '行程开始日期' }));
+    await user.click(within(dialog).getByRole('button', { name: '下个月' }));
+    await user.click(within(dialog).getByRole('button', { name: '2026-05-01' }));
+
+    await user.click(within(dialog).getByRole('button', { name: '行程结束日期' }));
+    await user.click(within(dialog).getByRole('button', { name: '2026-05-03' }));
+    await user.click(within(dialog).getByRole('button', { name: '创建行程' }));
+
+    expect(onCreateTrip).toHaveBeenCalledWith({
+      name: '2026 江南春游',
+      startsAt: '2026-05-01',
+      endsAt: '2026-05-03',
+      note: undefined,
+    });
   });
 });

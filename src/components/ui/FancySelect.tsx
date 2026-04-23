@@ -12,6 +12,7 @@ interface FancySelectProps {
   onChange: (value: string) => void;
   placeholder: string;
   disabled?: boolean;
+  ariaLabel?: string;
   className?: string;
   triggerClassName?: string;
 }
@@ -22,6 +23,7 @@ export function FancySelect({
   onChange,
   placeholder,
   disabled = false,
+  ariaLabel,
   className = '',
   triggerClassName = '',
 }: FancySelectProps) {
@@ -50,6 +52,8 @@ export function FancySelect({
         type="button"
         className={`field-control fancy-select-trigger ${triggerClassName}`.trim()}
         disabled={disabled}
+        aria-label={ariaLabel}
+        aria-expanded={open}
         onClick={() => {
           if (!disabled) {
             setOpen((current) => !current);

@@ -32,12 +32,34 @@ model Account {
   createdAt    DateTime             @default(now()) @map("created_at")
   updatedAt    DateTime             @updatedAt @map("updated_at")
   companions   TravelCompanion[]
+  trips        Trip[]
   markers      VisitMarker[]
   savedGuides  SavedGuide[]
   histories    GuideSearchHistory[]
   sessions     AuthSession[]
 
   @@map("accounts")
+}
+
+model Trip {
+  id            String        @id
+  accountId     String        @map("account_id")
+  name          String
+  coverImageUrl String?       @map("cover_image_url")
+  note          String        @db.Text
+  startsAt      DateTime      @map("starts_at")
+  endsAt        DateTime      @map("ends_at")
+  isDeleted     Boolean       @default(false) @map("is_deleted")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  deletedAt     DateTime?     @map("deleted_at")
+  account       Account       @relation(fields: [accountId], references: [id])
+  markers       VisitMarker[]
+
+  @@index([accountId], map: "idx_trips_account_id")
+  @@index([startsAt], map: "idx_trips_starts_at")
+  @@unique([accountId, name, isDeleted], map: "uq_trips_account_name_active")
+  @@map("trips")
 }
 
 model AuthSession {
@@ -78,6 +100,7 @@ model VisitMarker {
   id             String             @id
   accountId      String             @map("account_id")
   companionId    String             @map("companion_id")
+  tripId         String?            @map("trip_id")
   scope          TravelScope
   scopeId        String             @map("scope_id")
   scopeName      String             @map("scope_name")
@@ -91,11 +114,13 @@ model VisitMarker {
   deletedAt      DateTime?          @map("deleted_at")
   account        Account            @relation(fields: [accountId], references: [id])
   companion      TravelCompanion    @relation(fields: [companionId], references: [id])
+  trip           Trip?              @relation(fields: [tripId], references: [id])
   images         VisitMarkerImage[]
   savedGuides    SavedGuide[]
 
   @@index([accountId], map: "idx_visit_markers_account_id")
   @@index([companionId], map: "idx_visit_markers_companion_id")
+  @@index([tripId], map: "idx_visit_markers_trip_id")
   @@index([scope, scopeId], map: "idx_visit_markers_scope_scope_id")
   @@index([visitedStartAt], map: "idx_visit_markers_visited_start_at")
   @@map("visit_markers")

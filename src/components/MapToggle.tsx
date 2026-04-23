@@ -1,4 +1,4 @@
-import TravelIcon from './TravelIcon';
+import TravelIcon from './ui/TravelIcon';
 import type { Scope } from '../types';
 
 interface MapToggleProps {

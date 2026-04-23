@@ -13,9 +13,20 @@ export interface UserProfile {
   color: string;
 }
 
+export interface TripCollection {
+  id: string;
+  name: string;
+  coverImageUrl?: string;
+  note: string;
+  startsAt: string;
+  endsAt: string;
+  createdAt: string;
+}
+
 export interface VisitMarker {
   id: string;
   userId: string;
+  tripId?: string;
   scope: Scope;
   scopeId: string;
   scopeName: string;
@@ -124,6 +135,7 @@ export interface MapRegion extends RegionOption {
 
 export interface TravelStore {
   users: UserProfile[];
+  trips?: TripCollection[];
   markers: VisitMarker[];
   activeUserId: string;
   savedGuides: SavedGuide[];

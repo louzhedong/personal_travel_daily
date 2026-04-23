@@ -3,13 +3,14 @@ import SavedGuidesPanel from '../../components/SavedGuidesPanel';
 import TravelMap from '../../components/TravelMap';
 import TripTimelinePanel from '../../components/TripTimelinePanel';
 import UserManager from '../../components/UserManager';
-import type { RegionOption, SavedGuide, Scope, UserProfile, VisitMarker } from '../../types';
+import type { RegionOption, SavedGuide, Scope, TripCollection, UserProfile, VisitMarker } from '../../types';
 
 interface AppContentProps {
   scope: Scope;
   regions: RegionOption[];
   currentMarkers: VisitMarker[];
   allMarkers: VisitMarker[];
+  trips: TripCollection[];
   users: UserProfile[];
   activeUserId: string;
   activeUserName?: string;
@@ -22,6 +23,7 @@ interface AppContentProps {
   onOpenDataSync: () => void;
   onSwitchUser: (userId: string) => void;
   onCreateUser: (payload: { name: string; color: string }) => void;
+  onCreateTrip: (payload: { name: string; startsAt: string; endsAt: string; note?: string }) => void;
   onOpenMarkerFromTimeline: (markerId: string) => void;
   onOpenMarkerFromGuide: (markerId: string) => void;
   onRemoveSavedGuide: (savedGuideId: string) => void;
@@ -32,6 +34,7 @@ export default function AppContent({
   regions,
   currentMarkers,
   allMarkers,
+  trips,
   users,
   activeUserId,
   activeUserName,
@@ -44,6 +47,7 @@ export default function AppContent({
   onOpenDataSync,
   onSwitchUser,
   onCreateUser,
+  onCreateTrip,
   onOpenMarkerFromTimeline,
   onOpenMarkerFromGuide,
   onRemoveSavedGuide,
@@ -81,9 +85,11 @@ export default function AppContent({
         />
         <TripTimelinePanel
           markers={allMarkers}
+          trips={trips}
           activeUserId={activeUserId}
           activeUserName={activeUserName}
           onOpenMarkerDetail={onOpenMarkerFromTimeline}
+          onCreateTrip={onCreateTrip}
         />
         <SavedGuidesPanel
           savedGuides={savedGuides}

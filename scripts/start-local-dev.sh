@@ -6,11 +6,20 @@ LOG_DIR="$ROOT_DIR/.tools/dev-logs"
 RUN_DIR="$ROOT_DIR/.tools/run"
 
 mkdir -p "$LOG_DIR" "$RUN_DIR"
-
 cd "$ROOT_DIR"
 
-command_exists() {
-  command -v "$1" >/dev/null 2>&1
+find_docker_bin() {
+  if command -v docker >/dev/null 2>&1; then
+    command -v docker
+    return 0
+  fi
+
+  if [[ -x "/Applications/Docker.app/Contents/Resources/bin/docker" ]]; then
+    echo "/Applications/Docker.app/Contents/Resources/bin/docker"
+    return 0
+  fi
+
+  return 1
 }
 
 is_port_listening() {
@@ -30,6 +39,21 @@ wait_for_url() {
   done
 
   printf '[warn] %s did not become ready in time: %s\n' "$name" "$url"
+  return 1
+}
+
+wait_for_mysql() {
+  local docker_bin="$1"
+
+  for _ in $(seq 1 30); do
+    if "$docker_bin" compose exec -T mysql mysqladmin ping -h 127.0.0.1 -ppassword >/dev/null 2>&1; then
+      printf '[ok] mysql is ready: 127.0.0.1:3306\n'
+      return 0
+    fi
+    sleep 1
+  done
+
+  printf '[warn] mysql did not become ready in time\n'
   return 1
 }
 
@@ -68,46 +92,6 @@ ensure_env_file() {
   exit 1
 }
 
-ensure_mysql() {
-  if is_port_listening 3306; then
-    printf '[ok] MySQL already listening on 3306\n'
-    return 0
-  fi
-
-  if command_exists brew; then
-    printf '[start] MySQL via Homebrew\n'
-    brew services start mysql >/dev/null || true
-    for _ in $(seq 1 15); do
-      if is_port_listening 3306; then
-        printf '[ok] MySQL started via Homebrew\n'
-        return 0
-      fi
-      sleep 1
-    done
-  fi
-
-  if command_exists docker; then
-    printf '[start] MySQL via docker compose\n'
-    docker compose up -d mysql adminer
-    for _ in $(seq 1 20); do
-      if is_port_listening 3306; then
-        printf '[ok] MySQL started via docker compose\n'
-        return 0
-      fi
-      sleep 1
-    done
-  fi
-
-  cat <<'EOF' >&2
-[error] Unable to start MySQL automatically.
-Please use one of the following:
-  1. brew services start mysql
-  2. docker compose up -d mysql adminer
-Then retry: bash scripts/start-local-dev.sh
-EOF
-  exit 1
-}
-
 prepare_database() {
   printf '[sync] prisma client\n'
   npm run db:generate >/dev/null
@@ -119,8 +103,20 @@ prepare_database() {
   npm run db:seed >/dev/null
 }
 
+DOCKER_BIN="$(find_docker_bin || true)"
+if [[ -z "$DOCKER_BIN" ]]; then
+  echo "[error] Docker CLI not found. Please install/start Docker Desktop." >&2
+  exit 1
+fi
+
 ensure_env_file
-ensure_mysql
+
+printf '[start] docker compose mysql + adminer\n'
+"$DOCKER_BIN" compose up -d mysql adminer
+
+wait_for_mysql "$DOCKER_BIN" || true
+wait_for_url "http://127.0.0.1:8080/" "adminer" || true
+
 prepare_database
 
 start_process "guide-api" 8383 npm run dev:guide-api
@@ -138,6 +134,7 @@ Local dev services:
   app-api  : http://127.0.0.1:8788/health
   guide-api: http://127.0.0.1:8383/health
   mysql    : 127.0.0.1:3306
+  adminer  : http://127.0.0.1:8080/
 
 Logs:
   $LOG_DIR/frontend.log

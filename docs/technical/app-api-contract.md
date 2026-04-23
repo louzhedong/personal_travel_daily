@@ -5,7 +5,7 @@
 当前版本职责：
 
 - 提供旅行主数据聚合加载能力
-- 提供旅伴、旅行记录、攻略收藏/关联、搜索历史的服务端读写接口
+- 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史的服务端读写接口
 - 作为前端 `remoteTravelStoreRepository` 的默认数据源
 
 ## 通用约定
@@ -119,6 +119,16 @@
         "color": "#2563eb"
       }
     ],
+    "trips": [
+      {
+        "id": "trip-2026-spring",
+        "name": "2026 江南春游",
+        "note": "杭州和苏州周末行",
+        "startsAt": "2026-05-01",
+        "endsAt": "2026-05-03",
+        "createdAt": "2026-04-23T00:00:00.000Z"
+      }
+    ],
     "markers": [],
     "activeUserId": "user-alice",
     "savedGuides": [],
@@ -220,6 +230,68 @@
 - `400 INVALID_REQUEST`
 - `409 CONFLICT`：同一账户下旅伴名重复
 
+## 行程集合接口
+
+### `POST /api/trips`
+
+请求体：
+
+```json
+{
+  "name": "2026 江南春游",
+  "note": "杭州和苏州周末行",
+  "startsAt": "2026-05-01",
+  "endsAt": "2026-05-03",
+  "coverImageUrl": "https://example.com/cover.jpg"
+}
+```
+
+成功响应：
+
+- 返回最新的整包 `TravelStore`
+
+字段规则：
+
+- `name` 必填，长度 `1-80`
+- `note` 可选，最多 `500` 字符
+- `startsAt` / `endsAt` 必填，格式为 `YYYY-MM-DD`
+- `endsAt` 不能早于 `startsAt`
+- `coverImageUrl` 可选，必须是合法 URL
+
+### `PATCH /api/trips/:id`
+
+请求体：
+
+```json
+{
+  "name": "2026 江南春游（更新）",
+  "note": "补充苏州段",
+  "startsAt": "2026-05-01",
+  "endsAt": "2026-05-04",
+  "coverImageUrl": null
+}
+```
+
+成功响应：
+
+- 返回最新的整包 `TravelStore`
+
+规则：
+
+- 至少提交一个字段
+- `coverImageUrl: null` 表示清空封面
+
+### `DELETE /api/trips/:id`
+
+成功响应：
+
+- 返回最新的整包 `TravelStore`
+
+规则：
+
+- 行程软删除
+- 已归入该行程的旅行记录会保留，但解除 `tripId`
+
 ### `PATCH /api/companions/:id`
 
 请求体：
@@ -255,6 +327,7 @@
 ```json
 {
   "companionId": "user-alice",
+  "tripId": "trip-2026-spring",
   "scope": "international",
   "scopeId": "jp-kyoto",
   "scopeName": "京都府",
@@ -276,6 +349,7 @@
 - `visitedEndAt` 不可早于 `visitedStartAt`
 - `imageUrls` 会映射到 `visit_marker_images`
 - `companionId` 必须是当前账户下有效旅伴
+- `tripId` 可选；若传入，必须是当前账户下有效行程
 
 ### `PATCH /api/markers/:id`
 
@@ -284,7 +358,8 @@
 ```json
 {
   "note": "更新后的备注",
-  "imageUrls": ["https://example.com/updated.jpg"]
+  "imageUrls": ["https://example.com/updated.jpg"],
+  "tripId": null
 }
 ```
 
@@ -297,6 +372,7 @@
 - 至少提交一个字段
 - 若传入 `imageUrls`，服务端会重建该记录下的图片列表
 - 若传入日期字段，仍会校验日期范围
+- `tripId` 可传有效行程 id，传 `null` 表示解除行程归属
 
 ### `DELETE /api/markers/:id`
 

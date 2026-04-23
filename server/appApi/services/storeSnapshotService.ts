@@ -1,14 +1,16 @@
 import { listActiveGuideSearchHistoriesByAccountId } from '../repositories/guideSearchHistoryRepository.js';
 import { listActiveSavedGuidesByAccountId } from '../repositories/savedGuideRepository.js';
 import { listActiveCompanionsByAccountId } from '../repositories/travelCompanionRepository.js';
+import { listActiveTripsByAccountId } from '../repositories/tripRepository.js';
 import { listActiveMarkersByAccountId } from '../repositories/visitMarkerRepository.js';
 import { serializeBootstrapStore } from '../serializers/bootstrapSerializer.js';
 import { getPrismaClient } from '../prisma.js';
 
 export async function buildCurrentStoreSnapshot(accountId: string) {
   const prisma = getPrismaClient();
-  const [users, markers, savedGuides, guideSearchHistory] = await Promise.all([
+  const [users, trips, markers, savedGuides, guideSearchHistory] = await Promise.all([
     listActiveCompanionsByAccountId(prisma, accountId),
+    listActiveTripsByAccountId(prisma, accountId),
     listActiveMarkersByAccountId(prisma, accountId),
     listActiveSavedGuidesByAccountId(prisma, accountId),
     listActiveGuideSearchHistoriesByAccountId(prisma, accountId),
@@ -16,6 +18,7 @@ export async function buildCurrentStoreSnapshot(accountId: string) {
 
   return serializeBootstrapStore({
     users,
+    trips,
     markers,
     activeUserId: users[0]?.id ?? '',
     savedGuides,

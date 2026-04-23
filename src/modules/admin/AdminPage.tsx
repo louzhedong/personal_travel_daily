@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import TravelIcon from '../../components/TravelIcon';
+import TravelIcon from '../../components/ui/TravelIcon';
 import { fetchAdminOverview } from '../../lib/api/adminApi';
 import type {
   AdminAccountNodeDto,
   AdminCompanionNodeDto,
   AdminOverviewResponseDto,
+  AdminTripNodeDto,
 } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
 
@@ -40,7 +41,7 @@ function formatDateOnly(value: string) {
   }
 }
 
-type AdminDetailTab = 'markers' | 'savedGuides' | 'guideSearchHistory';
+type AdminDetailTab = 'trips' | 'markers' | 'savedGuides' | 'guideSearchHistory';
 
 function AdminSummaryCards({ overview }: { overview: AdminOverviewResponseDto }) {
   const summary = useMemo(
@@ -48,6 +49,7 @@ function AdminSummaryCards({ overview }: { overview: AdminOverviewResponseDto })
       overview.accounts.reduce(
         (acc, account) => ({
           accountCount: acc.accountCount + 1,
+          tripCount: acc.tripCount + account.stats.tripCount,
           companionCount: acc.companionCount + account.stats.companionCount,
           markerCount: acc.markerCount + account.stats.markerCount,
           savedGuideCount: acc.savedGuideCount + account.stats.savedGuideCount,
@@ -56,6 +58,7 @@ function AdminSummaryCards({ overview }: { overview: AdminOverviewResponseDto })
         }),
         {
           accountCount: 0,
+          tripCount: 0,
           companionCount: 0,
           markerCount: 0,
           savedGuideCount: 0,
@@ -67,6 +70,7 @@ function AdminSummaryCards({ overview }: { overview: AdminOverviewResponseDto })
 
   const items = [
     { label: '系统用户', value: summary.accountCount, tone: 'blue' },
+    { label: '行程', value: summary.tripCount, tone: 'green' },
     { label: '同行人', value: summary.companionCount, tone: 'teal' },
     { label: '旅行记录', value: summary.markerCount, tone: 'orange' },
     { label: '收藏攻略', value: summary.savedGuideCount, tone: 'sky' },
@@ -87,14 +91,21 @@ function AdminSummaryCards({ overview }: { overview: AdminOverviewResponseDto })
 
 function getAccountDetailCollections(account: AdminAccountNodeDto) {
   const companions = account.companions;
+  const tripById = new Map(account.trips.map((trip) => [trip.id, trip]));
+  const markers = companions.flatMap((companion) =>
+    companion.markers.map((marker) => ({
+      ...marker,
+      companionName: companion.name,
+      tripName: marker.tripId ? tripById.get(marker.tripId)?.name ?? '未知行程' : '未归入行程',
+    })),
+  );
 
   return {
-    markers: companions.flatMap((companion) =>
-      companion.markers.map((marker) => ({
-        ...marker,
-        companionName: companion.name,
-      })),
-    ),
+    trips: account.trips.map((trip) => ({
+      ...trip,
+      markerCount: markers.filter((marker) => marker.tripId === trip.id).length,
+    })),
+    markers,
     savedGuides: companions.flatMap((companion) =>
       companion.savedGuides.map((guide) => ({
         ...guide,
@@ -115,7 +126,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<AdminDetailTab>('markers');
+  const [activeTab, setActiveTab] = useState<AdminDetailTab>('trips');
 
   useEffect(() => {
     let cancelled = false;
@@ -155,6 +166,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
   );
 
   const tabItems: Array<{ key: AdminDetailTab; label: string }> = [
+    { key: 'trips', label: '行程' },
     { key: 'markers', label: '旅行记录' },
     { key: 'savedGuides', label: '收藏攻略' },
     { key: 'guideSearchHistory', label: '搜索历史' },
@@ -166,7 +178,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
         <div className="admin-hero-copy">
           <span className="hero-kicker">后台管理</span>
           <h1>系统用户总览</h1>
-          <p>按账号查看同行人、旅行记录、收藏攻略与搜索历史，当前仅提供只读巡检视图。</p>
+          <p>按账号查看行程、同行人、旅行记录、收藏攻略与搜索历史，当前仅提供只读巡检视图。</p>
           <div className="admin-hero-meta">
             <span>当前管理员：{account.name}</span>
             <span>@{account.username}</span>
@@ -223,7 +235,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                       }
                       onClick={() => {
                         setSelectedAccountId(item.id);
-                        setActiveTab('markers');
+                        setActiveTab('trips');
                       }}
                     >
                       <div className="admin-user-row-main">
@@ -237,6 +249,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                       </div>
                       <div className="admin-user-row-meta">
                         <span>同行 {item.stats.companionCount}</span>
+                        <span>行程 {item.stats.tripCount}</span>
                         <span>记录 {item.stats.markerCount}</span>
                       </div>
                     </button>
@@ -263,6 +276,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                       </p>
                     </div>
                     <div className="admin-inline-stats">
+                      <span>行程 {selectedAccount.stats.tripCount}</span>
                       <span>同行人 {selectedAccount.stats.companionCount}</span>
                       <span>记录 {selectedAccount.stats.markerCount}</span>
                       <span>收藏 {selectedAccount.stats.savedGuideCount}</span>
@@ -272,6 +286,10 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
 
                   <section className="admin-detail-overview">
                     <div className="admin-kpi-grid">
+                      <article className="admin-kpi-card">
+                        <span>行程</span>
+                        <strong>{selectedAccount.stats.tripCount}</strong>
+                      </article>
                       <article className="admin-kpi-card">
                         <span>同行人</span>
                         <strong>{selectedAccount.stats.companionCount}</strong>
@@ -289,6 +307,39 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                         <strong>{detailCollections.guideSearchHistory.length}</strong>
                       </article>
                     </div>
+
+                    <section className="admin-data-card">
+                      <div className="admin-section-title">
+                        <span className="travel-icon-badge travel-icon-badge-blue">
+                          <TravelIcon name="route" size={14} />
+                        </span>
+                        <h3>行程</h3>
+                      </div>
+                      {selectedAccount.trips.length === 0 ? (
+                        <div className="admin-empty-block">该账号下暂无行程。</div>
+                      ) : (
+                        <div className="admin-trip-inline-list">
+                          {detailCollections.trips.map((trip: AdminTripNodeDto & { markerCount: number }) => (
+                            <div key={trip.id} className="admin-trip-pill">
+                              {trip.coverImageUrl ? (
+                                <img src={trip.coverImageUrl} alt="" className="admin-trip-pill-cover" />
+                              ) : (
+                                <span className="admin-trip-pill-cover admin-trip-pill-cover-empty" aria-hidden="true">
+                                  <TravelIcon name="route" size={16} />
+                                </span>
+                              )}
+                              <div>
+                                <strong>{trip.name}</strong>
+                                <p>
+                                  {formatDateOnly(trip.startsAt)} 至 {formatDateOnly(trip.endsAt)} · 记录{' '}
+                                  {trip.markerCount}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </section>
 
                     <section className="admin-data-card">
                       <div className="admin-section-title">
@@ -338,6 +389,49 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                       ))}
                     </div>
 
+                    {activeTab === 'trips' ? (
+                      <section className="admin-data-card">
+                        <div className="admin-section-title">
+                          <span className="travel-icon-badge travel-icon-badge-blue">
+                            <TravelIcon name="route" size={14} />
+                          </span>
+                          <h3>行程</h3>
+                        </div>
+                        {detailCollections.trips.length === 0 ? (
+                          <div className="admin-empty-block">暂无行程。</div>
+                        ) : (
+                          <div className="admin-table-wrap">
+                            <table className="admin-table">
+                              <thead>
+                                <tr>
+                                  <th>行程</th>
+                                  <th>时间</th>
+                                  <th>记录</th>
+                                  <th>备注</th>
+                                  <th>创建时间</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {detailCollections.trips.map((trip) => (
+                                  <tr key={trip.id}>
+                                    <td>
+                                      <strong>{trip.name}</strong>
+                                    </td>
+                                    <td>
+                                      {formatDateOnly(trip.startsAt)} 至 {formatDateOnly(trip.endsAt)}
+                                    </td>
+                                    <td>{trip.markerCount}</td>
+                                    <td className="admin-note-cell">{trip.note || '暂无备注'}</td>
+                                    <td>{formatDate(trip.createdAt)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </section>
+                    ) : null}
+
                     {activeTab === 'markers' ? (
                       <section className="admin-data-card">
                         <div className="admin-section-title">
@@ -354,6 +448,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                               <thead>
                                 <tr>
                                   <th>同行人</th>
+                                  <th>行程</th>
                                   <th>目的地</th>
                                   <th>时间</th>
                                   <th>范围</th>
@@ -365,6 +460,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                                 {detailCollections.markers.map((marker) => (
                                   <tr key={marker.id}>
                                     <td>{marker.companionName}</td>
+                                    <td>{marker.tripName}</td>
                                     <td>
                                       <strong>{marker.scopeName}</strong>
                                       <div>{marker.city}</div>

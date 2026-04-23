@@ -5,6 +5,7 @@ import type { CreateMarkerBody, UpdateMarkerBody } from '../schemas/markers.js';
 import {
   findActiveCompanionById,
 } from '../repositories/travelCompanionRepository.js';
+import { findActiveTripById } from '../repositories/tripRepository.js';
 import {
   createMarker,
   findActiveMarkerById,
@@ -27,10 +28,18 @@ export async function createMarkerRecord(accountId: string, input: CreateMarkerB
       throw createNotFoundError('companion not found');
     }
 
+    if (input.tripId) {
+      const trip = await findActiveTripById(tx, accountId, input.tripId);
+      if (!trip) {
+        throw createNotFoundError('trip not found');
+      }
+    }
+
     await createMarker(tx, {
       id: randomUUID(),
       accountId,
       companionId: input.companionId,
+      tripId: input.tripId,
       scope: input.scope,
       scopeId: input.scopeId,
       scopeName: input.scopeName,
@@ -66,10 +75,18 @@ export async function updateMarkerRecord(
       throw createValidationError('visitedEndAt must be later than or equal to visitedStartAt');
     }
 
+    if (input.tripId) {
+      const trip = await findActiveTripById(tx, accountId, input.tripId);
+      if (!trip) {
+        throw createNotFoundError('trip not found');
+      }
+    }
+
     await updateMarker(tx, markerId, {
       ...(input.note !== undefined ? { note: input.note } : {}),
       ...(input.visitedStartAt !== undefined ? { visitedStartAt: parseDateOnly(input.visitedStartAt) } : {}),
       ...(input.visitedEndAt !== undefined ? { visitedEndAt: parseDateOnly(input.visitedEndAt) } : {}),
+      ...(input.tripId !== undefined ? { tripId: input.tripId } : {}),
       ...(input.imageUrls !== undefined ? { imageUrls: input.imageUrls } : {}),
     });
   });

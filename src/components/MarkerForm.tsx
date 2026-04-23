@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import FancySelect from './FancySelect';
+import FancySelect from './ui/FancySelect';
+import DateField from './ui/DateField';
 import { uploadImageToImgBB } from '../lib/imageUpload';
-import type { RegionOption, Scope } from '../types';
+import type { RegionOption, Scope, TripCollection } from '../types';
 
 export interface MarkerFormValue {
   scope: Scope;
@@ -12,11 +13,13 @@ export interface MarkerFormValue {
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;
+  tripId?: string;
 }
 
 interface MarkerFormProps {
   scope: Scope;
   regions: RegionOption[];
+  trips?: TripCollection[];
   initialValue?: Partial<MarkerFormValue>;
   submitting?: boolean;
   submitText?: string;
@@ -50,6 +53,7 @@ function getTripDays(startAt: string, endAt: string) {
 export function MarkerForm({
   scope,
   regions,
+  trips = [],
   initialValue,
   submitting = false,
   submitText = '保存标记',
@@ -63,6 +67,7 @@ export function MarkerForm({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [visitedStartAt, setVisitedStartAt] = useState(initialValue?.visitedStartAt ?? getToday());
   const [visitedEndAt, setVisitedEndAt] = useState(initialValue?.visitedEndAt ?? initialValue?.visitedStartAt ?? getToday());
+  const [tripId, setTripId] = useState(initialValue?.tripId ?? '');
   const [errors, setErrors] = useState<FormErrors>({});
 
   const scopeLabel = scope === 'domestic' ? '省份' : '国家';
@@ -178,6 +183,7 @@ export function MarkerForm({
       imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       visitedStartAt,
       visitedEndAt,
+      tripId: tripId || undefined,
     });
   };
 
@@ -259,34 +265,52 @@ export function MarkerForm({
         <div className="marker-form-date-grid">
           <label className="field">
             <span className="marker-form-subfield-label">开始日期</span>
-            <input
-              type="date"
+            <DateField
               value={visitedStartAt}
               max={visitedEndAt || undefined}
-              onChange={(event) => {
-                setVisitedStartAt(event.target.value);
+              ariaLabel="游玩开始日期"
+              onChange={(nextValue) => {
+                setVisitedStartAt(nextValue);
                 setErrors((prev) => ({ ...prev, visitedRange: undefined }));
               }}
-              className="field-control marker-form-input"
             />
           </label>
           <label className="field">
             <span className="marker-form-subfield-label">结束日期</span>
-            <input
-              type="date"
+            <DateField
               value={visitedEndAt}
               min={visitedStartAt || undefined}
-              onChange={(event) => {
-                setVisitedEndAt(event.target.value);
+              ariaLabel="游玩结束日期"
+              onChange={(nextValue) => {
+                setVisitedEndAt(nextValue);
                 setErrors((prev) => ({ ...prev, visitedRange: undefined }));
               }}
-              className="field-control marker-form-input"
             />
           </label>
         </div>
         {tripDays ? <span className="marker-form-duration-hint">本次旅行共 {tripDays} 天</span> : null}
         {errors.visitedRange ? <span className="marker-form-error">{errors.visitedRange}</span> : null}
       </div>
+
+      {trips.length > 0 ? (
+        <label className="field">
+          <span className="field-label marker-form-label">所属行程</span>
+          <FancySelect
+            value={tripId}
+            onChange={setTripId}
+            placeholder="选择所属行程"
+            ariaLabel="所属行程"
+            options={[
+              { value: '', label: '暂不归入行程' },
+              ...trips.map((trip) => ({
+                value: trip.id,
+                label: trip.name,
+              })),
+            ]}
+            triggerClassName="marker-form-select"
+          />
+        </label>
+      ) : null}
 
       <label className="field">
         <span className="field-label marker-form-label">游玩描述</span>

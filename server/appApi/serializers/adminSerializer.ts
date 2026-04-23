@@ -3,6 +3,7 @@ import type {
   GuideSearchHistory,
   SavedGuide,
   TravelCompanion,
+  Trip,
   VisitMarker,
   VisitMarkerImage,
 } from '@prisma/client';
@@ -13,6 +14,7 @@ import type {
   AdminMarkerNodeDto,
   AdminOverviewResponseDto,
   AdminSavedGuideNodeDto,
+  AdminTripNodeDto,
   GuideContentBlockDto,
   GuideDocumentDto,
   GuideSearchResultDto,
@@ -25,6 +27,7 @@ type CompanionWithRelations = TravelCompanion & {
 };
 
 type AccountWithRelations = Account & {
+  trips: Trip[];
   companions: CompanionWithRelations[];
 };
 
@@ -96,11 +99,24 @@ function buildGuideResultFallback(savedGuide: SavedGuide): GuideSearchResultDto 
   };
 }
 
+function serializeTrip(trip: Trip): AdminTripNodeDto {
+  return {
+    id: trip.id,
+    name: trip.name,
+    coverImageUrl: trip.coverImageUrl ?? undefined,
+    note: trip.note,
+    startsAt: toDateOnlyString(trip.startsAt),
+    endsAt: toDateOnlyString(trip.endsAt),
+    createdAt: toIsoString(trip.createdAt),
+  };
+}
+
 function serializeMarker(marker: VisitMarker & { images: VisitMarkerImage[] }): AdminMarkerNodeDto {
   const imageUrls = marker.images.map((image) => image.imageUrl).filter(Boolean);
 
   return {
     id: marker.id,
+    tripId: marker.tripId ?? undefined,
     scope: marker.scope,
     scopeId: marker.scopeId,
     scopeName: marker.scopeName,
@@ -151,6 +167,7 @@ function serializeCompanion(companion: CompanionWithRelations): AdminCompanionNo
 }
 
 function serializeAccount(account: AccountWithRelations): AdminAccountNodeDto {
+  const trips = account.trips.map(serializeTrip);
   const companions = account.companions.map(serializeCompanion);
   const stats = companions.reduce(
     (summary, companion) => ({
@@ -173,8 +190,12 @@ function serializeAccount(account: AccountWithRelations): AdminAccountNodeDto {
     username: account.username,
     role: account.role,
     createdAt: toIsoString(account.createdAt),
+    trips,
     companions,
-    stats,
+    stats: {
+      tripCount: trips.length,
+      ...stats,
+    },
   };
 }
 

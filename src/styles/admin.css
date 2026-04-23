@@ -73,7 +73,7 @@
 
 .admin-summary-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -101,6 +101,10 @@
 
 .admin-summary-card-teal {
   background: linear-gradient(180deg, rgba(240, 253, 250, 0.9), rgba(255, 255, 255, 0.96));
+}
+
+.admin-summary-card-green {
+  background: linear-gradient(180deg, rgba(240, 253, 244, 0.9), rgba(255, 255, 255, 0.96));
 }
 
 .admin-summary-card-orange {
@@ -282,7 +286,7 @@
 
 .admin-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -309,6 +313,47 @@
 .admin-companion-inline-list {
   display: grid;
   gap: 10px;
+}
+
+.admin-trip-inline-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-trip-pill {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.admin-trip-pill-cover {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #e0f2fe;
+}
+
+.admin-trip-pill-cover-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+}
+
+.admin-trip-pill strong {
+  display: block;
+  font-size: 14px;
+}
+
+.admin-trip-pill p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
 }
 
 .admin-companion-pill {

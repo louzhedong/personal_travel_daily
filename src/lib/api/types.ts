@@ -44,6 +44,7 @@ export interface UpdateCompanionInput {
 
 export interface CreateMarkerInput {
   companionId: string;
+  tripId?: string;
   scope: Scope;
   scopeId: string;
   scopeName: string;
@@ -59,6 +60,23 @@ export interface UpdateMarkerInput {
   imageUrls?: string[];
   visitedStartAt?: string;
   visitedEndAt?: string;
+  tripId?: string | null;
+}
+
+export interface CreateTripInput {
+  name: string;
+  coverImageUrl?: string;
+  note?: string;
+  startsAt: string;
+  endsAt: string;
+}
+
+export interface UpdateTripInput {
+  name?: string;
+  coverImageUrl?: string | null;
+  note?: string;
+  startsAt?: string;
+  endsAt?: string;
 }
 
 export interface ListSavedGuidesQuery {
@@ -110,6 +128,7 @@ export type AccountRoleDto = 'admin' | 'member';
 
 export interface AdminMarkerNodeDto {
   id: string;
+  tripId?: string;
   scope: Scope;
   scopeId: string;
   scopeName: string;
@@ -118,6 +137,16 @@ export interface AdminMarkerNodeDto {
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;
+  createdAt: string;
+}
+
+export interface AdminTripNodeDto {
+  id: string;
+  name: string;
+  coverImageUrl?: string;
+  note: string;
+  startsAt: string;
+  endsAt: string;
   createdAt: string;
 }
 
@@ -152,8 +181,10 @@ export interface AdminAccountNodeDto {
   username: string;
   role: AccountRoleDto;
   createdAt: string;
+  trips: AdminTripNodeDto[];
   companions: AdminCompanionNodeDto[];
   stats: {
+    tripCount: number;
     companionCount: number;
     markerCount: number;
     savedGuideCount: number;

@@ -83,6 +83,215 @@
   font-weight: 700;
 }
 
+.date-field {
+  position: relative;
+  min-height: var(--control-height);
+  color: #0f172a;
+  overflow: visible;
+  z-index: 1;
+}
+
+.date-field:has(.date-picker-panel) {
+  z-index: 20;
+}
+
+.date-field-trigger {
+  width: 100%;
+  min-height: var(--control-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-control);
+  background: #fff;
+  color: #0f172a;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.date-field-trigger:hover {
+  border-color: rgba(59, 130, 246, 0.58);
+}
+
+.date-field-trigger:focus-visible,
+.date-field-trigger[aria-expanded='true'] {
+  border-color: rgba(37, 99, 235, 0.78);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.date-field-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.date-field-display {
+  min-width: 0;
+  color: #0f172a;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.date-field.empty .date-field-display {
+  color: #94a3b8;
+}
+
+.date-field-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: #64748b;
+}
+
+.date-picker-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(320px, calc(100vw - 32px));
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 22px 52px rgba(15, 23, 42, 0.18);
+}
+
+.date-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.date-picker-header strong {
+  color: #0f172a;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.date-picker-nav {
+  display: flex;
+  gap: 6px;
+}
+
+.date-picker-icon-button {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.date-picker-icon-button:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  background: #eff6ff;
+}
+
+.date-picker-icon-button:disabled {
+  cursor: not-allowed;
+  color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.date-picker-weekdays,
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.date-picker-weekdays {
+  margin-bottom: 4px;
+}
+
+.date-picker-weekdays span {
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.date-picker-day {
+  aspect-ratio: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #0f172a;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.date-picker-day:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.date-picker-day.outside {
+  color: #94a3b8;
+}
+
+.date-picker-day.today {
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.36);
+}
+
+.date-picker-day.selected {
+  background: linear-gradient(135deg, #2563eb, #14b8a6);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+}
+
+.date-picker-day:disabled {
+  cursor: not-allowed;
+  color: #cbd5e1;
+  background: transparent;
+  box-shadow: none;
+}
+
+.date-picker-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+}
+
+.date-picker-text-button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.date-picker-text-button:hover {
+  background: #eff6ff;
+}
+
+.date-picker-text-button:disabled {
+  cursor: not-allowed;
+  color: #cbd5e1;
+}
+
 .marker-form-select {
   min-height: var(--control-height);
 }
@@ -345,4 +554,3 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08), 0 10px 18px rgba(15, 23, 42, 0.08);
   transform: scale(1.04);
 }
-

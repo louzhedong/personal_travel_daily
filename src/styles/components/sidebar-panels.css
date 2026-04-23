@@ -1,4 +1,5 @@
 ﻿.user-manager-card {
+  position: relative;
   background:
     radial-gradient(circle at top right, rgba(249, 115, 22, 0.08), transparent 28%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.98));
@@ -304,12 +305,51 @@
   box-shadow: 0 10px 22px rgba(37, 99, 235, 0.08);
 }
 
+.user-manager-create-entry {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid rgba(20, 184, 166, 0.24);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(240, 253, 250, 0.98), rgba(239, 246, 255, 0.92));
+  color: #0f172a;
+  text-align: left;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+}
+
+.user-manager-create-entry:hover {
+  border-color: rgba(20, 184, 166, 0.48);
+  box-shadow: 0 14px 28px rgba(20, 184, 166, 0.1);
+}
+
+.user-manager-create-entry > span:last-child {
+  display: grid;
+  gap: 3px;
+}
+
+.user-manager-create-entry strong {
+  font-size: 15px;
+}
+
+.user-manager-create-entry small {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .user-manager-color-tip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   color: #64748b;
   font-size: 12px;
+}
+
+.user-manager-create-form {
+  display: grid;
+  gap: 14px;
 }
 
 .user-manager-form-row {
@@ -521,4 +561,3 @@
   font-size: 13px;
   font-weight: 700;
 }
-

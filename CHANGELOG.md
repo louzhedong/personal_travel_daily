@@ -3,6 +3,29 @@
 本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。  
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
+## 2026-04-23
+
+### PR TBD `feat: 增加行程集合 / Add trip collections`
+
+### Added / 新增
+
+- 新增 MySQL `trips` 表、`visit_markers.trip_id` 归属字段与 `/api/trips` 创建、更新、删除接口。  
+  Added the MySQL `trips` table, `visit_markers.trip_id`, and create/update/delete APIs for trip collections.
+- 前端 `TravelStore` 增加 `trips`，新增行程创建入口，并支持新增旅行记录时选择所属行程。  
+  Added `trips` to the frontend `TravelStore`, a trip creation entry point, and trip assignment when creating markers.
+
+### Changed / 变更
+
+- 行程时间线现在会在存在行程时按 Trip Collection 聚合展示记录，未归入行程的记录保留独立分组。  
+  The timeline now groups records by Trip Collection when trips exist, while keeping unassigned records in a separate group.
+- 更新 App API Contract 与 Roadmap，记录行程集合第一版能力边界。  
+  Updated the App API Contract and Roadmap with the first Trip Collection scope.
+
+### Verified / 已验证
+
+- `/opt/homebrew/bin/node node_modules/typescript/bin/tsc -b`
+- `/opt/homebrew/bin/node node_modules/vitest/vitest.mjs run src/components/__tests__/TripTimelinePanel.spec.tsx --environment jsdom`
+
 ## 2026-04-22
 
 ### PR TBD `docs: 补齐业务专项 prompt / Add domain-specific prompts`

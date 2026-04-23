@@ -47,6 +47,25 @@ export function useTravelStoreActions({
     }
   };
 
+  const handleCreateTrip = async (input: {
+    name: string;
+    startsAt: string;
+    endsAt: string;
+    note?: string;
+    coverImageUrl?: string;
+  }) => {
+    try {
+      const nextStore = await remoteTravelStoreRepository.createTrip(input);
+      setStore((current) => ({
+        ...nextStore,
+        activeUserId: current.activeUserId,
+      }));
+      setMessage(`已创建行程「${input.name}」，新增旅行记录时可以归入这个行程。`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '创建行程失败，请稍后重试。');
+    }
+  };
+
   const handleSubmitMarker = async (value: MarkerFormValue) => {
     if (!activeUser) {
       return;
@@ -56,6 +75,7 @@ export function useTravelStoreActions({
     try {
       const nextStore = await remoteTravelStoreRepository.createMarker({
         companionId: activeUser.id,
+        tripId: value.tripId,
         scope: value.scope,
         scopeId: value.scopeId,
         scopeName: value.scopeName,
@@ -101,7 +121,7 @@ export function useTravelStoreActions({
 
   const handleUpdateMarker = async (
     markerId: string,
-    updates: { note: string; imageUrls?: string[] },
+    updates: { note: string; imageUrls?: string[]; tripId?: string | null },
   ) => {
     const target = store.markers.find((item) => item.id === markerId);
     if (!target || target.userId !== store.activeUserId) {
@@ -112,6 +132,7 @@ export function useTravelStoreActions({
       const nextStore = await remoteTravelStoreRepository.updateMarker(markerId, {
         note: updates.note,
         imageUrls: updates.imageUrls,
+        tripId: updates.tripId,
       });
       setStore((current) => ({
         ...nextStore,
@@ -242,6 +263,7 @@ export function useTravelStoreActions({
     activeUser: activeUser as UserProfile | undefined,
     handleSwitchUser,
     handleCreateUser,
+    handleCreateTrip,
     handleSubmitMarker,
     handleDeleteMarker,
     handleUpdateMarker,

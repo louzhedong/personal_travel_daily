@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { getGuideDocument } from '../lib/guides/guideContentService';
 import { searchGuides } from '../lib/guides/guideSearchService';
 import { findSavedGuideInCollection } from '../lib/repositories/guideRepository';
-import TravelIcon from './TravelIcon';
+import TravelIcon from './ui/TravelIcon';
 import type { GuideDocument, GuideSearchHistoryItem, GuideSearchResult, SavedGuide, Scope } from '../types';
 
 interface GuideSearchPanelProps {
