@@ -1,4 +1,4 @@
-import TravelIcon, { withIconVars } from './TravelIcon';
+import TravelIcon, { withIconVars } from './ui/TravelIcon';
 import type { Scope, UserProfile, VisitMarker } from '../types';
 
 interface StatsPanelProps {

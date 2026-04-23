@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import TravelIcon from './TravelIcon';
+import TravelIcon from './ui/TravelIcon';
 import type { TravelStore } from '../types';
 
 interface DataSyncProps {

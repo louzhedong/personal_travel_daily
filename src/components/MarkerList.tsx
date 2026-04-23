@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import FancySelect from './FancySelect';
+import FancySelect from './ui/FancySelect';
 import type { Scope, UserProfile, VisitMarker } from '../types';
 
 function formatVisitedRange(marker: VisitMarker) {

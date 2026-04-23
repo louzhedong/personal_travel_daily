@@ -11,6 +11,7 @@ import type {
   GuideSearchResult,
   SavedGuide,
   Scope,
+  TripCollection,
   TravelStore,
   UserProfile,
   VisitMarker,
@@ -62,6 +63,7 @@ export interface TravelStoreImportPreview {
 export function createDefaultStore(): TravelStore {
   return {
     users: defaultUsers,
+    trips: [],
     markers: [],
     activeUserId: defaultUsers[0].id,
     savedGuides: [],
@@ -117,7 +119,28 @@ function normalizeMarker(
     visitedStartAt,
     visitedEndAt,
     createdAt: rawMarker.createdAt,
+    tripId: typeof rawMarker.tripId === 'string' ? rawMarker.tripId : undefined,
   };
+}
+
+function normalizeTrips(trips: unknown): TripCollection[] {
+  if (!Array.isArray(trips)) {
+    return [];
+  }
+
+  return trips.filter(
+    (item): item is TripCollection =>
+      !!item &&
+      typeof item === 'object' &&
+      typeof item.id === 'string' &&
+      typeof item.name === 'string' &&
+      typeof item.note === 'string' &&
+      typeof item.startsAt === 'string' &&
+      typeof item.endsAt === 'string' &&
+      typeof item.createdAt === 'string' &&
+      ((item as Partial<TripCollection>).coverImageUrl === undefined ||
+        typeof (item as Partial<TripCollection>).coverImageUrl === 'string'),
+  );
 }
 
 function normalizeUsers(users: unknown): UserProfile[] {
@@ -276,6 +299,7 @@ function analyzeTravelStoreImport(
   return {
     mergedStore: {
       users,
+      trips: currentStore.trips ?? [],
       markers,
       activeUserId,
       savedGuides: currentStore.savedGuides,
@@ -430,6 +454,7 @@ function normalizeStore(
           )
           .filter((item): item is VisitMarker => item !== null)
       : [];
+    const trips = normalizeTrips('trips' in parsed ? parsed.trips : undefined);
     const activeUserId =
       typeof parsed.activeUserId === 'string' && normalizedUsers.some((item) => item.id === parsed.activeUserId)
         ? parsed.activeUserId
@@ -437,7 +462,7 @@ function normalizeStore(
     const savedGuides = normalizeSavedGuides(parsed.savedGuides);
     const guideSearchHistory = normalizeGuideSearchHistory(parsed.guideSearchHistory);
 
-    return { users: normalizedUsers, markers, activeUserId, savedGuides, guideSearchHistory };
+    return { users: normalizedUsers, trips, markers, activeUserId, savedGuides, guideSearchHistory };
   } catch {
     return createDefaultStore();
   }

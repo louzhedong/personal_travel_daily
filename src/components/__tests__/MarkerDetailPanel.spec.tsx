@@ -2,9 +2,20 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MarkerDetailPanel from '../MarkerDetailPanel';
-import type { SavedGuide, UserProfile, VisitMarker } from '../../types';
+import type { SavedGuide, TripCollection, UserProfile, VisitMarker } from '../../types';
 
 const user: UserProfile = { id: 'u1', name: '小悠', color: '#2563eb' };
+
+const trips: TripCollection[] = [
+  {
+    id: 'trip-1',
+    name: '青海湖环线',
+    note: '',
+    startsAt: '2026-05-01',
+    endsAt: '2026-05-05',
+    createdAt: '2026-04-23T00:00:00.000Z',
+  },
+];
 
 const marker: VisitMarker = {
   id: 'm1',
@@ -30,6 +41,7 @@ describe('MarkerDetailPanel', () => {
         user={user}
         open
         canEdit
+        trips={trips}
         onClose={() => {}}
         onUpdate={onUpdate}
       />,
@@ -47,8 +59,36 @@ describe('MarkerDetailPanel', () => {
     expect(onUpdate).toHaveBeenCalledWith('m1', {
       note: '新的旅行描述',
       imageUrls: ['https://example.com/a.jpg', 'https://example.com/b.jpg'],
+      tripId: null,
     });
     expect(await screen.findByRole('button', { name: '编辑记录' })).toBeInTheDocument();
+  });
+
+  it('allows assigning an existing marker to a trip', async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <MarkerDetailPanel
+        marker={marker}
+        user={user}
+        open
+        canEdit
+        trips={trips}
+        onClose={() => {}}
+        onUpdate={onUpdate}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '编辑记录' }));
+    await userEvent.click(screen.getByRole('button', { name: '所属行程' }));
+    await userEvent.click(screen.getByRole('button', { name: '青海湖环线' }));
+    await userEvent.click(screen.getByRole('button', { name: '保存修改' }));
+
+    expect(onUpdate).toHaveBeenCalledWith('m1', {
+      note: '原始描述',
+      imageUrls: ['https://example.com/a.jpg', 'https://example.com/b.jpg'],
+      tripId: 'trip-1',
+    });
   });
 
   it('supports keyboard navigation and escape close in lightbox', async () => {

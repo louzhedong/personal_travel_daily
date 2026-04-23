@@ -59,9 +59,7 @@ npm run dev
 npm run dev:app-api
 npm run dev:guide-api
 npm run dev:all
-npm run dev:all:docker
 npm run dev:stop
-npm run dev:stop:docker
 npm run db:generate
 npm run db:migrate:deploy
 npm run db:migrate:status

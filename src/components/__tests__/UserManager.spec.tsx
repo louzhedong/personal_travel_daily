@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import UserManager from '../UserManager';
 
@@ -35,8 +35,12 @@ describe('UserManager', () => {
       />,
     );
 
-    await userEvent.type(screen.getByPlaceholderText('例如：家人、朋友、小队'), '同事');
-    await userEvent.click(screen.getByRole('button', { name: '添加用户' }));
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /新增旅伴/ }));
+
+    const dialog = screen.getByRole('dialog', { name: '新增旅伴' });
+    await user.type(within(dialog).getByPlaceholderText('例如：家人、朋友、小队'), '同事');
+    await user.click(within(dialog).getByRole('button', { name: '添加用户' }));
 
     expect(onCreate).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -3,7 +3,7 @@ import { geoContains } from 'd3-geo';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import MapToggle from './MapToggle';
-import TravelIcon from './TravelIcon';
+import TravelIcon from './ui/TravelIcon';
 import { pathFor, projectionFor } from '../geo/projection';
 import { loadGeoForScope, type LoadedFeature } from '../geo/loader';
 import type { RegionOption, Scope, UserProfile, VisitMarker } from '../types';

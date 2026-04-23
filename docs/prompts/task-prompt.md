@@ -30,12 +30,13 @@
 ## 执行要求
 
 1. 先复用现有模块，再决定是否新增抽象。
-2. 业务规则下沉，不要堆到 JSX 中。
-3. 新增联动优先复用 `markerNavigation.ts`。
-4. 新增地图状态优先扩展 `useMapContext.ts`。
-5. 新增 store 写操作优先扩展 `useTravelStoreActions.ts`。
-6. 样式改动保持模块化，不要重新制造超大 CSS 文件。
-7. 如果行为有变化，同步更新相关文档。
+2. UI 控件如果能跨场景复用，优先抽成 `src/components/ui/` 下的标准组件，再由业务组件组合使用。
+3. 业务规则下沉，不要堆到 JSX 中。
+4. 新增联动优先复用 `markerNavigation.ts`。
+5. 新增地图状态优先扩展 `useMapContext.ts`。
+6. 新增 store 写操作优先扩展 `useTravelStoreActions.ts`。
+7. 样式改动保持模块化，不要重新制造超大 CSS 文件。
+8. 如果行为有变化，同步更新相关文档。
 
 ## 完成后检查
 

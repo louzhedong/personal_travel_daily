@@ -6,9 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:all": "bash scripts/start-local-dev.sh",
-    "dev:all:docker": "bash scripts/start-local-dev-docker.sh",
     "dev:stop": "bash scripts/stop-local-dev.sh",
-    "dev:stop:docker": "bash scripts/stop-local-dev-docker.sh",
     "dev:app-api": "tsx watch server/appApiServer.ts",
     "dev:guide-api": "node server/guideApiServer.mjs",
     "db:generate": "prisma generate --schema server/prisma/schema.prisma",

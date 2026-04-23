@@ -8,6 +8,12 @@ export async function listAdminOverviewAccounts(prisma: PrismaExecutor) {
       createdAt: 'desc',
     },
     include: {
+      trips: {
+        where: {
+          isDeleted: false,
+        },
+        orderBy: [{ startsAt: 'desc' }, { createdAt: 'desc' }],
+      },
       companions: {
         where: {
           isDeleted: false,

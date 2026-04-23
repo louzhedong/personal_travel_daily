@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import TravelIcon from '../../components/TravelIcon';
+import TravelIcon from '../../components/ui/TravelIcon';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import type { AuthAccount } from '../../types';
 

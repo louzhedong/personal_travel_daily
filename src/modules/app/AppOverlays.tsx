@@ -30,7 +30,10 @@ interface AppOverlaysProps {
   detailUser?: UserProfile;
   detailMarkerGuides: SavedGuide[];
   closeDetail: () => void;
-  onUpdateMarker: (markerId: string, updates: { note: string; imageUrls?: string[] }) => Promise<void> | void;
+  onUpdateMarker: (
+    markerId: string,
+    updates: { note: string; imageUrls?: string[]; tripId?: string | null },
+  ) => Promise<void> | void;
   onRemoveSavedGuide: (savedGuideId: string) => void;
   onOpenGuideSearchFromDetail: (query: string, scope: Scope, markerId?: string | null) => void;
   guideSearchOpen: boolean;
@@ -115,6 +118,7 @@ export default function AppOverlays({
               key={`${scope}-${selectedRegionId || 'empty'}-${markerModalOpen ? 'open' : 'closed'}`}
               scope={scope}
               regions={regions}
+              trips={store.trips ?? []}
               initialValue={
                 selectedRegion
                   ? {
@@ -157,6 +161,7 @@ export default function AppOverlays({
       <MarkerDetailPanel
         marker={detailMarker}
         user={detailUser}
+        trips={store.trips ?? []}
         relatedGuides={detailMarkerGuides}
         open={detailMarker !== null}
         canEdit={detailMarker?.userId === activeUserId}

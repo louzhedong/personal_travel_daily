@@ -160,8 +160,10 @@ describe('App auth and guide permissions', () => {
         username: 'demo',
         role: 'admin',
         createdAt: '2026-04-22T00:00:00.000Z',
+        trips: [],
         companions: [],
         stats: {
+          tripCount: 0,
           companionCount: 0,
           markerCount: 0,
           savedGuideCount: 0,

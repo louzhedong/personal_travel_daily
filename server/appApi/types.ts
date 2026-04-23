@@ -14,9 +14,20 @@ export interface UserProfileDto {
   color: string;
 }
 
+export interface TripDto {
+  id: string;
+  name: string;
+  coverImageUrl?: string;
+  note: string;
+  startsAt: string;
+  endsAt: string;
+  createdAt: string;
+}
+
 export interface VisitMarkerDto {
   id: string;
   userId: string;
+  tripId?: string;
   scope: Scope;
   scopeId: string;
   scopeName: string;
@@ -93,6 +104,7 @@ export interface GuideSearchHistoryMutationResponseDto {
 
 export interface TravelStoreDto {
   users: UserProfileDto[];
+  trips: TripDto[];
   markers: VisitMarkerDto[];
   activeUserId: string;
   savedGuides: SavedGuideDto[];
@@ -114,6 +126,7 @@ export interface AuthResponseDto {
 
 export interface AdminMarkerNodeDto {
   id: string;
+  tripId?: string;
   scope: Scope;
   scopeId: string;
   scopeName: string;
@@ -122,6 +135,16 @@ export interface AdminMarkerNodeDto {
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;
+  createdAt: string;
+}
+
+export interface AdminTripNodeDto {
+  id: string;
+  name: string;
+  coverImageUrl?: string;
+  note: string;
+  startsAt: string;
+  endsAt: string;
   createdAt: string;
 }
 
@@ -156,8 +179,10 @@ export interface AdminAccountNodeDto {
   username: string;
   role: AccountRoleDto;
   createdAt: string;
+  trips: AdminTripNodeDto[];
   companions: AdminCompanionNodeDto[];
   stats: {
+    tripCount: number;
     companionCount: number;
     markerCount: number;
     savedGuideCount: number;

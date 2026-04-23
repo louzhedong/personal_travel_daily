@@ -1055,13 +1055,13 @@ model GuideSearchHistory {
 - 当前主业务 API 已支持基础登录、注册、会话恢复与退出，但仍以单仓库内置账户种子为起点，暂未扩展到账号设置、多设备同步或更复杂的安全策略
 - 当前旅伴只支持新增与更新，未开放删除/归档接口
 - 当前 Prisma 已引入首份正式 migration 历史，开发默认走 `db:migrate`
-- 当前本地 MySQL 可通过 Docker 或 Homebrew 启动，但安全初始化仍需要开发者按本机环境自行执行
+- 当前本地 MySQL 统一通过 Docker Compose 启动
 
 ## 后续待办
 
 - [x] 增加一键联调脚本，串起 MySQL、`app-api`、`guide-api` 与前端 dev server
-- [x] 增加本地环境排查文档，覆盖 `brew services`、端口占用、`DATABASE_URL`、Prisma 连接错误
-- [x] 增加 MySQL `root` 安全初始化和本地账号权限收敛说明
+- [x] 增加本地环境排查文档，覆盖 Docker Compose、端口占用、`DATABASE_URL`、Prisma 连接错误
+- [x] 收敛本地 MySQL 到 Docker Compose，数据库账号由 `docker-compose.yml` 管理
 - 若后续需要旅伴删除，补归档/重分配记录策略，再开放删除接口
 
 ## Migration 工作流

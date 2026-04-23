@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { uploadImageToImgBB } from '../lib/imageUpload';
-import TravelIcon from './TravelIcon';
-import type { SavedGuide, UserProfile, VisitMarker } from '../types';
+import FancySelect from './ui/FancySelect';
+import TravelIcon from './ui/TravelIcon';
+import type { SavedGuide, TripCollection, UserProfile, VisitMarker } from '../types';
 
 function formatVisitedRange(marker: VisitMarker) {
   return marker.visitedStartAt === marker.visitedEndAt
@@ -26,7 +27,11 @@ interface MarkerDetailPanelProps {
   open: boolean;
   canEdit: boolean;
   onClose: () => void;
-  onUpdate: (markerId: string, updates: { note: string; imageUrls?: string[] }) => Promise<void> | void;
+  trips?: TripCollection[];
+  onUpdate: (
+    markerId: string,
+    updates: { note: string; imageUrls?: string[]; tripId?: string | null },
+  ) => Promise<void> | void;
   relatedGuides?: SavedGuide[];
   onRemoveRelatedGuide?: (savedGuideId: string) => void;
   onOpenGuideSearch?: (query: string, scope: VisitMarker['scope']) => void;
@@ -38,6 +43,7 @@ export function MarkerDetailPanel({
   open,
   canEdit,
   onClose,
+  trips = [],
   onUpdate,
   relatedGuides = [],
   onRemoveRelatedGuide,
@@ -46,6 +52,7 @@ export function MarkerDetailPanel({
   const [isEditing, setIsEditing] = useState(false);
   const [draftNote, setDraftNote] = useState('');
   const [draftImageUrls, setDraftImageUrls] = useState<string[]>([]);
+  const [draftTripId, setDraftTripId] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState('');
@@ -58,6 +65,7 @@ export function MarkerDetailPanel({
     }
     setDraftNote(marker.note);
     setDraftImageUrls(marker.imageUrls ?? []);
+    setDraftTripId(marker.tripId ?? '');
     setIsEditing(false);
     setEditError('');
     setSaveFeedback('');
@@ -82,8 +90,11 @@ export function MarkerDetailPanel({
   const normalizedDraftNote = draftNote.trim();
   const originalNote = marker?.note.trim() ?? '';
   const originalImageUrls = marker?.imageUrls ?? [];
+  const originalTripId = marker?.tripId ?? '';
+  const currentTrip = marker?.tripId ? trips.find((trip) => trip.id === marker.tripId) : undefined;
   const hasChanged =
     normalizedDraftNote !== originalNote ||
+    draftTripId !== originalTripId ||
     draftImageUrls.length !== originalImageUrls.length ||
     draftImageUrls.some((item, index) => item !== originalImageUrls[index]);
   const canSave = hasChanged && !saving && !uploadingImage;
@@ -159,6 +170,7 @@ export function MarkerDetailPanel({
       await onUpdate(marker.id, {
         note: trimmedNote,
         imageUrls: draftImageUrls.length > 0 ? draftImageUrls : undefined,
+        tripId: draftTripId || null,
       });
       setIsEditing(false);
       setSaveFeedback('已保存修改');
@@ -244,6 +256,7 @@ export function MarkerDetailPanel({
               </span>
               <span className="marker-date-badge">{formatVisitedRange(marker)}</span>
               {tripDays ? <span className="detail-trip-days">{tripDays} 天旅程</span> : null}
+              {currentTrip ? <span className="detail-trip-days">{currentTrip.name}</span> : null}
             </div>
           </div>
         </div>
@@ -321,6 +334,29 @@ export function MarkerDetailPanel({
                 placeholder="补充这次旅行中最值得留下的记忆"
               />
             </label>
+            {trips.length > 0 ? (
+              <label className="field">
+                <span className="field-label">所属行程</span>
+                <FancySelect
+                  value={draftTripId}
+                  onChange={(nextTripId) => {
+                    setDraftTripId(nextTripId);
+                    setEditError('');
+                    setSaveFeedback('');
+                  }}
+                  placeholder="选择所属行程"
+                  ariaLabel="所属行程"
+                  options={[
+                    { value: '', label: '暂不归入行程' },
+                    ...trips.map((trip) => ({
+                      value: trip.id,
+                      label: trip.name,
+                    })),
+                  ]}
+                  triggerClassName="marker-form-select"
+                />
+              </label>
+            ) : null}
             <div className="detail-edit-subsection">
               <div className="detail-section-heading">
                 <strong>旅行图片</strong>
@@ -492,6 +528,7 @@ export function MarkerDetailPanel({
                 onClick={() => {
                   setDraftNote(marker.note);
                   setDraftImageUrls(marker.imageUrls ?? []);
+                  setDraftTripId(marker.tripId ?? '');
                   setEditError('');
                   setSaveFeedback('');
                   setIsEditing(false);

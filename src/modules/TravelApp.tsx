@@ -124,6 +124,7 @@ function TravelApp({ account, onLogout, onOpenAdmin, entryMessage }: TravelAppPr
     activeUser,
     handleSwitchUser,
     handleCreateUser,
+    handleCreateTrip,
     handleSubmitMarker,
     handleDeleteMarker,
     handleUpdateMarker,
@@ -210,6 +211,7 @@ function TravelApp({ account, onLogout, onOpenAdmin, entryMessage }: TravelAppPr
         regions={regionOptions}
         currentMarkers={currentMarkers}
         allMarkers={store.markers}
+        trips={store.trips ?? []}
         users={store.users}
         activeUserId={store.activeUserId}
         activeUserName={activeUser?.name}
@@ -222,6 +224,7 @@ function TravelApp({ account, onLogout, onOpenAdmin, entryMessage }: TravelAppPr
         onOpenDataSync={() => setDataSyncOpen(true)}
         onSwitchUser={handleSwitchUser}
         onCreateUser={handleCreateUser}
+        onCreateTrip={handleCreateTrip}
         onOpenMarkerFromTimeline={handleFocusMarkerFromTimeline}
         onOpenMarkerFromGuide={handleFocusMarkerFromGuide}
         onRemoveSavedGuide={handleRemoveSavedGuide}

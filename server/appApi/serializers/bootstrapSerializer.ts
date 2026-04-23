@@ -2,6 +2,7 @@ import type {
   GuideSearchHistory,
   SavedGuide,
   TravelCompanion,
+  Trip,
   VisitMarker,
   VisitMarkerImage,
 } from '@prisma/client';
@@ -19,6 +20,7 @@ import type {
   SavedGuideMutationResponseDto,
   SavedGuideDto,
   TravelStoreDto,
+  TripDto,
   UserProfileDto,
   VisitMarkerDto,
 } from '../types.js';
@@ -43,12 +45,25 @@ function serializeCompanion(companion: TravelCompanion): UserProfileDto {
   };
 }
 
+function serializeTrip(trip: Trip): TripDto {
+  return {
+    id: trip.id,
+    name: trip.name,
+    coverImageUrl: trip.coverImageUrl ?? undefined,
+    note: trip.note,
+    startsAt: toDateOnlyString(trip.startsAt),
+    endsAt: toDateOnlyString(trip.endsAt),
+    createdAt: toIsoString(trip.createdAt),
+  };
+}
+
 function serializeMarker(marker: MarkerWithImages): VisitMarkerDto {
   const imageUrls = marker.images.map((image) => image.imageUrl).filter(Boolean);
 
   return {
     id: marker.id,
     userId: marker.companionId,
+    tripId: marker.tripId ?? undefined,
     scope: marker.scope,
     scopeId: marker.scopeId,
     scopeName: marker.scopeName,
@@ -193,6 +208,7 @@ export function serializeGuideSearchHistoryMutation(
 
 export function serializeBootstrapStore(input: {
   users: TravelCompanion[];
+  trips: Trip[];
   markers: MarkerWithImages[];
   activeUserId: string;
   savedGuides: SavedGuide[];
@@ -200,6 +216,7 @@ export function serializeBootstrapStore(input: {
 }): TravelStoreDto {
   return {
     users: input.users.map(serializeCompanion),
+    trips: input.trips.map(serializeTrip),
     markers: input.markers.map(serializeMarker),
     activeUserId: input.activeUserId,
     savedGuides: input.savedGuides.map(serializeSavedGuideItem),
