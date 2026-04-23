@@ -17,6 +17,8 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
   Updated README and the project overview docs with the refactored module responsibilities and development guidance.
 - 补充协作约定：PR 标题、PR 正文、CHANGELOG 和面向协作的文档更新需保持中英双语。  
   Added a collaboration rule requiring bilingual Chinese/English PR titles, PR bodies, CHANGELOG entries, and collaboration-facing documentation updates.
+- 补充发布约定：PR 默认直接创建为 Ready for review，除非用户明确要求 Draft。  
+  Added a publishing rule that PRs should be created as ready for review by default unless the user explicitly asks for a draft.
 
 ### Verified / 已验证
 
