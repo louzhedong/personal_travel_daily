@@ -137,6 +137,8 @@ describe('TravelMap', () => {
         activeUserId="u1"
         onScopeChange={() => {}}
         onSelectRegion={() => {}}
+        onOpenSelectedRegionComposer={() => {}}
+        onClearSelectedRegion={() => {}}
       />,
     );
     expect(await screen.findByText('Bigland')).toBeInTheDocument();
@@ -163,6 +165,8 @@ describe('TravelMap', () => {
         activeUserId="u1"
         onScopeChange={() => {}}
         onSelectRegion={onSelectRegion}
+        onOpenSelectedRegionComposer={() => {}}
+        onClearSelectedRegion={() => {}}
       />,
     );
 
@@ -189,6 +193,8 @@ describe('TravelMap', () => {
         activeUserId="u1"
         onScopeChange={() => {}}
         onSelectRegion={() => {}}
+        onOpenSelectedRegionComposer={() => {}}
+        onClearSelectedRegion={() => {}}
       />,
     );
 
@@ -217,6 +223,8 @@ describe('TravelMap', () => {
         activeUserId="u1"
         onScopeChange={() => {}}
         onSelectRegion={() => {}}
+        onOpenSelectedRegionComposer={() => {}}
+        onClearSelectedRegion={() => {}}
       />,
     );
 

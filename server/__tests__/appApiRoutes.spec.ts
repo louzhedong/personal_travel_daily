@@ -6,6 +6,8 @@ import { AppApiError } from '../appApi/errors.js';
 const mocks = vi.hoisted(() => ({
   getBootstrapPayloadMock: vi.fn(),
   getAdminOverviewMock: vi.fn(),
+  getStatsOverviewMock: vi.fn(),
+  getTripDetailMock: vi.fn(),
   createCompanionRecordMock: vi.fn(),
   updateCompanionRecordMock: vi.fn(),
   createMarkerRecordMock: vi.fn(),
@@ -31,6 +33,14 @@ vi.mock('../appApi/services/bootstrapService.js', () => ({
 
 vi.mock('../appApi/services/adminService.js', () => ({
   getAdminOverview: mocks.getAdminOverviewMock,
+}));
+
+vi.mock('../appApi/services/statsService.js', () => ({
+  getStatsOverview: mocks.getStatsOverviewMock,
+}));
+
+vi.mock('../appApi/services/tripDetailService.js', () => ({
+  getTripDetail: mocks.getTripDetailMock,
 }));
 
 vi.mock('../appApi/services/companionService.js', () => ({
@@ -184,6 +194,106 @@ describe('app api routes', () => {
       expect(response.statusCode).toBe(200);
       expect(response.json().accounts[0].role).toBe('admin');
       expect(mocks.getAdminOverviewMock).toHaveBeenCalledTimes(1);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('returns stats overview payload for authenticated accounts', async () => {
+    mocks.getStatsOverviewMock.mockResolvedValue({
+      filters: {
+        year: 'all',
+        scope: 'all',
+      },
+      availableYears: ['2026'],
+      companions: [{ id: 'user-alice', name: '小悠', color: '#2563eb' }],
+      trips: [],
+      summary: {
+        totalTrips: 1,
+        totalMarkers: 2,
+        totalTravelDays: 4,
+        totalCities: 2,
+        totalRegions: 2,
+        totalCountries: 0,
+        activeCompanions: 1,
+        longestTripDays: 4,
+      },
+      yearlySeries: [{ year: '2026', markerCount: 2, travelDays: 4 }],
+      monthlyDistribution: [{ month: '05', markerCount: 2, travelDays: 4 }],
+      topRegions: [{ scopeId: 'zj', scopeName: '浙江', scope: 'domestic', markerCount: 2 }],
+      topCities: [{ city: '杭州', scopeName: '浙江', scope: 'domestic', markerCount: 2 }],
+      companionRanking: [
+        {
+          companionId: 'user-alice',
+          companionName: '小悠',
+          color: '#2563eb',
+          markerCount: 2,
+          travelDays: 4,
+        },
+      ],
+      tripRanking: [],
+      tripDetails: [],
+      tripHighlights: {},
+      heatmap: [{ scopeId: 'zj', scopeName: '浙江', scope: 'domestic', intensity: 5, markerCount: 2 }],
+      generatedAt: '2026-04-22T00:00:00.000Z',
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/stats/overview?scope=domestic&year=2026',
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mocks.getStatsOverviewMock).toHaveBeenCalledWith(currentAccount, {
+        scope: 'domestic',
+        year: '2026',
+      });
+      expect(response.json().summary.totalMarkers).toBe(2);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('returns trip detail payload for authenticated accounts', async () => {
+    mocks.getTripDetailMock.mockResolvedValue({
+      trip: {
+        id: 'trip-1',
+        name: '江南春游',
+        note: '杭州与苏州周末行',
+        startsAt: '2026-05-01',
+        endsAt: '2026-05-03',
+        createdAt: '2026-04-22T00:00:00.000Z',
+      },
+      summary: {
+        markerCount: 2,
+        travelDays: 3,
+        cityCount: 2,
+        regionCount: 2,
+        companionCount: 1,
+        guideCount: 1,
+        photoCount: 2,
+      },
+      companions: [{ id: 'user-alice', name: '小悠', color: '#2563eb', markerCount: 2 }],
+      markers: [],
+      photos: [],
+      guides: [],
+      meta: {
+        generatedAt: '2026-04-22T00:00:00.000Z',
+      },
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/trips/trip-1/detail',
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mocks.getTripDetailMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1');
+      expect(response.json().trip.name).toBe('江南春游');
     } finally {
       await app.close();
     }

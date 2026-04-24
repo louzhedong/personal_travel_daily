@@ -17,10 +17,11 @@ interface TravelAppProps {
   account: AuthAccount;
   onLogout: () => Promise<void> | void;
   onOpenAdmin?: () => void;
+  onOpenStats?: () => void;
   entryMessage?: string | null;
 }
 
-function TravelApp({ account, onLogout, onOpenAdmin, entryMessage }: TravelAppProps) {
+function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, entryMessage }: TravelAppProps) {
   const [store, setStore] = useState<TravelStore>(() => createDefaultStore());
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [detailMarkerId, setDetailMarkerId] = useState<string | null>(null);
@@ -93,8 +94,11 @@ function TravelApp({ account, onLogout, onOpenAdmin, entryMessage }: TravelAppPr
     setSelectedRegionId,
     selectedRegion,
     currentMarkers,
+    visibleMarkers,
     handleScopeChange,
     handleSelectRegion,
+    handleOpenSelectedRegionComposer,
+    handleClearSelectedRegion,
   } = useMapContext({
     markers: store.markers,
     setMessage,
@@ -216,23 +220,28 @@ function TravelApp({ account, onLogout, onOpenAdmin, entryMessage }: TravelAppPr
         account={account}
         onLogout={onLogout}
         onOpenAdmin={onOpenAdmin}
+        onOpenStats={onOpenStats}
       />
 
-      <StatsPanel scope={scope} markers={currentMarkers} users={store.users} />
+      <StatsPanel scope={scope} markers={visibleMarkers} users={store.users} />
 
       <AppContent
         scope={scope}
         regions={regionOptions}
-        currentMarkers={currentMarkers}
+        currentMarkers={visibleMarkers}
+        mapMarkers={currentMarkers}
         allMarkers={store.markers}
         trips={store.trips ?? []}
         users={store.users}
         activeUserId={store.activeUserId}
         activeUserName={activeUser?.name}
         selectedRegionId={selectedRegionId}
+        selectedRegionName={selectedRegion?.name}
         savedGuides={store.savedGuides}
         onScopeChange={handleScopeChange}
         onSelectRegion={handleSelectRegion}
+        onOpenSelectedRegionComposer={handleOpenSelectedRegionComposer}
+        onClearSelectedRegion={handleClearSelectedRegion}
         onRequestDeleteMarker={handleRequestDeleteMarker}
         onViewMarkerDetail={setDetailMarkerId}
         onFocusSearchResult={handleFocusMarkerFromSearch}

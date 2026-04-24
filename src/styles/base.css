@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   font-family: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -28,6 +28,8 @@
 
 * {
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 html,
@@ -44,7 +46,8 @@ body {
 }
 
 html::-webkit-scrollbar,
-body::-webkit-scrollbar {
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
   width: 0;
   height: 0;
   display: none;
@@ -60,4 +63,3 @@ textarea {
 button {
   cursor: pointer;
 }
-

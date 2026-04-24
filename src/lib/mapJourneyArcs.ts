@@ -1,4 +1,5 @@
 import type { VisitMarker } from '../types';
+import { resolveMarkerMapRegionId } from './mapRegionResolver';
 import { sortMarkersAsc } from './markerSorting';
 
 export interface JourneyArc {
@@ -26,8 +27,9 @@ export function buildJourneyArcs(input: {
   currentScale: number;
   markers: VisitMarker[];
   pointSources: JourneyPointSource[];
+  mapScope: VisitMarker['scope'];
 }) {
-  const { activeUserId, currentScale, markers, pointSources } = input;
+  const { activeUserId, currentScale, markers, pointSources, mapScope } = input;
   const pointsByRegionId = new Map<
     string,
     {
@@ -56,13 +58,14 @@ export function buildJourneyArcs(input: {
   const orderedMarkers = [...activeUserMarkers].sort(sortMarkersAsc);
   const points = orderedMarkers
     .map((marker) => {
-      const regionPoint = pointsByRegionId.get(marker.scopeId);
+      const regionId = resolveMarkerMapRegionId(marker, mapScope);
+      const regionPoint = pointsByRegionId.get(regionId) ?? pointsByRegionId.get(marker.scopeId);
       if (!regionPoint) return null;
       const userIndex = regionPoint.users.indexOf(activeUserId);
       if (userIndex === -1) return null;
       return {
         markerId: marker.id,
-        regionId: marker.scopeId,
+        regionId: pointsByRegionId.has(regionId) ? regionId : marker.scopeId,
         scopeName: marker.scopeName,
         visitedStartAt: marker.visitedStartAt,
         x: regionPoint.x + userIndex * 12 - ((regionPoint.users.length - 1) * 6),

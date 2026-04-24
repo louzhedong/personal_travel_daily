@@ -11,8 +11,15 @@ import {
   deleteTripCollection,
   updateTripCollection,
 } from '../services/tripService.js';
+import { getTripDetail } from '../services/tripDetailService.js';
 
 export async function registerTripRoutes(app: FastifyInstance) {
+  app.get('/api/trips/:id/detail', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripParamsSchema, request.params);
+    return getTripDetail(account.id, params.id);
+  });
+
   app.post('/api/trips', async (request) => {
     const account = await requireAuthenticatedAccount(request);
     const body = parseWithSchema(createTripBodySchema, request.body);

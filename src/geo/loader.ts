@@ -51,7 +51,7 @@ function reverseChinaGeometry(geometry: unknown) {
   return geometry;
 }
 
-function normalizeChinaName(rawName: string) {
+export function normalizeChinaName(rawName: string) {
   return rawName
     .replace(/维吾尔自治区$/, '')
     .replace(/壮族自治区$/, '')
@@ -109,23 +109,28 @@ async function loadWorld(): Promise<LoadedFeature[]> {
       geometry: unknown;
     }>;
   };
-  worldCache = worldGeo.features.map((feature) => {
-    const name = String(feature.properties?.name ?? '');
-    // d3-geo 基于球面面积判断内外环；若一个国家被误判成“超过半个地球”，说明环方向需要纠正。
-    const needsFix = geoArea(feature as never) > 2 * Math.PI;
-    const fixed =
-      needsFix
-        ? {
-            ...feature,
-            geometry: reverseChinaGeometry(feature.geometry),
-          }
-        : feature;
-    return {
-      id: name,
-      name,
-      feature: fixed,
-    };
-  });
+  worldCache = worldGeo.features
+    .filter((feature) => {
+      const name = String(feature.properties?.name ?? '');
+      return name !== '南极洲';
+    })
+    .map((feature) => {
+      const name = String(feature.properties?.name ?? '');
+      // d3-geo 基于球面面积判断内外环；若一个国家被误判成“超过半个地球”，说明环方向需要纠正。
+      const needsFix = geoArea(feature as never) > 2 * Math.PI;
+      const fixed =
+        needsFix
+          ? {
+              ...feature,
+              geometry: reverseChinaGeometry(feature.geometry),
+            }
+          : feature;
+      return {
+        id: name,
+        name,
+        feature: fixed,
+      };
+    });
   return worldCache;
 }
 

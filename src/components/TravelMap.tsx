@@ -7,6 +7,7 @@ import TravelIcon from './ui/TravelIcon';
 import { pathFor, projectionFor } from '../geo/projection';
 import { loadGeoForScope, type LoadedFeature } from '../geo/loader';
 import { buildJourneyArcs, type JourneyArc } from '../lib/mapJourneyArcs';
+import { resolveMarkerMapRegionId } from '../lib/mapRegionResolver';
 import { sortMarkersDesc } from '../lib/markerSorting';
 import type { RegionOption, Scope, UserProfile, VisitMarker } from '../types';
 
@@ -14,8 +15,6 @@ interface RenderSegment {
   key: string;
   d: string;
 }
-
-const WORLD_CHINA_REGION_ID = '中国';
 
 interface StaticRenderItem {
   item: {
@@ -34,6 +33,46 @@ interface RenderItem extends StaticRenderItem {
   uniqueUsers: string[];
   isActive: boolean;
   projectedArea: number;
+  regionStyle: CSSProperties;
+}
+
+const INTERNATIONAL_REGION_HUES = [18, 35, 52, 142, 196, 222, 262, 322];
+
+function hashString(value: string) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
+
+function buildRegionStyle(scope: Scope, regionId: string, markerCount: number, maxCount: number): CSSProperties {
+  if (markerCount <= 0 || maxCount <= 0) {
+    return {};
+  }
+
+  const ratio = Math.max(0, Math.min(1, markerCount / maxCount));
+
+  if (scope === 'international') {
+    const hue = INTERNATIONAL_REGION_HUES[hashString(regionId) % INTERNATIONAL_REGION_HUES.length];
+    const fillAlpha = 0.18 + ratio * 0.22;
+    const strokeAlpha = 0.58 + ratio * 0.2;
+    return {
+      '--region-fill': `hsla(${hue}, 82%, 58%, ${fillAlpha})`,
+      '--region-stroke': `hsla(${hue}, 76%, 38%, ${strokeAlpha})`,
+      '--region-stroke-width': `${1.05 + ratio * 0.55}`,
+      '--region-fill-hover': `hsla(${hue}, 88%, 54%, ${Math.min(0.84, fillAlpha + 0.2)})`,
+      '--region-stroke-hover': `hsla(${hue}, 82%, 30%, ${Math.min(0.96, strokeAlpha + 0.16)})`,
+    } as CSSProperties;
+  }
+
+  return {
+    '--region-fill': `rgba(20, 184, 166, ${0.14 + ratio * 0.18})`,
+    '--region-stroke': `rgba(13, 148, 136, ${0.52 + ratio * 0.24})`,
+    '--region-stroke-width': `${1 + ratio * 0.45}`,
+    '--region-fill-hover': `rgba(20, 184, 166, ${Math.min(0.46, 0.24 + ratio * 0.24)})`,
+    '--region-stroke-hover': `rgba(15, 118, 110, ${Math.min(0.92, 0.7 + ratio * 0.16)})`,
+  } as CSSProperties;
 }
 
 const MapPathLayer = memo(function MapPathLayer({
@@ -43,7 +82,7 @@ const MapPathLayer = memo(function MapPathLayer({
 }) {
   return (
     <>
-      {renderItems.map(({ item, region, regionMarkers, isActive }) => (
+      {renderItems.map(({ item, region, regionMarkers, isActive, regionStyle }) => (
         <g key={item.name} className={region ? 'region-group' : 'region-group disabled'}>
           {item.segments.map((segment) => {
             return (
@@ -60,6 +99,7 @@ const MapPathLayer = memo(function MapPathLayer({
                       ? 'map-region visited'
                       : 'map-region'
                 }
+                style={regionMarkers.length > 0 && !isActive ? regionStyle : undefined}
               />
             );
           })}
@@ -284,7 +324,10 @@ interface TravelMapProps {
   users: UserProfile[];
   activeUserId: string;
   selectedRegionId?: string;
+  selectedRegionName?: string;
   onSelectRegion: (region: RegionOption) => void;
+  onOpenSelectedRegionComposer: () => void;
+  onClearSelectedRegion: () => void;
   onScopeChange: (scope: Scope) => void;
 }
 
@@ -296,7 +339,10 @@ export function TravelMap({
   users,
   activeUserId,
   selectedRegionId,
+  selectedRegionName,
   onSelectRegion,
+  onOpenSelectedRegionComposer,
+  onClearSelectedRegion,
   onScopeChange,
 }: TravelMapProps) {
   const [hoverRegionId, setHoverRegionId] = useState<string | null>(null);
@@ -375,9 +421,9 @@ export function TravelMap({
   const markersByRegion = useMemo(() => {
     const result = new Map<string, VisitMarker[]>();
     const sourceMarkers = scope === 'international' && allMarkers ? allMarkers : markers;
+    const regionIdByName = new Map(regions.map((region) => [region.name, region.id]));
 
     sourceMarkers.forEach((marker) => {
-      const regionId = scope === 'international' && marker.scope === 'domestic' ? WORLD_CHINA_REGION_ID : marker.scopeId;
       if (scope === 'domestic' && marker.scope !== 'domestic') {
         return;
       }
@@ -385,13 +431,16 @@ export function TravelMap({
         return;
       }
 
+      const resolvedRegionId = resolveMarkerMapRegionId(marker, scope);
+      const regionId = regionIdByName.get(resolvedRegionId) ?? resolvedRegionId;
+
       const list = result.get(regionId) ?? [];
       list.push(marker);
       result.set(regionId, list);
     });
 
     return result;
-  }, [allMarkers, markers, scope]);
+  }, [allMarkers, markers, regions, scope]);
 
   const userColorMap = useMemo(
     () => new Map(users.map((item) => [item.id, item.color])),
@@ -487,6 +536,7 @@ export function TravelMap({
   ]);
 
   const renderItems = useMemo<RenderItem[]>(() => {
+    const maxMarkerCount = Math.max(...staticItems.map((item) => (item.region ? markersByRegion.get(item.region.id)?.length ?? 0 : 0)), 0);
     return staticItems.map((item) => {
       const regionMarkers = item.region ? markersByRegion.get(item.region.id) ?? [] : [];
       const uniqueUsers = Array.from(new Set(regionMarkers.map((marker) => marker.userId))).slice(0, 3);
@@ -497,9 +547,12 @@ export function TravelMap({
         uniqueUsers,
         isActive,
         projectedArea: item.baseArea * currentScale * currentScale,
+        regionStyle: item.region
+          ? buildRegionStyle(scope, item.region.id, regionMarkers.length, maxMarkerCount)
+          : {},
       };
     });
-  }, [currentScale, markersByRegion, selectedRegionId, staticItems]);
+  }, [currentScale, markersByRegion, scope, selectedRegionId, staticItems]);
 
   const cssVar = (vars: Record<string, string | number>) => vars as CSSProperties;
   const largeLabelItems = useMemo(
@@ -532,8 +585,9 @@ export function TravelMap({
       currentScale,
       markers,
       pointSources: renderItems,
+      mapScope: scope,
     });
-  }, [activeUserId, currentScale, markers, renderItems, showJourneyLines]);
+  }, [activeUserId, currentScale, markers, renderItems, scope, showJourneyLines]);
 
   const handleJourneyHover = (arc: JourneyArc, event: ReactMouseEvent<SVGPathElement>) => {
     setHoveredJourneyArc(arc);
@@ -824,7 +878,7 @@ export function TravelMap({
             </span>
             <h3>{scope === 'domestic' ? '国内旅行版图' : '世界旅行版图'}</h3>
           </div>
-          <p>点击地图区域即可打开标记表单，悬停可查看当前区域的标记数量。</p>
+          <p>点击地图区域会筛选当前区域；选中后可直接新增记录，悬停可查看当前区域的标记数量。</p>
         </div>
         <div className="map-heading-side">
           <div className="map-heading-controls">
@@ -906,6 +960,19 @@ export function TravelMap({
         </svg>
 
         <div className="map-top-right">
+          {selectedRegionId ? (
+            <div className="map-selection-card">
+              <strong>{selectedRegionName ?? selectedRegionId}</strong>
+              <div className="map-selection-actions">
+                <button type="button" className="map-selection-button" onClick={onOpenSelectedRegionComposer}>
+                  在此新增
+                </button>
+                <button type="button" className="map-selection-button is-secondary" onClick={onClearSelectedRegion}>
+                  清除筛选
+                </button>
+              </div>
+            </div>
+          ) : null}
           <div className="map-zoom-controls">
             <button
               type="button"
@@ -936,6 +1003,43 @@ export function TravelMap({
             <button type="button" className="map-zoom-button" aria-label="重置" onClick={onResetView}>
               ○
             </button>
+          </div>
+        </div>
+
+        <div className="map-bottom-right">
+          <div className="map-heat-legend-card">
+            <div className="map-heat-legend-title">颜色说明</div>
+            {scope === 'international' ? (
+              <div className="map-heat-legend-group">
+                <span className="map-heat-legend-label">未访问国家</span>
+                <div className="map-heat-legend-palette">
+                  <span className="map-heat-swatch is-empty" />
+                </div>
+              </div>
+            ) : null}
+            {scope === 'international' ? (
+              <div className="map-heat-legend-group">
+                <span className="map-heat-legend-label">色相区分国家</span>
+                <div className="map-heat-legend-palette">
+                  <span className="map-heat-dot is-blue" />
+                  <span className="map-heat-dot is-teal" />
+                  <span className="map-heat-dot is-violet" />
+                  <span className="map-heat-dot is-orange" />
+                </div>
+              </div>
+            ) : null}
+            <div className="map-heat-legend-group">
+              <span className="map-heat-legend-label">{scope === 'international' ? '同一国家示意色的深浅' : '深浅表示热度'}</span>
+              <div className="map-heat-legend-scale">
+                <span className={`map-heat-swatch ${scope === 'international' ? 'is-intl-low' : 'is-domestic-low'}`} />
+                <span className={`map-heat-swatch ${scope === 'international' ? 'is-intl-mid' : 'is-domestic-mid'}`} />
+                <span className={`map-heat-swatch ${scope === 'international' ? 'is-intl-high' : 'is-domestic-high'}`} />
+              </div>
+            </div>
+            <div className="map-heat-legend-copy">
+              <span>{scope === 'international' ? '先看色相，再看深浅' : '颜色越深，记录越多'}</span>
+              <small>{scope === 'international' ? '灰白底图表示未访问国家；不同国家有不同主色，同一国家颜色越深表示记录越多' : '国内省份使用统一色带，访问越多颜色越深'}</small>
+            </div>
           </div>
         </div>
 

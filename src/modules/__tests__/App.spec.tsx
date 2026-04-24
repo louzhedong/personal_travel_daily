@@ -105,6 +105,14 @@ vi.mock('../../components/StatsPanel', () => ({
   default: () => <div data-testid="stats-panel">stats-panel</div>,
 }));
 
+vi.mock('../stats/TripStatsCenter', () => ({
+  default: () => <div data-testid="trip-stats-center">trip-stats-center</div>,
+}));
+
+vi.mock('../trips/TripDetailPage', () => ({
+  default: ({ tripId }: { tripId: string }) => <div data-testid="trip-detail-page">trip-detail-{tripId}</div>,
+}));
+
 vi.mock('../../components/UserManager', () => ({
   default: () => <div data-testid="user-manager">user-manager</div>,
 }));
@@ -318,6 +326,25 @@ describe('App auth and guide permissions', () => {
     expect(window.location.pathname).toBe('/admin');
   });
 
+  it('allows authenticated users to access /trips/:id and renders the trip detail page', async () => {
+    window.history.replaceState({}, '', '/trips/trip-1');
+
+    render(<App />);
+
+    expect(await screen.findByTestId('trip-detail-page')).toHaveTextContent('trip-detail-trip-1');
+    expect(window.location.pathname).toBe('/trips/trip-1');
+  });
+
+  it('allows authenticated users to access /stats and renders the standalone stats page', async () => {
+    window.history.replaceState({}, '', '/stats');
+
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: '行程统计中心' })).toBeInTheDocument();
+    expect(screen.getByTestId('trip-stats-center')).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/stats');
+  });
+
   it('redirects non-admin users from /admin back to the main app', async () => {
     window.history.replaceState({}, '', '/admin');
     authApiMock.fetchSession.mockResolvedValueOnce({
@@ -333,6 +360,16 @@ describe('App auth and guide permissions', () => {
 
     expect(await screen.findByText('当前账号没有后台权限，已为你返回旅行主页。')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/');
+  });
+
+  it('redirects unauthenticated users from /trips/:id to /login', async () => {
+    window.history.replaceState({}, '', '/trips/trip-1');
+    authApiMock.fetchSession.mockResolvedValueOnce(unauthenticatedSession);
+
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: '登录 Voyage Atlas' })).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/login');
   });
 
   it('allows searching from another user marker but prevents link management', async () => {

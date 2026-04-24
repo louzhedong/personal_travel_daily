@@ -220,6 +220,122 @@
 - `403 FORBIDDEN`
 - `503 DATABASE_UNAVAILABLE`
 
+## 行程统计中心接口
+
+### `GET /api/stats/overview`
+
+用途：
+
+- 返回当前登录账号在指定筛选条件下的统计中心聚合结果
+- 供首页第二屏“行程统计中心”使用
+
+权限：
+
+- 需要登录
+
+查询参数：
+
+- `year`：可选，格式 `YYYY`
+- `scope`：可选，`all | domestic | international`
+- `companionId`：可选，单旅伴筛选
+- `tripId`：可选，单行程筛选；传 `unassigned` 表示未归入行程
+
+成功响应示例：
+
+```json
+{
+  "filters": {
+    "year": "all",
+    "scope": "all"
+  },
+  "availableYears": ["2026", "2025"],
+  "companions": [
+    {
+      "id": "user-alice",
+      "name": "小悠",
+      "color": "#2563eb"
+    }
+  ],
+  "trips": [
+    {
+      "id": "trip-2026-spring",
+      "name": "2026 江南春游",
+      "startsAt": "2026-05-01",
+      "endsAt": "2026-05-03"
+    }
+  ],
+  "summary": {
+    "totalTrips": 1,
+    "totalMarkers": 2,
+    "totalTravelDays": 4,
+    "totalCities": 2,
+    "totalRegions": 2,
+    "totalCountries": 0,
+    "activeCompanions": 1,
+    "longestTripDays": 4
+  },
+  "yearlySeries": [
+    {
+      "year": "2026",
+      "markerCount": 2,
+      "travelDays": 4
+    }
+  ],
+  "monthlyDistribution": [
+    {
+      "month": "05",
+      "markerCount": 2,
+      "travelDays": 4
+    }
+  ],
+  "topRegions": [
+    {
+      "scopeId": "zj",
+      "scopeName": "浙江",
+      "scope": "domestic",
+      "markerCount": 2
+    }
+  ],
+  "topCities": [
+    {
+      "city": "杭州",
+      "scopeName": "浙江",
+      "scope": "domestic",
+      "markerCount": 2
+    }
+  ],
+  "companionRanking": [
+    {
+      "companionId": "user-alice",
+      "companionName": "小悠",
+      "color": "#2563eb",
+      "markerCount": 2,
+      "travelDays": 4
+    }
+  ],
+  "tripRanking": [],
+  "tripDetails": [],
+  "tripHighlights": {},
+  "heatmap": [
+    {
+      "scopeId": "zj",
+      "scopeName": "浙江",
+      "scope": "domestic",
+      "intensity": 5,
+      "markerCount": 2
+    }
+  ],
+  "generatedAt": "2026-05-06T00:00:00.000Z"
+}
+```
+
+错误：
+
+- `400 INVALID_REQUEST`
+- `401 UNAUTHORIZED`
+- `404 NOT_FOUND`
+- `503 DATABASE_UNAVAILABLE`
+
 ## 旅伴接口
 
 ### `POST /api/companions`
@@ -308,6 +424,111 @@
 
 - 行程软删除
 - 已归入该行程的旅行记录会保留，但解除 `tripId`
+
+### `GET /api/trips/:id/detail`
+
+用途：
+
+- 返回当前登录账号下某个行程的只读详情聚合数据
+- 供首页统计中心点击行程后进入详情页使用
+
+权限：
+
+- 需要登录
+
+路径参数：
+
+- `id`：行程 ID
+
+成功响应示例：
+
+```json
+{
+  "trip": {
+    "id": "trip-2026-spring",
+    "name": "2026 江南春游",
+    "note": "杭州和苏州周末行",
+    "startsAt": "2026-05-01",
+    "endsAt": "2026-05-03",
+    "createdAt": "2026-04-20T00:00:00.000Z"
+  },
+  "summary": {
+    "markerCount": 2,
+    "travelDays": 3,
+    "cityCount": 2,
+    "regionCount": 2,
+    "companionCount": 1,
+    "guideCount": 1,
+    "photoCount": 2
+  },
+  "companions": [
+    {
+      "id": "user-alice",
+      "name": "小悠",
+      "color": "#2563eb",
+      "markerCount": 2
+    }
+  ],
+  "markers": [
+    {
+      "id": "marker-1",
+      "companionId": "user-alice",
+      "companionName": "小悠",
+      "companionColor": "#2563eb",
+      "scope": "domestic",
+      "scopeId": "zj",
+      "scopeName": "浙江",
+      "city": "杭州",
+      "note": "西湖晚风",
+      "imageUrls": ["https://example.com/hangzhou-1.jpg"],
+      "visitedStartAt": "2026-05-01",
+      "visitedEndAt": "2026-05-02"
+    }
+  ],
+  "photos": [
+    {
+      "markerId": "marker-1",
+      "markerTitle": "浙江 · 杭州",
+      "imageUrl": "https://example.com/hangzhou-1.jpg",
+      "visitedStartAt": "2026-05-01",
+      "scopeName": "浙江",
+      "city": "杭州"
+    }
+  ],
+  "guides": [
+    {
+      "id": "saved-guide-1",
+      "markerId": "marker-1",
+      "keyword": "杭州周末",
+      "savedAt": "2026-05-05T00:00:00.000Z",
+      "result": {
+        "id": "guide-1",
+        "title": "杭州周末攻略",
+        "summary": "逛西湖、灵隐寺",
+        "sourceName": "Qyer",
+        "sourceUrl": "https://example.com/guide/1"
+      }
+    }
+  ],
+  "meta": {
+    "generatedAt": "2026-05-06T00:00:00.000Z"
+  }
+}
+```
+
+规则：
+
+- 仅返回当前账号可访问且未软删除的行程
+- 行程不存在、已删除或不属于当前账号时统一返回 `404 NOT_FOUND`
+- `guides` 会去重同一攻略的重复关联，优先保留最新保存记录
+- `photos` 仅包含当前行程记录上的图片
+
+错误：
+
+- `400 INVALID_REQUEST`
+- `401 UNAUTHORIZED`
+- `404 NOT_FOUND`
+- `503 DATABASE_UNAVAILABLE`
 
 ### `PATCH /api/companions/:id`
 

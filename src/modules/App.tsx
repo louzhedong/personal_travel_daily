@@ -4,41 +4,86 @@ import type { AuthAccount } from '../types';
 import AdminPage from './admin/AdminPage';
 import AuthPage from './auth/AuthPage';
 import TravelApp from './TravelApp';
+import StatsPage from './stats/StatsPage';
+import TripDetailPage from './trips/TripDetailPage';
 
-type RoutePath = '/' | '/login' | '/register' | '/admin';
+type AppRoute =
+  | { kind: 'home'; pathname: '/' }
+  | { kind: 'login'; pathname: '/login' }
+  | { kind: 'register'; pathname: '/register' }
+  | { kind: 'admin'; pathname: '/admin' }
+  | { kind: 'stats'; pathname: '/stats' }
+  | { kind: 'tripDetail'; pathname: string; tripId: string };
 
-function normalizePathname(pathname: string): RoutePath {
+function createHomeRoute(): AppRoute {
+  return { kind: 'home', pathname: '/' };
+}
+
+function createLoginRoute(): AppRoute {
+  return { kind: 'login', pathname: '/login' };
+}
+
+function createRegisterRoute(): AppRoute {
+  return { kind: 'register', pathname: '/register' };
+}
+
+function createAdminRoute(): AppRoute {
+  return { kind: 'admin', pathname: '/admin' };
+}
+
+function createStatsRoute(): AppRoute {
+  return { kind: 'stats', pathname: '/stats' };
+}
+
+function createTripDetailRoute(tripId: string): AppRoute {
+  return {
+    kind: 'tripDetail',
+    pathname: `/trips/${encodeURIComponent(tripId)}`,
+    tripId,
+  };
+}
+
+function normalizePathname(pathname: string): AppRoute {
+  const tripDetailMatch = pathname.match(/^\/trips\/([^/]+)$/);
+  if (tripDetailMatch) {
+    return createTripDetailRoute(decodeURIComponent(tripDetailMatch[1]));
+  }
+
   if (pathname === '/admin') {
-    return '/admin';
+    return createAdminRoute();
+  }
+
+  if (pathname === '/stats') {
+    return createStatsRoute();
   }
 
   if (pathname === '/register') {
-    return '/register';
+    return createRegisterRoute();
   }
 
   if (pathname === '/login' || pathname === '/auth') {
-    return '/login';
+    return createLoginRoute();
   }
 
-  return '/';
+  return createHomeRoute();
 }
 
-function replaceRoute(pathname: RoutePath) {
-  if (window.location.pathname !== pathname) {
-    window.history.replaceState({}, '', pathname);
+function replaceRoute(route: AppRoute) {
+  if (window.location.pathname !== route.pathname) {
+    window.history.replaceState({}, '', route.pathname);
   }
 }
 
 function App() {
-  const [pathname, setPathname] = useState<RoutePath>(() =>
-    typeof window === 'undefined' ? '/' : normalizePathname(window.location.pathname),
+  const [route, setRoute] = useState<AppRoute>(() =>
+    typeof window === 'undefined' ? createHomeRoute() : normalizePathname(window.location.pathname),
   );
   const [account, setAccount] = useState<AuthAccount | null>(null);
   const [loading, setLoading] = useState(true);
   const [entryMessage, setEntryMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const syncPathname = () => setPathname(normalizePathname(window.location.pathname));
+    const syncPathname = () => setRoute(normalizePathname(window.location.pathname));
     window.addEventListener('popstate', syncPathname);
     return () => {
       window.removeEventListener('popstate', syncPathname);
@@ -55,26 +100,30 @@ function App() {
         }
 
         setAccount(response.account);
-        let nextPath: RoutePath;
+        let nextRoute: AppRoute;
         if (!response.account) {
-          nextPath = pathname === '/register' ? '/register' : '/login';
-        } else if (pathname === '/admin' && response.account.role !== 'admin') {
-          nextPath = '/';
+          nextRoute = route.kind === 'register' ? createRegisterRoute() : createLoginRoute();
+        } else if (route.kind === 'admin' && response.account.role !== 'admin') {
+          nextRoute = createHomeRoute();
           setEntryMessage('当前账号没有后台权限，已为你返回旅行主页。');
-        } else if (pathname === '/admin' && response.account.role === 'admin') {
-          nextPath = '/admin';
+        } else if (route.kind === 'admin' && response.account.role === 'admin') {
+          nextRoute = createAdminRoute();
+        } else if (route.kind === 'tripDetail') {
+          nextRoute = createTripDetailRoute(route.tripId);
+        } else if (route.kind === 'stats') {
+          nextRoute = createStatsRoute();
         } else {
-          nextPath = '/';
+          nextRoute = createHomeRoute();
         }
-        replaceRoute(nextPath);
-        setPathname(nextPath);
+        replaceRoute(nextRoute);
+        setRoute(nextRoute);
       })
       .catch(() => {
         if (!cancelled) {
           setAccount(null);
-          const nextPath = pathname === '/register' ? '/register' : '/login';
-          replaceRoute(nextPath);
-          setPathname(nextPath);
+          const nextRoute = route.kind === 'register' ? createRegisterRoute() : createLoginRoute();
+          replaceRoute(nextRoute);
+          setRoute(nextRoute);
         }
       })
       .finally(() => {
@@ -91,8 +140,9 @@ function App() {
   const handleAuthenticated = (nextAccount: AuthAccount) => {
     setAccount(nextAccount);
     setEntryMessage(null);
-    replaceRoute('/');
-    setPathname('/');
+    const nextRoute = createHomeRoute();
+    replaceRoute(nextRoute);
+    setRoute(nextRoute);
   };
 
   const handleLogin = async (input: { username: string; password: string }) => {
@@ -109,8 +159,9 @@ function App() {
     await logout();
     setAccount(null);
     setEntryMessage(null);
-    replaceRoute('/login');
-    setPathname('/login');
+    const nextRoute = createLoginRoute();
+    replaceRoute(nextRoute);
+    setRoute(nextRoute);
   };
 
   if (loading) {
@@ -124,33 +175,72 @@ function App() {
     );
   }
 
-  if (!account || pathname === '/login' || pathname === '/register') {
+  if (!account || route.kind === 'login' || route.kind === 'register') {
     return (
       <AuthPage
-        mode={pathname === '/register' ? 'register' : 'login'}
+        mode={route.kind === 'register' ? 'register' : 'login'}
         onLogin={handleLogin}
         onRegister={handleRegister}
         onNavigateLogin={() => {
-          replaceRoute('/login');
-          setPathname('/login');
+          const nextRoute = createLoginRoute();
+          replaceRoute(nextRoute);
+          setRoute(nextRoute);
         }}
         onNavigateRegister={() => {
-          replaceRoute('/register');
-          setPathname('/register');
+          const nextRoute = createRegisterRoute();
+          replaceRoute(nextRoute);
+          setRoute(nextRoute);
         }}
       />
     );
   }
 
-  if (pathname === '/admin') {
+  if (route.kind === 'admin') {
     return (
       <AdminPage
         account={account}
         onLogout={handleLogout}
         onNavigateHome={() => {
           setEntryMessage(null);
-          replaceRoute('/');
-          setPathname('/');
+          const nextRoute = createHomeRoute();
+          replaceRoute(nextRoute);
+          setRoute(nextRoute);
+        }}
+      />
+    );
+  }
+
+  if (route.kind === 'tripDetail') {
+    return (
+      <TripDetailPage
+        account={account}
+        tripId={route.tripId}
+        onLogout={handleLogout}
+        onNavigateBack={() => {
+          setEntryMessage(null);
+          const nextRoute = createStatsRoute();
+          replaceRoute(nextRoute);
+          setRoute(nextRoute);
+        }}
+      />
+    );
+  }
+
+  if (route.kind === 'stats') {
+    return (
+      <StatsPage
+        account={account}
+        onLogout={handleLogout}
+        onNavigateHome={() => {
+          setEntryMessage(null);
+          const nextRoute = createHomeRoute();
+          replaceRoute(nextRoute);
+          setRoute(nextRoute);
+        }}
+        onOpenTripDetail={(tripId) => {
+          const nextRoute = createTripDetailRoute(tripId);
+          replaceRoute(nextRoute);
+          setRoute(nextRoute);
         }}
       />
     );
@@ -160,12 +250,18 @@ function App() {
     <TravelApp
       account={account}
       onLogout={handleLogout}
+      onOpenStats={() => {
+        const nextRoute = createStatsRoute();
+        replaceRoute(nextRoute);
+        setRoute(nextRoute);
+      }}
       onOpenAdmin={
         account.role === 'admin'
           ? () => {
               setEntryMessage(null);
-              replaceRoute('/admin');
-              setPathname('/admin');
+              const nextRoute = createAdminRoute();
+              replaceRoute(nextRoute);
+              setRoute(nextRoute);
             }
           : undefined
       }
