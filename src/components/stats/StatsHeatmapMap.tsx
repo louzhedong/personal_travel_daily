@@ -81,26 +81,15 @@ export default function StatsHeatmapMap({ scope, heatmap }: StatsHeatmapMapProps
 
     return features.map((feature) => {
       const item = featureKeyMap.get(feature.name);
-      const centroid = pathBuilder.centroid(feature.feature as never);
       return {
         id: feature.id,
         name: feature.name,
         path: pathBuilder(feature.feature as never) ?? '',
         item,
         tone: item ? getHeatmapTone(item.intensity) : 'is-muted',
-        centroid,
       };
     });
   }, [featureKeyMap, features, mapHeight, mapWidth, scope]);
-
-  const highlightedLabels = useMemo(
-    () =>
-      mapPaths
-        .filter((item) => item.item)
-        .sort((left, right) => (right.item?.markerCount ?? 0) - (left.item?.markerCount ?? 0))
-        .slice(0, scope === 'domestic' ? 10 : 8),
-    [mapPaths, scope],
-  );
 
   const hoveredItem = useMemo(
     () => items.find((item) => `${item.scope}:${item.scopeId}` === hoveredScopeId) ?? null,
@@ -132,7 +121,9 @@ export default function StatsHeatmapMap({ scope, heatmap }: StatsHeatmapMapProps
             <path
               key={item.id}
               d={item.path}
-              className={`stats-heatmap-shape ${item.tone}${item.item ? ' is-active' : ''}`}
+              className={`stats-heatmap-shape ${item.tone}${item.item ? ' is-active' : ''}${
+                item.item && hoveredScopeId === `${item.item.scope}:${item.item.scopeId}` ? ' is-hovered' : ''
+              }`}
               vectorEffect="non-scaling-stroke"
               onMouseEnter={() => setHoveredScopeId(item.item ? `${item.item.scope}:${item.item.scopeId}` : '')}
               onMouseLeave={() => setHoveredScopeId('')}
@@ -140,23 +131,6 @@ export default function StatsHeatmapMap({ scope, heatmap }: StatsHeatmapMapProps
               <title>{item.item ? getHeatmapLabel(item.item) : `${item.name} · 暂无记录`}</title>
             </path>
           ))}
-          {highlightedLabels.map((item) =>
-            item.item ? (
-              <g
-                key={`${item.id}-label`}
-                transform={`translate(${item.centroid[0]}, ${item.centroid[1]})`}
-                className="stats-heatmap-label-group"
-              >
-                <circle className={`stats-heatmap-label-dot ${item.tone}`} r={scope === 'domestic' ? 5.5 : 4.5} />
-                <text className="stats-heatmap-label-name" x={scope === 'domestic' ? 10 : 8} y={-2}>
-                  {item.item.scopeName}
-                </text>
-                <text className="stats-heatmap-label-value" x={scope === 'domestic' ? 10 : 8} y={12}>
-                  {item.item.markerCount}
-                </text>
-              </g>
-            ) : null,
-          )}
         </svg>
       </div>
 

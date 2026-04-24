@@ -138,4 +138,13 @@ describe('TripStatsCenter', () => {
 
     expect(onOpenTripDetail).toHaveBeenCalledWith('trip-1');
   });
+
+  it('opens the annual review for the active year', async () => {
+    const onOpenAnnualReview = vi.fn();
+    render(<TripStatsCenter onOpenAnnualReview={onOpenAnnualReview} />);
+
+    await userEvent.click(await screen.findByRole('button', { name: '查看 2026 年度回顾' }));
+
+    expect(onOpenAnnualReview).toHaveBeenCalledWith('2026');
+  });
 });

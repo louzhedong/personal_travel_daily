@@ -126,6 +126,29 @@
 .marker-list {
   display: grid;
   gap: 14px;
+  max-height: min(680px, calc(100vh - 180px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
+}
+
+.marker-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.marker-list::-webkit-scrollbar-track {
+  background: rgba(226, 232, 240, 0.62);
+  border-radius: 999px;
+}
+
+.marker-list::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.84);
+  border-radius: 999px;
+}
+
+.marker-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.9);
 }
 
 .marker-item {
@@ -349,6 +372,11 @@
 }
 
 @media (max-width: 720px) {
+  .marker-list {
+    max-height: 62vh;
+    padding-right: 4px;
+  }
+
   .marker-list-heading,
   .marker-list-controls,
   .marker-user-filter,

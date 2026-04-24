@@ -2,9 +2,10 @@ import type { GuideSearchScope, TravelScope } from '@prisma/client';
 import { createNotFoundError } from '../errors.js';
 import { getPrismaClient } from '../prisma.js';
 import { getStatsOverviewSource } from '../repositories/statsRepository.js';
-import type { StatsOverviewQuery } from '../schemas/stats.js';
+import type { AnnualReviewQuery, StatsOverviewQuery } from '../schemas/stats.js';
 import { serializeStatsOverview, type StatsOverviewModel } from '../serializers/statsSerializer.js';
 import type { AuthenticatedAccount } from '../auth/requestAuth.js';
+import type { AnnualReviewResponseDto } from '../types.js';
 
 type RawStatsSource = NonNullable<Awaited<ReturnType<typeof getStatsOverviewSource>>>;
 type RawCompanion = RawStatsSource['companions'][number];
@@ -362,6 +363,95 @@ function buildHeatmap(markers: RawMarker[]) {
   }));
 }
 
+function toIsoString(value: Date) {
+  return value.toISOString();
+}
+
+function buildPhotos(markers: RawMarker[]): AnnualReviewResponseDto['photos'] {
+  return markers
+    .flatMap((marker) =>
+      marker.images.map((image) => ({
+        markerId: marker.id,
+        markerTitle: `${marker.scopeName} 路 ${marker.city}`,
+        imageUrl: image.imageUrl,
+        visitedStartAt: toDateOnlyString(marker.visitedStartAt),
+        scopeName: marker.scopeName,
+        city: marker.city,
+      })),
+    )
+    .sort((left, right) => left.visitedStartAt.localeCompare(right.visitedStartAt));
+}
+
+function buildAnnualGuides(markers: RawMarker[]): AnnualReviewResponseDto['guides'] {
+  const guides = new Map<string, AnnualReviewResponseDto['guides'][number]>();
+
+  markers.forEach((marker) => {
+    marker.savedGuides.forEach((guide) => {
+      const current = guides.get(guide.guideIdentity);
+      const item = {
+        id: guide.id,
+        markerId: guide.markerId ?? undefined,
+        keyword: guide.keyword,
+        savedAt: toIsoString(guide.savedAt),
+        title: guide.guideTitle,
+        summary: guide.guideSummary,
+        sourceName: guide.guideSourceName,
+        sourceUrl: guide.guideSourceUrl,
+      };
+
+      if (!current || item.savedAt > current.savedAt) {
+        guides.set(guide.guideIdentity, item);
+      }
+    });
+  });
+
+  return Array.from(guides.values()).sort((left, right) => right.savedAt.localeCompare(left.savedAt)).slice(0, 8);
+}
+
+function serializeAnnualMarker(marker: RawMarker): AnnualReviewResponseDto['firstMarker'] {
+  return {
+    id: marker.id,
+    tripId: marker.tripId ?? undefined,
+    companionId: marker.companionId,
+    companionName: marker.companion.name,
+    companionColor: marker.companion.color,
+    scope: marker.scope,
+    scopeId: marker.scopeId,
+    scopeName: marker.scopeName,
+    city: marker.city,
+    note: marker.note,
+    visitedStartAt: toDateOnlyString(marker.visitedStartAt),
+    visitedEndAt: toDateOnlyString(marker.visitedEndAt),
+  };
+}
+
+function buildAnnualTripHighlights(
+  monthlyDistribution: AnnualReviewResponseDto['monthlyDistribution'],
+  companionRanking: AnnualReviewResponseDto['companionRanking'],
+  tripDetails: StatsOverviewModel['tripDetails'],
+  topRegions: AnnualReviewResponseDto['topRegions'],
+  topCities: AnnualReviewResponseDto['topCities'],
+) {
+  const baseHighlights = buildTripHighlights(tripDetails);
+  const busiestMonth = [...monthlyDistribution].sort((left, right) => {
+    if (right.markerCount !== left.markerCount) {
+      return right.markerCount - left.markerCount;
+    }
+    if (right.travelDays !== left.travelDays) {
+      return right.travelDays - left.travelDays;
+    }
+    return left.month.localeCompare(right.month);
+  })[0];
+
+  return {
+    ...baseHighlights,
+    busiestMonth: busiestMonth && busiestMonth.markerCount > 0 ? busiestMonth : undefined,
+    topCompanion: companionRanking[0],
+    topRegion: topRegions[0],
+    topCity: topCities[0],
+  };
+}
+
 function assertCompanionExists(companions: RawCompanion[], companionId?: string) {
   if (!companionId) {
     return;
@@ -439,4 +529,62 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
   };
 
   return serializeStatsOverview(model);
+}
+
+export async function getAnnualReview(account: AuthenticatedAccount, query: AnnualReviewQuery) {
+  const prisma = getPrismaClient();
+  const source = await getStatsOverviewSource(prisma, account.id);
+
+  if (!source) {
+    throw createNotFoundError('account not found');
+  }
+
+  const filteredMarkers = withYearFilter(source.markers, query.year);
+  const chronologicalMarkers = [...filteredMarkers].sort(
+    (left, right) => left.visitedStartAt.getTime() - right.visitedStartAt.getTime(),
+  );
+  const tripDetails = buildTripDetails(filteredMarkers, source.trips);
+  const monthlyDistribution = buildMonthlyDistribution(filteredMarkers);
+  const topRegions = buildTopRegions(filteredMarkers);
+  const topCities = buildTopCities(filteredMarkers);
+  const companionRanking = buildCompanionRanking(filteredMarkers, source.companions);
+  const photos = buildPhotos(chronologicalMarkers).slice(0, 12);
+  const guides = buildAnnualGuides(filteredMarkers);
+  const summary = {
+    ...buildSummary(filteredMarkers, tripDetails),
+    photoCount: filteredMarkers.reduce((total, marker) => total + marker.images.length, 0),
+    guideCount: guides.length,
+  };
+
+  return {
+    year: query.year,
+    availableYears: buildAvailableYears(source.markers),
+    summary,
+    monthlyDistribution,
+    topRegions,
+    topCities,
+    companionRanking,
+    tripHighlights: buildAnnualTripHighlights(
+      monthlyDistribution,
+      companionRanking,
+      tripDetails,
+      topRegions,
+      topCities,
+    ),
+    heatmap: buildHeatmap(filteredMarkers),
+    representativePhoto: photos[0],
+    photos,
+    guides,
+    trips: tripDetails.map((trip) => ({
+      ...trip,
+      startsAt: toDateOnlyString(trip.startsAt),
+      endsAt: toDateOnlyString(trip.endsAt),
+    })),
+    firstMarker: chronologicalMarkers[0] ? serializeAnnualMarker(chronologicalMarkers[0]) : undefined,
+    lastMarker:
+      chronologicalMarkers.length > 0
+        ? serializeAnnualMarker(chronologicalMarkers[chronologicalMarkers.length - 1])
+        : undefined,
+    generatedAt: toIsoString(new Date()),
+  } satisfies AnnualReviewResponseDto;
 }

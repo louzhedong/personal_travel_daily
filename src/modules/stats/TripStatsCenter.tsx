@@ -23,6 +23,7 @@ import {
 
 interface TripStatsCenterProps {
   onOpenTripDetail?: (tripId: string) => void;
+  onOpenAnnualReview?: (year: string) => void;
 }
 
 function SectionBars<T extends { markerCount: number }>({
@@ -207,7 +208,7 @@ function CompanionRankingPanel({ items }: { items: StatsCompanionRankingItemDto[
   );
 }
 
-export default function TripStatsCenter({ onOpenTripDetail }: TripStatsCenterProps) {
+export default function TripStatsCenter({ onOpenTripDetail, onOpenAnnualReview }: TripStatsCenterProps) {
   const [filters, setFilters] = useState<StatsUiFilters>(() => createDefaultStatsUiFilters());
   const [data, setData] = useState<StatsOverviewResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -256,6 +257,8 @@ export default function TripStatsCenter({ onOpenTripDetail }: TripStatsCenterPro
         : ['当前筛选条件下暂无行程亮点'],
     [data],
   );
+  const annualReviewYear =
+    filters.year !== 'all' ? filters.year : data?.availableYears[0] ?? new Date().getFullYear().toString();
 
   return (
     <section className="stats-center-section">
@@ -299,6 +302,14 @@ export default function TripStatsCenter({ onOpenTripDetail }: TripStatsCenterPro
                 <span className="stats-generated-at">统计生成于 {formatGeneratedAt(data.generatedAt)}</span>
               </div>
               <StatsCenterFilters filters={filters} data={data} onChange={setFilters} />
+              <button
+                type="button"
+                className="stats-yearbook-button"
+                onClick={() => onOpenAnnualReview?.(annualReviewYear)}
+                disabled={!onOpenAnnualReview || data.availableYears.length === 0}
+              >
+                查看 {annualReviewYear} 年度回顾
+              </button>
             </aside>
           </section>
 

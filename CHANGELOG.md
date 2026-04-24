@@ -3,6 +3,31 @@
 本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。  
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
+## 2026-04-24
+
+### PR TBD `feat: 扩展统计中心、年度回顾与详情动效 / Expand stats center, annual review, and detail motion`
+
+### Added / 新增
+
+- 新增 `/yearbook/:year` 年度回顾页，按年份汇总旅行记录、照片、热力分布与高光摘要，并支持从统计中心继续钻取到行程详情。  
+  Added the `/yearbook/:year` annual review page, summarizing each year with travel records, photos, heat distribution, and highlights, while keeping trip-detail drill-down from the stats center.
+
+### Changed / 变更
+
+- 扩展统计中心前后端数据结构与筛选能力，为年度回顾、热力分布、排行与行程明细提供更完整的数据支撑。  
+  Expanded the stats center API, schemas, and client models so annual review, heat distribution, rankings, and trip details can share a richer data shape.
+- 调整统计中心与相关样式表现，并补齐 `MarkerDetailPanel` 与 `GuideSearchPanel` 一致的遮罩淡入和右侧滑入动效。  
+  Refined the stats center presentation and related styles, and aligned `MarkerDetailPanel` with `GuideSearchPanel` using the same fading backdrop and right-side slide-in motion.
+- 同步补充前后端测试，覆盖统计服务、路由、应用入口与年度回顾相关回归场景。  
+  Added and updated backend/frontend tests covering stats services, routes, app entry flow, and annual review regressions.
+
+### Verified / 已验证
+
+- 手动检查样式类切换：`detail-backdrop.is-visible`、`detail-panel.is-visible`
+- `npm.cmd run test -- --run src/components/__tests__/MarkerDetailPanel.spec.tsx src/components/__tests__/GuideSearchPanel.spec.tsx`  
+  因当前环境 `esbuild` 启动子进程触发 `spawn EPERM`，未能在沙箱内完成自动验证。  
+  Could not complete automated verification in the sandbox because `esbuild` failed to start with `spawn EPERM`.
+
 ## 2026-04-23
 
 ### PR TBD `chore: 扩充 demo 账号联调数据 / Expand demo account test data`

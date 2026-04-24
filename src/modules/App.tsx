@@ -6,6 +6,7 @@ import AuthPage from './auth/AuthPage';
 import TravelApp from './TravelApp';
 import StatsPage from './stats/StatsPage';
 import TripDetailPage from './trips/TripDetailPage';
+import AnnualReviewPage from './yearbook/AnnualReviewPage';
 
 type AppRoute =
   | { kind: 'home'; pathname: '/' }
@@ -13,7 +14,8 @@ type AppRoute =
   | { kind: 'register'; pathname: '/register' }
   | { kind: 'admin'; pathname: '/admin' }
   | { kind: 'stats'; pathname: '/stats' }
-  | { kind: 'tripDetail'; pathname: string; tripId: string };
+  | { kind: 'tripDetail'; pathname: string; tripId: string }
+  | { kind: 'annualReview'; pathname: string; year: string };
 
 function createHomeRoute(): AppRoute {
   return { kind: 'home', pathname: '/' };
@@ -43,7 +45,20 @@ function createTripDetailRoute(tripId: string): AppRoute {
   };
 }
 
+function createAnnualReviewRoute(year: string): AppRoute {
+  return {
+    kind: 'annualReview',
+    pathname: `/yearbook/${encodeURIComponent(year)}`,
+    year,
+  };
+}
+
 function normalizePathname(pathname: string): AppRoute {
+  const annualReviewMatch = pathname.match(/^\/yearbook\/(\d{4})$/);
+  if (annualReviewMatch) {
+    return createAnnualReviewRoute(decodeURIComponent(annualReviewMatch[1]));
+  }
+
   const tripDetailMatch = pathname.match(/^\/trips\/([^/]+)$/);
   if (tripDetailMatch) {
     return createTripDetailRoute(decodeURIComponent(tripDetailMatch[1]));
@@ -110,6 +125,8 @@ function App() {
           nextRoute = createAdminRoute();
         } else if (route.kind === 'tripDetail') {
           nextRoute = createTripDetailRoute(route.tripId);
+        } else if (route.kind === 'annualReview') {
+          nextRoute = createAnnualReviewRoute(route.year);
         } else if (route.kind === 'stats') {
           nextRoute = createStatsRoute();
         } else {
@@ -226,6 +243,27 @@ function App() {
     );
   }
 
+  if (route.kind === 'annualReview') {
+    return (
+      <AnnualReviewPage
+        account={account}
+        year={route.year}
+        onLogout={handleLogout}
+        onNavigateBack={() => {
+          setEntryMessage(null);
+          const nextRoute = createStatsRoute();
+          replaceRoute(nextRoute);
+          setRoute(nextRoute);
+        }}
+        onOpenTripDetail={(tripId) => {
+          const nextRoute = createTripDetailRoute(tripId);
+          replaceRoute(nextRoute);
+          setRoute(nextRoute);
+        }}
+      />
+    );
+  }
+
   if (route.kind === 'stats') {
     return (
       <StatsPage
@@ -239,6 +277,11 @@ function App() {
         }}
         onOpenTripDetail={(tripId) => {
           const nextRoute = createTripDetailRoute(tripId);
+          replaceRoute(nextRoute);
+          setRoute(nextRoute);
+        }}
+        onOpenAnnualReview={(year) => {
+          const nextRoute = createAnnualReviewRoute(year);
           replaceRoute(nextRoute);
           setRoute(nextRoute);
         }}

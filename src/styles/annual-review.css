@@ -1,0 +1,490 @@
+.annual-review-stage {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 247, 251, 0.98)),
+    radial-gradient(circle at 12% 8%, rgba(14, 165, 233, 0.14), transparent 30%),
+    radial-gradient(circle at 86% 14%, rgba(245, 158, 11, 0.13), transparent 28%);
+  padding: 32px 20px 56px;
+}
+
+.annual-review-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.annual-review-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.7fr);
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+
+.annual-review-hero-copy {
+  min-height: 360px;
+  padding: 34px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 22px 70px rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.annual-review-hero-copy h1 {
+  margin: 10px 0 14px;
+  font-size: 52px;
+  line-height: 1.04;
+}
+
+.annual-review-hero-copy p {
+  margin: 0;
+  max-width: 660px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.annual-review-hero-copy .hero-kicker {
+  align-self: flex-start;
+  width: auto;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.annual-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.annual-review-cover {
+  min-height: 360px;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #0f172a;
+  box-shadow: 0 22px 70px rgba(15, 23, 42, 0.14);
+}
+
+.annual-review-carousel {
+  display: block;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.annual-review-carousel-track {
+  height: 100%;
+  position: relative;
+  perspective: 1200px;
+}
+
+.annual-review-carousel-slide {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70%;
+  height: 86%;
+  margin: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  isolation: isolate;
+  clip-path: inset(0 round 10px);
+  contain: paint;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.72);
+  transition:
+    opacity 0.46s ease,
+    transform 0.46s ease,
+    filter 0.46s ease;
+  filter: saturate(0.78) brightness(0.7);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.16);
+  backface-visibility: hidden;
+}
+
+.annual-review-carousel-slide.is-active {
+  z-index: 4;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+  filter: saturate(1) brightness(1);
+}
+
+.annual-review-carousel-slide.is-prev {
+  z-index: 2;
+  opacity: 0.72;
+  transform: translate(-92%, -50%) scale(0.76);
+}
+
+.annual-review-carousel-slide.is-next {
+  z-index: 2;
+  opacity: 0.72;
+  transform: translate(-8%, -50%) scale(0.76);
+}
+
+.annual-review-carousel-slide.is-hidden {
+  z-index: 1;
+  opacity: 0;
+}
+
+.annual-review-cover img,
+.annual-review-carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px;
+  clip-path: inset(0 round 10px);
+  backface-visibility: hidden;
+}
+
+.annual-review-carousel-slide:not(.is-active) figcaption {
+  display: none;
+}
+
+.annual-review-cover figcaption,
+.annual-review-carousel-slide figcaption {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  display: grid;
+  gap: 4px;
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+}
+
+.annual-review-carousel-dots {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.annual-review-carousel-dots span {
+  width: 18px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.38);
+  transition: background-color 0.2s ease, width 0.2s ease;
+}
+
+.annual-review-carousel-dots span.is-active {
+  width: 28px;
+  background: rgba(37, 99, 235, 0.86);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .annual-review-carousel-slide {
+    transition: none;
+  }
+}
+
+.annual-review-cover-empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  color: #fff;
+}
+
+.annual-review-cover-empty strong {
+  font-size: 64px;
+}
+
+.annual-review-state,
+.annual-review-empty {
+  margin-bottom: 20px;
+  padding: 24px;
+}
+
+.annual-review-state-error {
+  border-color: rgba(220, 38, 38, 0.25);
+}
+
+.annual-review-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.annual-review-summary-card {
+  position: relative;
+  overflow: hidden;
+  padding: 20px 20px 18px;
+  min-height: 150px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(226, 232, 240, 0.92);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.045);
+}
+
+.annual-review-summary-card::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 0;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: #2563eb;
+}
+
+.annual-review-summary-card:nth-child(2)::before,
+.annual-review-summary-card:nth-child(5)::before {
+  background: #14b8a6;
+}
+
+.annual-review-summary-card:nth-child(3)::before,
+.annual-review-summary-card:nth-child(6)::before {
+  background: #f97316;
+}
+
+.annual-review-summary-card span,
+.annual-review-highlight-card span,
+.annual-review-marker-pair span,
+.annual-review-month-card span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.annual-review-summary-card strong {
+  display: block;
+  align-self: end;
+  margin: 4px 0 0;
+  font-size: 38px;
+  line-height: 1;
+  color: #0f172a;
+  font-weight: 750;
+}
+
+.annual-review-summary-card span,
+.annual-review-summary-card strong,
+.annual-review-summary-card p {
+  position: relative;
+  z-index: 1;
+}
+
+.annual-review-summary-card p,
+.annual-review-highlight-card p,
+.annual-review-marker-pair p,
+.annual-review-month-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.annual-review-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.annual-review-panel {
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.annual-review-panel-fixed {
+  max-height: 520px;
+  overflow: auto;
+}
+
+.annual-review-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.annual-review-heading h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+
+.annual-review-heading p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.annual-review-highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.annual-review-highlight-card,
+.annual-review-marker-pair article {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  padding: 16px;
+  background: rgba(248, 250, 252, 0.82);
+}
+
+.annual-review-highlight-card strong,
+.annual-review-marker-pair strong {
+  display: block;
+  margin: 7px 0;
+  font-size: 18px;
+}
+
+.annual-review-marker-pair {
+  display: grid;
+  gap: 12px;
+}
+
+.annual-review-month-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.annual-review-month-card {
+  min-height: 154px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.annual-review-month-card strong {
+  font-size: 24px;
+}
+
+.annual-review-month-track {
+  flex: 1;
+  min-height: 54px;
+  display: flex;
+  align-items: end;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.07);
+  overflow: hidden;
+}
+
+.annual-review-month-track div {
+  width: 100%;
+  background: linear-gradient(180deg, #0ea5e9, #14b8a6);
+}
+
+.annual-review-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.annual-review-photo-card {
+  margin: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.annual-review-photo-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.annual-review-photo-card figcaption {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}
+
+.annual-review-photo-card span,
+.annual-review-trip-list span,
+.annual-review-guide-card span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.annual-review-trip-list,
+.annual-review-guide-list {
+  display: grid;
+  gap: 10px;
+}
+
+.annual-review-trip-list button,
+.annual-review-guide-card {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  background: rgba(248, 250, 252, 0.86);
+  padding: 14px;
+}
+
+.annual-review-trip-list button {
+  cursor: pointer;
+}
+
+.annual-review-trip-list strong,
+.annual-review-guide-card strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.annual-review-trip-list p,
+.annual-review-guide-card p {
+  margin: 6px 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 980px) {
+  .annual-review-hero,
+  .annual-review-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .annual-review-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .annual-review-month-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .annual-review-photo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .annual-review-stage {
+    padding: 18px 12px 36px;
+  }
+
+  .annual-review-hero-copy {
+    min-height: auto;
+    padding: 24px;
+  }
+
+  .annual-review-hero-copy h1 {
+    font-size: 36px;
+  }
+
+  .annual-review-summary-grid,
+  .annual-review-highlight-grid,
+  .annual-review-month-grid,
+  .annual-review-photo-grid {
+    grid-template-columns: 1fr;
+  }
+}
