@@ -4,11 +4,18 @@ import TripStatsCenter from './TripStatsCenter';
 interface StatsPageProps {
   account: AuthAccount;
   onOpenTripDetail?: (tripId: string) => void;
+  onOpenAnnualReview?: (year: string) => void;
   onNavigateHome: () => void;
   onLogout: () => Promise<void> | void;
 }
 
-export default function StatsPage({ account, onOpenTripDetail, onNavigateHome, onLogout }: StatsPageProps) {
+export default function StatsPage({
+  account,
+  onOpenTripDetail,
+  onOpenAnnualReview,
+  onNavigateHome,
+  onLogout,
+}: StatsPageProps) {
   return (
     <main className="stats-page-stage">
       <div className="stats-page-shell">
@@ -25,12 +32,6 @@ export default function StatsPage({ account, onOpenTripDetail, onNavigateHome, o
               <span className="stats-page-badge">行程年鉴</span>
             </div>
             <span className="stats-page-account">当前账号：{account.name}</span>
-          </div>
-          <div className="stats-page-actions">
-            <div className="stats-page-side-note">
-              <span className="stats-page-side-note-title">阅读路径</span>
-              <p>先翻封面摘要，再切年份和范围，最后进入某一段行程，把它当成旅程档案来回看。</p>
-            </div>
             <div className="stats-page-action-row">
               <button type="button" className="ghost-button" onClick={onNavigateHome}>
                 返回旅行主页
@@ -40,9 +41,15 @@ export default function StatsPage({ account, onOpenTripDetail, onNavigateHome, o
               </button>
             </div>
           </div>
+          <div className="stats-page-actions">
+            <div className="stats-page-side-note">
+              <span className="stats-page-side-note-title">阅读路径</span>
+              <p>先翻封面摘要，再切年份和范围，最后进入某一段行程，把它当成旅程档案来回看。</p>
+            </div>
+          </div>
         </section>
 
-        <TripStatsCenter onOpenTripDetail={onOpenTripDetail} />
+        <TripStatsCenter onOpenTripDetail={onOpenTripDetail} onOpenAnnualReview={onOpenAnnualReview} />
       </div>
     </main>
   );

@@ -5,14 +5,21 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-24
 
-### PR TBD `fix: 补齐旅行详情面板开合动效 / Match marker detail panel motion with guide search`
+### PR TBD `feat: 扩展统计中心、年度回顾与详情动效 / Expand stats center, annual review, and detail motion`
+
+### Added / 新增
+
+- 新增 `/yearbook/:year` 年度回顾页，按年份汇总旅行记录、照片、热力分布与高光摘要，并支持从统计中心继续钻取到行程详情。  
+  Added the `/yearbook/:year` annual review page, summarizing each year with travel records, photos, heat distribution, and highlights, while keeping trip-detail drill-down from the stats center.
 
 ### Changed / 变更
 
-- 为 `MarkerDetailPanel` 补齐与 `GuideSearchPanel` 一致的遮罩淡入与面板右侧滑入动效，详情抽屉打开时不再是直接跳出。  
-  Updated `MarkerDetailPanel` to use the same backdrop fade and right-side slide-in motion as `GuideSearchPanel`, so the detail drawer no longer appears abruptly.
-- 同步更新文档，明确旅行记录详情面板与攻略搜索面板现在保持一致的开合体验。  
-  Updated the docs to note that the marker detail panel now shares the same open/close motion language as the guide search panel.
+- 扩展统计中心前后端数据结构与筛选能力，为年度回顾、热力分布、排行与行程明细提供更完整的数据支撑。  
+  Expanded the stats center API, schemas, and client models so annual review, heat distribution, rankings, and trip details can share a richer data shape.
+- 调整统计中心与相关样式表现，并补齐 `MarkerDetailPanel` 与 `GuideSearchPanel` 一致的遮罩淡入和右侧滑入动效。  
+  Refined the stats center presentation and related styles, and aligned `MarkerDetailPanel` with `GuideSearchPanel` using the same fading backdrop and right-side slide-in motion.
+- 同步补充前后端测试，覆盖统计服务、路由、应用入口与年度回顾相关回归场景。  
+  Added and updated backend/frontend tests covering stats services, routes, app entry flow, and annual review regressions.
 
 ### Verified / 已验证
 

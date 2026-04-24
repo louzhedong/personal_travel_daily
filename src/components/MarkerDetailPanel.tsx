@@ -33,6 +33,12 @@ export function MarkerDetailPanel({
   onRemoveRelatedGuide,
   onOpenGuideSearch,
 }: MarkerDetailPanelProps) {
+  const [shouldRender, setShouldRender] = useState(open);
+  const [visible, setVisible] = useState(false);
+  const [renderedMarker, setRenderedMarker] = useState<VisitMarker | null>(marker);
+  const [renderedUser, setRenderedUser] = useState<UserProfile | undefined>(user);
+  const [renderedGuides, setRenderedGuides] = useState<SavedGuide[]>(relatedGuides);
+  const [renderedCanEdit, setRenderedCanEdit] = useState(canEdit);
   const [isEditing, setIsEditing] = useState(false);
   const [draftNote, setDraftNote] = useState('');
   const [draftImageUrls, setDraftImageUrls] = useState<string[]>([]);
@@ -42,22 +48,48 @@ export function MarkerDetailPanel({
   const [editError, setEditError] = useState('');
   const [saveFeedback, setSaveFeedback] = useState('');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const displayMarker = marker ?? renderedMarker;
+  const displayUser = marker ? user : renderedUser;
+  const displayGuides = marker ? relatedGuides : renderedGuides;
+  const displayCanEdit = marker ? canEdit : renderedCanEdit;
 
   useEffect(() => {
-    if (!marker) {
+    let timeoutId: number | undefined;
+
+    if (open && marker) {
+      setRenderedMarker(marker);
+      setRenderedUser(user);
+      setRenderedGuides(relatedGuides);
+      setRenderedCanEdit(canEdit);
+      setShouldRender(true);
+      timeoutId = window.setTimeout(() => setVisible(true), 16);
+    } else if (shouldRender) {
+      setVisible(false);
+      timeoutId = window.setTimeout(() => setShouldRender(false), 260);
+    }
+
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [canEdit, marker, open, relatedGuides, shouldRender, user]);
+
+  useEffect(() => {
+    if (!displayMarker) {
       return;
     }
-    setDraftNote(marker.note);
-    setDraftImageUrls(marker.imageUrls ?? []);
-    setDraftTripId(marker.tripId ?? '');
+    setDraftNote(displayMarker.note);
+    setDraftImageUrls(displayMarker.imageUrls ?? []);
+    setDraftTripId(displayMarker.tripId ?? '');
     setIsEditing(false);
     setEditError('');
     setSaveFeedback('');
     setLightboxIndex(null);
-  }, [marker]);
+  }, [displayMarker]);
 
   useEffect(() => {
-    if (!open) {
+    if (!shouldRender) {
       return;
     }
 
@@ -66,16 +98,16 @@ export function MarkerDetailPanel({
     return () => {
       document.body.style.overflow = originalOverflow;
     };
-  }, [open]);
+  }, [shouldRender]);
 
-  const imageUrls = isEditing ? draftImageUrls : marker?.imageUrls ?? [];
-  const tripDays = marker ? getTripDays(marker.visitedStartAt, marker.visitedEndAt) : null;
+  const imageUrls = isEditing ? draftImageUrls : displayMarker?.imageUrls ?? [];
+  const tripDays = displayMarker ? getTripDays(displayMarker.visitedStartAt, displayMarker.visitedEndAt) : null;
   const lightboxImage = lightboxIndex !== null ? imageUrls[lightboxIndex] : null;
   const normalizedDraftNote = draftNote.trim();
-  const originalNote = marker?.note.trim() ?? '';
-  const originalImageUrls = marker?.imageUrls ?? [];
-  const originalTripId = marker?.tripId ?? '';
-  const currentTrip = marker?.tripId ? trips.find((trip) => trip.id === marker.tripId) : undefined;
+  const originalNote = displayMarker?.note.trim() ?? '';
+  const originalImageUrls = displayMarker?.imageUrls ?? [];
+  const originalTripId = displayMarker?.tripId ?? '';
+  const currentTrip = displayMarker?.tripId ? trips.find((trip) => trip.id === displayMarker.tripId) : undefined;
   const hasChanged =
     normalizedDraftNote !== originalNote ||
     draftTripId !== originalTripId ||
@@ -87,15 +119,15 @@ export function MarkerDetailPanel({
   const canGoNext = lightboxIndex !== null && lightboxIndex < imageUrls.length - 1;
 
   useEffect(() => {
-    if (!open) {
+    if (!shouldRender) {
       return;
     }
 
-    if (!marker) {
+    if (!displayMarker) {
       return;
     }
 
-    const imageUrls = isEditing ? draftImageUrls : marker.imageUrls ?? [];
+    const imageUrls = isEditing ? draftImageUrls : displayMarker.imageUrls ?? [];
     const canGoPrev = lightboxIndex !== null && lightboxIndex > 0;
     const canGoNext = lightboxIndex !== null && lightboxIndex < imageUrls.length - 1;
 
@@ -117,7 +149,7 @@ export function MarkerDetailPanel({
 
     window.addEventListener('keydown', handleKeydown);
     return () => window.removeEventListener('keydown', handleKeydown);
-  }, [draftImageUrls, isEditing, lightboxIndex, marker, open]);
+  }, [displayMarker, draftImageUrls, isEditing, lightboxIndex, shouldRender]);
 
   const handleUploadImages = async (files: FileList | null) => {
     if (!files || files.length === 0) {
@@ -137,7 +169,7 @@ export function MarkerDetailPanel({
   };
 
   const handleSave = async () => {
-    if (!marker) {
+    if (!displayMarker) {
       return;
     }
 
@@ -151,7 +183,7 @@ export function MarkerDetailPanel({
     setEditError('');
     setSaveFeedback('');
     try {
-      await onUpdate(marker.id, {
+      await onUpdate(displayMarker.id, {
         note: trimmedNote,
         imageUrls: draftImageUrls.length > 0 ? draftImageUrls : undefined,
         tripId: draftTripId || null,
@@ -167,14 +199,15 @@ export function MarkerDetailPanel({
 
   const panelTitle = isEditing ? '编辑旅行记录' : '旅行记录详情';
 
-  if (!open || !marker) {
+  if (!shouldRender || !displayMarker) {
     return null;
   }
+  const panelMarker = displayMarker;
 
   return (
-    <div className="detail-backdrop" onClick={onClose}>
+    <div className={visible ? 'detail-backdrop is-visible' : 'detail-backdrop'} onClick={onClose}>
       <aside
-        className="detail-panel"
+        className={visible ? 'detail-panel is-visible' : 'detail-panel'}
         aria-label="旅行记录详情"
         onClick={(event) => event.stopPropagation()}
       >
@@ -182,7 +215,7 @@ export function MarkerDetailPanel({
           <div className="detail-heading-card stack gap-10">
             <div className="detail-header-actions">
               <div className="detail-header-action-group">
-                {canEdit && !isEditing ? (
+                {displayCanEdit && !isEditing ? (
                   <button
                     type="button"
                     className="ghost-button detail-edit-button"
@@ -198,7 +231,7 @@ export function MarkerDetailPanel({
                   <button
                     type="button"
                     className="ghost-button detail-guide-button"
-                    onClick={() => onOpenGuideSearch(`${marker.scopeName} ${marker.city} 攻略`, marker.scope)}
+                    onClick={() => onOpenGuideSearch(`${panelMarker.scopeName} ${panelMarker.city} 攻略`, panelMarker.scope)}
                   >
                     <span className="travel-icon-inline detail-action-icon">
                       <TravelIcon name="globe" size={13} />
@@ -225,20 +258,20 @@ export function MarkerDetailPanel({
             <div className="detail-title-row">
               <div className="detail-title-block">
                 <div className="detail-title-main">
-                  <h3 className="detail-title">{marker.scopeName}</h3>
-                  <span className="detail-city">{marker.city}</span>
+                  <h3 className="detail-title">{panelMarker.scopeName}</h3>
+                  <span className="detail-city">{panelMarker.city}</span>
                 </div>
                 <span className="marker-scope-tag detail-scope-tag">
-                  {marker.scope === 'domestic' ? '国内旅行' : '国际旅行'}
+                  {panelMarker.scope === 'domestic' ? '国内旅行' : '国际旅行'}
                 </span>
               </div>
             </div>
             <div className="detail-meta-row">
-              <span className="user-pill" style={{ borderColor: user?.color ?? '#cbd5e1' }}>
-                <span className="color-dot" style={{ backgroundColor: user?.color ?? '#94a3b8' }} />
-                {user?.name ?? '未知用户'}
+              <span className="user-pill" style={{ borderColor: displayUser?.color ?? '#cbd5e1' }}>
+                <span className="color-dot" style={{ backgroundColor: displayUser?.color ?? '#94a3b8' }} />
+                {displayUser?.name ?? '未知用户'}
               </span>
-              <span className="marker-date-badge">{formatVisitedRange(marker)}</span>
+              <span className="marker-date-badge">{formatVisitedRange(panelMarker)}</span>
               {tripDays ? <span className="detail-trip-days">{tripDays} 天旅程</span> : null}
               {currentTrip ? <span className="detail-trip-days">{currentTrip.name}</span> : null}
             </div>
@@ -253,7 +286,7 @@ export function MarkerDetailPanel({
             </div>
             <div className="detail-image-grid">
               {imageUrls.map((imageUrl, index) => (
-                <div key={`${marker.id}-${imageUrl}-${index}`} className="detail-image-card">
+                <div key={`${panelMarker.id}-${imageUrl}-${index}`} className="detail-image-card">
                   <button
                     type="button"
                     className="detail-image-link"
@@ -261,7 +294,7 @@ export function MarkerDetailPanel({
                   >
                     <img
                       src={imageUrl}
-                      alt={`${marker.scopeName}-${marker.city}-${index + 1}`}
+                      alt={`${panelMarker.scopeName}-${panelMarker.city}-${index + 1}`}
                       className="detail-image"
                     />
                   </button>
@@ -349,13 +382,13 @@ export function MarkerDetailPanel({
               {draftImageUrls.length > 0 ? (
                 <div className="detail-edit-image-grid">
                   {draftImageUrls.map((imageUrl, index) => (
-                    <div key={`${marker.id}-edit-${imageUrl}-${index}`} className="detail-image-card">
+                    <div key={`${panelMarker.id}-edit-${imageUrl}-${index}`} className="detail-image-card">
                       <button
                         type="button"
                         className="detail-image-link"
                         onClick={() => setLightboxIndex(index)}
                       >
-                        <img src={imageUrl} alt={`${marker.scopeName}-${marker.city}-编辑图-${index + 1}`} className="detail-image" />
+                        <img src={imageUrl} alt={`${panelMarker.scopeName}-${panelMarker.city}-编辑图-${index + 1}`} className="detail-image" />
                       </button>
                       <button
                         type="button"
@@ -397,7 +430,7 @@ export function MarkerDetailPanel({
             <div className="detail-section-heading">
               <strong>旅行印象</strong>
             </div>
-            <p className="detail-note">{marker.note || '这条记录还没有填写旅行印象。'}</p>
+            <p className="detail-note">{panelMarker.note || '这条记录还没有填写旅行印象。'}</p>
           </section>
         ) : null}
 
@@ -405,11 +438,11 @@ export function MarkerDetailPanel({
           <section className="detail-section stack gap-10">
             <div className="detail-section-heading">
               <strong>相关攻略</strong>
-              <span>{relatedGuides.length} 条</span>
+              <span>{displayGuides.length} 条</span>
             </div>
-            {relatedGuides.length > 0 ? (
+            {displayGuides.length > 0 ? (
               <div className="detail-related-guides">
-                {relatedGuides.map((guide) => (
+                {displayGuides.map((guide) => (
                   <article key={guide.id} className="detail-related-guide-card">
                     <div className="detail-related-guide-top">
                       <strong>{guide.result.title}</strong>
@@ -444,11 +477,11 @@ export function MarkerDetailPanel({
         <section className="detail-section detail-facts-grid">
           <div className="detail-fact-card">
             <span className="detail-fact-label">记录创建时间</span>
-            <strong>{marker.createdAt.slice(0, 10)}</strong>
+            <strong>{panelMarker.createdAt.slice(0, 10)}</strong>
           </div>
           <div className="detail-fact-card">
             <span className="detail-fact-label">所属范围</span>
-            <strong>{marker.scope === 'domestic' ? '国内地图' : '世界地图'}</strong>
+            <strong>{panelMarker.scope === 'domestic' ? '国内地图' : '世界地图'}</strong>
           </div>
         </section>
 
@@ -465,7 +498,7 @@ export function MarkerDetailPanel({
               </button>
               <img
                 src={lightboxImage}
-                alt={`${marker.scopeName}-${marker.city}-预览`}
+                alt={`${panelMarker.scopeName}-${panelMarker.city}-预览`}
                 className="detail-lightbox-image"
               />
               <div className="detail-lightbox-footer">
@@ -510,9 +543,9 @@ export function MarkerDetailPanel({
                 className="marker-form-secondary-button"
                 disabled={saving || uploadingImage}
                 onClick={() => {
-                  setDraftNote(marker.note);
-                  setDraftImageUrls(marker.imageUrls ?? []);
-                  setDraftTripId(marker.tripId ?? '');
+                  setDraftNote(panelMarker.note);
+                  setDraftImageUrls(panelMarker.imageUrls ?? []);
+                  setDraftTripId(panelMarker.tripId ?? '');
                   setEditError('');
                   setSaveFeedback('');
                   setIsEditing(false);

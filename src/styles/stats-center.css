@@ -93,14 +93,24 @@
 .stats-page-badge {
   display: inline-flex;
   align-items: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(203, 213, 225, 0.88);
-  color: #334155;
+  padding: 4px 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  color: #64748b;
   font-size: 13px;
   font-weight: 700;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+  box-shadow: none;
+  cursor: default;
+}
+
+.stats-page-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.5);
 }
 
 .stats-page-account {
@@ -146,6 +156,25 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  padding-top: 4px;
+}
+
+.stats-page-action-row .ghost-button {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  background: rgba(255, 255, 255, 0.92);
+  color: #1e3a8a;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.08);
+}
+
+.stats-page-action-row .ghost-button:hover,
+.stats-page-action-row .ghost-button:focus-visible {
+  background: #2563eb;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18);
 }
 
 .stats-center-section {
@@ -227,6 +256,22 @@
 
 .stats-filter-panel:has(.fancy-select-menu) {
   z-index: 24;
+}
+
+.stats-yearbook-button {
+  width: 100%;
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(20, 184, 166, 0.12));
+  color: #0f766e;
+  font-weight: 700;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.stats-yearbook-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .stats-filter-panel-head {
@@ -621,12 +666,15 @@
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(240px, 0.9fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .stats-heatmap-svg-wrap {
   border-radius: 22px;
   padding: 12px;
+  min-height: 100%;
+  display: grid;
+  align-items: center;
   background:
     radial-gradient(circle at top left, rgba(37, 99, 235, 0.06), transparent 28%),
     linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.98));
@@ -647,7 +695,16 @@
   stroke: rgba(255, 251, 235, 0.98);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
-  transition: fill 0.18s ease, opacity 0.18s ease;
+  transition: fill 0.18s ease, opacity 0.18s ease, stroke 0.18s ease, stroke-width 0.18s ease;
+}
+
+.stats-heatmap-shape.is-active {
+  cursor: pointer;
+}
+
+.stats-heatmap-shape.is-hovered {
+  stroke: rgba(15, 23, 42, 0.72);
+  stroke-width: 2.2;
 }
 
 .stats-heatmap-shape.is-muted {
@@ -754,6 +811,25 @@
 .stats-heatmap-legend-list {
   display: grid;
   gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+}
+
+.stats-heatmap-legend-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.stats-heatmap-legend-list::-webkit-scrollbar-track {
+  background: rgba(226, 232, 240, 0.6);
+  border-radius: 999px;
+}
+
+.stats-heatmap-legend-list::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.82);
+  border-radius: 999px;
 }
 
 .stats-heatmap-empty {

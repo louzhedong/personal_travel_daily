@@ -48,11 +48,27 @@
 
 .hero-admin-row {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   padding-top: 4px;
 }
 
 .hero-admin-button {
   min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  background: rgba(255, 255, 255, 0.92);
+  color: #1e3a8a;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.08);
+}
+
+.hero-admin-button:hover,
+.hero-admin-button:focus-visible {
+  background: #2563eb;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18);
 }
 
 .admin-state-card {

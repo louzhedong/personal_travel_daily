@@ -351,6 +351,81 @@ export interface StatsOverviewResponseDto {
   generatedAt: string;
 }
 
+export interface AnnualReviewPhotoDto {
+  markerId: string;
+  markerTitle: string;
+  imageUrl: string;
+  visitedStartAt: string;
+  scopeName: string;
+  city: string;
+}
+
+export interface AnnualReviewGuideDto {
+  id: string;
+  markerId?: string;
+  keyword: string;
+  savedAt: string;
+  title: string;
+  summary: string;
+  sourceName: string;
+  sourceUrl: string;
+}
+
+export interface AnnualReviewMarkerDto {
+  id: string;
+  tripId?: string;
+  companionId: string;
+  companionName: string;
+  companionColor: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note: string;
+  visitedStartAt: string;
+  visitedEndAt: string;
+}
+
+export interface AnnualReviewTripDto {
+  tripId: string;
+  tripName: string;
+  markerCount: number;
+  travelDays: number;
+  startsAt: string;
+  endsAt: string;
+  coverImageUrl?: string;
+  note: string;
+}
+
+export interface AnnualReviewResponseDto {
+  year: string;
+  availableYears: string[];
+  summary: StatsSummaryDto & {
+    photoCount: number;
+    guideCount: number;
+  };
+  monthlyDistribution: StatsMonthDistributionItemDto[];
+  topRegions: StatsRegionRankingItemDto[];
+  topCities: StatsCityRankingItemDto[];
+  companionRanking: StatsCompanionRankingItemDto[];
+  tripHighlights: {
+    longestTrip?: { tripId: string; tripName: string; days: number };
+    mostMarkersTrip?: { tripId: string; tripName: string; markerCount: number };
+    busiestMonth?: { month: string; markerCount: number; travelDays: number };
+    topCompanion?: { companionId: string; companionName: string; color: string; markerCount: number; travelDays: number };
+    topRegion?: StatsRegionRankingItemDto;
+    topCity?: StatsCityRankingItemDto;
+  };
+  heatmap: StatsHeatmapItemDto[];
+  representativePhoto?: AnnualReviewPhotoDto;
+  photos: AnnualReviewPhotoDto[];
+  guides: AnnualReviewGuideDto[];
+  trips: AnnualReviewTripDto[];
+  firstMarker?: AnnualReviewMarkerDto;
+  lastMarker?: AnnualReviewMarkerDto;
+  generatedAt: string;
+}
+
 export interface TripDetailSummaryDto {
   markerCount: number;
   travelDays: number;

@@ -1,5 +1,10 @@
 import { getResourceBaseUrl, httpClient } from './httpClient';
-import type { StatsOverviewResponseDto, StatsScopeDto, StatsTripFilterDto } from './types';
+import type {
+  AnnualReviewResponseDto,
+  StatsOverviewResponseDto,
+  StatsScopeDto,
+  StatsTripFilterDto,
+} from './types';
 
 const statsBaseUrl = getResourceBaseUrl();
 
@@ -28,4 +33,9 @@ export function fetchStatsOverview(query: FetchStatsOverviewQuery = {}) {
   const suffix = params.toString();
   const path = suffix ? `/stats/overview?${suffix}` : '/stats/overview';
   return httpClient.get<StatsOverviewResponseDto>(statsBaseUrl, path);
+}
+
+export function fetchAnnualReview(year: string) {
+  const params = new URLSearchParams({ year });
+  return httpClient.get<AnnualReviewResponseDto>(statsBaseUrl, `/stats/annual-review?${params.toString()}`);
 }

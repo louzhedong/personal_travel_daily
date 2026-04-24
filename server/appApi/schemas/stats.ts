@@ -12,3 +12,12 @@ export const statsOverviewQuerySchema = z.object({
 });
 
 export type StatsOverviewQuery = z.infer<typeof statsOverviewQuerySchema>;
+
+export const annualReviewQuerySchema = z.object({
+  year: z
+    .string()
+    .trim()
+    .regex(/^\d{4}$/, 'year must use YYYY format'),
+});
+
+export type AnnualReviewQuery = z.infer<typeof annualReviewQuerySchema>;

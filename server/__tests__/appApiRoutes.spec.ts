@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   getBootstrapPayloadMock: vi.fn(),
   getAdminOverviewMock: vi.fn(),
   getStatsOverviewMock: vi.fn(),
+  getAnnualReviewMock: vi.fn(),
   getTripDetailMock: vi.fn(),
   createCompanionRecordMock: vi.fn(),
   updateCompanionRecordMock: vi.fn(),
@@ -37,6 +38,7 @@ vi.mock('../appApi/services/adminService.js', () => ({
 
 vi.mock('../appApi/services/statsService.js', () => ({
   getStatsOverview: mocks.getStatsOverviewMock,
+  getAnnualReview: mocks.getAnnualReviewMock,
 }));
 
 vi.mock('../appApi/services/tripDetailService.js', () => ({
@@ -251,6 +253,51 @@ describe('app api routes', () => {
         year: '2026',
       });
       expect(response.json().summary.totalMarkers).toBe(2);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('returns annual review payload for authenticated accounts', async () => {
+    mocks.getAnnualReviewMock.mockResolvedValue({
+      year: '2026',
+      availableYears: ['2026'],
+      summary: {
+        totalTrips: 1,
+        totalMarkers: 2,
+        totalTravelDays: 4,
+        totalCities: 2,
+        totalRegions: 2,
+        totalCountries: 0,
+        activeCompanions: 1,
+        longestTripDays: 4,
+        photoCount: 1,
+        guideCount: 1,
+      },
+      monthlyDistribution: [],
+      topRegions: [],
+      topCities: [],
+      companionRanking: [],
+      tripHighlights: {},
+      heatmap: [],
+      photos: [],
+      guides: [],
+      trips: [],
+      generatedAt: '2026-04-22T00:00:00.000Z',
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/stats/annual-review?year=2026',
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mocks.getAnnualReviewMock).toHaveBeenCalledWith(currentAccount, {
+        year: '2026',
+      });
+      expect(response.json().year).toBe('2026');
     } finally {
       await app.close();
     }

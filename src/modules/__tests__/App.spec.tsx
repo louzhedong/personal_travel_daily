@@ -113,6 +113,10 @@ vi.mock('../trips/TripDetailPage', () => ({
   default: ({ tripId }: { tripId: string }) => <div data-testid="trip-detail-page">trip-detail-{tripId}</div>,
 }));
 
+vi.mock('../yearbook/AnnualReviewPage', () => ({
+  default: ({ year }: { year: string }) => <div data-testid="annual-review-page">annual-review-{year}</div>,
+}));
+
 vi.mock('../../components/UserManager', () => ({
   default: () => <div data-testid="user-manager">user-manager</div>,
 }));
@@ -343,6 +347,15 @@ describe('App auth and guide permissions', () => {
     expect(await screen.findByRole('heading', { name: '行程统计中心' })).toBeInTheDocument();
     expect(screen.getByTestId('trip-stats-center')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/stats');
+  });
+
+  it('allows authenticated users to access /yearbook/:year and renders the annual review page', async () => {
+    window.history.replaceState({}, '', '/yearbook/2026');
+
+    render(<App />);
+
+    expect(await screen.findByTestId('annual-review-page')).toHaveTextContent('annual-review-2026');
+    expect(window.location.pathname).toBe('/yearbook/2026');
   });
 
   it('redirects non-admin users from /admin back to the main app', async () => {

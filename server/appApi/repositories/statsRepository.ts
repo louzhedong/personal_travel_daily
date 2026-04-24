@@ -25,9 +25,18 @@ export async function getStatsOverviewSource(prisma: PrismaExecutor, accountId: 
           isDeleted: false,
         },
         include: {
+          companion: true,
           images: {
             orderBy: {
               sortOrder: 'asc',
+            },
+          },
+          savedGuides: {
+            where: {
+              isDeleted: false,
+            },
+            orderBy: {
+              savedAt: 'desc',
             },
           },
         },
