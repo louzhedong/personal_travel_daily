@@ -22,11 +22,13 @@ vi.mock('../httpClient', () => ({
 
 import { fetchAppBootstrap } from '../appBootstrapApi';
 import { fetchAdminOverview } from '../adminApi';
+import { fetchStatsOverview } from '../statsApi';
 import { fetchSession, login, logout, register } from '../authApi';
 import { createCompanion, updateCompanion } from '../companionsApi';
 import { createGuideSearchHistory, fetchGuideSearchHistories } from '../guideSearchHistoryApi';
 import { createMarker, deleteMarker, searchMarkers, updateMarker } from '../markersApi';
 import { createSavedGuide, deleteSavedGuide, fetchSavedGuides } from '../savedGuidesApi';
+import { createTrip, deleteTrip, fetchTripDetail, updateTrip } from '../tripsApi';
 
 describe('app api modules', () => {
   beforeEach(() => {
@@ -68,6 +70,26 @@ describe('app api modules', () => {
     expect(mocks.getMock).toHaveBeenCalledWith('/api', '/admin/overview');
   });
 
+  it('routes stats overview requests through the resource base url with query params', async () => {
+    await fetchStatsOverview({
+      year: '2026',
+      scope: 'domestic',
+      companionId: 'user-alice',
+      tripId: 'trip-1',
+    });
+
+    expect(mocks.getMock).toHaveBeenCalledWith(
+      '/api',
+      '/stats/overview?year=2026&scope=domestic&companionId=user-alice&tripId=trip-1',
+    );
+  });
+
+  it('routes trip detail requests through the resource base url', async () => {
+    await fetchTripDetail('trip-1');
+
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/trips/trip-1/detail');
+  });
+
   it('forwards companion create and update payloads', async () => {
     const createPayload = { name: '阿泽', color: '#f97316' };
     const updatePayload = { color: '#ea580c' };
@@ -77,6 +99,26 @@ describe('app api modules', () => {
 
     expect(mocks.postMock).toHaveBeenCalledWith('/api', '/companions', createPayload);
     expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/companions/user-bob', updatePayload);
+  });
+
+  it('forwards trip create, update and delete requests', async () => {
+    const createPayload = {
+      name: '江南春游',
+      startsAt: '2026-05-01',
+      endsAt: '2026-05-03',
+      note: '杭州与苏州周末行',
+    };
+    const updatePayload = {
+      note: '补充苏州段',
+    };
+
+    await createTrip(createPayload);
+    await updateTrip('trip-1', updatePayload);
+    await deleteTrip('trip-1');
+
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/trips', createPayload);
+    expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/trips/trip-1', updatePayload);
+    expect(mocks.deleteMock).toHaveBeenCalledWith('/api', '/trips/trip-1');
   });
 
   it('forwards marker create, update and delete requests', async () => {

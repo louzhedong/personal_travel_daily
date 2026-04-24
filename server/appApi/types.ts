@@ -219,3 +219,182 @@ export interface AdminOverviewResponseDto {
     accountCount: number;
   };
 }
+
+export type StatsScopeDto = Scope | 'all';
+export type StatsYearFilterDto = string | 'all';
+export type StatsTripFilterDto = string | 'unassigned';
+
+export interface StatsCompanionFilterOptionDto {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface StatsTripFilterOptionDto {
+  id: string;
+  name: string;
+  startsAt: string;
+  endsAt: string;
+}
+
+export interface StatsFiltersDto {
+  year: StatsYearFilterDto;
+  scope: StatsScopeDto;
+  companionId?: string;
+  tripId?: StatsTripFilterDto;
+}
+
+export interface StatsSummaryDto {
+  totalTrips: number;
+  totalMarkers: number;
+  totalTravelDays: number;
+  totalCities: number;
+  totalRegions: number;
+  totalCountries: number;
+  activeCompanions: number;
+  longestTripDays?: number;
+}
+
+export interface StatsYearSeriesPointDto {
+  year: string;
+  markerCount: number;
+  travelDays: number;
+}
+
+export interface StatsMonthDistributionItemDto {
+  month: string;
+  markerCount: number;
+  travelDays: number;
+}
+
+export interface StatsRegionRankingItemDto {
+  scopeId: string;
+  scopeName: string;
+  scope: Scope;
+  markerCount: number;
+}
+
+export interface StatsCityRankingItemDto {
+  city: string;
+  scopeName: string;
+  scope: Scope;
+  markerCount: number;
+}
+
+export interface StatsCompanionRankingItemDto {
+  companionId: string;
+  companionName: string;
+  color: string;
+  markerCount: number;
+  travelDays: number;
+}
+
+export interface StatsTripRankingItemDto {
+  tripId: string;
+  tripName: string;
+  markerCount: number;
+  travelDays: number;
+  startsAt: string;
+  endsAt: string;
+}
+
+export interface StatsTripDetailItemDto {
+  tripId: string;
+  tripName: string;
+  markerCount: number;
+  travelDays: number;
+  startsAt: string;
+  endsAt: string;
+  coverImageUrl?: string;
+  note: string;
+}
+
+export interface StatsHeatmapItemDto {
+  scopeId: string;
+  scopeName: string;
+  scope: Scope;
+  intensity: number;
+  markerCount: number;
+}
+
+export interface StatsOverviewResponseDto {
+  filters: StatsFiltersDto;
+  availableYears: string[];
+  companions: StatsCompanionFilterOptionDto[];
+  trips: StatsTripFilterOptionDto[];
+  summary: StatsSummaryDto;
+  yearlySeries: StatsYearSeriesPointDto[];
+  monthlyDistribution: StatsMonthDistributionItemDto[];
+  topRegions: StatsRegionRankingItemDto[];
+  topCities: StatsCityRankingItemDto[];
+  companionRanking: StatsCompanionRankingItemDto[];
+  tripRanking: StatsTripRankingItemDto[];
+  tripDetails: StatsTripDetailItemDto[];
+  tripHighlights: {
+    longestTrip?: { tripId: string; tripName: string; days: number };
+    mostMarkersTrip?: { tripId: string; tripName: string; markerCount: number };
+  };
+  heatmap: StatsHeatmapItemDto[];
+  generatedAt: string;
+}
+
+export interface TripDetailSummaryDto {
+  markerCount: number;
+  travelDays: number;
+  cityCount: number;
+  regionCount: number;
+  companionCount: number;
+  guideCount: number;
+  photoCount: number;
+}
+
+export interface TripDetailCompanionItemDto {
+  id: string;
+  name: string;
+  color: string;
+  markerCount: number;
+}
+
+export interface TripDetailMarkerItemDto {
+  id: string;
+  companionId: string;
+  companionName: string;
+  companionColor: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note: string;
+  imageUrls?: string[];
+  visitedStartAt: string;
+  visitedEndAt: string;
+}
+
+export interface TripDetailPhotoItemDto {
+  markerId: string;
+  markerTitle: string;
+  imageUrl: string;
+  visitedStartAt: string;
+  scopeName: string;
+  city: string;
+}
+
+export interface TripDetailGuideItemDto {
+  id: string;
+  markerId?: string;
+  keyword: string;
+  savedAt: string;
+  result: GuideSearchResultDto | GuideDocumentDto;
+}
+
+export interface TripDetailResponseDto {
+  trip: TripDto;
+  summary: TripDetailSummaryDto;
+  companions: TripDetailCompanionItemDto[];
+  markers: TripDetailMarkerItemDto[];
+  photos: TripDetailPhotoItemDto[];
+  guides: TripDetailGuideItemDto[];
+  meta: {
+    generatedAt: string;
+  };
+}

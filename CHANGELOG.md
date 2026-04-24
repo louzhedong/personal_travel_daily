@@ -5,6 +5,58 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-23
 
+### PR TBD `chore: 扩充 demo 账号联调数据 / Expand demo account test data`
+
+### Added / 新增
+
+- 为默认 `demo` 账号继续补充联调用测试数据，新增 2 组长线行程、3 条未归入行程记录、更多配图与关联攻略。  
+  Expanded the default `demo` account with additional integration-test data, including two more long-range trips, three unassigned markers, more photos, and linked guides.
+- 补充 `guide_search_histories` 样例，便于联调搜索历史、后台用户明细和统计筛选相关场景。  
+  Added sample `guide_search_histories` records to support local testing for search history, admin user detail, and stats filtering scenarios.
+
+### Changed / 变更
+
+- `db:seed` 现在会在本地库缺少 `marker_search_events` 表时自动跳过该部分写入，避免因为数据库未迁移完整而导致整包 demo 数据灌入失败。  
+  `db:seed` now skips `marker_search_events` seeding when the local database does not contain that table, preventing the whole demo data import from failing on partially migrated databases.
+
+### Verified / 已验证
+
+- `npm run db:seed`
+- 计数结果：`14 trips / 45 markers / 176 images / 12 guides / 4 search histories`  
+  Count result: `14 trips / 45 markers / 176 images / 12 guides / 4 search histories`
+
+### PR TBD `refactor: 将统计中心拆到独立页面并重做热力图 / Move stats center to a standalone page and redesign the heatmap`
+
+### Changed / 变更
+
+- 统计中心不再直接挂在主页，新增独立 `/stats` 页面承接趋势、排行、热力分布与行程钻取，首页只保留轻量概览。  
+  The statistics center no longer lives directly on the homepage; a standalone `/stats` page now hosts trends, rankings, heat distribution, and trip drill-down, while the homepage keeps only lightweight overview content.
+- 统计热力图从伪地图矩形布局改为按强度排序的热力矩阵，只展示有数据的地区，避免出现一大片“0 值灰块”。  
+  The heatmap has been changed from a faux-map rectangle layout to a ranked heat matrix that only shows regions with data, avoiding the large area of zero-value gray blocks.
+- 行程详情页返回入口改为回到统计中心，匹配“统计页 -> 行程详情页”的浏览链路。  
+  The trip-detail return path now goes back to the stats center so the “stats page -> trip detail page” browsing flow stays coherent.
+
+### Verified / 已验证
+
+- `npm run test -- --run src/modules/__tests__/App.spec.tsx src/modules/__tests__/TripStatsCenter.spec.tsx src/modules/__tests__/TripDetailPage.spec.tsx`
+- `npm run build`
+
+### PR TBD `chore: 补充行程详情页联调样例数据 / Add local showcase seed data for trip detail page`
+
+### Added / 新增
+
+- 为默认演示账号补充可重复执行的高密度样例 seed 数据，当前包含 12 个演示行程、34 条旅行记录、133 张图片与 10 条关联攻略。  
+  Added repeatable high-density showcase seed data for the default demo account, currently including 12 demo trips, 34 travel markers, 133 photos, and 10 linked guides.
+
+### Changed / 变更
+
+- 本地执行 `npm run db:seed` 后，可直接从首页统计中心钻取到 `/trips/:id`，验证行程详情页的跳转和展示效果。  
+  After running `npm run db:seed`, the homepage statistics center can drill directly into `/trips/:id` so the trip-detail jump and presentation can be verified locally.
+
+### Verified / 已验证
+
+- `npm run db:seed`
+
 ### PR TBD `refactor: 拆分前端纯逻辑和展示模型 / Split frontend pure logic and view models`
 
 ### Changed / 变更
@@ -47,6 +99,54 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `/opt/homebrew/bin/node node_modules/vitest/vitest.mjs run src/components/__tests__/TripTimelinePanel.spec.tsx --environment jsdom`
 
 ## 2026-04-22
+
+### PR TBD `feat: 打通统计中心到行程详情页闭环 / Add trip-detail drill-down from the statistics center`
+
+### Added / 新增
+
+- 新增 `GET /api/trips/:id/detail`，为当前账号的单个行程聚合只读详情，覆盖总览、记录、照片、攻略与旅伴摘要。  
+  Added `GET /api/trips/:id/detail` to aggregate a read-only trip detail for the current account, covering summary, markers, photos, guides, and companion snapshots.
+- 新增前端 `/trips/:id` 详情页与专用样式，从首页统计中心可直接钻取进入行程详情。  
+  Added a frontend `/trips/:id` trip detail page with dedicated styles, enabling direct drill-down from the homepage statistics center.
+
+### Changed / 变更
+
+- `App` 的手写路由升级为支持参数化路径，能够识别并恢复 `trip detail` 页面。  
+  Upgraded the handcrafted `App` routing to support parameterized paths so the app can recognize and restore the trip-detail page.
+- `TravelApp` 与统计中心点击行为不再只聚焦某条记录，而是跳转到独立行程详情页完成回看闭环。  
+  `TravelApp` and the statistics-center click flow now navigate to a dedicated trip detail page instead of only focusing a marker.
+- 更新 App API Contract、Roadmap 与 README，补齐行程详情接口和统计中心二期说明。  
+  Updated the App API Contract, roadmap, and README to document the trip-detail API and the second phase of the statistics center.
+
+### Verified / 已验证
+
+- 运行新增 `trip detail` 后端服务测试、路由测试、前端页面测试、API 模块测试与主应用路由测试  
+  Ran the new trip-detail backend service test, route test, frontend page test, API-module test, and main app routing test.
+- 运行与统计中心相关的聚焦测试及 `npm run build`  
+  Ran the focused statistics-center tests together with `npm run build`.
+
+### PR TBD `feat: 新增行程统计中心一期 / Add trip statistics center phase one`
+
+### Added / 新增
+
+- 新增 `GET /api/stats/overview` 统计聚合接口，支持按年份、范围、旅伴和行程筛选当前账号的统计数据。  
+  Added `GET /api/stats/overview`, a statistics aggregation endpoint that supports filtering current-account stats by year, scope, companion, and trip.
+- 新增首页第二屏“行程统计中心”，覆盖总览、年度趋势、月度分布、地区/城市排行、旅伴排行、行程排行、区域热力图与行程明细。  
+  Added a second-screen trip statistics center on the homepage, covering summary KPIs, yearly trend, monthly distribution, region/city ranking, companion ranking, trip ranking, regional heatmaps, and trip details.
+- 新增统计中心前端 API、展示模型、热力图组件与基础测试。  
+  Added frontend stats APIs, presentation models, heatmap components, and baseline tests for the statistics center.
+
+### Changed / 变更
+
+- `TravelApp` 现在在 Hero 与主内容区之间挂载统计中心，并为行程详情页预留了从统计模块定位行程记录的跳转行为。  
+  `TravelApp` now mounts the statistics center between the hero and the main content area, and reserves a trip-detail jump by focusing trip markers from the stats module.
+- 更新 `docs/technical/app-api-contract.md`、`docs/technical/future-roadmap.md` 与 `README.md`，同步统计中心能力说明。  
+  Updated `docs/technical/app-api-contract.md`, `docs/technical/future-roadmap.md`, and `README.md` to reflect the new statistics center capability.
+
+### Verified / 已验证
+
+- 计划运行统计路由、前端 API、统计中心组件和主应用相关测试，并执行 `npm run build`  
+  Planned verification covers the stats route, frontend API, statistics-center component, main app tests, and `npm run build`.
 
 ### PR TBD `docs: 补齐业务专项 prompt / Add domain-specific prompts`
 

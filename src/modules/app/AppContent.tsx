@@ -10,15 +10,19 @@ interface AppContentProps {
   scope: Scope;
   regions: RegionOption[];
   currentMarkers: VisitMarker[];
+  mapMarkers: VisitMarker[];
   allMarkers: VisitMarker[];
   trips: TripCollection[];
   users: UserProfile[];
   activeUserId: string;
   activeUserName?: string;
   selectedRegionId: string;
+  selectedRegionName?: string;
   savedGuides: SavedGuide[];
   onScopeChange: (scope: Scope) => void;
   onSelectRegion: (region: RegionOption) => void;
+  onOpenSelectedRegionComposer: () => void;
+  onClearSelectedRegion: () => void;
   onRequestDeleteMarker: (markerId: string) => void;
   onViewMarkerDetail: (markerId: string) => void;
   onFocusSearchResult: (markerId: string) => void;
@@ -36,15 +40,19 @@ export default function AppContent({
   scope,
   regions,
   currentMarkers,
+  mapMarkers,
   allMarkers,
   trips,
   users,
   activeUserId,
   activeUserName,
   selectedRegionId,
+  selectedRegionName,
   savedGuides,
   onScopeChange,
   onSelectRegion,
+  onOpenSelectedRegionComposer,
+  onClearSelectedRegion,
   onRequestDeleteMarker,
   onViewMarkerDetail,
   onFocusSearchResult,
@@ -63,13 +71,16 @@ export default function AppContent({
         <TravelMap
           scope={scope}
           regions={regions}
-          markers={currentMarkers}
+          markers={mapMarkers}
           allMarkers={allMarkers}
           users={users}
           activeUserId={activeUserId}
           selectedRegionId={selectedRegionId}
+          selectedRegionName={selectedRegionName}
           onScopeChange={onScopeChange}
           onSelectRegion={onSelectRegion}
+          onOpenSelectedRegionComposer={onOpenSelectedRegionComposer}
+          onClearSelectedRegion={onClearSelectedRegion}
         />
         <MarkerList
           scope={scope}

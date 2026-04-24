@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type { MarkerFormValue } from '../../components/MarkerForm';
+import { resolveMapRegionId } from '../../lib/mapRegionResolver';
 import { remoteTravelStoreRepository } from '../../lib/repositories/remoteTravelStoreRepository';
 import type { GuideSearchResult, TravelStore, UserProfile } from '../../types';
 import { keepCurrentActiveUser, upsertRecentSearchHistory } from './travelStoreActionHelpers';
@@ -85,7 +86,16 @@ export function useTravelStoreActions({
       });
 
       setStore((current) => keepCurrentActiveUser(nextStore, current));
-      setSelectedRegionId(value.scopeId);
+      setSelectedRegionId(
+        resolveMapRegionId(
+          {
+            scope: value.scope,
+            scopeId: value.scopeId,
+            scopeName: value.scopeName,
+          },
+          value.scope,
+        ),
+      );
       setMarkerModalOpen(false);
       setMessage(`已保存 ${activeUser.name} 在 ${value.scopeName} · ${value.city} 的旅行记录。`);
     } catch (error) {

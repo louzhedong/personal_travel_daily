@@ -10,6 +10,7 @@ import { registerGuideSearchHistoryRoutes } from './routes/guideSearchHistories.
 import { registerHealthRoutes } from './routes/health.js';
 import { registerMarkerRoutes } from './routes/markers.js';
 import { registerSavedGuideRoutes } from './routes/savedGuides.js';
+import { registerStatsRoutes } from './routes/stats.js';
 import { registerTripRoutes } from './routes/trips.js';
 
 export async function buildApp() {
@@ -30,6 +31,7 @@ export async function buildApp() {
   await registerBootstrapRoutes(app);
   await registerCompanionRoutes(app);
   await registerTripRoutes(app);
+  await registerStatsRoutes(app);
   await registerSavedGuideRoutes(app);
   await registerGuideSearchHistoryRoutes(app);
   await registerMarkerRoutes(app);

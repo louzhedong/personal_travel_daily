@@ -3,6 +3,8 @@
 @import './auth.css';
 @import './admin.css';
 @import './home.css';
+@import './stats-center.css';
+@import './trip-detail.css';
 @import './components/map.css';
 @import './components/sidebar-panels.css';
 @import './components/forms.css';

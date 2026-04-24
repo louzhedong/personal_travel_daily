@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
+import { resolveMarkerMapRegionId } from '../../lib/mapRegionResolver';
 import type { Scope, VisitMarker } from '../../types';
 
 interface FocusMarkerByIdOptions {
@@ -32,7 +33,7 @@ export function focusMarkerById({
 
   onBeforeFocus?.();
   setScope(targetMarker.scope);
-  setSelectedRegionId(targetMarker.scopeId);
+  setSelectedRegionId(resolveMarkerMapRegionId(targetMarker, targetMarker.scope));
   setMarkerModalOpen(false);
   setDetailMarkerId(targetMarker.id);
   onFocused?.(targetMarker);

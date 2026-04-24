@@ -124,6 +124,7 @@
 ### 1. 行程统计中心 / Trip Statistics Center
 
 - 优先级 / Priority：`P1`
+- 状态 / Status：已进入实施阶段 / In implementation.
 - 为什么值得做：现在已有基础 `StatsPanel`，但还没有把“记录”转成更有成就感和回顾价值的数据视图。
 - Why it matters: the app has a basic `StatsPanel`, but marker data has not yet become a richer achievement and retrospective view.
 - 建议范围 / Suggested scope：
@@ -133,8 +134,10 @@
   - Yearly statistics and monthly distribution.
   - 最常访问地区 / 最活跃旅伴。
   - Most visited regions and most active companions.
-  - 可作为首页第二屏或独立面板。
-  - Can live as a second homepage section or standalone panel.
+  - 已确认作为首页第二屏，且统计口径由后端聚合接口统一提供。
+  - Confirmed as the second homepage section, with server-side aggregation as the source of truth.
+- 二期补齐“统计中心 -> 行程详情页”钻取闭环，支持只读查看行程总览、记录、攻略与照片。
+- Phase two extends the stats center into a drill-down flow, opening a read-only trip detail page with summary, markers, guides, and photos.
 
 ### 2. 记录标签系统
 
@@ -154,6 +157,8 @@
   - 支持设置行程封面，或从记录图片自动选封面。
   - 支持批量把已有旅行记录归属到某个行程。
   - 增加行程详情页，展示记录、照片、关联攻略和基础统计。
+- 说明：行程详情页的只读首版已由“统计中心二期”优先承接；这里后续聚焦可编辑、封面与批量整理能力。
+- Note: the first read-only trip detail page is now addressed by stats-center phase two; this item should focus next on editing, cover management, and bulk organization.
 
 ### 4. 攻略卡片沉淀与行前清单
 
