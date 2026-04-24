@@ -25,7 +25,7 @@ import { fetchAdminOverview } from '../adminApi';
 import { fetchSession, login, logout, register } from '../authApi';
 import { createCompanion, updateCompanion } from '../companionsApi';
 import { createGuideSearchHistory, fetchGuideSearchHistories } from '../guideSearchHistoryApi';
-import { createMarker, deleteMarker, updateMarker } from '../markersApi';
+import { createMarker, deleteMarker, searchMarkers, updateMarker } from '../markersApi';
 import { createSavedGuide, deleteSavedGuide, fetchSavedGuides } from '../savedGuidesApi';
 
 describe('app api modules', () => {
@@ -100,6 +100,26 @@ describe('app api modules', () => {
       note: '更新后的备注',
     });
     expect(mocks.deleteMock).toHaveBeenCalledWith('/api', '/markers/marker-1');
+  });
+
+  it('forwards marker search query parameters', async () => {
+    await searchMarkers({
+      keyword: '京都',
+      scope: 'international',
+      companionId: 'user-alice',
+      year: '2026',
+      page: 1,
+      pageSize: 20,
+    });
+
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/markers/search', {
+      keyword: '京都',
+      scope: 'international',
+      companionId: 'user-alice',
+      year: '2026',
+      page: 1,
+      pageSize: 20,
+    });
   });
 
   it('forwards saved guide resource requests with query and payload', async () => {

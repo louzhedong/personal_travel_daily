@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { createNotFoundError, createValidationError } from '../errors.js';
 import { getPrismaClient } from '../prisma.js';
 import type { CreateMarkerBody, UpdateMarkerBody } from '../schemas/markers.js';
+import type { SearchMarkersQuery } from '../schemas/markers.js';
 import {
   findActiveCompanionById,
 } from '../repositories/travelCompanionRepository.js';
@@ -9,11 +10,15 @@ import { findActiveTripById } from '../repositories/tripRepository.js';
 import {
   createMarker,
   findActiveMarkerById,
+  searchActiveMarkersByAccountId,
   softDeleteMarker,
   updateMarker,
 } from '../repositories/visitMarkerRepository.js';
 import { softDeleteSavedGuidesByMarkerId } from '../repositories/savedGuideRepository.js';
+import { createMarkerSearchEvent } from '../repositories/markerSearchEventRepository.js';
 import { buildCurrentStoreSnapshot } from './storeSnapshotService.js';
+import { serializeMarker } from '../serializers/bootstrapSerializer.js';
+import type { MarkerSearchResponseDto } from '../types.js';
 
 function parseDateOnly(value: string) {
   return new Date(`${value}T00:00:00.000Z`);
@@ -110,4 +115,41 @@ export async function deleteMarkerRecord(accountId: string, markerId: string) {
   });
 
   return buildCurrentStoreSnapshot(accountId);
+}
+
+export async function searchMarkerRecords(
+  accountId: string,
+  query: SearchMarkersQuery,
+): Promise<MarkerSearchResponseDto> {
+  const prisma = getPrismaClient();
+  const keyword = query.keyword?.trim();
+  const { items, total } = await searchActiveMarkersByAccountId(prisma, {
+    accountId,
+    keyword: keyword || undefined,
+    companionId: query.companionId,
+    scope: query.scope,
+    year: query.year,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
+
+  await createMarkerSearchEvent(prisma, {
+    id: randomUUID(),
+    accountId,
+    companionId: query.companionId,
+    keyword: keyword || '',
+    scope: query.scope,
+    year: query.year,
+    resultCount: total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
+
+  return {
+    items: items.map(serializeMarker),
+    page: query.page,
+    pageSize: query.pageSize,
+    total,
+    hasMore: query.page * query.pageSize < total,
+  };
 }

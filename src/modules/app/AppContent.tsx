@@ -3,6 +3,7 @@ import SavedGuidesPanel from '../../components/SavedGuidesPanel';
 import TravelMap from '../../components/TravelMap';
 import TripTimelinePanel from '../../components/TripTimelinePanel';
 import UserManager from '../../components/UserManager';
+import type { MarkerSearchResponseDto, SearchMarkersQuery } from '../../lib/api/types';
 import type { RegionOption, SavedGuide, Scope, TripCollection, UserProfile, VisitMarker } from '../../types';
 
 interface AppContentProps {
@@ -20,7 +21,9 @@ interface AppContentProps {
   onSelectRegion: (region: RegionOption) => void;
   onRequestDeleteMarker: (markerId: string) => void;
   onViewMarkerDetail: (markerId: string) => void;
+  onFocusSearchResult: (markerId: string) => void;
   onOpenDataSync: () => void;
+  onSearchMarkers: (query: SearchMarkersQuery) => Promise<MarkerSearchResponseDto>;
   onSwitchUser: (userId: string) => void;
   onCreateUser: (payload: { name: string; color: string }) => void;
   onCreateTrip: (payload: { name: string; startsAt: string; endsAt: string; note?: string }) => void;
@@ -44,7 +47,9 @@ export default function AppContent({
   onSelectRegion,
   onRequestDeleteMarker,
   onViewMarkerDetail,
+  onFocusSearchResult,
   onOpenDataSync,
+  onSearchMarkers,
   onSwitchUser,
   onCreateUser,
   onCreateTrip,
@@ -59,6 +64,7 @@ export default function AppContent({
           scope={scope}
           regions={regions}
           markers={currentMarkers}
+          allMarkers={allMarkers}
           users={users}
           activeUserId={activeUserId}
           selectedRegionId={selectedRegionId}
@@ -68,11 +74,14 @@ export default function AppContent({
         <MarkerList
           scope={scope}
           markers={currentMarkers}
+          allMarkers={allMarkers}
           users={users}
           activeUserId={activeUserId}
           onDelete={onRequestDeleteMarker}
           onViewDetail={onViewMarkerDetail}
+          onFocusSearchResult={onFocusSearchResult}
           onOpenDataSync={onOpenDataSync}
+          onSearchMarkers={onSearchMarkers}
         />
       </div>
 

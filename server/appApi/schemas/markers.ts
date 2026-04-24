@@ -32,6 +32,19 @@ export const markerParamsSchema = z.object({
   id: z.string().trim().min(1, 'marker id is required'),
 });
 
+export const searchMarkersQuerySchema = z.object({
+  keyword: z.string().trim().max(100, 'keyword must be 100 characters or fewer').optional(),
+  companionId: z.string().trim().min(1, 'companionId is required').optional(),
+  scope: z.enum(['domestic', 'international', 'all']).optional().default('all'),
+  year: z
+    .string()
+    .trim()
+    .regex(/^\d{4}$/, 'year must use YYYY format')
+    .optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).optional().default(20),
+});
+
 export const updateMarkerBodySchema = z
   .object({
     note: z.string().trim().max(500, 'note must be 500 characters or fewer').optional(),
@@ -54,4 +67,5 @@ export const updateMarkerBodySchema = z
 
 export type CreateMarkerBody = z.infer<typeof createMarkerBodySchema>;
 export type MarkerParams = z.infer<typeof markerParamsSchema>;
+export type SearchMarkersQuery = z.infer<typeof searchMarkersQuerySchema>;
 export type UpdateMarkerBody = z.infer<typeof updateMarkerBodySchema>;

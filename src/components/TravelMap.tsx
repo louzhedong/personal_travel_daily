@@ -15,6 +15,8 @@ interface RenderSegment {
   d: string;
 }
 
+const WORLD_CHINA_REGION_ID = '中国';
+
 interface StaticRenderItem {
   item: {
     name: string;
@@ -278,6 +280,7 @@ interface TravelMapProps {
   scope: Scope;
   regions: RegionOption[];
   markers: VisitMarker[];
+  allMarkers?: VisitMarker[];
   users: UserProfile[];
   activeUserId: string;
   selectedRegionId?: string;
@@ -289,6 +292,7 @@ export function TravelMap({
   scope,
   regions,
   markers,
+  allMarkers,
   users,
   activeUserId,
   selectedRegionId,
@@ -370,15 +374,24 @@ export function TravelMap({
 
   const markersByRegion = useMemo(() => {
     const result = new Map<string, VisitMarker[]>();
+    const sourceMarkers = scope === 'international' && allMarkers ? allMarkers : markers;
 
-    markers.forEach((marker) => {
-      const list = result.get(marker.scopeId) ?? [];
+    sourceMarkers.forEach((marker) => {
+      const regionId = scope === 'international' && marker.scope === 'domestic' ? WORLD_CHINA_REGION_ID : marker.scopeId;
+      if (scope === 'domestic' && marker.scope !== 'domestic') {
+        return;
+      }
+      if (scope === 'international' && marker.scope !== 'international' && marker.scope !== 'domestic') {
+        return;
+      }
+
+      const list = result.get(regionId) ?? [];
       list.push(marker);
-      result.set(marker.scopeId, list);
+      result.set(regionId, list);
     });
 
     return result;
-  }, [markers]);
+  }, [allMarkers, markers, scope]);
 
   const userColorMap = useMemo(
     () => new Map(users.map((item) => [item.id, item.color])),
@@ -477,7 +490,7 @@ export function TravelMap({
     return staticItems.map((item) => {
       const regionMarkers = item.region ? markersByRegion.get(item.region.id) ?? [] : [];
       const uniqueUsers = Array.from(new Set(regionMarkers.map((marker) => marker.userId))).slice(0, 3);
-      const isActive = item.region?.id === selectedRegionId;
+      const isActive = !!item.region && item.region.id === selectedRegionId;
       return {
         ...item,
         regionMarkers,

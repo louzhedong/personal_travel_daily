@@ -36,9 +36,30 @@ model Account {
   markers      VisitMarker[]
   savedGuides  SavedGuide[]
   histories    GuideSearchHistory[]
+  markerSearchEvents MarkerSearchEvent[]
   sessions     AuthSession[]
 
   @@map("accounts")
+}
+
+model MarkerSearchEvent {
+  id          String             @id
+  accountId   String             @map("account_id")
+  companionId String?            @map("companion_id")
+  keyword     String
+  scope       GuideSearchScope
+  year        String?
+  resultCount Int                @map("result_count")
+  page        Int
+  pageSize    Int                @map("page_size")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  account     Account            @relation(fields: [accountId], references: [id])
+  companion   TravelCompanion?   @relation(fields: [companionId], references: [id])
+
+  @@index([accountId], map: "idx_marker_search_events_account_id")
+  @@index([companionId], map: "idx_marker_search_events_companion_id")
+  @@index([createdAt], map: "idx_marker_search_events_created_at")
+  @@map("marker_search_events")
 }
 
 model Trip {
@@ -90,6 +111,7 @@ model TravelCompanion {
   markers    VisitMarker[]
   guides     SavedGuide[]
   histories  GuideSearchHistory[]
+  markerSearchEvents MarkerSearchEvent[]
 
   @@index([accountId], map: "idx_travel_companions_account_id")
   @@unique([accountId, name, isDeleted], map: "uq_travel_companions_account_name_active")

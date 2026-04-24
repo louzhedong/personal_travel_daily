@@ -28,6 +28,7 @@ describe('AdminPage', () => {
             markerCount: 1,
             savedGuideCount: 1,
             guideSearchHistoryCount: 1,
+            markerSearchEventCount: 1,
           },
           trips: [
             {
@@ -36,6 +37,19 @@ describe('AdminPage', () => {
               note: '春天出行',
               startsAt: '2026-04-20',
               endsAt: '2026-04-21',
+              createdAt: '2026-04-22T00:00:00.000Z',
+            },
+          ],
+          markerSearchEvents: [
+            {
+              id: 'marker-search-1',
+              companionId: 'companion-1',
+              keyword: '西湖',
+              scope: 'domestic',
+              year: '2026',
+              resultCount: 7,
+              page: 1,
+              pageSize: 20,
               createdAt: '2026-04-22T00:00:00.000Z',
             },
           ],
@@ -96,8 +110,10 @@ describe('AdminPage', () => {
             markerCount: 0,
             savedGuideCount: 0,
             guideSearchHistoryCount: 0,
+            markerSearchEventCount: 0,
           },
           trips: [],
+          markerSearchEvents: [],
           companions: [
             {
               id: 'companion-2',
@@ -139,8 +155,12 @@ describe('AdminPage', () => {
     await userEvent.click(screen.getByRole('tab', { name: '收藏攻略' }));
     expect(await screen.findByText('杭州周末攻略')).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('tab', { name: '搜索历史' }));
+    await userEvent.click(screen.getByRole('tab', { name: '攻略搜索' }));
     expect(await screen.findByText('杭州')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('tab', { name: '记录搜索' }));
+    expect(await screen.findByText('西湖')).toBeInTheDocument();
+    expect(await screen.findByText('7')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: /另一位用户/ }));
     expect(await screen.findByText('@other-user')).toBeInTheDocument();

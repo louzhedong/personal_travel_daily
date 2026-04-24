@@ -3,7 +3,7 @@ import type {
   AdminOverviewResponseDto,
 } from '../../lib/api/types';
 
-export type AdminDetailTab = 'trips' | 'markers' | 'savedGuides' | 'guideSearchHistory';
+export type AdminDetailTab = 'trips' | 'markers' | 'savedGuides' | 'guideSearchHistory' | 'markerSearchEvents';
 
 export function formatAdminDate(value: string) {
   try {
@@ -41,6 +41,7 @@ export function getAdminSummary(overview: AdminOverviewResponseDto) {
       savedGuideCount: acc.savedGuideCount + account.stats.savedGuideCount,
       guideSearchHistoryCount:
         acc.guideSearchHistoryCount + account.stats.guideSearchHistoryCount,
+      markerSearchEventCount: acc.markerSearchEventCount + account.stats.markerSearchEventCount,
     }),
     {
       accountCount: 0,
@@ -49,6 +50,7 @@ export function getAdminSummary(overview: AdminOverviewResponseDto) {
       markerCount: 0,
       savedGuideCount: 0,
       guideSearchHistoryCount: 0,
+      markerSearchEventCount: 0,
     },
   );
 }
@@ -89,5 +91,11 @@ export function getAccountDetailCollections(account: AdminAccountNodeDto) {
         companionName: companion.name,
       })),
     ),
+    markerSearchEvents: account.markerSearchEvents.map((event) => ({
+      ...event,
+      companionName: event.companionId
+        ? companions.find((companion) => companion.id === event.companionId)?.name ?? '未知同行人'
+        : '全部同行人',
+    })),
   };
 }

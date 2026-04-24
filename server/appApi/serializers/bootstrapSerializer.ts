@@ -57,7 +57,7 @@ function serializeTrip(trip: Trip): TripDto {
   };
 }
 
-function serializeMarker(marker: MarkerWithImages): VisitMarkerDto {
+export function serializeMarker(marker: MarkerWithImages): VisitMarkerDto {
   const imageUrls = marker.images.map((image) => image.imageUrl).filter(Boolean);
 
   return {

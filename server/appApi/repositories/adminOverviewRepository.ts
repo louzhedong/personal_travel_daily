@@ -53,6 +53,12 @@ export async function listAdminOverviewAccounts(prisma: PrismaExecutor) {
           },
         },
       },
+      markerSearchEvents: {
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 100,
+      },
     },
   });
 }

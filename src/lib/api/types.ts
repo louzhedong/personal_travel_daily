@@ -6,6 +6,7 @@ import type {
   SavedGuide,
   Scope,
   TravelStore,
+  VisitMarker,
 } from '../../types';
 
 export interface AppApiErrorPayload {
@@ -61,6 +62,23 @@ export interface UpdateMarkerInput {
   visitedStartAt?: string;
   visitedEndAt?: string;
   tripId?: string | null;
+}
+
+export interface SearchMarkersQuery {
+  keyword?: string;
+  companionId?: string;
+  scope?: Scope | 'all';
+  year?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface MarkerSearchResponseDto {
+  items: VisitMarker[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
 }
 
 export interface CreateTripInput {
@@ -165,6 +183,18 @@ export interface AdminGuideSearchHistoryNodeDto {
   createdAt: string;
 }
 
+export interface AdminMarkerSearchEventNodeDto {
+  id: string;
+  companionId?: string;
+  keyword: string;
+  scope: Scope | 'all';
+  year?: string;
+  resultCount: number;
+  page: number;
+  pageSize: number;
+  createdAt: string;
+}
+
 export interface AdminCompanionNodeDto {
   id: string;
   name: string;
@@ -182,6 +212,7 @@ export interface AdminAccountNodeDto {
   role: AccountRoleDto;
   createdAt: string;
   trips: AdminTripNodeDto[];
+  markerSearchEvents: AdminMarkerSearchEventNodeDto[];
   companions: AdminCompanionNodeDto[];
   stats: {
     tripCount: number;
@@ -189,6 +220,7 @@ export interface AdminAccountNodeDto {
     markerCount: number;
     savedGuideCount: number;
     guideSearchHistoryCount: number;
+    markerSearchEventCount: number;
   };
 }
 

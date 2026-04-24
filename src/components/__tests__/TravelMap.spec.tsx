@@ -66,6 +66,21 @@ const markers: VisitMarker[] = [
   },
 ];
 
+const domesticMarkers: VisitMarker[] = [
+  {
+    id: 'domestic-1',
+    userId: 'u1',
+    scope: 'domestic',
+    scopeId: 'xinjiang',
+    scopeName: '新疆',
+    city: '乌鲁木齐',
+    note: '国内地图添加的记录',
+    visitedStartAt: '2026-04-01',
+    visitedEndAt: '2026-04-03',
+    createdAt: '2026-04-04T00:00:00.000Z',
+  },
+];
+
 const mockedFeatures = [
   {
     id: 'Bigland',
@@ -92,6 +107,19 @@ const mockedFeatures = [
     },
   },
 ];
+
+const chinaFeature = {
+  id: '中国',
+  name: '中国',
+  feature: {
+    type: 'Feature',
+    properties: { name: '中国' },
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[[95, 20], [95, 45], [125, 45], [125, 20], [95, 20]]],
+    },
+  },
+};
 
 describe('TravelMap', () => {
   beforeEach(() => {
@@ -172,5 +200,28 @@ describe('TravelMap', () => {
     await waitFor(() => {
       expect(container.querySelectorAll('.map-journey-arc')).toHaveLength(1);
     });
+  });
+
+  it('aggregates domestic markers into China on the international map', async () => {
+    vi.spyOn(loader, 'loadGeoForScope').mockResolvedValueOnce([chinaFeature] as never);
+    const worldRegions: RegionOption[] = [
+      { id: '中国', name: '中国', cities: [] },
+    ];
+    const { findByTestId } = render(
+      <TravelMap
+        scope="international"
+        regions={worldRegions}
+        markers={[]}
+        allMarkers={domesticMarkers}
+        users={users}
+        activeUserId="u1"
+        onScopeChange={() => {}}
+        onSelectRegion={() => {}}
+      />,
+    );
+
+    const segment = await findByTestId('segment-中国-0');
+
+    expect(segment).toHaveClass('visited');
   });
 });
