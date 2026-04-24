@@ -3,6 +3,24 @@
 本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。  
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
+## 2026-04-24
+
+### PR TBD `fix: 补齐旅行详情面板开合动效 / Match marker detail panel motion with guide search`
+
+### Changed / 变更
+
+- 为 `MarkerDetailPanel` 补齐与 `GuideSearchPanel` 一致的遮罩淡入与面板右侧滑入动效，详情抽屉打开时不再是直接跳出。  
+  Updated `MarkerDetailPanel` to use the same backdrop fade and right-side slide-in motion as `GuideSearchPanel`, so the detail drawer no longer appears abruptly.
+- 同步更新文档，明确旅行记录详情面板与攻略搜索面板现在保持一致的开合体验。  
+  Updated the docs to note that the marker detail panel now shares the same open/close motion language as the guide search panel.
+
+### Verified / 已验证
+
+- 手动检查样式类切换：`detail-backdrop.is-visible`、`detail-panel.is-visible`
+- `npm.cmd run test -- --run src/components/__tests__/MarkerDetailPanel.spec.tsx src/components/__tests__/GuideSearchPanel.spec.tsx`  
+  因当前环境 `esbuild` 启动子进程触发 `spawn EPERM`，未能在沙箱内完成自动验证。  
+  Could not complete automated verification in the sandbox because `esbuild` failed to start with `spawn EPERM`.
+
 ## 2026-04-23
 
 ### PR TBD `chore: 扩充 demo 账号联调数据 / Expand demo account test data`
