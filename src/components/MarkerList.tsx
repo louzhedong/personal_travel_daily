@@ -1,77 +1,237 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import FancySelect from './ui/FancySelect';
 import { formatVisitedRange } from '../lib/date';
+import { getDateOnlyYear } from '../lib/date';
 import { sortMarkersDesc } from '../lib/markerSorting';
 import type { Scope, UserProfile, VisitMarker } from '../types';
+import type { MarkerSearchResponseDto, SearchMarkersQuery } from '../lib/api/types';
 
 interface MarkerListProps {
   scope: Scope;
   markers: VisitMarker[];
+  allMarkers?: VisitMarker[];
   users: UserProfile[];
   activeUserId: string;
   onDelete: (markerId: string) => void;
   onViewDetail: (markerId: string) => void;
+  onFocusSearchResult?: (markerId: string) => void;
   onOpenDataSync?: () => void;
+  onSearchMarkers?: (query: SearchMarkersQuery) => Promise<MarkerSearchResponseDto>;
 }
 
 export function MarkerList({
   scope,
   markers,
+  allMarkers,
   users,
   activeUserId,
   onDelete,
   onViewDetail,
+  onFocusSearchResult,
   onOpenDataSync,
+  onSearchMarkers,
 }: MarkerListProps) {
   const [filterUserId, setFilterUserId] = useState<'all' | string>('all');
+  const [keywordInput, setKeywordInput] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [yearFilter, setYearFilter] = useState<'all' | string>('all');
+  const [scopeFilter, setScopeFilter] = useState<Scope | 'all'>(scope);
+  const [searchResult, setSearchResult] = useState<MarkerSearchResponseDto | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
   const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({});
 
   const userMap = useMemo(() => new Map(users.map((item) => [item.id, item])), [users]);
+  const yearSourceMarkers = allMarkers ?? markers;
+  const yearOptions = useMemo(() => {
+    return Array.from(new Set(yearSourceMarkers.map((item) => getDateOnlyYear(item.visitedStartAt)))).sort(
+      (left, right) => right.localeCompare(left),
+    );
+  }, [yearSourceMarkers]);
+
+  useEffect(() => {
+    setScopeFilter(scope);
+  }, [scope]);
+
+  const hasServerSearchFilters =
+    keyword.trim().length > 0 || filterUserId !== 'all' || yearFilter !== 'all' || scopeFilter !== scope;
+
+  useEffect(() => {
+    if (!hasServerSearchFilters || !onSearchMarkers) {
+      setSearchResult(null);
+      setSearching(false);
+      setSearchError('');
+      return;
+    }
+
+    let cancelled = false;
+    setSearching(true);
+    setSearchError('');
+    onSearchMarkers({
+      keyword: keyword.trim() || undefined,
+      companionId: filterUserId === 'all' ? undefined : filterUserId,
+      scope: scopeFilter,
+      year: yearFilter === 'all' ? undefined : yearFilter,
+      page: 1,
+      pageSize: 20,
+    })
+      .then((result) => {
+        if (!cancelled) {
+          setSearchResult(result);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setSearchResult({ items: [], page: 1, pageSize: 20, total: 0, hasMore: false });
+          setSearchError(error instanceof Error ? error.message : '旅行记录搜索暂时不可用');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setSearching(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [filterUserId, hasServerSearchFilters, keyword, onSearchMarkers, scopeFilter, yearFilter]);
 
   const visibleMarkers = useMemo(() => {
-    const list = [...markers].sort(sortMarkersDesc);
-    if (filterUserId === 'all') {
-      return list;
+    if (hasServerSearchFilters) {
+      return searchResult?.items ?? [];
     }
-    return list.filter((item) => item.userId === filterUserId);
-  }, [filterUserId, markers]);
+
+    const list = [...markers].sort(sortMarkersDesc);
+    return list;
+  }, [hasServerSearchFilters, markers, searchResult]);
+
+  const clearFilters = () => {
+    setKeywordInput('');
+    setKeyword('');
+    setFilterUserId('all');
+    setYearFilter('all');
+    setScopeFilter(scope);
+  };
+
+  const submitKeywordSearch = () => {
+    setKeyword(keywordInput.trim());
+  };
+
+  const openMarker = (markerId: string) => {
+    if (hasServerSearchFilters && onFocusSearchResult) {
+      onFocusSearchResult(markerId);
+      return;
+    }
+    onViewDetail(markerId);
+  };
 
   return (
-    <section className="card panel-card stack gap-16">
-      <div className="section-heading">
-        <div>
+    <section className="card panel-card stack gap-16 marker-record-card">
+      <div className="section-heading marker-list-heading">
+        <div className="marker-list-title-block">
           <h3>{scope === 'domestic' ? '国内旅行记录' : '国际旅行记录'}</h3>
-          <p>按时间查看当前范围下的所有标记，支持按用户筛选和删除。</p>
+          <p>按时间查看当前范围下的所有标记，支持服务端全文搜索、筛选和删除。</p>
         </div>
-        <div className="marker-list-controls">
-          <div className="marker-user-filter">
-            <span className="marker-user-filter-label">筛选旅伴</span>
-            <FancySelect
-              value={filterUserId}
-              onChange={setFilterUserId}
-              placeholder="全部用户"
-              className="marker-user-filter-select"
-              triggerClassName="marker-user-filter-trigger"
-              options={[
-                { value: 'all', label: '全部用户' },
-                ...users.map((user) => ({
-                  value: user.id,
-                  label: user.name,
-                })),
-              ]}
-            />
-          </div>
+      </div>
+      <div className="marker-list-controls">
+        <label className="marker-search-field">
+          <span className="marker-user-filter-label">搜索记录</span>
+          <input
+            type="search"
+            className="field-control marker-search-input"
+            value={keywordInput}
+            onChange={(event) => setKeywordInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                submitKeywordSearch();
+              }
+            }}
+            placeholder="地区、城市或游记关键词"
+            aria-label="搜索旅行记录"
+          />
+        </label>
+        <div className="marker-user-filter">
+          <span className="marker-user-filter-label">旅伴</span>
+          <FancySelect
+            value={filterUserId}
+            onChange={setFilterUserId}
+            placeholder="全部用户"
+            className="marker-user-filter-select"
+            triggerClassName="marker-user-filter-trigger"
+            options={[
+              { value: 'all', label: '全部用户' },
+              ...users.map((user) => ({
+                value: user.id,
+                label: user.name,
+              })),
+            ]}
+          />
+        </div>
+        <div className="marker-user-filter">
+          <span className="marker-user-filter-label">范围</span>
+          <FancySelect
+            value={scopeFilter}
+            onChange={(value) => {
+              if (value === 'all' || value === 'domestic' || value === 'international') {
+                setScopeFilter(value);
+              }
+            }}
+            placeholder="当前范围"
+            className="marker-user-filter-select"
+            triggerClassName="marker-user-filter-trigger"
+            options={[
+              { value: scope, label: scope === 'domestic' ? '当前：国内' : '当前：国际' },
+              { value: 'all', label: '全部范围' },
+              { value: 'domestic', label: '国内旅行' },
+              { value: 'international', label: '国际旅行' },
+            ].filter((option, index, list) => list.findIndex((item) => item.value === option.value) === index)}
+          />
+        </div>
+        <div className="marker-user-filter">
+          <span className="marker-user-filter-label">年份</span>
+          <FancySelect
+            value={yearFilter}
+            onChange={setYearFilter}
+            placeholder="全部年份"
+            className="marker-user-filter-select"
+            triggerClassName="marker-user-filter-trigger"
+            options={[
+              { value: 'all', label: '全部年份' },
+              ...yearOptions.map((year) => ({
+                value: year,
+                label: year,
+              })),
+            ]}
+          />
+        </div>
+        <div className="marker-toolbar-actions">
+          {hasServerSearchFilters ? (
+            <button type="button" className="ghost-button marker-secondary-action" onClick={clearFilters}>
+              清空筛选
+            </button>
+          ) : null}
           {onOpenDataSync ? (
             <button type="button" className="ghost-button marker-sync-entry-button" onClick={onOpenDataSync}>
               数据备份与恢复
             </button>
           ) : null}
+          </div>
         </div>
-      </div>
 
-      {visibleMarkers.length === 0 ? (
+      {searching ? (
+        <div className="empty-state">正在从服务端搜索旅行记录...</div>
+      ) : visibleMarkers.length === 0 ? (
         <div className="empty-state">
-          当前范围下还没有旅行记录，点击地图或直接使用表单新增第一条标记。
+          {hasServerSearchFilters
+            ? searchError || '当前筛选条件下暂无记录。'
+            : '当前范围下还没有旅行记录，点击地图或直接使用表单新增第一条标记。'}
+          {hasServerSearchFilters ? (
+            <button type="button" className="marker-clear-inline-button" onClick={clearFilters}>
+              清空筛选
+            </button>
+          ) : null}
         </div>
       ) : (
         <div className="marker-list">
@@ -86,7 +246,7 @@ export function MarkerList({
               <article
                 key={marker.id}
                 className="marker-item marker-item-clickable"
-                onClick={() => onViewDetail(marker.id)}
+                onClick={() => openMarker(marker.id)}
               >
                 <div className="marker-item-header">
                   <div className="stack gap-8 marker-content-main">
@@ -168,7 +328,7 @@ export function MarkerList({
                     className="marker-detail-button"
                     onClick={(event) => {
                       event.stopPropagation();
-                      onViewDetail(marker.id);
+                      openMarker(marker.id);
                     }}
                   >
                     查看详情

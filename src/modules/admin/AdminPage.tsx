@@ -30,7 +30,8 @@ function AdminSummaryCards({ overview }: { overview: AdminOverviewResponseDto })
     { label: '同行人', value: summary.companionCount, tone: 'teal' },
     { label: '旅行记录', value: summary.markerCount, tone: 'orange' },
     { label: '收藏攻略', value: summary.savedGuideCount, tone: 'sky' },
-    { label: '搜索历史', value: summary.guideSearchHistoryCount, tone: 'slate' },
+    { label: '攻略搜索', value: summary.guideSearchHistoryCount, tone: 'slate' },
+    { label: '记录搜索', value: summary.markerSearchEventCount, tone: 'blue' },
   ];
 
   return (
@@ -93,7 +94,8 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
     { key: 'trips', label: '行程' },
     { key: 'markers', label: '旅行记录' },
     { key: 'savedGuides', label: '收藏攻略' },
-    { key: 'guideSearchHistory', label: '搜索历史' },
+    { key: 'guideSearchHistory', label: '攻略搜索' },
+    { key: 'markerSearchEvents', label: '记录搜索' },
   ];
 
   return (
@@ -102,7 +104,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
         <div className="admin-hero-copy">
           <span className="hero-kicker">后台管理</span>
           <h1>系统用户总览</h1>
-          <p>按账号查看行程、同行人、旅行记录、收藏攻略与搜索历史，当前仅提供只读巡检视图。</p>
+          <p>按账号查看行程、同行人、旅行记录、收藏攻略与搜索行为，当前仅提供只读巡检视图。</p>
           <div className="admin-hero-meta">
             <span>当前管理员：{account.name}</span>
             <span>@{account.username}</span>
@@ -204,7 +206,8 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                       <span>同行人 {selectedAccount.stats.companionCount}</span>
                       <span>记录 {selectedAccount.stats.markerCount}</span>
                       <span>收藏 {selectedAccount.stats.savedGuideCount}</span>
-                      <span>搜索 {selectedAccount.stats.guideSearchHistoryCount}</span>
+                      <span>攻略搜索 {selectedAccount.stats.guideSearchHistoryCount}</span>
+                      <span>记录搜索 {selectedAccount.stats.markerSearchEventCount}</span>
                     </div>
                   </div>
 
@@ -227,8 +230,12 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                         <strong>{detailCollections.savedGuides.length}</strong>
                       </article>
                       <article className="admin-kpi-card">
-                        <span>搜索历史</span>
+                        <span>攻略搜索</span>
                         <strong>{detailCollections.guideSearchHistory.length}</strong>
+                      </article>
+                      <article className="admin-kpi-card">
+                        <span>记录搜索</span>
+                        <strong>{detailCollections.markerSearchEvents.length}</strong>
                       </article>
                     </div>
 
@@ -286,8 +293,13 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                               <div>
                                 <strong>{companion.name}</strong>
                                 <p>
-                                  记录 {companion.markers.length} · 收藏 {companion.savedGuides.length} · 搜索{' '}
-                                  {companion.guideSearchHistory.length}
+                                  记录 {companion.markers.length} · 收藏 {companion.savedGuides.length} · 攻略搜索{' '}
+                                  {companion.guideSearchHistory.length} · 记录搜索{' '}
+                                  {
+                                    selectedAccount.markerSearchEvents.filter(
+                                      (event) => event.companionId === companion.id,
+                                    ).length
+                                  }
                                 </p>
                               </div>
                             </div>
@@ -449,10 +461,10 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                           <span className="travel-icon-badge travel-icon-badge-teal">
                             <TravelIcon name="spark" size={14} />
                           </span>
-                          <h3>搜索历史</h3>
+                          <h3>攻略搜索</h3>
                         </div>
                         {detailCollections.guideSearchHistory.length === 0 ? (
-                          <div className="admin-empty-block">暂无搜索历史。</div>
+                          <div className="admin-empty-block">暂无攻略搜索历史。</div>
                         ) : (
                           <div className="admin-table-wrap">
                             <table className="admin-table">
@@ -477,6 +489,57 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                                           : '国际'}
                                     </td>
                                     <td>{formatAdminDate(history.createdAt)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </section>
+                    ) : null}
+
+                    {activeTab === 'markerSearchEvents' ? (
+                      <section className="admin-data-card">
+                        <div className="admin-section-title">
+                          <span className="travel-icon-badge travel-icon-badge-blue">
+                            <TravelIcon name="spark" size={14} />
+                          </span>
+                          <h3>记录搜索</h3>
+                        </div>
+                        {detailCollections.markerSearchEvents.length === 0 ? (
+                          <div className="admin-empty-block">暂无记录搜索行为。</div>
+                        ) : (
+                          <div className="admin-table-wrap">
+                            <table className="admin-table">
+                              <thead>
+                                <tr>
+                                  <th>旅伴筛选</th>
+                                  <th>关键词</th>
+                                  <th>范围</th>
+                                  <th>年份</th>
+                                  <th>结果数</th>
+                                  <th>分页</th>
+                                  <th>搜索时间</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {detailCollections.markerSearchEvents.map((event) => (
+                                  <tr key={event.id}>
+                                    <td>{event.companionName}</td>
+                                    <td>{event.keyword || '空关键词'}</td>
+                                    <td>
+                                      {event.scope === 'all'
+                                        ? '全部'
+                                        : event.scope === 'domestic'
+                                          ? '国内'
+                                          : '国际'}
+                                    </td>
+                                    <td>{event.year ?? '全部年份'}</td>
+                                    <td>{event.resultCount}</td>
+                                    <td>
+                                      第 {event.page} 页 / 每页 {event.pageSize}
+                                    </td>
+                                    <td>{formatAdminDate(event.createdAt)}</td>
                                   </tr>
                                 ))}
                               </tbody>

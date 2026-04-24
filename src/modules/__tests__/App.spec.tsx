@@ -161,6 +161,7 @@ describe('App auth and guide permissions', () => {
         role: 'admin',
         createdAt: '2026-04-22T00:00:00.000Z',
         trips: [],
+        markerSearchEvents: [],
         companions: [],
         stats: {
           tripCount: 0,
@@ -168,6 +169,7 @@ describe('App auth and guide permissions', () => {
           markerCount: 0,
           savedGuideCount: 0,
           guideSearchHistoryCount: 0,
+          markerSearchEventCount: 0,
         },
       },
     ],

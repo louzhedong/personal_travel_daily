@@ -1,6 +1,7 @@
 import type {
   Account,
   GuideSearchHistory,
+  MarkerSearchEvent,
   SavedGuide,
   TravelCompanion,
   Trip,
@@ -11,6 +12,7 @@ import type {
   AdminAccountNodeDto,
   AdminCompanionNodeDto,
   AdminGuideSearchHistoryNodeDto,
+  AdminMarkerSearchEventNodeDto,
   AdminMarkerNodeDto,
   AdminOverviewResponseDto,
   AdminSavedGuideNodeDto,
@@ -29,6 +31,7 @@ type CompanionWithRelations = TravelCompanion & {
 type AccountWithRelations = Account & {
   trips: Trip[];
   companions: CompanionWithRelations[];
+  markerSearchEvents: MarkerSearchEvent[];
 };
 
 function toIsoString(value: Date): string {
@@ -154,6 +157,20 @@ function serializeGuideSearchHistory(history: GuideSearchHistory): AdminGuideSea
   };
 }
 
+function serializeMarkerSearchEvent(event: MarkerSearchEvent): AdminMarkerSearchEventNodeDto {
+  return {
+    id: event.id,
+    companionId: event.companionId ?? undefined,
+    keyword: event.keyword,
+    scope: event.scope,
+    year: event.year ?? undefined,
+    resultCount: event.resultCount,
+    page: event.page,
+    pageSize: event.pageSize,
+    createdAt: toIsoString(event.createdAt),
+  };
+}
+
 function serializeCompanion(companion: CompanionWithRelations): AdminCompanionNodeDto {
   return {
     id: companion.id,
@@ -169,18 +186,21 @@ function serializeCompanion(companion: CompanionWithRelations): AdminCompanionNo
 function serializeAccount(account: AccountWithRelations): AdminAccountNodeDto {
   const trips = account.trips.map(serializeTrip);
   const companions = account.companions.map(serializeCompanion);
+  const markerSearchEvents = account.markerSearchEvents.map(serializeMarkerSearchEvent);
   const stats = companions.reduce(
     (summary, companion) => ({
       companionCount: summary.companionCount + 1,
       markerCount: summary.markerCount + companion.markers.length,
       savedGuideCount: summary.savedGuideCount + companion.savedGuides.length,
       guideSearchHistoryCount: summary.guideSearchHistoryCount + companion.guideSearchHistory.length,
+      markerSearchEventCount: summary.markerSearchEventCount,
     }),
     {
       companionCount: 0,
       markerCount: 0,
       savedGuideCount: 0,
       guideSearchHistoryCount: 0,
+      markerSearchEventCount: markerSearchEvents.length,
     },
   );
 
@@ -192,6 +212,7 @@ function serializeAccount(account: AccountWithRelations): AdminAccountNodeDto {
     createdAt: toIsoString(account.createdAt),
     trips,
     companions,
+    markerSearchEvents,
     stats: {
       tripCount: trips.length,
       ...stats,

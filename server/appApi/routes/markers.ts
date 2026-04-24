@@ -1,14 +1,21 @@
 import type { FastifyInstance } from 'fastify';
 import { requireAuthenticatedAccount } from '../auth/requestAuth.js';
-import { createMarkerRecord, deleteMarkerRecord, updateMarkerRecord } from '../services/markerService.js';
+import { createMarkerRecord, deleteMarkerRecord, searchMarkerRecords, updateMarkerRecord } from '../services/markerService.js';
 import {
   createMarkerBodySchema,
   markerParamsSchema,
+  searchMarkersQuerySchema,
   updateMarkerBodySchema,
 } from '../schemas/markers.js';
 import { parseWithSchema } from '../schemas/utils.js';
 
 export async function registerMarkerRoutes(app: FastifyInstance) {
+  app.get('/api/markers/search', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const query = parseWithSchema(searchMarkersQuerySchema, request.query);
+    return searchMarkerRecords(account.id, query);
+  });
+
   app.post('/api/markers', async (request) => {
     const account = await requireAuthenticatedAccount(request);
     const body = parseWithSchema(createMarkerBodySchema, request.body);

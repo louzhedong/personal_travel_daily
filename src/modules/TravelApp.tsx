@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import StatsPanel from '../components/StatsPanel';
+import { searchMarkers } from '../lib/api/markersApi';
 import { createDefaultStore } from '../lib/storage';
 import { remoteTravelStoreRepository } from '../lib/repositories/remoteTravelStoreRepository';
 import type { AuthAccount, Scope, TravelStore } from '../types';
@@ -169,6 +170,19 @@ function TravelApp({ account, onLogout, onOpenAdmin, entryMessage }: TravelAppPr
     });
   };
 
+  const handleFocusMarkerFromSearch = (markerId: string) => {
+    focusMarkerById({
+      markerId,
+      markers: store.markers,
+      setScope,
+      setSelectedRegionId,
+      setMarkerModalOpen,
+      setDetailMarkerId,
+      onMissing: () => setMessage('搜索结果中的旅行记录已不存在。'),
+      onFocused: (marker) => setMessage(`已从搜索结果定位到 ${marker.scopeName} · ${marker.city}。`),
+    });
+  };
+
   const openGuideSearch = (
     query: string,
     nextScope: Scope | 'all',
@@ -221,7 +235,9 @@ function TravelApp({ account, onLogout, onOpenAdmin, entryMessage }: TravelAppPr
         onSelectRegion={handleSelectRegion}
         onRequestDeleteMarker={handleRequestDeleteMarker}
         onViewMarkerDetail={setDetailMarkerId}
+        onFocusSearchResult={handleFocusMarkerFromSearch}
         onOpenDataSync={() => setDataSyncOpen(true)}
+        onSearchMarkers={searchMarkers}
         onSwitchUser={handleSwitchUser}
         onCreateUser={handleCreateUser}
         onCreateTrip={handleCreateTrip}

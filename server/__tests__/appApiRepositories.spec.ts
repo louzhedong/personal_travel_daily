@@ -23,6 +23,7 @@ import {
   createGuideSearchHistory,
   refreshGuideSearchHistory,
 } from '../appApi/repositories/guideSearchHistoryRepository.js';
+import { createMarkerSearchEvent } from '../appApi/repositories/markerSearchEventRepository.js';
 
 describe('app api repositories', () => {
   it('upserts and reads accounts with expected prisma payloads', async () => {
@@ -251,6 +252,41 @@ describe('app api repositories', () => {
       data: {
         keyword: '京都自由行',
         createdAt: expect.any(Date),
+      },
+    });
+  });
+
+  it('creates marker search event records with filter and pagination context', async () => {
+    const create = vi.fn().mockResolvedValue({ id: 'marker-search-1' });
+    const prisma = {
+      markerSearchEvent: {
+        create,
+      },
+    };
+
+    await createMarkerSearchEvent(prisma as never, {
+      id: 'marker-search-1',
+      accountId: 'acct_default',
+      companionId: 'user-alice',
+      keyword: '西湖',
+      scope: 'domestic',
+      year: '2026',
+      resultCount: 3,
+      page: 1,
+      pageSize: 20,
+    });
+
+    expect(create).toHaveBeenCalledWith({
+      data: {
+        id: 'marker-search-1',
+        accountId: 'acct_default',
+        companionId: 'user-alice',
+        keyword: '西湖',
+        scope: 'domestic',
+        year: '2026',
+        resultCount: 3,
+        page: 1,
+        pageSize: 20,
       },
     });
   });

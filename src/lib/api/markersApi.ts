@@ -1,6 +1,10 @@
 import { httpClient, getResourceBaseUrl } from './httpClient';
 import type { TravelStore } from '../../types';
-import type { CreateMarkerInput, UpdateMarkerInput } from './types';
+import type { CreateMarkerInput, MarkerSearchResponseDto, SearchMarkersQuery, UpdateMarkerInput } from './types';
+
+export async function searchMarkers(query: SearchMarkersQuery) {
+  return httpClient.get<MarkerSearchResponseDto>(getResourceBaseUrl(), '/markers/search', query);
+}
 
 export async function createMarker(input: CreateMarkerInput) {
   return httpClient.post<TravelStore>(getResourceBaseUrl(), '/markers', input);

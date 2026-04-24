@@ -153,7 +153,7 @@
 用途：
 
 - 仅供管理员查看全量系统账号总览
-- 按“账号 -> 同行人 -> 旅行记录 / 收藏攻略 / 搜索历史”返回只读树状数据
+- 按“账号 -> 同行人 -> 旅行记录 / 收藏攻略 / 攻略搜索历史”，以及“账号 -> 旅行记录搜索行为”返回只读树状数据
 
 权限：
 
@@ -172,23 +172,38 @@
       "role": "admin",
       "createdAt": "2026-04-22T00:00:00.000Z",
       "companions": [
-        {
-          "id": "user-alice",
-          "name": "小悠",
-          "color": "#2563eb",
-          "createdAt": "2026-04-22T00:00:00.000Z",
-          "markers": [],
-          "savedGuides": [],
-          "guideSearchHistory": []
+          {
+            "id": "user-alice",
+            "name": "小悠",
+            "color": "#2563eb",
+            "createdAt": "2026-04-22T00:00:00.000Z",
+            "markers": [],
+            "savedGuides": [],
+            "guideSearchHistory": []
+          }
+        ],
+        "markerSearchEvents": [
+          {
+            "id": "marker-search-1",
+            "companionId": "user-alice",
+            "keyword": "京都",
+            "scope": "international",
+            "year": "2026",
+            "resultCount": 3,
+            "page": 1,
+            "pageSize": 20,
+            "createdAt": "2026-04-24T00:00:00.000Z"
+          }
+        ],
+        "stats": {
+          "tripCount": 0,
+          "companionCount": 1,
+          "markerCount": 0,
+          "savedGuideCount": 0,
+          "guideSearchHistoryCount": 0,
+          "markerSearchEventCount": 1
         }
-      ],
-      "stats": {
-        "companionCount": 1,
-        "markerCount": 0,
-        "savedGuideCount": 0,
-        "guideSearchHistoryCount": 0
       }
-    }
   ],
   "meta": {
     "fetchedAt": "2026-04-23T00:00:00.000Z",
@@ -319,6 +334,38 @@
 - `409 CONFLICT`
 
 ## 旅行记录接口
+
+### `GET /api/markers/search`
+
+查询参数：
+
+- `keyword`：可选，按地区、城市和游记描述做服务端全文搜索
+- `companionId`：可选，限制到某个旅伴
+- `scope`：可选，`domestic` / `international` / `all`，默认 `all`
+- `year`：可选，按 `visitedStartAt` 年份筛选，格式 `YYYY`
+- `page`：可选，默认 `1`
+- `pageSize`：可选，默认 `20`，最大 `50`
+
+成功响应：
+
+```json
+{
+  "items": [],
+  "page": 1,
+  "pageSize": 20,
+  "total": 0,
+  "hasMore": false
+}
+```
+
+规则：
+
+- 仅返回当前登录账号下未删除的旅行记录
+- 关键词命中 `scopeName`、`city` 或 `note`
+- 返回的 `items` 使用现有旅行记录 DTO
+- 中文内容优先依赖 MySQL FULLTEXT ngram 索引，短关键词使用受限兜底匹配
+- 每次成功搜索会写入 `marker_search_events`，记录账号、可选旅伴、关键词、范围、年份、结果总数、页码、页大小和搜索时间
+- 前端旅行记录列表当前约定为输入关键词后按 Enter 发起搜索；旅伴、范围和年份筛选变更会复用已提交关键词刷新结果
 
 ### `POST /api/markers`
 

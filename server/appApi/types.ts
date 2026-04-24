@@ -39,6 +39,14 @@ export interface VisitMarkerDto {
   createdAt: string;
 }
 
+export interface MarkerSearchResponseDto {
+  items: VisitMarkerDto[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+}
+
 export interface GuideSearchResultDto {
   id: string;
   title: string;
@@ -163,6 +171,18 @@ export interface AdminGuideSearchHistoryNodeDto {
   createdAt: string;
 }
 
+export interface AdminMarkerSearchEventNodeDto {
+  id: string;
+  companionId?: string;
+  keyword: string;
+  scope: Scope | 'all';
+  year?: string;
+  resultCount: number;
+  page: number;
+  pageSize: number;
+  createdAt: string;
+}
+
 export interface AdminCompanionNodeDto {
   id: string;
   name: string;
@@ -180,6 +200,7 @@ export interface AdminAccountNodeDto {
   role: AccountRoleDto;
   createdAt: string;
   trips: AdminTripNodeDto[];
+  markerSearchEvents: AdminMarkerSearchEventNodeDto[];
   companions: AdminCompanionNodeDto[];
   stats: {
     tripCount: number;
@@ -187,6 +208,7 @@ export interface AdminAccountNodeDto {
     markerCount: number;
     savedGuideCount: number;
     guideSearchHistoryCount: number;
+    markerSearchEventCount: number;
   };
 }
 
