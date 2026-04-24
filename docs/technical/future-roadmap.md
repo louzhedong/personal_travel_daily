@@ -10,12 +10,15 @@
 - 多旅伴切换、颜色区分和“仅本人可编辑/删除本人记录”的权限边界。
 - 旅行记录详情、游记编辑、多图查看、日期区间维护和攻略关联。
 - 旅行记录服务端全文搜索与组合筛选，支持回车触发搜索、跨范围定位详情和搜索行为后台记录。
+- Server-side marker full-text search and combined filters are available, with Enter-to-submit search, cross-scope detail focusing, and admin-visible search behavior logs.
 - 国内地图记录会汇总到世界地图“中国”区域，避免国内 / 世界视角数据割裂。
+- Domestic markers are aggregated into the China region on the world map, keeping domestic and global map views consistent.
 - 攻略搜索、正文阅读增强、搜索历史、收藏、关联到记录与回跳。
 - 行程集合一期：创建行程、记录归属、时间线聚合、后端 Trip API 和后台展示。
 - MySQL / Prisma 主数据层，覆盖账号、旅伴、行程、旅行记录、图片、攻略收藏和搜索历史。
 - 登录注册、Cookie Session、会话恢复、退出登录和管理员只读后台。
 - 管理员后台支持查看账号维度的旅行记录搜索行为，包括关键词、筛选范围、结果数和分页上下文。
+- The admin console shows account-level marker search behavior, including keyword, filter scope, result count, and pagination context.
 - Docker MySQL + Adminer 本地联调、一键 Windows 启动脚本和 Prisma migration 工作流。
 - 本地数据备份、导出、导入与恢复作为兜底能力。
 - IndexedDB 攻略缓存，以及前端第一轮模块拆分和纯逻辑测试补强。
@@ -90,33 +93,48 @@
   - 继续抽离 `useGuideSearchState`、`useMarkerDetailState`。
   - 为复杂联动 hook 和跨模块流程补更细的集成测试。
 
-### 旅行记录服务端全文搜索与筛选
+### 旅行记录服务端全文搜索与筛选 / Server-Side Marker Full-Text Search and Filters
 
-- 状态：已完成第一版。
-- 已落地范围：
+- 状态 / Status：已完成第一版 / First version completed.
+- 已落地范围 / Completed scope：
   - 为 `visit_markers(scope_name, city, note)` 建立 MySQL FULLTEXT 索引，MySQL 8.4 环境使用 ngram parser 支持中文关键词。
+  - Added a MySQL FULLTEXT index for `visit_markers(scope_name, city, note)`; MySQL 8.4 uses the ngram parser for Chinese keyword support.
   - 新增 `GET /api/markers/search`，支持关键词、旅伴、范围、年份、分页组合筛选。
+  - Added `GET /api/markers/search` with keyword, companion, scope, year, and pagination filters.
   - 查询限定当前登录账号与未删除记录；关键词优先使用 `MATCH ... AGAINST`，超短词使用受限 LIKE 兜底。
+  - Queries are scoped to the current account and non-deleted markers; keywords use `MATCH ... AGAINST` first, with a constrained LIKE fallback for very short terms.
   - 前端旅行记录列表接入服务端搜索，搜索框改为按 Enter 发起请求，筛选项变更复用已提交关键词刷新结果。
+  - The marker list now uses server search; the keyword box submits on Enter, while filter changes reuse the submitted keyword.
   - 搜索结果点击复用详情定位流程；跨国内 / 国际范围结果会先切换地图范围再打开详情。
+  - Search results reuse the detail focusing flow; cross-scope results switch map scope before opening details.
   - 国内旅行记录会聚合到世界地图“中国”区域，保持世界视角统计直觉一致。
+  - Domestic markers aggregate into China on the world map to keep global-view counts intuitive.
   - 新增 `marker_search_events` 行为记录，管理员后台可查看账号维度的记录搜索行为。
-- 后续增强：
+  - Added `marker_search_events` so admins can inspect account-level marker search behavior.
+- 后续增强 / Follow-up enhancements：
   - 搜索结果分页加载更多。
+  - Add paginated "load more" for search results.
   - 搜索建议、历史关键词快捷入口和高亮命中片段。
+  - Add search suggestions, historical keyword shortcuts, and highlighted snippets.
   - 后台按时间范围 / 关键词统计搜索行为趋势。
+  - Add admin analytics by time range and keyword.
 
 ## TODO Top 9
 
-### 1. 行程统计中心
+### 1. 行程统计中心 / Trip Statistics Center
 
-- 优先级：`P1`
+- 优先级 / Priority：`P1`
 - 为什么值得做：现在已有基础 `StatsPanel`，但还没有把“记录”转成更有成就感和回顾价值的数据视图。
-- 建议范围：
+- Why it matters: the app has a basic `StatsPanel`, but marker data has not yet become a richer achievement and retrospective view.
+- 建议范围 / Suggested scope：
   - 总旅行天数、城市数、地区数、国家数。
+  - Total travel days, city count, region count, and country count.
   - 年度统计与月度分布。
+  - Yearly statistics and monthly distribution.
   - 最常访问地区 / 最活跃旅伴。
+  - Most visited regions and most active companions.
   - 可作为首页第二屏或独立面板。
+  - Can live as a second homepage section or standalone panel.
 
 ### 2. 记录标签系统
 
@@ -195,19 +213,20 @@
   - 增加 hook 层单测。
   - 为关键联动流程补集成测试。
 
-## 推荐执行顺序
+## 推荐执行顺序 / Recommended Execution Order
 
 建议按下面顺序推进：
+Recommended order:
 
-1. 行程统计中心
-2. 记录标签系统
-3. 行程集合二期 UI 增强
-4. 攻略卡片沉淀与行前清单
-5. 地图回放模式
-6. 分享页 / 旅行故事页
-7. 账号设置、会话治理与跨设备同步
-8. 攻略质量治理与来源管理
-9. 架构层继续拆分与状态测试补强
+1. 行程统计中心 / Trip Statistics Center
+2. 记录标签系统 / Marker Tag System
+3. 行程集合二期 UI 增强 / Trip Collection Phase 2 UI Enhancements
+4. 攻略卡片沉淀与行前清单 / Guide Card Curation and Pre-Trip Checklist
+5. 地图回放模式 / Map Replay Mode
+6. 分享页 / 旅行故事页 / Share Page / Travel Story Page
+7. 账号设置、会话治理与跨设备同步 / Account Settings, Session Governance, and Cross-Device Sync
+8. 攻略质量治理与来源管理 / Guide Quality Governance and Source Management
+9. 架构层继续拆分与状态测试补强 / Continued Architecture Splitting and State/Test Coverage
 
 ## 选题原则
 

@@ -154,6 +154,8 @@
 
 - 仅供管理员查看全量系统账号总览
 - 按“账号 -> 同行人 -> 旅行记录 / 收藏攻略 / 攻略搜索历史”，以及“账号 -> 旅行记录搜索行为”返回只读树状数据
+- Admin-only overview of all system accounts.
+- Returns a read-only tree for "account -> companions -> markers / saved guides / guide search history", plus account-level marker search behavior.
 
 权限：
 
@@ -366,6 +368,8 @@
 - 中文内容优先依赖 MySQL FULLTEXT ngram 索引，短关键词使用受限兜底匹配
 - 每次成功搜索会写入 `marker_search_events`，记录账号、可选旅伴、关键词、范围、年份、结果总数、页码、页大小和搜索时间
 - 前端旅行记录列表当前约定为输入关键词后按 Enter 发起搜索；旅伴、范围和年份筛选变更会复用已提交关键词刷新结果
+- Each successful search writes to `marker_search_events`, including account, optional companion, keyword, scope, year, total result count, page, page size, and search time.
+- The marker list submits keyword search on Enter; companion, scope, and year filter changes reuse the submitted keyword.
 
 ### `POST /api/markers`
 
