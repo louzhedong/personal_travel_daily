@@ -3,6 +3,35 @@
 本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。  
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
+## 2026-04-25
+
+### PR TBD `feat: 地图回放模式一期 / Add map replay mode phase one`
+
+### Added / 新增
+
+- 在首页地图卡片内新增“地图回放模式”一期，支持播放/暂停、上一步、下一步、结束、速度选择和当前回放进度文案。  
+  Added phase one of the map replay mode to the homepage map card, including play/pause, previous, next, end, speed selection, and current replay progress text.
+- 新增 `src/lib/mapReplay.ts`，集中承载回放序列生成与状态文案逻辑。  
+  Added `src/lib/mapReplay.ts` to centralize replay-sequence generation and replay status text.
+- 新增地图回放技术文档 `docs/technical/map-replay-mode.md`，补充交互范围、世界地图归属规则、状态流和测试覆盖说明。  
+  Added `docs/technical/map-replay-mode.md` to document interaction scope, world-map mapping rules, state flow, and test coverage.
+
+### Changed / 变更
+
+- `TravelMap` 新增回放控制条、移动圆点标签、手动过渡轨迹和世界地图下的国家级回放逻辑。  
+  `TravelMap` now includes replay controls, a moving-dot label, temporary manual transition arcs, and country-level replay behavior on the world map.
+- 世界地图回放与旅途轨迹不再依赖用户先选中国家；国内城市记录会自动映射到“中国”，国际记录映射到对应国家。  
+  World-map replay and journey arcs no longer depend on pre-selecting a country; domestic city records automatically map to China and international records map to their target countries.
+- 回放速度选择器改为复用标准 `FancySelect`，并为地图场景增加紧凑尺寸和 portal 下拉菜单渲染。  
+  The replay speed selector now reuses the standard `FancySelect`, with a compact map-specific size and portal-rendered dropdown menu.
+- 回放条和右下角颜色说明卡的布局做了重新收口，避免大视口下相互遮挡。  
+  The replay bar and lower-right legend card layout were tightened to reduce overlap on larger viewports.
+
+### Verified / 已验证
+
+- `npm.cmd run test -- --run src/components/__tests__/TravelMap.spec.tsx`
+- `npm.cmd run build`
+
 ## 2026-04-24
 
 ### PR TBD `feat: 扩展统计中心、年度回顾与详情动效 / Expand stats center, annual review, and detail motion`

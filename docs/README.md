@@ -27,6 +27,7 @@
 - [攻略搜索 / 收藏 / 关联设计](technical/travel-guide-search-design.md)
 - [Guide Search API Contract](technical/guide-search-api-contract.md)
 - [地图渲染与 Hover 性能说明](technical/map-rendering-and-hover-performance.md)
+- [地图回放模式](technical/map-replay-mode.md)
 - [视觉 Token 说明](design/design-tokens.md)
 
 ## AI 协作文档

@@ -195,6 +195,35 @@
     flex-wrap: wrap;
   }
 
+  .map-replay-panel {
+    left: 10px;
+    right: 10px;
+    width: auto;
+    bottom: 10px;
+    min-height: 0;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .map-replay-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .map-replay-primary {
+    flex: 1;
+  }
+
+  .map-replay-speed {
+    width: auto;
+    max-width: 100%;
+  }
+
+  .map-replay-speed-select {
+    width: 58px;
+  }
+
   .user-manager-form-row {
     grid-template-columns: 1fr;
   }

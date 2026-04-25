@@ -4,9 +4,11 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import MapToggle from './MapToggle';
 import TravelIcon from './ui/TravelIcon';
+import FancySelect from './ui/FancySelect';
 import { pathFor, projectionFor } from '../geo/projection';
 import { loadGeoForScope, type LoadedFeature } from '../geo/loader';
 import { buildJourneyArcs, type JourneyArc } from '../lib/mapJourneyArcs';
+import { buildMapReplayItems, getMapReplayStatusText } from '../lib/mapReplay';
 import { resolveMarkerMapRegionId } from '../lib/mapRegionResolver';
 import { sortMarkersDesc } from '../lib/markerSorting';
 import type { RegionOption, Scope, UserProfile, VisitMarker } from '../types';
@@ -36,7 +38,23 @@ interface RenderItem extends StaticRenderItem {
   regionStyle: CSSProperties;
 }
 
+interface ReplayTagVisual {
+  key: string;
+  x: number;
+  y: number;
+  fromX: number;
+  fromY: number;
+  controlX: number;
+  controlY: number;
+  pathD: string;
+}
+
 const INTERNATIONAL_REGION_HUES = [18, 35, 52, 142, 196, 222, 262, 322];
+const REPLAY_SPEED_OPTIONS = [
+  { label: '0.75x', value: 1800 },
+  { label: '1x', value: 1200 },
+  { label: '1.5x', value: 800 },
+] as const;
 
 function hashString(value: string) {
   let hash = 0;
@@ -73,6 +91,61 @@ function buildRegionStyle(scope: Scope, regionId: string, markerCount: number, m
     '--region-fill-hover': `rgba(20, 184, 166, ${Math.min(0.46, 0.24 + ratio * 0.24)})`,
     '--region-stroke-hover': `rgba(15, 118, 110, ${Math.min(0.92, 0.7 + ratio * 0.16)})`,
   } as CSSProperties;
+}
+
+function buildReplayMotionPath(input: {
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+}) {
+  const { fromX, fromY, toX, toY } = input;
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const distance = Math.hypot(dx, dy);
+
+  if (distance < 1) {
+    return {
+      fromX: toX,
+      fromY: toY,
+      controlX: toX,
+      controlY: toY,
+      pathD: `M ${toX} ${toY}`,
+    };
+  }
+
+  const midpointX = (fromX + toX) / 2;
+  const midpointY = (fromY + toY) / 2;
+  const normalX = -dy / distance;
+  const normalY = dx / distance;
+  const bend = Math.min(40, distance * 0.18);
+  const controlX = midpointX + normalX * bend;
+  const controlY = midpointY + normalY * bend;
+
+  return {
+    fromX,
+    fromY,
+    controlX,
+    controlY,
+    pathD: `M ${fromX} ${fromY} Q ${controlX} ${controlY} ${toX} ${toY}`,
+  };
+}
+
+function getQuadraticPoint(input: {
+  fromX: number;
+  fromY: number;
+  controlX: number;
+  controlY: number;
+  toX: number;
+  toY: number;
+  t: number;
+}) {
+  const { fromX, fromY, controlX, controlY, toX, toY, t } = input;
+  const inverse = 1 - t;
+  return {
+    x: inverse * inverse * fromX + 2 * inverse * t * controlX + t * t * toX,
+    y: inverse * inverse * fromY + 2 * inverse * t * controlY + t * t * toY,
+  };
 }
 
 const MapPathLayer = memo(function MapPathLayer({
@@ -237,6 +310,63 @@ const MapJourneyLayer = memo(function MapJourneyLayer({
   );
 });
 
+const ReplayTagLayer = memo(function ReplayTagLayer({
+  visual,
+  item,
+  currentScale,
+  position,
+}: {
+  visual: ReplayTagVisual | null;
+  item: NonNullable<ReturnType<typeof buildMapReplayItems>[number]> | null;
+  currentScale: number;
+  position: { x: number; y: number } | null;
+}) {
+  if (!visual || !item || !position) {
+    return null;
+  }
+
+  const compactLabel = (item.marker.city || item.marker.scopeName).slice(0, 6);
+  const textOffsetX = Math.max(10, 13 / currentScale);
+  const textOffsetY = Math.max(10, 14 / currentScale);
+  const tagFontSize = Math.max(6.5, 10 / currentScale);
+  const tagStrokeWidth = Math.max(0.7, 2 / currentScale);
+
+  return (
+    <g className="map-replay-tag-layer" aria-hidden="true" data-testid="map-replay-tag">
+      <g transform={`translate(${position.x}, ${position.y})`}>
+        <text
+          x={textOffsetX}
+          y={-textOffsetY}
+          className="map-replay-tag-title"
+          style={{
+            '--replay-tag-font-size': `${tagFontSize}px`,
+            '--replay-tag-stroke-width': tagStrokeWidth,
+          } as CSSProperties}
+        >
+          {compactLabel}
+        </text>
+        <circle cx="0" cy="0" r={Math.max(5, 6.5 / currentScale)} className="map-replay-tag-dot" />
+      </g>
+    </g>
+  );
+});
+
+const ReplayTransitionLayer = memo(function ReplayTransitionLayer({
+  pathD,
+}: {
+  pathD: string | null;
+}) {
+  if (!pathD) {
+    return null;
+  }
+
+  return (
+    <g className="map-replay-transition-layer" aria-hidden="true">
+      <path d={pathD} className="map-replay-transition-arc" data-testid="map-replay-transition-arc" />
+    </g>
+  );
+});
+
 const JourneyTooltipPortal = memo(function JourneyTooltipPortal({
   hoveredArc,
   tooltipPos,
@@ -350,6 +480,13 @@ export function TravelMap({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [showJourneyLines, setShowJourneyLines] = useState(false);
+  const [replayIndex, setReplayIndex] = useState(0);
+  const [replayPlaying, setReplayPlaying] = useState(false);
+  const [replayStarted, setReplayStarted] = useState(false);
+  const [replaySpeedMs, setReplaySpeedMs] = useState<(typeof REPLAY_SPEED_OPTIONS)[number]['value']>(1200);
+  const [replayTagPosition, setReplayTagPosition] = useState<{ x: number; y: number } | null>(null);
+  const [replayMotionFromIndex, setReplayMotionFromIndex] = useState<number | null>(null);
+  const [replayManualTransitionVisible, setReplayManualTransitionVisible] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number } | null>(null);
@@ -441,6 +578,32 @@ export function TravelMap({
 
     return result;
   }, [allMarkers, markers, regions, scope]);
+
+  const mapReplaySourceMarkers = useMemo(
+    () => (scope === 'international' && allMarkers ? allMarkers : markers),
+    [allMarkers, markers, scope],
+  );
+
+  const replayItems = useMemo(
+    () =>
+      buildMapReplayItems({
+        activeUserId,
+        mapScope: scope,
+        markers: mapReplaySourceMarkers,
+        regions,
+        selectedRegionId,
+      }),
+    [activeUserId, mapReplaySourceMarkers, regions, scope, selectedRegionId],
+  );
+
+  const canReplay = replayItems.length >= 2;
+  const activeReplayItem = replayStarted ? replayItems[replayIndex] ?? null : null;
+  const replaySpeedValue = String(replaySpeedMs);
+  const replayStatusText = getMapReplayStatusText({
+    total: replayItems.length,
+    activeItem: activeReplayItem ?? undefined,
+    currentIndex: replayIndex,
+  });
 
   const userColorMap = useMemo(
     () => new Map(users.map((item) => [item.id, item.color])),
@@ -540,7 +703,8 @@ export function TravelMap({
     return staticItems.map((item) => {
       const regionMarkers = item.region ? markersByRegion.get(item.region.id) ?? [] : [];
       const uniqueUsers = Array.from(new Set(regionMarkers.map((marker) => marker.userId))).slice(0, 3);
-      const isActive = !!item.region && item.region.id === selectedRegionId;
+      const isReplayActive = !!activeReplayItem && item.region?.id === activeReplayItem.regionId;
+      const isActive = !!item.region && (item.region.id === selectedRegionId || isReplayActive);
       return {
         ...item,
         regionMarkers,
@@ -552,7 +716,53 @@ export function TravelMap({
           : {},
       };
     });
-  }, [currentScale, markersByRegion, scope, selectedRegionId, staticItems]);
+  }, [activeReplayItem, currentScale, markersByRegion, scope, selectedRegionId, staticItems]);
+
+  const replayPointsByRegionId = useMemo(() => {
+    const points = new Map<string, { x: number; y: number }>();
+
+    renderItems.forEach((item) => {
+      if (!item.region || !item.hasLabelPoint) {
+        return;
+      }
+
+      points.set(item.region.id, {
+        x: item.labelX,
+        y: item.labelY + 16 / currentScale,
+      });
+    });
+
+    return points;
+  }, [currentScale, renderItems]);
+
+  const replayTagVisual = useMemo<ReplayTagVisual | null>(() => {
+    if (!activeReplayItem) {
+      return null;
+    }
+
+    const currentPoint = replayPointsByRegionId.get(activeReplayItem.regionId);
+    if (!currentPoint) {
+      return null;
+    }
+
+    const motionOriginItem =
+      replayMotionFromIndex !== null && replayMotionFromIndex >= 0 && replayMotionFromIndex < replayItems.length
+        ? replayItems[replayMotionFromIndex]
+        : null;
+    const previousPoint = motionOriginItem ? replayPointsByRegionId.get(motionOriginItem.regionId) : null;
+
+    return {
+      key: motionOriginItem ? `${motionOriginItem.marker.id}-${activeReplayItem.marker.id}` : activeReplayItem.marker.id,
+      x: currentPoint.x,
+      y: currentPoint.y,
+      ...buildReplayMotionPath({
+        fromX: previousPoint?.x ?? currentPoint.x,
+        fromY: previousPoint?.y ?? currentPoint.y,
+        toX: currentPoint.x,
+        toY: currentPoint.y,
+      }),
+    };
+  }, [activeReplayItem, replayItems, replayMotionFromIndex, replayPointsByRegionId]);
 
   const cssVar = (vars: Record<string, string | number>) => vars as CSSProperties;
   const largeLabelItems = useMemo(
@@ -583,11 +793,11 @@ export function TravelMap({
     return buildJourneyArcs({
       activeUserId,
       currentScale,
-      markers,
+      markers: mapReplaySourceMarkers,
       pointSources: renderItems,
       mapScope: scope,
     });
-  }, [activeUserId, currentScale, markers, renderItems, scope, showJourneyLines]);
+  }, [activeUserId, currentScale, mapReplaySourceMarkers, renderItems, scope, showJourneyLines]);
 
   const handleJourneyHover = (arc: JourneyArc, event: ReactMouseEvent<SVGPathElement>) => {
     setHoveredJourneyArc(arc);
@@ -600,6 +810,121 @@ export function TravelMap({
   const handleJourneyLeave = () => {
     setHoveredJourneyArc(null);
     setJourneyTooltipPos(null);
+  };
+
+  useEffect(() => {
+    setReplayPlaying(false);
+    setReplayStarted(false);
+    setReplayIndex(0);
+    setReplayTagPosition(null);
+    setReplayMotionFromIndex(null);
+    setReplayManualTransitionVisible(false);
+  }, [activeUserId, replayItems, scope]);
+
+  useEffect(() => {
+    if (!replayTagVisual || !activeReplayItem) {
+      setReplayTagPosition(null);
+      return;
+    }
+
+    const start = performance.now();
+    const duration = 700;
+    let frameId = 0;
+
+    const step = (timestamp: number) => {
+      const progress = Math.min(1, (timestamp - start) / duration);
+      const eased = 1 - (1 - progress) * (1 - progress) * (1 - progress);
+      const point = getQuadraticPoint({
+        fromX: replayTagVisual.fromX,
+        fromY: replayTagVisual.fromY,
+        controlX: replayTagVisual.controlX,
+        controlY: replayTagVisual.controlY,
+        toX: replayTagVisual.x,
+        toY: replayTagVisual.y,
+        t: eased,
+      });
+
+      setReplayTagPosition(point);
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(step);
+      } else {
+        setReplayMotionFromIndex(null);
+        setReplayManualTransitionVisible(false);
+      }
+    };
+
+    setReplayTagPosition({ x: replayTagVisual.fromX, y: replayTagVisual.fromY });
+    frameId = requestAnimationFrame(step);
+
+    return () => cancelAnimationFrame(frameId);
+  }, [activeReplayItem, replayTagVisual]);
+
+  useEffect(() => {
+    if (replayIndex <= replayItems.length - 1) {
+      return;
+    }
+    setReplayIndex(Math.max(0, replayItems.length - 1));
+  }, [replayIndex, replayItems.length]);
+
+  useEffect(() => {
+    if (!replayPlaying || !canReplay) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setReplayIndex((current) => {
+        if (current >= replayItems.length - 1) {
+          setReplayPlaying(false);
+          return current;
+        }
+        setReplayMotionFromIndex(current);
+        setReplayManualTransitionVisible(false);
+        return current + 1;
+      });
+    }, replaySpeedMs);
+
+    return () => window.clearTimeout(timer);
+  }, [canReplay, replayIndex, replayItems.length, replayPlaying, replaySpeedMs]);
+
+  const handleReplayPlayPause = () => {
+    if (!canReplay) {
+      return;
+    }
+    setShowJourneyLines(true);
+    setReplayStarted(true);
+    setReplayPlaying((current) => {
+      if (!current && replayIndex >= replayItems.length - 1) {
+        setReplayMotionFromIndex(null);
+        setReplayManualTransitionVisible(false);
+        setReplayIndex(0);
+      }
+      return !current;
+    });
+  };
+
+  const handleReplayPrevious = () => {
+    setReplayPlaying(false);
+    setReplayStarted(true);
+    setReplayMotionFromIndex(replayIndex);
+    setReplayManualTransitionVisible(true);
+    setReplayIndex((current) => Math.max(0, current - 1));
+  };
+
+  const handleReplayNext = () => {
+    setReplayPlaying(false);
+    setReplayStarted(true);
+    setReplayMotionFromIndex(replayIndex);
+    setReplayManualTransitionVisible(true);
+    setReplayIndex((current) => Math.min(replayItems.length - 1, current + 1));
+  };
+
+  const handleReplayEnd = () => {
+    setReplayPlaying(false);
+    setReplayStarted(false);
+    setReplayIndex(0);
+    setReplayMotionFromIndex(null);
+    setReplayManualTransitionVisible(false);
   };
 
   useEffect(() => {
@@ -946,6 +1271,12 @@ export function TravelMap({
           ) : null}
 
           {!loading && !error && path ? (
+            <ReplayTransitionLayer
+              pathD={replayManualTransitionVisible && replayTagVisual ? replayTagVisual.pathD : null}
+            />
+          ) : null}
+
+          {!loading && !error && path ? (
             <MapLabelLayer
               largeLabelItems={largeLabelItems}
               hoverLabelItem={hoverLabelItem}
@@ -955,6 +1286,15 @@ export function TravelMap({
               markerDotRadius={markerDotRadius}
               userColorMap={userColorMap}
               cssVar={cssVar}
+            />
+          ) : null}
+
+          {!loading && !error && path ? (
+            <ReplayTagLayer
+              visual={replayTagVisual}
+              item={activeReplayItem}
+              currentScale={currentScale}
+              position={replayTagPosition}
             />
           ) : null}
         </svg>
@@ -1003,6 +1343,67 @@ export function TravelMap({
             <button type="button" className="map-zoom-button" aria-label="重置" onClick={onResetView}>
               ○
             </button>
+          </div>
+        </div>
+
+        <div className="map-replay-panel" aria-label="地图回放控制">
+          <div className="map-replay-copy">
+            <strong>当前旅伴轨迹</strong>
+            <span>{replayStatusText}</span>
+          </div>
+          <div className="map-replay-controls">
+            <button
+              type="button"
+              className="map-replay-button"
+              aria-label="回放上一条"
+              onClick={handleReplayPrevious}
+              disabled={!canReplay || replayIndex === 0}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              className="map-replay-primary"
+              aria-label={replayPlaying ? '暂停地图回放' : '播放地图回放'}
+              onClick={handleReplayPlayPause}
+              disabled={!canReplay}
+            >
+              {replayPlaying ? '暂停' : '播放'}
+            </button>
+            <button
+              type="button"
+              className="map-replay-button"
+              aria-label="回放下一条"
+              onClick={handleReplayNext}
+              disabled={!canReplay || replayIndex >= replayItems.length - 1}
+            >
+              ›
+            </button>
+            <button
+              type="button"
+              className="map-replay-button map-replay-reset"
+              aria-label="结束地图回放"
+              onClick={handleReplayEnd}
+              disabled={!replayStarted}
+            >
+              结束
+            </button>
+            <div className="map-replay-speed">
+              <FancySelect
+                value={replaySpeedValue}
+                onChange={(value) => setReplaySpeedMs(Number(value) as (typeof REPLAY_SPEED_OPTIONS)[number]['value'])}
+                options={REPLAY_SPEED_OPTIONS.map((option) => ({
+                  value: String(option.value),
+                  label: option.label,
+                }))}
+                ariaLabel="地图回放速度"
+                placeholder="速度"
+                className="map-replay-speed-select"
+                triggerClassName="map-replay-speed-trigger"
+                menuClassName="map-replay-speed-menu"
+                usePortal
+              />
+            </div>
           </div>
         </div>
 
