@@ -59,6 +59,7 @@ export function GuideSearchPanel({
   const [error, setError] = useState('');
   const [provider, setProvider] = useState('');
   const [searchedKeyword, setSearchedKeyword] = useState('');
+  const [smartSearchEnabled, setSmartSearchEnabled] = useState(true);
   const [selectedGuide, setSelectedGuide] = useState<GuideSearchResult | null>(null);
   const [guideDocument, setGuideDocument] = useState<GuideDocument | null>(null);
   const [documentLoading, setDocumentLoading] = useState(false);
@@ -151,6 +152,9 @@ export function GuideSearchPanel({
   const canSearch = query.trim().length > 0 && !loading;
   const hasResult = items.length > 0;
   const hasSearched = searchedKeyword.length > 0;
+  const hasAiSummary =
+    !!guideDocument?.aiSummary &&
+    Object.values(guideDocument.aiSummary).some((summaryItems) => summaryItems.length > 0);
 
   const headingText = useMemo(() => {
     if (selectedGuide) {
@@ -187,6 +191,7 @@ export function GuideSearchPanel({
         scope: nextScope,
         page: 1,
         pageSize: 8,
+        searchMode: smartSearchEnabled ? 'smart' : 'keyword',
       });
 
       setItems(response.items);
@@ -217,14 +222,14 @@ export function GuideSearchPanel({
       return;
     }
 
-    const autoSearchKey = `${initialScope}:${trimmedQuery.toLowerCase()}`;
+    const autoSearchKey = `${smartSearchEnabled ? 'smart' : 'keyword'}:${initialScope}:${trimmedQuery.toLowerCase()}`;
     if (autoSearchKeyRef.current === autoSearchKey) {
       return;
     }
 
     autoSearchKeyRef.current = autoSearchKey;
     void runSearch(initialQuery, initialScope);
-  }, [autoSearchOnOpen, initialQuery, initialScope, onSaveSearchHistory, open]);
+  }, [autoSearchOnOpen, initialQuery, initialScope, onSaveSearchHistory, open, smartSearchEnabled]);
 
   useEffect(() => {
     if (!open) {
@@ -248,7 +253,6 @@ export function GuideSearchPanel({
       if (Math.abs(nextSpacerHeight - panelSpacerHeight) > 1) {
         setPanelSpacerHeight(nextSpacerHeight);
       }
-      const maxScrollableTop = rawMaxScrollableTop + nextSpacerHeight;
       const lockThreshold = targetThreshold;
       const lockEnterThreshold = Math.max(lockThreshold - 8, 0);
       const lockLeaveThreshold = Math.max(lockThreshold - 24, 0);
@@ -259,13 +263,7 @@ export function GuideSearchPanel({
         resultsBodyRef.current?.scrollTo({ top: 0, behavior: 'auto' });
         documentBodyRef.current?.scrollTo({ top: 0, behavior: 'auto' });
         originalContentRef.current?.scrollTo?.({ top: 0, behavior: 'auto' });
-        // #region debug-point I:unlock-reset
-        fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"scroll-stage-handoff",runId:"post-fix",hypothesisId:"I",location:"GuideSearchPanel.tsx:366",msg:"[DEBUG] reset inner scroll on unlock",data:{panelScrollTop:panelElement.scrollTop},ts:Date.now()})}).catch(()=>{});
-        // #endregion
       }
-      // #region debug-point A:lock-state
-      fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"scroll-stage-handoff",runId:"post-fix",hypothesisId:"A",location:"GuideSearchPanel.tsx:361",msg:"[DEBUG] sync lock state",data:{scrollTop:panelElement.scrollTop,targetThreshold,rawMaxScrollableTop,nextSpacerHeight,maxScrollableTop,lockThreshold,lockEnterThreshold,lockLeaveThreshold,nextLocked},ts:Date.now()})}).catch(()=>{});
-      // #endregion
       lockedStateRef.current = nextLocked;
       setLayoutLocked(nextLocked);
     };
@@ -405,6 +403,14 @@ export function GuideSearchPanel({
             >
               国际
             </button>
+            <label className={smartSearchEnabled ? 'guide-smart-toggle active' : 'guide-smart-toggle'}>
+              <input
+                type="checkbox"
+                checked={smartSearchEnabled}
+                onChange={(event) => setSmartSearchEnabled(event.target.checked)}
+              />
+              智能搜索
+            </label>
           </div>
 
           {history.length > 0 ? (
@@ -442,12 +448,6 @@ export function GuideSearchPanel({
             <div
               ref={resultsBodyRef}
               className={layoutLocked ? 'guide-search-results-body is-scrollable' : 'guide-search-results-body'}
-              onScroll={(event) => {
-                const currentTarget = event.currentTarget;
-                // #region debug-point G:results-body-scroll
-                fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"scroll-stage-handoff",runId:"post-fix",hypothesisId:"G",location:"GuideSearchPanel.tsx:600",msg:"[DEBUG] results body scroll",data:{scrollTop:currentTarget.scrollTop,scrollHeight:currentTarget.scrollHeight,clientHeight:currentTarget.clientHeight},ts:Date.now()})}).catch(()=>{});
-                // #endregion
-              }}
             >
               {error ? <div className="empty-state">{error}</div> : null}
               {!error && loading ? <div className="empty-state">正在抓取和整理攻略数据...</div> : null}
@@ -478,6 +478,9 @@ export function GuideSearchPanel({
                         </div>
                         <h4 className="guide-result-title">{item.title}</h4>
                         <p className="guide-result-summary">{item.summary}</p>
+                        {item.matchReason ? (
+                          <p className="guide-result-match-reason">{item.matchReason}</p>
+                        ) : null}
                         {item.tags?.length ? (
                           <div className="guide-result-tags">
                             {item.tags.map((tag) => (
@@ -579,12 +582,6 @@ export function GuideSearchPanel({
             <div
               ref={documentBodyRef}
               className={layoutLocked ? 'guide-document-panel-body is-scrollable' : 'guide-document-panel-body'}
-              onScroll={(event) => {
-                const currentTarget = event.currentTarget;
-                // #region debug-point H:document-body-scroll
-                fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"scroll-stage-handoff",runId:"post-fix",hypothesisId:"H",location:"GuideSearchPanel.tsx:715",msg:"[DEBUG] document body scroll",data:{scrollTop:currentTarget.scrollTop,scrollHeight:currentTarget.scrollHeight,clientHeight:currentTarget.clientHeight},ts:Date.now()})}).catch(()=>{});
-                // #endregion
-              }}
             >
               {!selectedGuide ? (
                 <div className="empty-state">从左侧结果中打开一篇攻略，这里会展示正文片段，也支持切换到原文视图。</div>
@@ -630,6 +627,51 @@ export function GuideSearchPanel({
 
                   {guideDocument && documentView === 'snippet' ? (
                     <div className="guide-document-blocks">
+                      {hasAiSummary ? (
+                        <section className="guide-ai-summary" aria-label="攻略速览">
+                          <div className="guide-ai-summary-heading">攻略速览</div>
+                          {guideDocument.aiSummary?.highlights.length ? (
+                            <div>
+                              <strong>亮点</strong>
+                              <ul>
+                                {guideDocument.aiSummary.highlights.map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                          {guideDocument.aiSummary?.routeTips.length ? (
+                            <div>
+                              <strong>路线</strong>
+                              <ul>
+                                {guideDocument.aiSummary.routeTips.map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                          {guideDocument.aiSummary?.transportTips.length ? (
+                            <div>
+                              <strong>交通</strong>
+                              <ul>
+                                {guideDocument.aiSummary.transportTips.map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                          {guideDocument.aiSummary?.warnings.length ? (
+                            <div>
+                              <strong>注意</strong>
+                              <ul>
+                                {guideDocument.aiSummary.warnings.map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                        </section>
+                      ) : null}
                       {guideDocument.blocks.map((block) => (
                         <section key={block.id} className={`guide-document-block guide-document-block-${block.type}`}>
                           {block.type === 'section-title' ? (

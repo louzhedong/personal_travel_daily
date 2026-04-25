@@ -1,14 +1,14 @@
-function normalizeText(value) {
-  return value.trim().toLowerCase();
+export function normalizeText(value) {
+  return `${value ?? ''}`.trim().toLowerCase();
 }
 
-function tokenizeKeyword(keyword) {
+export function tokenizeKeyword(keyword) {
   return normalizeText(keyword)
     .split(/\s+/)
     .filter(Boolean);
 }
 
-function buildHaystack(guide) {
+export function buildGuideHaystack(guide) {
   return normalizeText(
     [
       guide.title,
@@ -22,8 +22,8 @@ function buildHaystack(guide) {
   );
 }
 
-function scoreGuide(guide, tokens) {
-  const haystack = buildHaystack(guide);
+export function scoreGuide(guide, tokens) {
+  const haystack = buildGuideHaystack(guide);
   let score = 0;
   for (const token of tokens) {
     if (haystack.includes(token)) {

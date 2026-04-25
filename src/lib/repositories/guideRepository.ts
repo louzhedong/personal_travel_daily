@@ -18,7 +18,7 @@ import {
   supportsIndexedDb,
 } from './indexedDb';
 
-const GUIDE_SEARCH_CACHE_VERSION = 'v3';
+const GUIDE_SEARCH_CACHE_VERSION = 'v4';
 
 interface SavedGuideLookup {
   savedByUserId: string;
@@ -35,7 +35,8 @@ export function buildGuideSearchCacheKey(params: GuideSearchParams) {
   const scope = params.scope ?? 'all';
   const page = params.page ?? 1;
   const pageSize = params.pageSize ?? 10;
-  return `${GUIDE_SEARCH_CACHE_VERSION}:${scope}:${keyword}:${page}:${pageSize}`;
+  const searchMode = params.searchMode ?? 'smart';
+  return `${GUIDE_SEARCH_CACHE_VERSION}:${searchMode}:${scope}:${keyword}:${page}:${pageSize}`;
 }
 
 export function buildGuideDocumentCacheKey(sourceUrl: string) {

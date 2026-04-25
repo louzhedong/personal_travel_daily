@@ -75,3 +75,27 @@ VITE_GUIDE_CONTENT_MODE=summary
 - 关联去重
 - 从收藏面板回跳到记录
 - 记录删除后，关联攻略同步清理
+
+## Local LLM Search Notes
+
+The guide API now supports an optional local LLM path backed by Ollama.
+
+Server-side behavior:
+
+- `server/guideApiServer.mjs` keeps the same `/api/guides/search` and `/api/guides/document` routes
+- `server/llm/guideSemanticSearch.mjs` handles query interpretation, embeddings, semantic recall, and reranking
+- `server/llm/guideSummary.mjs` builds optional `aiSummary` blocks for guide documents
+- `server/llm/localLlmClient.mjs` calls Ollama chat and embed APIs
+
+Request and response behavior:
+
+- search accepts optional `searchMode: "keyword" | "smart"`
+- `smart` mode can return `provider: "guide-api-local-llm"`
+- search items can include `matchReason`, `semanticScore`, and `queryInterpretation`
+- document payloads can include `aiSummary`
+
+Operational notes:
+
+- recommended default local models are `qwen2.5:3b` and `embeddinggemma`
+- if local model loading fails, the API falls back to keyword ranking instead of failing the whole search
+- query interpretation is sanitized against the original keyword so the LLM cannot silently rewrite the search into another destination or season

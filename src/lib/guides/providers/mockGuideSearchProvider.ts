@@ -17,6 +17,12 @@ const MOCK_GUIDES: GuideDocument[] = [
     publishedAt: '2026-03-01',
     destinationLabel: 'Kyoto',
     tags: ['sakura', 'spring', '3-day'],
+    aiSummary: {
+      highlights: ['Cherry blossom walks with a relaxed pace'],
+      routeTips: ['Plan Higashiyama early and leave Arashiyama for a quiet morning'],
+      transportTips: ['Stay near Shijo Kawaramachi for buses and evening food options'],
+      warnings: ['Book hotels several weeks ahead during sakura season'],
+    },
     contentHtml: `
       <h3>Best Season</h3>
       <p>Late March to early April is usually the peak cherry blossom window, so book hotels at least 3 to 4 weeks ahead.</p>
@@ -92,6 +98,9 @@ export const mockGuideSearchProvider: GuideSearchProvider = {
       publishedAt: guide.publishedAt,
       destinationLabel: guide.destinationLabel,
       tags: guide.tags,
+      matchReason: params.searchMode === 'smart' ? 'Semantic match for a relaxed spring route' : undefined,
+      semanticScore: params.searchMode === 'smart' ? 0.91 : undefined,
+      queryInterpretation: params.searchMode === 'smart' ? params.keyword : undefined,
     }));
 
     return {
