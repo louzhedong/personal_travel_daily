@@ -5,6 +5,9 @@ import FancySelect from './ui/FancySelect';
 import TravelIcon from './ui/TravelIcon';
 import type { SavedGuide, TripCollection, UserProfile, VisitMarker } from '../types';
 
+const EMPTY_TRIPS: TripCollection[] = [];
+const EMPTY_GUIDES: SavedGuide[] = [];
+
 interface MarkerDetailPanelProps {
   marker: VisitMarker | null;
   user?: UserProfile;
@@ -27,9 +30,9 @@ export function MarkerDetailPanel({
   open,
   canEdit,
   onClose,
-  trips = [],
+  trips = EMPTY_TRIPS,
   onUpdate,
-  relatedGuides = [],
+  relatedGuides = EMPTY_GUIDES,
   onRemoveRelatedGuide,
   onOpenGuideSearch,
 }: MarkerDetailPanelProps) {

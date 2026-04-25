@@ -4,6 +4,8 @@ import { listAdapterEntries, loadDocumentFromAdapters, searchEntriesFromAdapters
 import { loadCachedGuideCatalog, loadCachedGuideDocument, saveCachedGuideDocument } from './guideFileStore.mjs';
 import { findGuideDocumentBySourceUrl, searchGuideDocuments } from './guideSearchEngine.mjs';
 import { GUIDE_SEED_DOCUMENTS } from './guideSeedData.mjs';
+import { searchGuideDocumentsSemantically } from './llm/guideSemanticSearch.mjs';
+import { enrichGuideDocumentWithAiSummary } from './llm/guideSummary.mjs';
 
 const PORT = Number(process.env.GUIDE_API_PORT || 8383);
 const HOST = process.env.GUIDE_API_HOST || '0.0.0.0';
@@ -71,6 +73,24 @@ function createErrorPayload(code, message) {
   };
 }
 
+async function searchWithOptionalLlm(guides, payload) {
+  try {
+    const semanticResult = await searchGuideDocumentsSemantically(guides, payload);
+    if (semanticResult) {
+      return semanticResult;
+    }
+  } catch (error) {
+    console.warn('[guide-api] local llm search unavailable, falling back to keyword search', error);
+  }
+
+  return searchGuideDocuments(guides, payload);
+}
+
+async function sendGuideDocument(response, document) {
+  const enrichedDocument = await enrichGuideDocumentWithAiSummary(document);
+  sendJson(response, 200, enrichedDocument);
+}
+
 const server = http.createServer(async (request, response) => {
   const url = new URL(request.url ?? '/', `http://${request.headers.host ?? '127.0.0.1'}`);
 
@@ -116,7 +136,7 @@ const server = http.createServer(async (request, response) => {
         ...remoteEntries,
       ]);
 
-      const result = searchGuideDocuments(mergedCatalog, payload);
+      const result = await searchWithOptionalLlm(mergedCatalog, payload);
       sendJson(response, 200, result);
       return;
     } catch {
@@ -135,13 +155,13 @@ const server = http.createServer(async (request, response) => {
 
       const seedDocument = findGuideDocumentBySourceUrl(GUIDE_SEED_DOCUMENTS, payload.sourceUrl);
       if (seedDocument) {
-        sendJson(response, 200, seedDocument);
+        await sendGuideDocument(response, seedDocument);
         return;
       }
 
       const cachedDocument = await loadCachedGuideDocument(payload.sourceUrl);
       if (cachedDocument) {
-        sendJson(response, 200, cachedDocument);
+        await sendGuideDocument(response, cachedDocument);
         return;
       }
 
@@ -152,7 +172,7 @@ const server = http.createServer(async (request, response) => {
       }
 
       await saveCachedGuideDocument(remoteDocument);
-      sendJson(response, 200, remoteDocument);
+      await sendGuideDocument(response, remoteDocument);
       return;
     } catch (error) {
       const isRemoteError = error instanceof Error && error.message.includes('remote fetch failed');

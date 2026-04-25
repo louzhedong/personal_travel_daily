@@ -65,12 +65,15 @@ describe('GuideSearchPanel', () => {
     await userEvent.click(screen.getByRole('button', { name: '搜索' }));
 
     expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(screen.getByText('Semantic match for a relaxed spring route')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '收藏攻略' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '关联到当前记录' })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: '查看片段' }));
 
     expect(await screen.findByText('Best Season')).toBeInTheDocument();
+    expect(screen.getByText('攻略速览')).toBeInTheDocument();
+    expect(screen.getByText('Cherry blossom walks with a relaxed pace')).toBeInTheDocument();
     expect(screen.getByText(/Late March to early April/i)).toBeInTheDocument();
     await waitFor(() => {
       expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalled();
@@ -87,6 +90,31 @@ describe('GuideSearchPanel', () => {
     expect(onSaveGuide).toHaveBeenCalledTimes(1);
     expect(onAttachGuideToMarker).not.toHaveBeenCalled();
     expect(onRemoveSavedGuide).not.toHaveBeenCalled();
+  });
+
+  it('passes keyword mode when smart search is turned off', async () => {
+    render(
+      <GuideSearchPanel
+        open
+        initialQuery="Kyoto"
+        initialScope="international"
+        activeUserId="u1"
+        linkedMarkerId={null}
+        savedGuides={[]}
+        onClose={() => {}}
+        onSaveGuide={() => {}}
+        onAttachGuideToMarker={() => {}}
+        onRemoveSavedGuide={() => {}}
+        searchHistory={[]}
+        onSaveSearchHistory={onSaveSearchHistory}
+      />,
+    );
+
+    await userEvent.click(screen.getByLabelText('智能搜索'));
+    await userEvent.click(screen.getByRole('button', { name: '搜索' }));
+
+    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(screen.queryByText('Semantic match for a relaxed spring route')).not.toBeInTheDocument();
   });
 
   it('auto searches on open when requested', async () => {

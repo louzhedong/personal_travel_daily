@@ -195,6 +195,44 @@ GUIDE_POI_GEOAPIFY_API_KEY=your_geoapify_api_key
 - `VITE_GUIDE_SEARCH_PROVIDER=remote`：前端调用本地或远程攻略 API
 - `VITE_GUIDE_CONTENT_MODE=summary`：优先使用摘要化正文块，适合当前 UI
 - `GUIDE_POI_GEOAPIFY_API_KEY`：启用 Geoapify POI 适配器时需要配置
+- `GUIDE_LLM_ENABLED=true`：启用本地大模型增强的攻略搜索
+- `GUIDE_LLM_BASE_URL=http://127.0.0.1:11434`：本地 Ollama API 地址
+- `GUIDE_LLM_CHAT_MODEL=qwen2.5:3b`：适合当前仓库默认本地联调的轻量聊天模型
+- `GUIDE_LLM_EMBED_MODEL=embeddinggemma`：默认向量模型
+- `GUIDE_LLM_SEARCH_MODE=smart`：默认启用语义搜索、查询提取和重排
+
+## Local LLM Guide Search
+
+The guide API can call a local Ollama runtime to enhance search and document summaries.
+
+Recommended local setup for this repository:
+
+```powershell
+ollama pull qwen2.5:3b
+ollama pull embeddinggemma
+```
+
+Suggested `.env.local` values:
+
+```env
+GUIDE_LLM_ENABLED=true
+GUIDE_LLM_BASE_URL=http://127.0.0.1:11434
+GUIDE_LLM_CHAT_MODEL=qwen2.5:3b
+GUIDE_LLM_EMBED_MODEL=embeddinggemma
+GUIDE_LLM_TIMEOUT_MS=20000
+GUIDE_LLM_SEARCH_MODE=smart
+GUIDE_LLM_INDEX_TTL_HOURS=168
+```
+
+How to tell the local LLM path is active:
+
+- `POST /api/guides/search` returns `provider: "guide-api-local-llm"`
+- search items include `matchReason`, `semanticScore`, and `queryInterpretation`
+- guide documents may include `aiSummary`
+
+Fallback behavior:
+
+- if Ollama is unavailable or model loading fails, the guide API falls back to keyword search with `provider: "guide-api-local"`
 
 ## 常用命令
 

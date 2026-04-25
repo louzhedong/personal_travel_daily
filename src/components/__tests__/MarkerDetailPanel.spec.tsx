@@ -4,6 +4,41 @@ import userEvent from '@testing-library/user-event';
 import MarkerDetailPanel from '../MarkerDetailPanel';
 import type { SavedGuide, TripCollection, UserProfile, VisitMarker } from '../../types';
 
+vi.mock('../../lib/imageUpload', () => ({
+  uploadImageToImgBB: vi.fn(),
+}));
+
+vi.mock('../ui/FancySelect', () => ({
+  default: function MockFancySelect({
+    value,
+    onChange,
+    options,
+    ariaLabel,
+    placeholder,
+  }: {
+    value: string;
+    onChange: (nextValue: string) => void;
+    options: Array<{ value: string; label: string }>;
+    ariaLabel?: string;
+    placeholder?: string;
+  }) {
+    return (
+      <select
+        aria-label={ariaLabel}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <option value="">{placeholder ?? ''}</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  },
+}));
+
 const user: UserProfile = { id: 'u1', name: '小悠', color: '#2563eb' };
 
 const trips: TripCollection[] = [
@@ -80,8 +115,7 @@ describe('MarkerDetailPanel', () => {
     );
 
     await userEvent.click(screen.getByRole('button', { name: '编辑记录' }));
-    await userEvent.click(screen.getByRole('button', { name: '所属行程' }));
-    await userEvent.click(screen.getByRole('button', { name: '青海湖环线' }));
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: '所属行程' }), 'trip-1');
     await userEvent.click(screen.getByRole('button', { name: '保存修改' }));
 
     expect(onUpdate).toHaveBeenCalledWith('m1', {

@@ -44,6 +44,7 @@ export interface GuideSearchParams {
   page?: number;
   pageSize?: number;
   markerId?: string;
+  searchMode?: 'keyword' | 'smart';
 }
 
 export interface GuideSearchResult {
@@ -57,6 +58,9 @@ export interface GuideSearchResult {
   publishedAt?: string;
   destinationLabel?: string;
   tags?: string[];
+  matchReason?: string;
+  semanticScore?: number;
+  queryInterpretation?: string;
 }
 
 export interface GuideContentBlock {
@@ -77,8 +81,16 @@ export interface GuideDocument {
   destinationLabel?: string;
   tags?: string[];
   contentHtml?: string;
+  aiSummary?: GuideAiSummary;
   blocks: GuideContentBlock[];
   fetchedAt: string;
+}
+
+export interface GuideAiSummary {
+  highlights: string[];
+  routeTips: string[];
+  transportTips: string[];
+  warnings: string[];
 }
 
 export interface GuideSearchResponse {
