@@ -343,6 +343,14 @@ npm run test
 - [App API Prompt](docs/prompts/app-api-prompt.md)
 - [Prisma MySQL Prompt](docs/prompts/prisma-mysql-prompt.md)
 - [Local Dev Prompt](docs/prompts/local-dev-prompt.md)
+- [Map Recording Prompt](docs/prompts/map-recording-prompt.md)
+- [Record Management Prompt](docs/prompts/record-management-prompt.md)
+- [Companion Management Prompt](docs/prompts/companion-management-prompt.md)
+- [Trip Collection Prompt](docs/prompts/trip-collection-prompt.md)
+- [Timeline Prompt](docs/prompts/timeline-prompt.md)
+- [Stats Center Prompt](docs/prompts/stats-center-prompt.md)
+- [Map Replay Prompt](docs/prompts/map-replay-prompt.md)
+- [Data Sync Prompt](docs/prompts/data-sync-prompt.md)
 - [Changelog](CHANGELOG.md)
 
 ## 当前开发注意点

@@ -106,6 +106,8 @@ This means the next roadmap should amplify the value of existing data assets ins
 ### 2. 地图回放模式 / Map Replay Mode
 
 - 优先级：`P1`
+- 当前状态：一期已完成并上线首页地图卡片。
+  Current status: phase one is complete and shipped inside the homepage map card.
 - 为什么值得做：
   - 主页地图、时间线、轨迹线已经具备基础条件。
   - 这是“有趣且可感知”的升级，比继续补普通管理功能更有产品表达力。
@@ -114,6 +116,20 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 地图区域、轨迹线、记录列表同步高亮。
   - 支持播放速度、暂停、继续与跳转到某一日期。
   - 支持单次行程回放与全年回放两种模式。
+
+#### 已完成的一期范围 / Completed Phase-One Scope
+
+- 首页地图卡片内嵌回放控制条，支持上一步、播放/暂停、下一步、结束和速度选择。
+- 回放序列按时间升序生成，并在地图上用移动圆点标签展示当前停留点。
+- 自动播放和手动步进都会沿旅途轨迹移动；手动步进时会临时显示两地间过渡轨迹。
+- 世界地图回放不依赖手动选中国家，国内城市会自动归属到中国，再与国际记录一起形成国家级路径。
+- 回放和旅途轨迹共享同一套区域归属逻辑，保持世界地图上的国家语义一致。
+
+- The homepage map card now embeds replay controls for previous, play/pause, next, end, and speed selection.
+- Replay items are generated in ascending time order and shown on the map with a moving dot label.
+- Both autoplay and manual stepping move along journey arcs; manual stepping temporarily reveals the transition arc between the two locations.
+- World-map replay no longer depends on manually selecting a country. Domestic city records automatically collapse into China and join international records as country-level paths.
+- Replay and journey arcs now share the same region-mapping logic so world-map behavior stays country-semantic and consistent.
 
 ### 3. 行程集合二期 / Trip Collection Phase 2
 

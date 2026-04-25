@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TravelMap from '../TravelMap';
@@ -72,9 +72,9 @@ const domesticMarkers: VisitMarker[] = [
     userId: 'u1',
     scope: 'domestic',
     scopeId: 'xinjiang',
-    scopeName: '新疆',
-    city: '乌鲁木齐',
-    note: '国内地图添加的记录',
+    scopeName: '\u65b0\u7586',
+    city: '\u4e4c\u9c81\u6728\u9f50',
+    note: '\u56fd\u5185\u5730\u56fe\u805a\u5408\u8bb0\u5f55',
     visitedStartAt: '2026-04-01',
     visitedEndAt: '2026-04-03',
     createdAt: '2026-04-04T00:00:00.000Z',
@@ -109,11 +109,11 @@ const mockedFeatures = [
 ];
 
 const chinaFeature = {
-  id: '中国',
-  name: '中国',
+  id: '\u4e2d\u56fd',
+  name: '\u4e2d\u56fd',
   feature: {
     type: 'Feature',
-    properties: { name: '中国' },
+    properties: { name: '\u4e2d\u56fd' },
     geometry: {
       type: 'Polygon',
       coordinates: [[[95, 20], [95, 45], [125, 45], [125, 20], [95, 20]]],
@@ -208,10 +208,127 @@ describe('TravelMap', () => {
     });
   });
 
+  it('starts replay from the active user records in the current map scope', async () => {
+    render(
+      <TravelMap
+        scope="international"
+        regions={regions}
+        markers={markers}
+        users={users}
+        activeUserId="u1"
+        onScopeChange={() => {}}
+        onSelectRegion={() => {}}
+        onOpenSelectedRegionComposer={() => {}}
+        onClearSelectedRegion={() => {}}
+      />,
+    );
+
+    await screen.findByText('Bigland');
+    expect(screen.getByText('\u0032 \u6761\u8bb0\u5f55\u5df2\u51c6\u5907\u597d')).toBeInTheDocument();
+    expect(screen.queryByTestId('map-replay-tag')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '播放地图回放' }));
+
+    expect(screen.getByTestId('map-replay-tag')).toBeInTheDocument();
+    expect(screen.getByText('City A')).toBeInTheDocument();
+    expect(screen.getByText(/1 \/ 2 .*Bigland.*City A.*2026-01-01 - 2026-01-02/)).toBeInTheDocument();
+    expect(screen.queryByText('Bigland 路 City C')).not.toBeInTheDocument();
+  });
+
+  it('steps through replay items and resets the active replay state', async () => {
+    const { container } = render(
+      <TravelMap
+        scope="international"
+        regions={regions}
+        markers={markers}
+        users={users}
+        activeUserId="u1"
+        onScopeChange={() => {}}
+        onSelectRegion={() => {}}
+        onOpenSelectedRegionComposer={() => {}}
+        onClearSelectedRegion={() => {}}
+      />,
+    );
+
+    await screen.findByText('Bigland');
+    await userEvent.click(screen.getByRole('button', { name: '播放地图回放' }));
+    await userEvent.click(screen.getByRole('button', { name: '回放下一条' }));
+
+    expect(container.querySelector('.map-replay-transition-arc')).not.toBeNull();
+    expect(screen.getByText('City B')).toBeInTheDocument();
+    expect(screen.getByText(/2 \/ 2 .*Smallia.*City B.*2026-02-01 - 2026-02-02/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '回放上一条' }));
+    expect(container.querySelector('.map-replay-transition-arc')).not.toBeNull();
+    expect(screen.getByText('City A')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '结束地图回放' }));
+    expect(screen.queryByTestId('map-replay-tag')).not.toBeInTheDocument();
+    expect(screen.getByText('\u0032 \u6761\u8bb0\u5f55\u5df2\u51c6\u5907\u597d')).toBeInTheDocument();
+  });
+
+  it('does not filter international replay items by the selected region', async () => {
+    render(
+      <TravelMap
+        scope="international"
+        regions={regions}
+        markers={[
+          markers[0],
+          markers[1],
+          {
+            ...markers[1],
+            id: 'm5',
+            city: 'City E',
+            visitedStartAt: '2026-04-01',
+            visitedEndAt: '2026-04-02',
+            createdAt: '2026-04-03T00:00:00.000Z',
+          },
+        ]}
+        users={users}
+        activeUserId="u1"
+        selectedRegionId="smallia"
+        selectedRegionName="Smallia"
+        onScopeChange={() => {}}
+        onSelectRegion={() => {}}
+        onOpenSelectedRegionComposer={() => {}}
+        onClearSelectedRegion={() => {}}
+      />,
+    );
+
+    await screen.findByText('Bigland');
+    await userEvent.click(screen.getByRole('button', { name: '播放地图回放' }));
+
+    expect(screen.getByText('City A')).toBeInTheDocument();
+    expect(screen.getByText(/1 \/ 3 .*Bigland.*City A.*2026-01-01 - 2026-01-02/)).toBeInTheDocument();
+  });
+
+  it('disables replay when there are fewer than two records', async () => {
+    render(
+      <TravelMap
+        scope="international"
+        regions={regions}
+        markers={[markers[0]]}
+        users={users}
+        activeUserId="u1"
+        onScopeChange={() => {}}
+        onSelectRegion={() => {}}
+        onOpenSelectedRegionComposer={() => {}}
+        onClearSelectedRegion={() => {}}
+      />,
+    );
+
+    await screen.findByText('Bigland');
+
+    expect(
+      screen.getByText('\u81f3\u5c11\u9700\u8981 2 \u6761\u8bb0\u5f55\u624d\u80fd\u5f00\u59cb\u56de\u653e'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '播放地图回放' })).toBeDisabled();
+  });
+
   it('aggregates domestic markers into China on the international map', async () => {
     vi.spyOn(loader, 'loadGeoForScope').mockResolvedValueOnce([chinaFeature] as never);
     const worldRegions: RegionOption[] = [
-      { id: '中国', name: '中国', cities: [] },
+      { id: '\u4e2d\u56fd', name: '\u4e2d\u56fd', cities: [] },
     ];
     const { findByTestId } = render(
       <TravelMap
@@ -228,7 +345,7 @@ describe('TravelMap', () => {
       />,
     );
 
-    const segment = await findByTestId('segment-中国-0');
+    const segment = await findByTestId('segment-\u4e2d\u56fd-0');
 
     expect(segment).toHaveClass('visited');
   });
