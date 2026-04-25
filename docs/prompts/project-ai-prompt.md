@@ -11,6 +11,23 @@
 - 行程时间线与地图联动
 - 本地数据导出 / 导入
 
+## 功能 Prompt 选用建议
+
+当任务已经明显落在某个已上线功能模块时，优先先读对应专项 Prompt，再开始改代码：
+
+- 地图与快速录入：`docs/prompts/map-recording-prompt.md`
+- 记录列表 / 详情 / 编辑：`docs/prompts/record-management-prompt.md`
+- 旅伴管理：`docs/prompts/companion-management-prompt.md`
+- 行程集合与行程详情：`docs/prompts/trip-collection-prompt.md`
+- 时间线：`docs/prompts/timeline-prompt.md`
+- 统计中心：`docs/prompts/stats-center-prompt.md`
+- 地图回放：`docs/prompts/map-replay-prompt.md`
+- 数据备份 / 导入导出：`docs/prompts/data-sync-prompt.md`
+- 攻略搜索：`docs/prompts/guide-search-prompt.md` 与其前端 / adapter 子 Prompt
+- 认证与后台：`docs/prompts/auth-prompt.md`、`docs/prompts/admin-backoffice-prompt.md`
+
+如果任务横跨多个功能，先确认主链路属于哪个模块，再补读相关的次级 Prompt，避免把几个模块的规则混在一起。
+
 ## 技术栈
 
 - React 19

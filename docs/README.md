@@ -45,6 +45,17 @@
 - [Prisma MySQL Prompt](prompts/prisma-mysql-prompt.md)
 - [Local Dev Prompt](prompts/local-dev-prompt.md)
 
+## 功能专项 Prompt
+
+- [Map Recording Prompt](prompts/map-recording-prompt.md)
+- [Record Management Prompt](prompts/record-management-prompt.md)
+- [Companion Management Prompt](prompts/companion-management-prompt.md)
+- [Trip Collection Prompt](prompts/trip-collection-prompt.md)
+- [Timeline Prompt](prompts/timeline-prompt.md)
+- [Stats Center Prompt](prompts/stats-center-prompt.md)
+- [Map Replay Prompt](prompts/map-replay-prompt.md)
+- [Data Sync Prompt](prompts/data-sync-prompt.md)
+
 ## 攻略专项 Prompt
 
 - [Guide Search Prompt](prompts/guide-search-prompt.md)
