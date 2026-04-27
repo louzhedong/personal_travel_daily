@@ -3,6 +3,34 @@
 本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。  
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
+## 2026-04-27
+
+### PR #23 `refactor: 收口前后端架构拆分并刷新技术文档 / Consolidate frontend-backend architecture splits and refresh technical docs`
+
+### Added / 新增
+
+- 新增 `docs/technical/frontend-architecture.md`、`docs/technical/backend-architecture.md` 与 `docs/technical/trip-collection-phase-two.md`，系统记录当前前后端分层、大组件拆分、行程集合二期交互与测试覆盖。  
+  Added `docs/technical/frontend-architecture.md`, `docs/technical/backend-architecture.md`, and `docs/technical/trip-collection-phase-two.md` to document the current frontend/backend layering, large-component splits, and the phase-two trip-collection workflow with testing notes.
+
+### Changed / 变更
+
+- 前端路由和首页组合层继续收口，`App` 通过 `router.ts` 管理顶层路由，`TravelApp` 维持容器定位，`TravelMap`、`GuideSearchPanel`、`TripTimelinePanel`、`AdminPage` 与 `useTravelStoreActions` 的拆分结果已形成稳定结构。  
+  The frontend routing and homepage composition are now further consolidated: `App` uses `router.ts` for top-level routing, `TravelApp` stays as the orchestration container, and the splits around `TravelMap`, `GuideSearchPanel`, `TripTimelinePanel`, `AdminPage`, and `useTravelStoreActions` have settled into a stable structure.
+- 后端完成 `routes / services / repositories / schemas / serializers / shared` 分层收口，并把错误码共享、`visitMarkerRepository` 目录化、`statsService` 聚合下沉、bootstrap serializer barrel 拆分与 admin 账号统计下沉写回正式文档。  
+  The backend layering around `routes / services / repositories / schemas / serializers / shared` is now formally documented, including shared error codes, the directory split of `visitMarkerRepository`, the `statsService` aggregation extraction, the bootstrap serializer barrel split, and the admin account-stats extraction.
+- 刷新 `docs/technical/app-api-contract.md` 与 `docs/README.md`，明确纳入 `PATCH /api/markers/batch-trip`、共享错误码枚举以及新的架构文档导航。  
+  Refreshed `docs/technical/app-api-contract.md` and `docs/README.md` to explicitly include `PATCH /api/markers/batch-trip`, the shared error-code enum, and navigation to the new architecture documents.
+
+### Fixed / 修复
+
+- 修复 `TripTimelinePanel` 在普通时间线分支下可能触发的整理模式状态异常与无限 render 风险，确保双分支共享选择态并稳定批量整理交互。  
+  Fixed the organization-mode state regression and infinite-render risk in the plain timeline branch of `TripTimelinePanel`, ensuring both rendering branches share a stable selection model for batch organization.
+
+### Verified / 已验证
+
+- 文档导航与历史档案链接已手工校对
+- Markdown 诊断检查
+
 ## 2026-04-25
 
 ### PR #22 `feat: 行程集合二期管理台 / Add trip collection phase-two management`
@@ -34,7 +62,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npm run test -- --run src/components/__tests__/TripTimelinePanel.spec.tsx`
 - `npm run test -- --run src/modules/__tests__/TripDetailPage.spec.tsx`
 
-### PR TBD `feat: 地图回放模式一期 / Add map replay mode phase one`
+### PR 待定 / TBD `feat: 地图回放模式一期 / Add map replay mode phase one`
 
 ### Added / 新增
 
@@ -63,7 +91,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-24
 
-### PR TBD `feat: 扩展统计中心、年度回顾与详情动效 / Expand stats center, annual review, and detail motion`
+### PR 待定 / TBD `feat: 扩展统计中心、年度回顾与详情动效 / Expand stats center, annual review, and detail motion`
 
 ### Added / 新增
 
@@ -88,7 +116,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-23
 
-### PR TBD `chore: 扩充 demo 账号联调数据 / Expand demo account test data`
+### PR 待定 / TBD `chore: 扩充 demo 账号联调数据 / Expand demo account test data`
 
 ### Added / 新增
 
@@ -108,7 +136,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - 计数结果：`14 trips / 45 markers / 176 images / 12 guides / 4 search histories`  
   Count result: `14 trips / 45 markers / 176 images / 12 guides / 4 search histories`
 
-### PR TBD `refactor: 将统计中心拆到独立页面并重做热力图 / Move stats center to a standalone page and redesign the heatmap`
+### PR 待定 / TBD `refactor: 将统计中心拆到独立页面并重做热力图 / Move stats center to a standalone page and redesign the heatmap`
 
 ### Changed / 变更
 
@@ -124,7 +152,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npm run test -- --run src/modules/__tests__/App.spec.tsx src/modules/__tests__/TripStatsCenter.spec.tsx src/modules/__tests__/TripDetailPage.spec.tsx`
 - `npm run build`
 
-### PR TBD `chore: 补充行程详情页联调样例数据 / Add local showcase seed data for trip detail page`
+### PR 待定 / TBD `chore: 补充行程详情页联调样例数据 / Add local showcase seed data for trip detail page`
 
 ### Added / 新增
 
@@ -140,7 +168,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 - `npm run db:seed`
 
-### PR TBD `refactor: 拆分前端纯逻辑和展示模型 / Split frontend pure logic and view models`
+### PR 待定 / TBD `refactor: 拆分前端纯逻辑和展示模型 / Split frontend pure logic and view models`
 
 ### Changed / 变更
 
@@ -160,7 +188,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npm.cmd run build`
 - `npm.cmd run test`
 
-### PR TBD `feat: 增加行程集合 / Add trip collections`
+### PR 待定 / TBD `feat: 增加行程集合 / Add trip collections`
 
 ### Added / 新增
 
@@ -183,7 +211,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-22
 
-### PR TBD `feat: 打通统计中心到行程详情页闭环 / Add trip-detail drill-down from the statistics center`
+### PR 待定 / TBD `feat: 打通统计中心到行程详情页闭环 / Add trip-detail drill-down from the statistics center`
 
 ### Added / 新增
 
@@ -208,7 +236,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - 运行与统计中心相关的聚焦测试及 `npm run build`  
   Ran the focused statistics-center tests together with `npm run build`.
 
-### PR TBD `feat: 新增行程统计中心一期 / Add trip statistics center phase one`
+### PR 待定 / TBD `feat: 新增行程统计中心一期 / Add trip statistics center phase one`
 
 ### Added / 新增
 
@@ -231,7 +259,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - 计划运行统计路由、前端 API、统计中心组件和主应用相关测试，并执行 `npm run build`  
   Planned verification covers the stats route, frontend API, statistics-center component, main app tests, and `npm run build`.
 
-### PR TBD `docs: 补齐业务专项 prompt / Add domain-specific prompts`
+### PR 待定 / TBD `docs: 补齐业务专项 prompt / Add domain-specific prompts`
 
 ### Added / 新增
 
@@ -248,7 +276,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - 手工校对新增 Prompt 与当前认证、后台、API、数据库和联调约束一致  
   Manually verified that the new prompts align with the current auth, admin, API, database, and local-development constraints.
 
-### PR TBD `docs: 重组文档目录分层 / Reorganize docs into grouped directories`
+### PR 待定 / TBD `docs: 重组文档目录分层 / Reorganize docs into grouped directories`
 
 ### Added / 新增
 
@@ -269,7 +297,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - 手工检查新的目录结构与 Markdown 链接，确认旧路径引用已清理  
   Manually verified the new folder layout and Markdown links, confirming that old doc-path references were removed.
 
-### PR TBD `docs: 增加认证模块架构图 / Add auth module architecture diagram`
+### PR 待定 / TBD `docs: 增加认证模块架构图 / Add auth module architecture diagram`
 
 ### Added / 新增
 
@@ -286,7 +314,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - 手工校对架构图中的模块职责、依赖关系与当前认证代码结构一致  
   Manually verified that the module responsibilities and dependencies in the diagrams match the current authentication code structure.
 
-### PR TBD `docs: 增加认证时序图评审文档 / Add auth sequence-diagram review document`
+### PR 待定 / TBD `docs: 增加认证时序图评审文档 / Add auth sequence-diagram review document`
 
 ### Added / 新增
 
@@ -303,7 +331,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - 手工校对时序图与当前认证实现、Cookie Session 机制、管理员权限判断逻辑一致  
   Manually verified that the sequence diagrams match the current auth implementation, Cookie Session flow, and admin-permission checks.
 
-### PR TBD `docs: 补充认证与管理员权限技术方案 / Add auth, session, and admin-permission technical design`
+### PR 待定 / TBD `docs: 补充认证与管理员权限技术方案 / Add auth, session, and admin-permission technical design`
 
 ### Added / 新增
 
@@ -320,7 +348,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - 手工校对文档中的实现链路、接口、角色策略与当前代码一致  
   Manually verified that the documented flows, APIs, role strategy, and implementation paths match the current codebase.
 
-### PR TBD `feat: 新增管理员后台总览页 / Add admin backoffice overview page`
+### PR 待定 / TBD `feat: 新增管理员后台总览页 / Add admin backoffice overview page`
 
 ### Added / 新增
 
@@ -343,7 +371,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npm run test -- --run server/__tests__/appApiRoutes.spec.ts src/lib/api/__tests__/apiModules.spec.ts src/modules/__tests__/App.spec.tsx src/modules/__tests__/AdminPage.spec.tsx`
 - `npm run build`
 
-### PR TBD `feat: 新增注册登录与独立认证入口 / Add account registration, login, and authenticated app entry`
+### PR 待定 / TBD `feat: 新增注册登录与独立认证入口 / Add account registration, login, and authenticated app entry`
 
 ### Added / 新增
 
@@ -367,7 +395,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 - `vitest run src/lib/api/__tests__/httpClient.spec.ts src/lib/api/__tests__/apiModules.spec.ts src/modules/__tests__/App.spec.tsx server/__tests__/appApiRepositories.spec.ts`
 
-### PR TBD `ops: 切换到 Docker MySQL 本地方案 / Switch local database runtime to Docker MySQL`
+### PR 待定 / TBD `ops: 切换到 Docker MySQL 本地方案 / Switch local database runtime to Docker MySQL`
 
 ### Added / 新增
 
@@ -389,7 +417,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `docker compose ps`
 - `GET /api/app/bootstrap`
 
-### PR TBD `db: 引入首份 Prisma migration 历史 / Introduce the first Prisma migration history`
+### PR 待定 / TBD `db: 引入首份 Prisma migration 历史 / Introduce the first Prisma migration history`
 
 ### Added / 新增
 
@@ -409,7 +437,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npm run db:migrate:status`
 - `npm run build`
 
-### PR TBD `docs/tooling: 增加一键联调脚本与环境排查文档 / Add one-click dev tooling and troubleshooting docs`
+### PR 待定 / TBD `docs/tooling: 增加一键联调脚本与环境排查文档 / Add one-click dev tooling and troubleshooting docs`
 
 ### Added / 新增
 
@@ -429,7 +457,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 - `npm run build`
 
-### PR TBD `docs/test: 收尾数据库迁移文档与 repository 测试 / Finish migration document and repository coverage`
+### PR 待定 / TBD `docs/test: 收尾数据库迁移文档与 repository 测试 / Finish migration document and repository coverage`
 
 ### Added / 新增
 
@@ -448,7 +476,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npm run test -- --run server/__tests__/appApiRepositories.spec.ts`
 - `npm run build`
 
-### PR TBD `test: 补齐前端 API client 与细粒度 CRUD 测试 / Add API client and fine-grained CRUD tests`
+### PR 待定 / TBD `test: 补齐前端 API client 与细粒度 CRUD 测试 / Add API client and fine-grained CRUD tests`
 
 ### Added / 新增
 
@@ -469,7 +497,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npm run test -- --run src/lib/api/__tests__/httpClient.spec.ts src/lib/api/__tests__/apiModules.spec.ts server/__tests__/appApiRoutes.spec.ts`
 - `npm run build`
 
-### PR TBD `test: 补齐主业务 API 与前端远端主链路回归测试 / Add regression coverage for app API and remote data flow`
+### PR 待定 / TBD `test: 补齐主业务 API 与前端远端主链路回归测试 / Add regression coverage for app API and remote data flow`
 
 ### Added / 新增
 
@@ -485,7 +513,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npm run test -- --run server/__tests__/appApiRoutes.spec.ts src/modules/__tests__/App.spec.tsx src/components/__tests__/GuideSearchPanel.spec.tsx src/components/__tests__/DataSync.spec.tsx`
 - `npm run build`
 
-### PR TBD `docs: 补齐主业务 API Contract 与文档索引 / Add app API contract and document index entries`
+### PR 待定 / TBD `docs: 补齐主业务 API Contract 与文档索引 / Add app API contract and document index entries`
 
 ### Added / 新增
 
@@ -497,7 +525,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - 更新 README、`docs/README.md` 与 MySQL 设计稿中的文档入口和开发清单，补齐 `PR-8`、`PR-9` 当前进度。  
   Updated the README, `docs/README.md`, and the MySQL design doc with document entry points and the latest `PR-8` / `PR-9` progress.
 
-### PR TBD `feat: 收口云端版 DataSync 与文档说明 / Refine cloud-mode DataSync and documentation`
+### PR 待定 / TBD `feat: 收口云端版 DataSync 与文档说明 / Refine cloud-mode DataSync and documentation`
 
 ### Changed / 变更
 
@@ -512,7 +540,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 - `npm run build`
 
-### PR TBD `feat: 搭建 MySQL 应用 API 基础设施 / Bootstrap MySQL app API infrastructure`
+### PR 待定 / TBD `feat: 搭建 MySQL 应用 API 基础设施 / Bootstrap MySQL app API infrastructure`
 
 ### Added / 新增
 

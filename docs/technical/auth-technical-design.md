@@ -11,10 +11,10 @@
 - 默认账号与默认同行人初始化策略
 - 相关 API、数据模型、时序、错误边界与验收建议
 
-若需要评审版图示，请配合阅读：
+若需要评审版图示，请直接参考本文档末尾的两个附录：
 
-- [认证模块架构图](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-architecture-diagram.md)
-- [登录注册与会话管理时序图](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-sequence-diagrams.md)
+- [附录 A：架构图 / Architecture Diagrams](#附录-a架构图--architecture-diagrams)
+- [附录 B：时序图 / Sequence Diagrams](#附录-b时序图--sequence-diagrams)
 
 适用对象：
 
@@ -606,12 +606,12 @@ npm run build
 
 ## 与现有文档的关系
 
-- [登录注册说明](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-login-register.md)
+- [登录注册说明](./auth-login-register.md)
   - 面向快速上手与联调
-- [App API Contract](file:///Users/bytedance/project/personal_travel_daily/docs/technical/app-api-contract.md)
+- [App API Contract](./app-api-contract.md)
   - 面向接口契约
 - 本文档：
-  - 面向完整技术设计与实现收口
+  - 面向完整技术设计与实现收口（含架构图与时序图附录）
 
 ## 后续演进建议
 
@@ -619,3 +619,391 @@ npm run build
 - 增加账号管理与管理员操作审计
 - 根据部署环境补充 `Secure` cookie 策略
 - 若后续出现外部系统接入，再评估 OAuth / SSO
+
+## 附录 A：架构图 / Architecture Diagrams
+
+本附录用于评审“认证模块整体结构”，重点回答下面几个问题：
+
+- 前端认证相关模块分别负责什么
+- 后端路由、服务、会话、仓储如何分层
+- 会话 token、Cookie、数据库 session 之间如何流转
+- 管理员权限判断落在哪一层
+
+This appendix answers: frontend module responsibilities, backend layering, token/cookie/session flow, and admin-permission placement.
+
+### A.1 认证模块总览 / Module Overview
+
+```mermaid
+flowchart LR
+    Browser["Browser / Cookie Jar"]
+
+    subgraph Frontend["Frontend"]
+        App["App.tsx\n会话恢复 / 路由分流"]
+        AuthPage["AuthPage.tsx\n登录注册表单"]
+        AdminPage["AdminPage.tsx\n管理员后台页"]
+        AuthApi["authApi.ts\nregister / login / session / logout"]
+        HttpClient["httpClient.ts\ncredentials + /api 代理"]
+    end
+
+    subgraph Backend["App API"]
+        AuthRoute["routes/auth.ts\n/register /login /session /logout"]
+        AdminRoute["routes/admin.ts\n/admin/overview"]
+        AuthService["services/authService.ts\n账号注册 / 登录 / 登出"]
+        RequestAuth["auth/requestAuth.ts\n恢复账号 / 普通鉴权 / 管理员鉴权"]
+        SessionHelper["auth/session.ts\ntoken 生成 / hash / cookie 序列化"]
+        PasswordHelper["auth/password.ts\n密码 hash / verify"]
+        AppContext["services/appContextService.ts\n账号初始数据"]
+        AccountRepo["repositories/accountRepository.ts"]
+        SessionRepo["repositories/authSessionRepository.ts"]
+        AdminService["services/adminService.ts"]
+        AdminOverviewRepo["repositories/adminOverviewRepository.ts"]
+    end
+
+    subgraph Database["MySQL / Prisma"]
+        AccountTable["accounts"]
+        SessionTable["auth_sessions"]
+        CompanionTable["travel_companions"]
+        MarkerTable["visit_markers"]
+        GuideTable["saved_guides"]
+        HistoryTable["guide_search_histories"]
+    end
+
+    Browser <--> App
+    App --> AuthPage
+    App --> AdminPage
+    AuthPage --> AuthApi
+    App --> AuthApi
+    AdminPage --> HttpClient
+    AuthApi --> HttpClient
+    HttpClient --> AuthRoute
+    HttpClient --> AdminRoute
+
+    AuthRoute --> AuthService
+    AuthRoute --> RequestAuth
+    AuthRoute --> SessionHelper
+    AuthService --> PasswordHelper
+    AuthService --> SessionHelper
+    AuthService --> AccountRepo
+    AuthService --> SessionRepo
+    AuthService --> AppContext
+
+    RequestAuth --> SessionHelper
+    RequestAuth --> SessionRepo
+    RequestAuth --> AccountTable
+
+    AppContext --> CompanionTable
+
+    AccountRepo --> AccountTable
+    SessionRepo --> SessionTable
+
+    AdminRoute --> RequestAuth
+    AdminRoute --> AdminService
+    AdminService --> AdminOverviewRepo
+    AdminOverviewRepo --> AccountTable
+    AdminOverviewRepo --> CompanionTable
+    AdminOverviewRepo --> MarkerTable
+    AdminOverviewRepo --> GuideTable
+    AdminOverviewRepo --> HistoryTable
+
+    SessionHelper --> Browser
+```
+
+评审重点：
+
+- 前端不直接管理 session token 逻辑，而是通过 `authApi + httpClient` 与后端交互
+- 后端把认证职责拆成路由层、服务层、会话工具层、鉴权恢复层、仓储层
+- 管理员权限不在前端判断真值，而在 `requestAuth.ts`
+
+### A.2 前端认证模块分层 / Frontend Layering
+
+```mermaid
+flowchart TB
+    App["App.tsx"]
+    AuthPage["AuthPage.tsx"]
+    TravelApp["TravelApp.tsx"]
+    AdminPage["AdminPage.tsx"]
+    AuthApi["authApi.ts"]
+    HttpClient["httpClient.ts"]
+
+    App -->|"未登录"| AuthPage
+    App -->|"member"| TravelApp
+    App -->|"admin + /admin"| AdminPage
+
+    App --> AuthApi
+    AuthPage --> AuthApi
+    AuthApi --> HttpClient
+```
+
+### A.3 后端认证模块分层 / Backend Layering
+
+```mermaid
+flowchart TB
+    AuthRoute["routes/auth.ts"]
+    AuthService["services/authService.ts"]
+    RequestAuth["auth/requestAuth.ts"]
+    SessionHelper["auth/session.ts"]
+    PasswordHelper["auth/password.ts"]
+    AccountRepo["repositories/accountRepository.ts"]
+    SessionRepo["repositories/authSessionRepository.ts"]
+    AppContext["services/appContextService.ts"]
+
+    AuthRoute --> AuthService
+    AuthRoute --> RequestAuth
+    AuthRoute --> SessionHelper
+
+    AuthService --> PasswordHelper
+    AuthService --> SessionHelper
+    AuthService --> AccountRepo
+    AuthService --> SessionRepo
+    AuthService --> AppContext
+
+    RequestAuth --> SessionHelper
+    RequestAuth --> SessionRepo
+```
+
+### A.4 Session 存储与恢复结构 / Session Storage and Restore
+
+```mermaid
+flowchart LR
+    RawToken["Raw Session Token\n仅浏览器持有"]
+    Cookie["Cookie: voyage_atlas_session"]
+    Hash["SHA-256(token)"]
+    SessionRow["auth_sessions.token_hash"]
+    Account["accounts + role"]
+
+    RawToken --> Cookie
+    RawToken --> Hash
+    Hash --> SessionRow
+    SessionRow --> Account
+```
+
+关键原则：浏览器持有原始 token，数据库仅存 `token_hash`，服务端恢复登录时读 cookie → hash → 查库 → 关联 account。
+
+### A.5 管理员权限落点 / Admin Permission
+
+```mermaid
+flowchart LR
+    Frontend["Frontend /admin"]
+    SessionRoute["GET /api/auth/session"]
+    AdminRoute["GET /api/admin/overview"]
+    RequestAuth["requestAuth.ts"]
+    Role{"account.role"}
+    MainPage["/"]
+    LoginPage["/login"]
+    AdminPage["/admin"]
+
+    Frontend --> SessionRoute
+    Frontend --> AdminRoute
+    SessionRoute --> RequestAuth
+    AdminRoute --> RequestAuth
+    RequestAuth --> Role
+
+    Role -->|"no session"| LoginPage
+    Role -->|"member"| MainPage
+    Role -->|"admin"| AdminPage
+```
+
+权限设计结论：前端负责“怎么跳”，后端负责“能不能进”。
+
+## 附录 B：时序图 / Sequence Diagrams
+
+本附录聚焦“登录注册 + 会话管理”的关键时序，不展开所有实现细节。
+
+This appendix focuses on the key sequences of register / login / session restore / logout / admin access.
+
+### B.0 参与方 / Participants
+
+- `Browser`：浏览器与用户交互界面
+- `Frontend App`：前端 React 应用
+- `App API Route`：`server/appApi/routes/auth.ts`
+- `Auth Service`：`server/appApi/services/authService.ts`
+- `Session Helper`：`server/appApi/auth/session.ts`
+- `DB`：MySQL + Prisma（`accounts` / `auth_sessions`）
+
+### B.1 注册并自动登录 / Register + Auto Login
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Browser
+    participant Frontend as Frontend App
+    participant Route as App API Route
+    participant Service as Auth Service
+    participant Session as Session Helper
+    participant DB
+
+    User->>Browser: 在 /register 填写 nickname / username / password
+    Browser->>Frontend: 提交注册表单
+    Frontend->>Route: POST /api/auth/register
+    Route->>Route: 校验请求体
+    Route->>Service: registerAccount(body)
+    Service->>DB: 查询 username 是否已存在
+    DB-->>Service: 不存在
+    Service->>Service: hashPassword(password)
+    Service->>DB: 创建 Account(role=member)
+    Service->>DB: 创建默认同行人与初始业务空间
+    Service->>Session: createSessionToken()
+    Session-->>Service: sessionToken
+    Service->>Session: hashSessionToken(sessionToken)
+    Session-->>Service: tokenHash
+    Service->>Session: getSessionExpiresAt()
+    Session-->>Service: expiresAt
+    Service->>DB: 创建 AuthSession(tokenHash, expiresAt)
+    DB-->>Service: session 已落库
+    Service-->>Route: account + sessionToken + expiresAt
+    Route->>Browser: Set-Cookie(voyage_atlas_session=token)
+    Route-->>Frontend: 200 { account }
+    Frontend->>Frontend: 写入当前账号状态
+    Frontend-->>Browser: 跳转到 /
+```
+
+### B.2 登录并创建新会话 / Login + New Session
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Browser
+    participant Frontend as Frontend App
+    participant Route as App API Route
+    participant Service as Auth Service
+    participant Session as Session Helper
+    participant DB
+
+    User->>Browser: 在 /login 输入 username / password
+    Browser->>Frontend: 提交登录表单
+    Frontend->>Route: POST /api/auth/login
+    Route->>Route: 校验请求体
+    Route->>Service: loginAccount(body)
+    Service->>DB: 按 username 查询 Account
+    DB-->>Service: 返回 account + passwordHash
+    Service->>Service: verifyPassword(password, passwordHash)
+    alt 用户名或密码错误
+        Service-->>Route: throw UNAUTHORIZED
+        Route-->>Frontend: 401 INVALID username/password
+        Frontend-->>Browser: 展示登录失败提示
+    else 校验通过
+        Service->>Session: createSessionToken()
+        Session-->>Service: sessionToken
+        Service->>Session: hashSessionToken(sessionToken)
+        Session-->>Service: tokenHash
+        Service->>Session: getSessionExpiresAt()
+        Session-->>Service: expiresAt
+        Service->>DB: 创建 AuthSession(tokenHash, expiresAt)
+        DB-->>Service: session 已落库
+        Service-->>Route: account + sessionToken + expiresAt
+        Route->>Browser: Set-Cookie(voyage_atlas_session=token)
+        Route-->>Frontend: 200 { account }
+        Frontend->>Frontend: 写入当前账号状态
+        Frontend-->>Browser: 跳转到 /
+    end
+```
+
+### B.3 刷新页面后的会话恢复 / Session Restore on Refresh
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Browser
+    participant Frontend as Frontend App
+    participant Route as App API Route
+    participant Auth as Request Auth
+    participant Session as Session Helper
+    participant DB
+
+    Browser->>Frontend: 刷新页面 / 首次加载应用
+    Frontend->>Route: GET /api/auth/session (自动携带 cookie)
+    Route->>Auth: getAuthenticatedAccount(request)
+    Auth->>Session: readCookieValue(cookie, voyage_atlas_session)
+    alt 没有 cookie
+        Auth-->>Route: null
+        Route-->>Frontend: 200 { account: null }
+        Frontend-->>Browser: 跳转到 /login
+    else 存在 cookie
+        Auth->>DB: deleteExpiredAuthSessions(now)
+        Auth->>Session: hashSessionToken(sessionToken)
+        Session-->>Auth: tokenHash
+        Auth->>DB: findAuthSessionByTokenHash(tokenHash)
+        alt session 不存在或已过期
+            Auth-->>Route: null
+            Route-->>Frontend: 200 { account: null }
+            Frontend-->>Browser: 跳转到 /login
+        else session 有效
+            DB-->>Auth: session + account
+            Auth-->>Route: { id, name, username, role }
+            Route-->>Frontend: 200 { account }
+            Frontend->>Frontend: 恢复当前账号状态
+            alt role = admin 且当前路径是 /admin
+                Frontend-->>Browser: 继续进入 /admin
+            else role = member 且当前路径是 /admin
+                Frontend-->>Browser: 回退到 /
+            else 普通主应用路径
+                Frontend-->>Browser: 进入 /
+            end
+        end
+    end
+```
+
+### B.4 退出登录 / Logout
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Browser
+    participant Frontend as Frontend App
+    participant Route as App API Route
+    participant Service as Auth Service
+    participant Session as Session Helper
+    participant DB
+
+    User->>Browser: 点击退出登录并确认
+    Browser->>Frontend: 触发 logout
+    Frontend->>Route: POST /api/auth/logout (自动携带 cookie)
+    Route->>Session: readCookieValue(cookie, voyage_atlas_session)
+    Session-->>Route: sessionToken
+    Route->>Service: logoutAccount(sessionToken)
+    Service->>Session: hashSessionToken(sessionToken)
+    Session-->>Service: tokenHash
+    Service->>DB: deleteAuthSessionByTokenHash(tokenHash)
+    DB-->>Service: 删除成功
+    Service-->>Route: ok
+    Route->>Browser: Set-Cookie(voyage_atlas_session=; Expires=过去时间)
+    Route-->>Frontend: 200 { success: true }
+    Frontend->>Frontend: 清空当前账号状态
+    Frontend-->>Browser: 跳转到 /login
+```
+
+### B.5 管理员访问后台 / Admin Backoffice Access
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Browser
+    participant Frontend as Frontend App
+    participant AdminRoute as GET /api/admin/overview
+    participant Auth as Request Auth
+    participant DB
+
+    Browser->>Frontend: 打开 /admin
+    Frontend->>Frontend: 先恢复 session
+    Frontend->>AdminRoute: 请求后台数据
+    AdminRoute->>Auth: requireAdminAccount(request)
+    Auth->>DB: 查 session 对应 account
+    alt 未登录
+        Auth-->>AdminRoute: throw 401
+        AdminRoute-->>Frontend: 401 UNAUTHORIZED
+        Frontend-->>Browser: 跳转到 /login
+    else 已登录但 role = member
+        Auth-->>AdminRoute: throw 403
+        AdminRoute-->>Frontend: 403 FORBIDDEN
+        Frontend-->>Browser: 回退到 /
+    else role = admin
+        Auth-->>AdminRoute: 当前管理员账号
+        AdminRoute-->>Frontend: 200 AdminOverviewResponse
+        Frontend-->>Browser: 渲染后台管理页
+    end
+```
+
+评审重点：管理员权限依赖 `Account.role`；前端体验做“回退主页”，真正的权限裁决必须由后端完成。

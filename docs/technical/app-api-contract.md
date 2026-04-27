@@ -8,6 +8,28 @@
 - 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史的服务端读写接口
 - 作为前端 `remoteTravelStoreRepository` 的默认数据源
 
+## 当前后端实现对照 / Current Backend Architecture References
+
+本契约文档对应的后端目录结构如下：
+
+- `server/appApi/buildApp.ts`：Fastify 入口、路由注册与统一错误处理
+- `server/appApi/routes/*`：HTTP 路由层
+- `server/appApi/schemas/*`：`zod` 输入校验
+- `server/appApi/services/*`：业务编排与事务边界
+- `server/appApi/repositories/*`：Prisma 数据访问
+- `server/appApi/serializers/*`：DTO 序列化
+- `shared/errors/codes.ts`：前后端共享错误码事实源
+- `shared/geo/countryMapping.ts`：统计域复用的国家映射事实源
+
+其中近期已完成的结构刷新包括：
+
+- `visitMarkerRepository` 目录化拆分为 `read / write / batch / search`
+- `statsService` 仅保留 I/O 编排，纯聚合下沉到 `services/stats/aggregator.ts`
+- `bootstrapSerializer` 拆分为 `serializers/bootstrap/*` 子模块，并保留 barrel 兼容层
+- admin 账号级统计摘要下沉到 `services/admin/accountStats.ts`
+
+Summary: The API contract maps directly onto the current backend layering of routes, schemas, services, repositories, serializers, and shared modules.
+
 ## 通用约定
 
 ### 数据源
@@ -31,15 +53,27 @@
 }
 ```
 
-### 通用错误码
+### 错误码枚举 / Error Code Enum
 
-- `400 INVALID_REQUEST`
-- `401 UNAUTHORIZED`
-- `403 FORBIDDEN`
-- `404 NOT_FOUND`
-- `409 CONFLICT`
-- `503 DATABASE_UNAVAILABLE`
-- `500 INTERNAL_SERVER_ERROR`
+错误码字面量的事实源位于 `shared/errors/codes.ts`，当前固定枚举如下：
+
+- `INVALID_REQUEST`
+- `NOT_FOUND`
+- `CONFLICT`
+- `UNAUTHORIZED`
+- `FORBIDDEN`
+- `DATABASE_UNAVAILABLE`
+- `INTERNAL_SERVER_ERROR`
+
+常见 HTTP 状态映射：
+
+- `400 -> INVALID_REQUEST`
+- `401 -> UNAUTHORIZED`
+- `403 -> FORBIDDEN`
+- `404 -> NOT_FOUND`
+- `409 -> CONFLICT`
+- `503 -> DATABASE_UNAVAILABLE`
+- `500 -> INTERNAL_SERVER_ERROR`
 
 ## 认证接口
 
@@ -667,6 +701,7 @@
 - 所有 `markerIds` 都必须属于当前登录账号且未被删除
 - `tripId` 可传有效行程 id，传 `null` 表示批量移回未归入行程
 - 服务端会在单事务内完成校验和批量更新，避免部分成功部分失败
+- 路由注册时必须让静态路径 `/api/markers/batch-trip` 先于 `/api/markers/:id`，避免被动态路径吞掉
 
 ### `DELETE /api/markers/:id`
 
@@ -855,4 +890,4 @@
 
 - 确认 MySQL 已启动
 - 确认 `DATABASE_URL` 指向 `127.0.0.1:3306`
-- 确认已执行 `npm run db:generate`、`npm run db:push`、`npm run db:seed`
+- 确认已执行 `npm run db:generate`、`npm run db:migrate:deploy`（或本地对应 migrate 流程）、`npm run db:seed`

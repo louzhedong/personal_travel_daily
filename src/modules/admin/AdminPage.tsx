@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
+import AdminFiltersBar from '../../components/admin/AdminFiltersBar';
+import AdminOverviewCards from '../../components/admin/AdminOverviewCards';
+import AdminRankingTable from '../../components/admin/AdminRankingTable';
 import TravelIcon from '../../components/ui/TravelIcon';
 import { fetchAdminOverview } from '../../lib/api/adminApi';
-import type {
-  AdminCompanionNodeDto,
-  AdminOverviewResponseDto,
-  AdminTripNodeDto,
-} from '../../lib/api/types';
+import type { AdminOverviewResponseDto } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
 import {
+  ADMIN_DETAIL_TABS,
   formatAdminDate,
   formatAdminDateOnly,
   getAccountDetailCollections,
-  getAdminSummary,
   type AdminDetailTab,
 } from './adminPageModel';
 
@@ -19,31 +18,6 @@ interface AdminPageProps {
   account: AuthAccount;
   onLogout: () => Promise<void> | void;
   onNavigateHome: () => void;
-}
-
-function AdminSummaryCards({ overview }: { overview: AdminOverviewResponseDto }) {
-  const summary = useMemo(() => getAdminSummary(overview), [overview]);
-
-  const items = [
-    { label: '系统用户', value: summary.accountCount, tone: 'blue' },
-    { label: '行程', value: summary.tripCount, tone: 'green' },
-    { label: '同行人', value: summary.companionCount, tone: 'teal' },
-    { label: '旅行记录', value: summary.markerCount, tone: 'orange' },
-    { label: '收藏攻略', value: summary.savedGuideCount, tone: 'sky' },
-    { label: '攻略搜索', value: summary.guideSearchHistoryCount, tone: 'slate' },
-    { label: '记录搜索', value: summary.markerSearchEventCount, tone: 'blue' },
-  ];
-
-  return (
-    <section className="admin-summary-grid">
-      {items.map((item) => (
-        <article key={item.label} className={`card admin-summary-card admin-summary-card-${item.tone}`}>
-          <span className="admin-summary-label">{item.label}</span>
-          <strong>{item.value}</strong>
-        </article>
-      ))}
-    </section>
-  );
 }
 
 export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPageProps) {
@@ -56,6 +30,8 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
   useEffect(() => {
     let cancelled = false;
 
+    // Preserve the original fetch flow and cancellation guard.
+    // 保持原有数据拉取流程与取消标记，避免拆分后改变时序行为。
     fetchAdminOverview()
       .then((response) => {
         if (!cancelled) {
@@ -89,14 +65,6 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
     () => (selectedAccount ? getAccountDetailCollections(selectedAccount) : null),
     [selectedAccount],
   );
-
-  const tabItems: Array<{ key: AdminDetailTab; label: string }> = [
-    { key: 'trips', label: '行程' },
-    { key: 'markers', label: '旅行记录' },
-    { key: 'savedGuides', label: '收藏攻略' },
-    { key: 'guideSearchHistory', label: '攻略搜索' },
-    { key: 'markerSearchEvents', label: '记录搜索' },
-  ];
 
   return (
     <main className="admin-shell">
@@ -136,53 +104,18 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
 
       {!loading && overview ? (
         <>
-          <AdminSummaryCards overview={overview} />
+          <AdminOverviewCards overview={overview} />
 
           <section className="admin-workspace">
-            <aside className="card admin-sidebar">
-              <div className="admin-sidebar-header">
-                <div>
-                  <h2>用户列表</h2>
-                  <p>选择一个账号，在右侧查看完整明细。</p>
-                </div>
-                <span className="admin-sidebar-count">{overview.accounts.length}</span>
-              </div>
-
-              {overview.accounts.length === 0 ? (
-                <div className="admin-empty-block">当前还没有系统用户。</div>
-              ) : (
-                <div className="admin-user-list">
-                  {overview.accounts.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={
-                        item.id === selectedAccount?.id ? 'admin-user-row is-active' : 'admin-user-row'
-                      }
-                      onClick={() => {
-                        setSelectedAccountId(item.id);
-                        setActiveTab('trips');
-                      }}
-                    >
-                      <div className="admin-user-row-main">
-                        <div className="admin-user-row-top">
-                          <strong>{item.name}</strong>
-                          <span className={`admin-role-badge admin-role-badge-${item.role}`}>
-                            {item.role === 'admin' ? '管理员' : '普通用户'}
-                          </span>
-                        </div>
-                        <p>@{item.username}</p>
-                      </div>
-                      <div className="admin-user-row-meta">
-                        <span>同行 {item.stats.companionCount}</span>
-                        <span>行程 {item.stats.tripCount}</span>
-                        <span>记录 {item.stats.markerCount}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </aside>
+            <AdminFiltersBar
+              variant="sidebar"
+              accounts={overview.accounts}
+              selectedAccountId={selectedAccount?.id ?? selectedAccountId}
+              onSelectAccount={(accountId) => {
+                setSelectedAccountId(accountId);
+                setActiveTab('trips');
+              }}
+            />
 
             <section className="card admin-detail-panel">
               {!selectedAccount || !detailCollections ? (
@@ -250,7 +183,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                         <div className="admin-empty-block">该账号下暂无行程。</div>
                       ) : (
                         <div className="admin-trip-inline-list">
-                          {detailCollections.trips.map((trip: AdminTripNodeDto & { markerCount: number }) => (
+                          {detailCollections.trips.map((trip) => (
                             <div key={trip.id} className="admin-trip-pill">
                               {trip.coverImageUrl ? (
                                 <img src={trip.coverImageUrl} alt="" className="admin-trip-pill-cover" />
@@ -283,7 +216,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                         <div className="admin-empty-block">该账号下暂无同行人。</div>
                       ) : (
                         <div className="admin-companion-inline-list">
-                          {selectedAccount.companions.map((companion: AdminCompanionNodeDto) => (
+                          {selectedAccount.companions.map((companion) => (
                             <div key={companion.id} className="admin-companion-pill">
                               <span
                                 className="admin-companion-pill-color"
@@ -310,244 +243,13 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                   </section>
 
                   <section className="admin-detail-tabs">
-                    <div className="admin-tab-row" role="tablist" aria-label="后台详情切换">
-                      {tabItems.map((item) => (
-                        <button
-                          key={item.key}
-                          type="button"
-                          role="tab"
-                          aria-selected={activeTab === item.key}
-                          className={activeTab === item.key ? 'admin-tab-button is-active' : 'admin-tab-button'}
-                          onClick={() => setActiveTab(item.key)}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {activeTab === 'trips' ? (
-                      <section className="admin-data-card">
-                        <div className="admin-section-title">
-                          <span className="travel-icon-badge travel-icon-badge-blue">
-                            <TravelIcon name="route" size={14} />
-                          </span>
-                          <h3>行程</h3>
-                        </div>
-                        {detailCollections.trips.length === 0 ? (
-                          <div className="admin-empty-block">暂无行程。</div>
-                        ) : (
-                          <div className="admin-table-wrap">
-                            <table className="admin-table">
-                              <thead>
-                                <tr>
-                                  <th>行程</th>
-                                  <th>时间</th>
-                                  <th>记录</th>
-                                  <th>备注</th>
-                                  <th>创建时间</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {detailCollections.trips.map((trip) => (
-                                  <tr key={trip.id}>
-                                    <td>
-                                      <strong>{trip.name}</strong>
-                                    </td>
-                                    <td>
-                                      {formatAdminDateOnly(trip.startsAt)} 至 {formatAdminDateOnly(trip.endsAt)}
-                                    </td>
-                                    <td>{trip.markerCount}</td>
-                                    <td className="admin-note-cell">{trip.note || '暂无备注'}</td>
-                                    <td>{formatAdminDate(trip.createdAt)}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </section>
-                    ) : null}
-
-                    {activeTab === 'markers' ? (
-                      <section className="admin-data-card">
-                        <div className="admin-section-title">
-                          <span className="travel-icon-badge travel-icon-badge-orange">
-                            <TravelIcon name="route" size={14} />
-                          </span>
-                          <h3>旅行记录</h3>
-                        </div>
-                        {detailCollections.markers.length === 0 ? (
-                          <div className="admin-empty-block">暂无旅行记录。</div>
-                        ) : (
-                          <div className="admin-table-wrap">
-                            <table className="admin-table">
-                              <thead>
-                                <tr>
-                                  <th>同行人</th>
-                                  <th>行程</th>
-                                  <th>目的地</th>
-                                  <th>时间</th>
-                                  <th>范围</th>
-                                  <th>图片</th>
-                                  <th>备注</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {detailCollections.markers.map((marker) => (
-                                  <tr key={marker.id}>
-                                    <td>{marker.companionName}</td>
-                                    <td>{marker.tripName}</td>
-                                    <td>
-                                      <strong>{marker.scopeName}</strong>
-                                      <div>{marker.city}</div>
-                                    </td>
-                                    <td>
-                                      {formatAdminDateOnly(marker.visitedStartAt)} 至 {formatAdminDateOnly(marker.visitedEndAt)}
-                                    </td>
-                                    <td>{marker.scope === 'domestic' ? '国内' : '国际'}</td>
-                                    <td>{marker.imageUrls?.length ?? 0}</td>
-                                    <td className="admin-note-cell">{marker.note || '暂无备注'}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </section>
-                    ) : null}
-
-                    {activeTab === 'savedGuides' ? (
-                      <section className="admin-data-card">
-                        <div className="admin-section-title">
-                          <span className="travel-icon-badge travel-icon-badge-blue">
-                            <TravelIcon name="globe" size={14} />
-                          </span>
-                          <h3>收藏攻略</h3>
-                        </div>
-                        {detailCollections.savedGuides.length === 0 ? (
-                          <div className="admin-empty-block">暂无收藏攻略。</div>
-                        ) : (
-                          <div className="admin-table-wrap">
-                            <table className="admin-table">
-                              <thead>
-                                <tr>
-                                  <th>同行人</th>
-                                  <th>标题</th>
-                                  <th>关键词</th>
-                                  <th>来源</th>
-                                  <th>收藏时间</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {detailCollections.savedGuides.map((guide) => (
-                                  <tr key={guide.id}>
-                                    <td>{guide.companionName}</td>
-                                    <td className="admin-note-cell">{guide.result.title}</td>
-                                    <td>{guide.keyword}</td>
-                                    <td>{guide.result.sourceName}</td>
-                                    <td>{formatAdminDate(guide.savedAt)}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </section>
-                    ) : null}
-
-                    {activeTab === 'guideSearchHistory' ? (
-                      <section className="admin-data-card">
-                        <div className="admin-section-title">
-                          <span className="travel-icon-badge travel-icon-badge-teal">
-                            <TravelIcon name="spark" size={14} />
-                          </span>
-                          <h3>攻略搜索</h3>
-                        </div>
-                        {detailCollections.guideSearchHistory.length === 0 ? (
-                          <div className="admin-empty-block">暂无攻略搜索历史。</div>
-                        ) : (
-                          <div className="admin-table-wrap">
-                            <table className="admin-table">
-                              <thead>
-                                <tr>
-                                  <th>同行人</th>
-                                  <th>关键词</th>
-                                  <th>范围</th>
-                                  <th>搜索时间</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {detailCollections.guideSearchHistory.map((history) => (
-                                  <tr key={history.id}>
-                                    <td>{history.companionName}</td>
-                                    <td>{history.keyword}</td>
-                                    <td>
-                                      {history.scope === 'all'
-                                        ? '全部'
-                                        : history.scope === 'domestic'
-                                          ? '国内'
-                                          : '国际'}
-                                    </td>
-                                    <td>{formatAdminDate(history.createdAt)}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </section>
-                    ) : null}
-
-                    {activeTab === 'markerSearchEvents' ? (
-                      <section className="admin-data-card">
-                        <div className="admin-section-title">
-                          <span className="travel-icon-badge travel-icon-badge-blue">
-                            <TravelIcon name="spark" size={14} />
-                          </span>
-                          <h3>记录搜索</h3>
-                        </div>
-                        {detailCollections.markerSearchEvents.length === 0 ? (
-                          <div className="admin-empty-block">暂无记录搜索行为。</div>
-                        ) : (
-                          <div className="admin-table-wrap">
-                            <table className="admin-table">
-                              <thead>
-                                <tr>
-                                  <th>旅伴筛选</th>
-                                  <th>关键词</th>
-                                  <th>范围</th>
-                                  <th>年份</th>
-                                  <th>结果数</th>
-                                  <th>分页</th>
-                                  <th>搜索时间</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {detailCollections.markerSearchEvents.map((event) => (
-                                  <tr key={event.id}>
-                                    <td>{event.companionName}</td>
-                                    <td>{event.keyword || '空关键词'}</td>
-                                    <td>
-                                      {event.scope === 'all'
-                                        ? '全部'
-                                        : event.scope === 'domestic'
-                                          ? '国内'
-                                          : '国际'}
-                                    </td>
-                                    <td>{event.year ?? '全部年份'}</td>
-                                    <td>{event.resultCount}</td>
-                                    <td>
-                                      第 {event.page} 页 / 每页 {event.pageSize}
-                                    </td>
-                                    <td>{formatAdminDate(event.createdAt)}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </section>
-                    ) : null}
+                    <AdminFiltersBar
+                      variant="tabs"
+                      activeTab={activeTab}
+                      tabItems={ADMIN_DETAIL_TABS}
+                      onTabChange={(tab) => setActiveTab(tab)}
+                    />
+                    <AdminRankingTable activeTab={activeTab} detailCollections={detailCollections} />
                   </section>
                 </>
               )}

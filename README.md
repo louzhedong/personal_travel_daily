@@ -1,56 +1,59 @@
 # Voyage Atlas / 旅行足迹地图
 
-`Voyage Atlas` 是一个基于 React 19、Vite 7 与 TypeScript 5 的旅行记录应用原型。它把地图选区、多人旅行记录、旅行图片、攻略搜索、攻略收藏/关联、时间线回看和云端主数据能力整合到同一个浏览器端体验里。
+`Voyage Atlas` 是一个基于 React 19、Vite 7 与 TypeScript 5 的旅行记录应用原型。它把地图选区、多人旅行记录、旅行图片、攻略搜索、攻略收藏 / 关联、时间线回看、行程集合、统计中心、年度回顾、地图回放、管理员后台以及云端主数据能力整合到同一个浏览器端体验里。
 
-## 当前能力
+`Voyage Atlas` is a React 19 + Vite 7 + TypeScript 5 travel log prototype that unifies map capture, multi-companion records, guides, timelines, trip collections, stats, annual reviews, map replay, an admin backoffice, and a cloud-backed data layer into a single browser experience.
+
+## 当前能力 / Current Capabilities
 
 - 国内 / 国际地图切换，并支持点击区域快速创建旅行记录
+- 地图回放：首页地图卡片内嵌的控制条，自动或手动沿国家级路径回放旅途轨迹
 - 账号认证：未登录默认进入 `/login`，注册页为 `/register`，旧 `/auth` 会自动兼容到 `/login`
 - 旅行记录支持城市、起止日期、游记描述和多图上传
 - 多旅伴管理：切换当前记录用户、区分颜色、限制仅本人可编辑自己的记录
-- 旅行记录详情：查看图片、编辑游记、关联或解除攻略
-- 攻略搜索：支持关键词搜索、范围筛选、搜索历史、正文摘要展示
-- 攻略阅读增强：支持正文目录、原文视图、站点级正文清洗，以及主页面右下角回到顶部按钮
-- 攻略收藏与关联：同一用户在“收藏”和“关联到某条记录”两个语义下独立去重
-- 行程集合二期：支持创建、编辑、删除行程，按照片设置封面，并将零散旅行记录批量整理到同一个 Trip Collection
-- 行程时间线：按当前用户聚合、按年份筛选、按国内/国际筛选，支持批量整理记录，并与地图和详情面板联动
-- 行程统计中心：首页第二屏展示总览、趋势、排行、热力图与行程明细
-- 行程详情闭环：从统计中心或时间线可钻取到 `/trips/:id`，查看并轻量编辑行程总览、记录、关联攻略与照片
-- 年度回顾：支持从 `/stats` 进入 `/yearbook/:year`，按年份回看旅行摘要、高光、热力分布和代表照片
-- 数据备份：从旅行记录模块入口打开弹窗，导出当前聚合快照作为 JSON 备份
-- 云端主数据：旅行记录、旅伴、攻略收藏/关联与搜索历史默认由主业务 API + MySQL 承载
+- 旅行记录详情：查看图片、编辑游记、关联或解除攻略、轻量调整所属行程
+- 攻略搜索：关键词搜索、范围筛选、搜索历史、正文摘要展示
+- 攻略阅读增强：正文目录、原文视图、站点级正文清洗与"回到顶部"
+- 攻略收藏与关联：同一用户在"收藏"与"关联到某条记录"两个语义下独立去重
+- 行程集合二期：创建、编辑、删除行程，封面管理，从时间线批量整理记录，并提供独立详情页 `/trips/:id`
+- 行程时间线：按当前用户聚合、按年份与国内 / 国际筛选，与地图、详情面板联动
+- 统计中心 `/stats`：总览 KPI、趋势、排行、国内 / 世界热力图与行程明细，支持钻取到行程详情
+- 年度回顾 `/yearbook/:year`：年度摘要、高光、热力分布、照片与关联攻略，可继续钻取到行程详情
+- 管理员后台 `/admin`：`admin` 角色专用的只读概览，后端 `GET /api/admin/overview` 最终裁决权限
+- 数据备份：应用内仅保留导出当前聚合快照为 JSON 的能力
+- 云端主数据：旅行记录、旅伴、攻略收藏 / 关联与搜索历史默认由主业务 API + MySQL 承载
 
-## 认证说明
+Summary: Every shipped capability above lives under the current bilingual design rules and a single MySQL-backed data layer.
 
-- 登录页：`/login`
-- 注册页：`/register`
-- 旧认证入口：`/auth` 会自动跳转到 `/login`
-- 默认演示账号：
-  - 用户名：`demo`
-  - 密码：`demo123456`
-- 登录成功后会回到主页面 `/`
-- 退出登录需要二次确认
-- 删除旅行记录也需要二次确认
-- 更多交互与接口说明见 [docs/technical/auth-login-register.md](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-login-register.md)
-- 完整技术设计见 [docs/technical/auth-technical-design.md](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-technical-design.md)
-- 模块架构图见 [docs/technical/auth-architecture-diagram.md](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-architecture-diagram.md)
-- 评审时序图见 [docs/technical/auth-sequence-diagrams.md](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-sequence-diagrams.md)
-
-## 技术栈
+## 技术栈 / Tech Stack
 
 - React 19
 - TypeScript 5
 - Vite 7
 - Vitest + Testing Library
 - `d3-geo`
-- IndexedDB
+- Fastify + Prisma + MySQL 8
 - Node.js 20.19+
 
-## 本地启动
+---
+
+## **认证说明 / Authentication**
+
+- 登录页：`/login`，注册页：`/register`，旧 `/auth` 自动规范到 `/login`
+- 默认演示账号：用户名 `demo` / 密码 `demo123456`（角色 `admin`）
+- 登录成功后回到主页面 `/`；退出登录与删除旅行记录都需要二次确认
+- 完整交互手册：[docs/technical/auth-login-register.md](docs/technical/auth-login-register.md)
+- 技术设计 + 架构图 + 时序图：[docs/technical/auth-technical-design.md](docs/technical/auth-technical-design.md)
+
+Summary: Auth uses cookie sessions; the default seed account `demo` is an admin for local development only.
+
+---
+
+## **本地启动 / Local Setup**
 
 项目依赖 Node.js `20.19+`。如果系统 Node 版本较低，优先使用仓库自带的 Node 20。
 
-### 推荐方式
+### 推荐方式 / Recommended
 
 macOS / Linux：
 
@@ -66,9 +69,9 @@ Windows：
 
 其中：
 
-- `npm run dev:all` 会通过 `docker compose` 启动 `mysql + adminer`，再启动 `guide-api`、`app-api` 和前端，并把日志写入 `.tools/dev-logs/`
-- 一键启动会在启动服务前自动执行 `db:generate`、`db:migrate:deploy` 和 `db:seed`
-- `start-local-dev.cmd` 会使用仓库内置的 Node 20，一键启动 `mysql + adminer`、同步 Prisma、执行 seed，并启动 `guide-api`、`app-api` 和前端；npm 会优先使用项目内 `.npm-cache` 和 `npmmirror` 源
+- `npm run dev:all` 通过 `docker compose` 启动 `mysql + adminer`，再启动 `guide-api`、`app-api` 与前端，并把日志写入 `.tools/dev-logs/`
+- 启动服务前会自动执行 `db:generate`、`db:migrate:deploy` 与 `db:seed`
+- `start-local-dev.cmd` 使用仓库内置 Node 20，一键启动 `mysql + adminer`、同步 Prisma、执行 seed，并启动 `guide-api`、`app-api` 与前端
 
 停止 macOS / Linux 下一键联调进程：
 
@@ -76,7 +79,9 @@ Windows：
 npm run dev:stop
 ```
 
-### 手动启动前端
+### 手动启动 / Manual
+
+前端：
 
 ```powershell
 $env:PATH="$PWD\.tools\node-v20.19.0-win-x64;$env:PATH"
@@ -84,11 +89,9 @@ $env:npm_config_cache="$PWD\.npm-cache"
 npm run dev
 ```
 
-默认地址：
+默认地址：`http://localhost:5173/`
 
-- `http://localhost:5173/`
-
-### 启动本地攻略 API
+攻略 API：
 
 ```powershell
 $env:PATH="$PWD\.tools\node-v20.19.0-win-x64;$env:PATH"
@@ -101,9 +104,7 @@ npm run dev:guide-api
 - `http://localhost:8383/api/guides/search`
 - `http://localhost:8383/api/guides/document`
 
-### 启动本地 MySQL
-
-项目本地只保留 Docker MySQL：
+本地 MySQL（仅保留 Docker Compose）：
 
 ```bash
 docker compose up -d mysql adminer
@@ -116,10 +117,10 @@ docker compose up -d mysql adminer
 
 默认账号：
 
-- MySQL root: `root / password`
-- MySQL app user: `travel_app / travel_app_password`
+- MySQL root：`root / password`
+- MySQL app user：`travel_app / travel_app_password`
 
-### 初始化 Prisma
+初始化 Prisma：
 
 ```bash
 npm run db:generate
@@ -127,24 +128,7 @@ npm run db:migrate
 npm run db:seed
 ```
 
-说明：
-
-- `db:generate`：生成 Prisma Client
-- `db:migrate`：生成并应用正式 migration，作为当前默认开发流程
-- `db:migrate:deploy`：在已有 migration 历史的环境中应用迁移
-- `db:migrate:status`：查看当前数据库与 migration 历史是否一致
-- `db:push`：仅保留给快速实验场景，不再作为默认主流程
-- `db:seed`：写入默认账户
-
-如果你的本地数据库是在 migration 引入前就已经建好的，可以先执行：
-
-```bash
-npm run db:migrate:status
-```
-
-当前仓库已经包含首份基线 migration：`server/prisma/migrations/20260422_init/migration.sql`
-
-### 启动本地主业务 API
+主业务 API：
 
 ```powershell
 $env:PATH="$PWD\.tools\node-v20.19.0-win-x64;$env:PATH"
@@ -159,15 +143,7 @@ npm run dev:app-api
 
 如果 MySQL 尚未启动，`/api/app/bootstrap` 会返回 `503 DATABASE_UNAVAILABLE`。
 
-## 环境变量
-
-复制环境变量模板：
-
-```powershell
-Copy-Item .env.example .env.local
-```
-
-示例：
+### 环境变量 / Environment Variables
 
 ```bash
 DATABASE_URL="mysql://travel_app:travel_app_password@127.0.0.1:3306/personal_travel_daily"
@@ -181,39 +157,21 @@ VITE_IMGBB_API_KEY=your_imgbb_api_key
 VITE_APP_API_BASE_URL=/api/app
 VITE_GUIDE_SEARCH_PROVIDER=remote
 VITE_GUIDE_SEARCH_API_BASE_URL=/api/guides
-VITE_GUIDE_SEARCH_API_KEY=
 VITE_GUIDE_CONTENT_MODE=summary
-GUIDE_POI_GEOAPIFY_API_KEY=your_geoapify_api_key
 ```
 
-说明：
+可选：`GUIDE_POI_GEOAPIFY_API_KEY`、`GUIDE_LLM_*` 系列用于启用本地大模型增强的攻略搜索（见下一节）。
 
-- `DATABASE_URL`：Prisma 和主业务 API 连接 MySQL 使用
-- `APP_API_PORT`：主业务 API 默认端口
-- `APP_DEFAULT_ACCOUNT_ID` / `APP_DEFAULT_ACCOUNT_NAME`：数据库 seed 的默认账户
-- `VITE_APP_API_BASE_URL`：前端主数据请求主业务 API 时使用
-- `VITE_GUIDE_SEARCH_PROVIDER=mock`：前端只使用本地 mock 数据，适合纯 UI 联调
-- `VITE_GUIDE_SEARCH_PROVIDER=remote`：前端调用本地或远程攻略 API
-- `VITE_GUIDE_CONTENT_MODE=summary`：优先使用摘要化正文块，适合当前 UI
-- `GUIDE_POI_GEOAPIFY_API_KEY`：启用 Geoapify POI 适配器时需要配置
-- `GUIDE_LLM_ENABLED=true`：启用本地大模型增强的攻略搜索
-- `GUIDE_LLM_BASE_URL=http://127.0.0.1:11434`：本地 Ollama API 地址
-- `GUIDE_LLM_CHAT_MODEL=qwen2.5:3b`：适合当前仓库默认本地联调的轻量聊天模型
-- `GUIDE_LLM_EMBED_MODEL=embeddinggemma`：默认向量模型
-- `GUIDE_LLM_SEARCH_MODE=smart`：默认启用语义搜索、查询提取和重排
+### Local LLM Guide Search
 
-## Local LLM Guide Search
-
-The guide API can call a local Ollama runtime to enhance search and document summaries.
-
-Recommended local setup for this repository:
+攻略 API 可调用本地 Ollama 以增强搜索和正文摘要。推荐本地配置：
 
 ```powershell
 ollama pull qwen2.5:3b
 ollama pull embeddinggemma
 ```
 
-Suggested `.env.local` values:
+`.env.local` 建议片段：
 
 ```env
 GUIDE_LLM_ENABLED=true
@@ -225,17 +183,31 @@ GUIDE_LLM_SEARCH_MODE=smart
 GUIDE_LLM_INDEX_TTL_HOURS=168
 ```
 
-How to tell the local LLM path is active:
+判断本地 LLM 是否生效：`POST /api/guides/search` 返回 `provider: "guide-api-local-llm"`，并附带 `matchReason` / `semanticScore` / `queryInterpretation`。
 
-- `POST /api/guides/search` returns `provider: "guide-api-local-llm"`
-- search items include `matchReason`, `semanticScore`, and `queryInterpretation`
-- guide documents may include `aiSummary`
+Summary: Prefer `npm run dev:all` on macOS / Linux or `start-local-dev.cmd` on Windows; the optional local LLM path augments search quality.
 
-Fallback behavior:
+---
 
-- if Ollama is unavailable or model loading fails, the guide API falls back to keyword search with `provider: "guide-api-local"`
+## **测试 / Testing**
 
-## 常用命令
+```bash
+npm run test
+```
+
+重点覆盖：
+
+- 地图区域交互与地图回放序列
+- 旅伴切换、新增
+- 攻略搜索、收藏、关联、移除
+- 时间线筛选与联动
+- 行程集合 CRUD 与详情回看
+- 数据备份（导出）
+- 主业务 API 契约与仓库层行为
+
+Summary: Run `npm run test` to cover critical flows across the map, timeline, guides, trips, backup, and the app-api contract.
+
+### 常用命令 / Common Commands
 
 ```bash
 npm run dev
@@ -247,157 +219,52 @@ npm run db:generate
 npm run db:migrate
 npm run db:migrate:deploy
 npm run db:migrate:status
-npm run db:push
 npm run db:seed
 npm run build
 npm run test
 ```
 
-如果你在 Windows 本地使用系统 Node 低于 20，执行这些命令前先把 PATH 切到仓库内置 Node 20。
+---
 
-## 项目结构
+## **进一步阅读 / Further Reading**
+
+文档统一入口：[docs/README.md](docs/README.md)
+
+常用跳转：
+
+- [项目总览 / Project Overview](docs/technical/project-overview.md)
+- [未来 Roadmap / Product Roadmap](docs/technical/future-roadmap.md)
+- [App API Contract](docs/technical/app-api-contract.md)
+- [Guide Search API Contract](docs/technical/guide-search-api-contract.md)
+- [登录注册交互手册](docs/technical/auth-login-register.md)
+- [认证与会话技术方案（含架构图与时序图）](docs/technical/auth-technical-design.md)
+- [本地联调排查](docs/technical/local-dev-troubleshooting.md)
+- [CHANGELOG](CHANGELOG.md)
+
+## 项目结构与数据边界 / Layout and Data Boundaries
 
 ```text
 .
-├─ docs
-├─ public
-├─ server
-│  ├─ appApi
-│  ├─ prisma
-│  ├─ adapters
-│  ├─ cache
-│  ├─ __tests__
-│  ├─ appApiServer.ts
-│  ├─ guideApiServer.mjs
-│  ├─ guideFileStore.mjs
-│  ├─ guideSearchEngine.mjs
-│  └─ guideSeedData.mjs
-├─ src
-│  ├─ components
-│  ├─ data
-│  ├─ geo
-│  ├─ lib
-│  │  ├─ guides
-│  │  └─ repositories
-│  ├─ modules
-│  │  └─ app
-│  ├─ styles
-│  │  └─ components
-│  └─ test
+├─ docs           # 文档入口见 docs/README.md
+├─ server         # appApi / prisma / adapters / cache / 攻略 API 入口
+├─ src            # components / data / geo / lib / modules / styles / test
 ├─ README.md
 └─ package.json
 ```
-
-## 前端架构
-
-当前前端已经从“大一统 App”拆到更清晰的分层：
-
-- `src/modules/App.tsx`：容器层，负责组装页面、协调 store、弹窗和跨模块联动
-- `src/modules/admin/adminPageModel.ts`：后台管理页的展示模型、日期格式化和汇总统计
-- `src/modules/app/useMapContext.ts`：地图范围、区域列表、当前选区和地图入口行为
-- `src/modules/app/useTravelStoreActions.ts`：用户、记录、攻略收藏/关联、搜索历史等写操作
-- `src/modules/app/travelStoreActionHelpers.ts`：store 写操作中的通用辅助逻辑
-- `src/modules/app/markerNavigation.ts`：按记录 ID 统一聚焦地图并打开详情
-- `src/modules/app/AppHero.tsx`、`AppContent.tsx`、`AppOverlays.tsx`：页面组合层
-- `src/lib/date.ts`：日期区间、年份和天数等通用日期工具
-- `src/lib/markerSorting.ts`：旅行记录按访问时间排序的通用工具
-- `src/lib/mapJourneyArcs.ts`：地图旅程弧线的纯计算逻辑
-- `src/lib/guides/guideDocumentView.tsx`：攻略正文视图、高亮和 HTML 清洗逻辑
-
-## 样式组织
-
-样式已从单一 `index.css` 拆分为模块化结构：
-
-- `src/styles/base.css`
-- `src/styles/layout.css`
-- `src/styles/home.css`
-- `src/styles/responsive.css`
-- `src/styles/components/*.css`
-- `src/styles/index.css` 仅负责聚合导入
-
-## 数据边界
 
 - 主业务数据：默认从主业务 API 加载，并写入 MySQL
 - 本地 JSON 导出：仅作为人工备份快照，不再作为应用内恢复入口
 - 攻略搜索缓存：继续沿用当前攻略 API 和本地缓存仓库
 
-## 数据模型
+Summary: MySQL is the only source of truth; local exports are backup-only; guide caches remain auxiliary.
 
-核心状态保存在 `TravelStore`：
+## 开发注意点 / Development Notes
 
-```ts
-interface TravelStore {
-  users: UserProfile[];
-  markers: VisitMarker[];
-  activeUserId: string;
-  savedGuides: SavedGuide[];
-  guideSearchHistory: GuideSearchHistoryItem[];
-}
-```
+- 新增"按记录跳转"入口优先复用 `src/modules/app/markerNavigation.ts`
+- 收藏 / 关联去重语义下沉到仓库和动作层，不要在 UI 组件里自行拼接判重
+- 通用纯逻辑放到 `src/lib`；页面 / 模块组装放到 `src/modules`；组件只保留 UI、交互和必要局部状态
+- 每次创建 PR 同步更新 `CHANGELOG.md`，并补齐涉及的 README / `docs/` 说明
+- PR 默认 Ready for review；PR 标题 / 正文 / CHANGELOG / 面向协作的文档必须保持中英双语（中文在前）
+- 新增样式放到对应模块的 `src/styles/components/*.css`；全局硬约束（例如隐藏滚动条）保留在 `src/styles/base.css`，不要随意覆盖
 
-其中：
-
-- `users`：旅伴身份与配色
-- `markers`：旅行记录主体
-- `savedGuides`：攻略收藏或与记录的关联关系
-- `guideSearchHistory`：搜索历史
-
-## 测试
-
-```bash
-npm run test
-```
-
-当前测试覆盖重点包括：
-
-- 地图区域交互
-- 旅伴切换与新增
-- 攻略搜索、收藏、关联、移除
-- 时间线筛选和联动
-- 数据备份与恢复
-- 本地存储与仓库层行为
-
-## 文档索引
-
-- [Docs Index](docs/README.md)
-- [项目总览](docs/technical/project-overview.md)
-- [未来 Roadmap / TODO](docs/technical/future-roadmap.md)
-- [登录注册 + 会话 + 管理员权限技术方案](docs/technical/auth-technical-design.md)
-- [认证模块架构图](docs/technical/auth-architecture-diagram.md)
-- [登录注册与会话管理时序图](docs/technical/auth-sequence-diagrams.md)
-- [MySQL 升级技术方案](docs/technical/mysql-upgrade-design.md)
-- [App API Contract](docs/technical/app-api-contract.md)
-- [本地联调排查文档](docs/technical/local-dev-troubleshooting.md)
-- [攻略搜索功能说明](docs/technical/guide-search-feature.md)
-- [攻略搜索/收藏/关联设计](docs/technical/travel-guide-search-design.md)
-- [Guide Search API Contract](docs/technical/guide-search-api-contract.md)
-- [视觉 Token 说明](docs/design/design-tokens.md)
-- [地图渲染与 Hover 性能说明](docs/technical/map-rendering-and-hover-performance.md)
-- [项目 AI Prompt](docs/prompts/project-ai-prompt.md)
-- [System Prompt](docs/prompts/system-prompt.md)
-- [Task Prompt](docs/prompts/task-prompt.md)
-- [Design Prompt](docs/prompts/design-prompt.md)
-- [Auth Prompt](docs/prompts/auth-prompt.md)
-- [Admin Backoffice Prompt](docs/prompts/admin-backoffice-prompt.md)
-- [App API Prompt](docs/prompts/app-api-prompt.md)
-- [Prisma MySQL Prompt](docs/prompts/prisma-mysql-prompt.md)
-- [Local Dev Prompt](docs/prompts/local-dev-prompt.md)
-- [Map Recording Prompt](docs/prompts/map-recording-prompt.md)
-- [Record Management Prompt](docs/prompts/record-management-prompt.md)
-- [Companion Management Prompt](docs/prompts/companion-management-prompt.md)
-- [Trip Collection Prompt](docs/prompts/trip-collection-prompt.md)
-- [Timeline Prompt](docs/prompts/timeline-prompt.md)
-- [Stats Center Prompt](docs/prompts/stats-center-prompt.md)
-- [Map Replay Prompt](docs/prompts/map-replay-prompt.md)
-- [Data Sync Prompt](docs/prompts/data-sync-prompt.md)
-- [Changelog](CHANGELOG.md)
-
-## 当前开发注意点
-
-- 地图、时间线、攻略收藏和详情面板已经通过 `markerNavigation` 统一了“按记录定位”的行为，新增入口尽量复用它
-- 攻略收藏和关联的去重语义已经下沉到仓库/动作层，不建议在 UI 组件里自行拼接判重逻辑
-- 通用纯逻辑优先放到 `src/lib`；页面/模块组装放在 `src/modules`；组件里尽量只保留 UI、交互和必要的局部状态
-- 每次创建 PR 时，需同步更新 `CHANGELOG.md`，并补齐本次改动涉及的 README / `docs/` 文档说明
-- PR 默认直接创建为 Ready for review；除非用户明确要求 Draft，不要创建 Draft PR
-- PR 标题、PR 正文、CHANGELOG 和面向协作的文档更新需保持中英双语：中文在前，英文跟随
-- 样式已经拆分，新增样式时优先放到对应模块文件，不要继续回堆到单文件全局样式里
+Summary: Reuse shared helpers, respect layering, keep bilingual docs in sync, and never break the global invariants in `base.css`.

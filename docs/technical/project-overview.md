@@ -1,138 +1,257 @@
-﻿# 项目总览
+# 项目总览 / Project Overview
 
-## 产品定位
+这份文档是对当前仓库所有已落地模块的总览，按"产品能力 → 模块职责 → 分层与关键文件 → 约束与规范"四段展开。读完本文即可定位任何一个模块的入口，再按链接深入对应的专项设计文档。
 
-这是一个面向个人与小团队的旅行足迹记录原型，核心体验是：
+This document gives a full overview of every shipped module in the repository. It is organized as Product capabilities → Module responsibilities → Layering and key files → Constraints and conventions. After reading this, you can locate the entry point of any module and then drill into the feature-specific design docs.
 
-1. 在地图上选中地区
-2. 用当前旅伴身份记录一次旅行
-3. 补充图片、游记和时间信息
-4. 搜索、收藏并关联目的地攻略
-5. 通过时间线回看自己的旅程
-6. 通过导出/导入维护本地数据
+---
 
-## 已实现模块
+## 1. 产品能力 / Product Capabilities
 
-### 地图与记录录入
+### 1.1 地图与记录录入 / Map and Marker Capture
 
-- 国内 / 国际双范围切换
-- 地图区域点击后直接打开记录弹窗
-- 区域对应城市列表自动填充
-- 记录表单支持日期区间、描述、多图上传
+- 国内 / 国际双范围切换、区域 hover 反馈与图例说明。
+- 地图区域点击打开记录弹窗，城市列表自动填充。
+- 记录表单支持日期区间、游记描述与多图上传。
 
-### 旅行记录列表与详情
+Summary: The homepage map supports domestic / international switching, region hover, legend guidance, and a click-to-capture marker creation flow.
 
-- 当前范围下的记录列表
-- 按旅伴筛选列表
-- 仅当前活跃用户可删除自己的记录
-- 详情面板支持编辑游记和图片
+### 1.2 旅行记录列表与详情 / Marker List and Detail
 
-### 旅伴管理
+- 当前范围下的记录列表，支持按旅伴筛选。
+- 仅当前活跃用户可编辑 / 删除自己的记录。
+- 详情面板支持游记、图片、关联攻略、所属行程的轻量查看与编辑。
 
-- 新增旅伴
-- 切换当前记录用户
-- 以颜色区分不同旅伴的记录
+Summary: Marker list and detail panel provide per-scope browsing, permission-aware editing, and trip / guide cross-linking.
 
-### 攻略搜索与关联
+### 1.3 旅伴管理 / Companion Management
 
-- 本地 mock / 远程 API 双 provider
-- 搜索结果摘要展示
-- 搜索历史
-- 收藏到“我的收藏”
-- 关联到某条旅行记录
-- 从收藏或记录中移除攻略
+- 新增旅伴、切换当前记录用户、以颜色区分不同旅伴。
+- 当前版本只开放新增与更新，删除能力留到后续归档策略完善后再开放。
 
-### 时间线
+Summary: Companions are first-class entities that control coloring and ownership, with create / update but no delete for now.
 
-- 基于当前活跃用户生成
-- 按年份筛选
-- 按国内/国际筛选
-- 点击时间线条目，联动地图与详情面板
+### 1.4 时间线 / Timeline
 
-### 数据持久化与备份
+- 基于当前活跃用户聚合，按年份、按国内 / 国际筛选。
+- 支持多选旅行记录批量归属到行程，或移出行程。
+- 点击时间线条目联动地图与详情面板。
 
-- `IndexedDB` 存储旅行数据与攻略缓存
-- 自动迁移旧版 `localStorage`
-- 导出数据快照
-- 导入后按 ID 合并已有数据
+Summary: Timeline aggregates the current companion's markers, supports filtering, batch trip assignment, and cross-module linking.
 
-## 目录职责
+### 1.5 行程集合（Trip Collection 二期）/ Trip Collections (Phase 2)
 
-### `src/components`
+- 行程作为独立对象，支持创建、编辑、删除，并可从时间线批量整理记录归属。
+- 支持封面设置、备注编辑与日期修改。
+- 独立行程详情页 `/trips/:id` 提供总览、记录、照片、关联攻略与旅伴摘要的轻编辑回看。
 
-通用和业务组件，例如地图、记录列表、详情、时间线、攻略搜索面板。
+Summary: Trip Collection is a true content container with create / edit / delete, batch marker assignment, cover management, and a dedicated detail page.
 
-### `src/modules`
+### 1.6 统计中心 / Stats Center
 
-页面模块与容器层。
+- 独立页面 `/stats`，覆盖总览 KPI、年度趋势、月度分布、地区 / 城市 / 旅伴 / 行程排行、区域热力图与行程明细。
+- 国内使用中国省级地图热力，国际使用世界地图热力。
+- 可从统计中心一键钻取到行程详情。
 
-- `App.tsx`：应用顶层容器
-- `app/`：页面组合组件与 hook
-- `admin/`：后台管理页与展示模型
+Summary: `/stats` centralizes filtered stats, rankings, trends, and heatmaps with drill-down into trip detail.
 
-### `src/lib`
+### 1.7 年度回顾 / Annual Review
 
-前端基础设施和数据层。
+- `/yearbook/:year` 独立年度回顾页，按年份生成私有年鉴式回看。
+- 汇总年度摘要、高光、月度节奏、热力分布、照片与关联攻略。
+- 支持从年度回顾继续钻取到单次行程详情。
 
-- `storage.ts`：TravelStore 持久化与迁移
-- `date.ts`：日期区间、年份和天数等通用日期工具
-- `markerSorting.ts`：旅行记录访问时间排序工具
-- `mapJourneyArcs.ts`：地图旅程弧线纯计算
-- `guides/`：攻略搜索、正文服务、正文视图和 HTML 清洗
-- `repositories/`：IndexedDB 仓库和缓存层
+Summary: `/yearbook/:year` provides a private yearbook-style retrospective per year, linking through to individual trip details.
 
-### `server`
+### 1.8 地图回放 / Map Replay (Phase 1)
 
-本地攻略 API 与适配器。
+- 在首页地图卡片内嵌入回放控制条：上一步、播放 / 暂停、下一步、结束与速度选择。
+- 回放序列按时间升序生成，用移动圆点与当前停留点标签展示。
+- 自动播放与手动步进都会沿旅途轨迹移动；世界地图下国内城市自动归属到"中国"，与国际记录一起形成国家级路径。
 
-- `guideApiServer.mjs`：HTTP 入口
-- `guideSearchEngine.mjs`：搜索与排序逻辑
-- `guideFileStore.mjs`：文档缓存
-- `adapters/`：外部站点与 POI 数据适配器
+Summary: The map replay phase-one feature adds in-card replay controls over existing journey arcs, with unified country-level mapping for world view.
 
-## 当前前端分层
+### 1.9 攻略搜索 / 收藏 / 关联 / Guide Search, Save, Link
 
-### 页面容器
+- 支持本地 mock / 远程 API 双 provider，可切换；远程路径会进一步适配本地 Ollama LLM 模式。
+- 搜索结果摘要、正文阅读增强、搜索历史、收藏、关联到旅行记录、解除关联完整闭环。
+- 收藏与关联是两种不同语义，分别独立去重。
 
-- `App.tsx`
+Summary: Guide search / save / link ship as an end-to-end loop, with pluggable local or remote providers and optional on-device LLM enhancement.
 
-### 页面组合层
+### 1.10 数据备份 / Data Backup
 
-- `AppHero.tsx`
-- `AppContent.tsx`
-- `AppOverlays.tsx`
+- 保留"导出当前聚合快照为 JSON"能力，作为人工备份。
+- 应用内的 JSON 导入恢复入口已下线，云端数据以 MySQL 为准。
 
-### 状态与动作 hook
+Summary: Data backup is reduced to a manual JSON snapshot export; the source of truth now lives in MySQL.
 
-- `useMapContext.ts`
-- `useTravelStoreActions.ts`
-- `useLockedModal.ts`
-- `travelStoreActionHelpers.ts`
+### 1.11 认证与会话 / Auth and Session
 
-### 跨模块导航辅助
+- `/login` 与 `/register` 独立路由，旧 `/auth` 自动兼容到 `/login`。
+- 使用 Cookie Session，浏览器持有原始 token，数据库只存 SHA-256 hash。
+- 注册后立即自动登录；刷新页面可通过 `GET /api/auth/session` 恢复。
+- 账号角色只有 `admin` 与 `member` 两种；默认种子账号 `demo` 为 `admin`。
 
-- `markerNavigation.ts`
+Summary: Auth uses Cookie Session with hash-only storage. Only `admin` and `member` roles exist, and the default seed account is admin.
 
-### 纯计算与展示模型
+### 1.12 管理员后台 / Admin Backoffice
 
-- `src/lib/date.ts`
-- `src/lib/markerSorting.ts`
-- `src/lib/mapJourneyArcs.ts`
-- `src/lib/guides/guideDocumentView.tsx`
-- `src/modules/admin/adminPageModel.ts`
+- 独立 `/admin` 后台页，仅 `admin` 可进入；后端 `GET /api/admin/overview` 做最终权限裁决。
+- 后台只读展示账户、旅伴、旅行记录、收藏攻略与搜索历史的系统级概览。
 
-## 当前样式结构
+Summary: `/admin` is an admin-only read-only overview page whose permissions are ultimately enforced by the backend.
 
-- `base.css`：全局变量与基础样式
-- `layout.css`：壳层布局与弹窗
-- `home.css`：首页头部视觉
-- `responsive.css`：响应式覆盖
-- `components/*.css`：按业务模块拆分的组件样式
+---
 
-## 建议的新增开发原则
+## 2. 模块职责与关键文件 / Module Responsibilities and Key Files
 
-- 通用纯逻辑优先放入 `src/lib/`，页面级展示模型优先放入对应 `src/modules/*` 目录，不要散落在组件 JSX 内
-- store 写操作的公共逻辑优先复用 `travelStoreActionHelpers.ts`
-- 新的“按记录跳转”入口优先复用 `markerNavigation.ts`
-- 新的地图相关状态优先扩展 `useMapContext.ts`
-- 新的文档优先写在 `docs/`，README 保持入口级信息
+### 2.1 前端应用壳 / Frontend App Shell
+
+- `src/modules/App.tsx`：应用顶层容器。会话恢复、路由分流（`/login`、`/register`、`/admin`、`/`、`/trips/:id`、`/stats`、`/yearbook/:year` 等）、根据角色决定进入主应用或后台。
+- `src/modules/app/AppHero.tsx` / `AppContent.tsx` / `AppOverlays.tsx`：页面组合层。
+- `src/modules/app/useMapContext.ts`：地图范围、区域列表、选区、当前范围 marker 派生。
+- `src/modules/app/useTravelStoreActions.ts`：TravelStore 写操作（远端写入 + 本地回填）。
+- `src/modules/app/travelStoreActionHelpers.ts`：store 写操作公共辅助逻辑（活跃用户保持、搜索历史去重等）。
+- `src/modules/app/markerNavigation.ts`：按记录 ID 聚焦地图并打开详情。
+- `src/modules/app/useLockedModal.ts`：弹窗的 body lock 与 `Escape` 关闭。
+
+Summary: The frontend shell separates routing, page composition, map state, store actions, helpers, navigation, and modal locking.
+
+### 2.2 业务组件 / Business Components
+
+- `src/components/TravelMap.tsx`：地图主体，承载国内 / 国际切换、hover、轨迹弧线、回放控制条与移动圆点标签。
+- `src/components/MarkerList.tsx` / `MarkerDetailPanel.tsx`：旅行记录的列表与详情。
+- `src/components/TripTimelinePanel.tsx`：时间线面板，兼任"整理模式"与行程管理台。
+- `src/components/GuideSearchPanel.tsx`：攻略搜索、收藏、关联面板。
+- `src/components/DataSync.tsx`：数据备份（仅导出）。
+
+Summary: Components follow module-scoped responsibilities; cross-feature flows use shared helpers instead of ad-hoc wiring.
+
+### 2.3 纯逻辑与展示模型 / Pure Logic and View Models
+
+- `src/lib/date.ts`：日期区间、年份、天数工具。
+- `src/lib/markerSorting.ts`：旅行记录访问时间排序。
+- `src/lib/mapJourneyArcs.ts`：地图旅程弧线的纯计算。
+- `src/lib/mapReplay.ts`：地图回放序列生成与状态文案。
+- `src/lib/guides/guideDocumentView.tsx`：攻略正文视图、高亮、HTML 清洗。
+- `src/modules/admin/adminPageModel.ts`：后台管理页的展示模型与汇总统计。
+
+Summary: Pure logic is pulled out of components into `src/lib` and per-module view models so that rendering stays shallow.
+
+### 2.4 前端数据层 / Frontend Data Layer
+
+- `src/lib/api/httpClient.ts`：主业务 API 客户端基础能力，默认携带 `credentials`，本地开发优先走同源 `/api` 代理。
+- `src/lib/api/authApi.ts`：`register` / `login` / `fetchSession` / `logout`。
+- `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats` 等领域客户端。
+- `src/lib/repositories/remoteTravelStoreRepository.ts`：组合多个 API 调用，为页面层提供稳定边界。
+- `src/lib/repositories/*`：IndexedDB 仅保留攻略缓存与本地辅助状态，不再作为主数据持久化。
+
+Summary: The frontend talks to the backend through typed API modules and a remote repository; IndexedDB is no longer the source of truth.
+
+### 2.5 主业务 API（app-api）/ Main Business API
+
+- `server/appApiServer.ts`：Fastify 入口。
+- `server/appApi/routes/*`：`auth` / `bootstrap` / `companions` / `markers` / `savedGuides` / `guideSearchHistories` / `trips` / `stats` / `admin` 等路由。
+- `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、trip detail、admin overview 等）。
+- `server/appApi/auth/*`：`requestAuth`（恢复 / 鉴权）、`session`（token、cookie 序列化）、`password`（hash / verify）。
+- `server/appApi/repositories/*`：Prisma 查询封装。
+- `server/appApi/serializers/*`：DB 模型 → 前端模型。
+- `server/appApi/errors.ts`：统一业务错误。
+- `server/prisma/schema.prisma`：MySQL 数据模型。
+- `server/prisma/migrations/*`：正式 migration 历史。
+- `server/prisma/seed.ts`：默认演示账号与 demo 数据。
+
+Summary: The app-api service uses a clear routes → schemas → services → repositories → serializers → errors stack on top of Prisma.
+
+### 2.6 攻略搜索服务（guide-api）/ Guide Search Service
+
+- `server/guideApiServer.mjs`：HTTP 入口。
+- `server/guideSearchEngine.mjs`：搜索与排序逻辑。
+- `server/guideFileStore.mjs`：文档缓存。
+- `server/adapters/*`：外部站点与 POI 数据适配器。
+- 可选地通过 Ollama LLM 进行语义搜索、重排和摘要增强。
+
+Summary: The guide-api is a standalone Node service for search, POI adapters, file cache, and optional local-LLM augmentation.
+
+### 2.7 样式体系 / Style System
+
+- `src/styles/base.css`：全局变量与基础样式（含全局隐藏滚动条等硬约束）。
+- `src/styles/layout.css`：壳层布局与弹窗。
+- `src/styles/home.css`：首页头部视觉。
+- `src/styles/responsive.css`：响应式覆盖。
+- `src/styles/components/*.css`：按业务模块拆分的组件样式。
+- `src/styles/index.css` 仅负责聚合导入。
+
+Summary: Styles are modular per feature; global invariants like hidden scrollbars live in `base.css` and should not be altered casually.
+
+---
+
+## 3. 分层与边界 / Layering and Boundaries
+
+### 3.1 前端层次 / Frontend Layering
+
+1. 页面容器层：`App.tsx`、页面级路由分流。
+2. 页面组合层：`AppHero` / `AppContent` / `AppOverlays` 与各 Page 组件。
+3. 交互与业务组件层：地图、时间线、详情面板、攻略面板、数据备份等。
+4. 状态与动作层：`useMapContext`、`useTravelStoreActions`、`useLockedModal`、`travelStoreActionHelpers`。
+5. 数据客户端层：`httpClient` + 领域 API + `remoteTravelStoreRepository`。
+6. 纯逻辑层：`src/lib/*` 与 `src/modules/**/<module>Model.ts` 展示模型。
+
+Summary: Frontend is pushed from containers down to pure logic, so rendering and persistence never mix.
+
+### 3.2 后端层次 / Backend Layering
+
+1. HTTP 入口：`appApiServer.ts` / `guideApiServer.mjs`。
+2. 路由层：`routes/*`，负责入参校验、错误封装、Set-Cookie。
+3. 服务层：`services/*`，承接业务规则与事务。
+4. 鉴权层：`auth/requestAuth.ts`，统一恢复账号、普通鉴权、管理员鉴权。
+5. 仓储层：`repositories/*`，封装 Prisma 查询。
+6. 序列化层：`serializers/*`，把 DB 模型转换为前端所需 DTO。
+7. 持久化层：Prisma / MySQL + 正式 migration 历史。
+
+Summary: Backend follows a clean Routes → Services → Auth → Repositories → Serializers → Prisma pipeline.
+
+### 3.3 数据边界 / Data Boundaries
+
+- 主业务数据：MySQL 为单一事实源，前端通过主业务 API 读写。
+- 攻略缓存：保留本地缓存仓库与 guide-api 的文件缓存。
+- 本地 JSON 导出：仅作人工备份快照，不再是应用内恢复入口。
+- 管理员权限：前端做体验回退，最终裁决在 `requestAuth.ts`。
+
+Summary: MySQL is the only source of truth; caches are auxiliary; admin permission is enforced server-side.
+
+---
+
+## 4. 约束与规范 / Constraints and Conventions
+
+- 中英双语规范：中文在前，英文跟随。PR 标题、正文、CHANGELOG 与协作文档必须保持双语。
+- 全局硬约束：隐藏滚动条等全局视觉约束保留在 `src/styles/base.css`，不要在模块样式内覆盖。
+- 样式组织：新增样式放到对应 `src/styles/components/*.css`，避免回堆到单文件。
+- 通用纯逻辑：优先放到 `src/lib/*`；页面级展示模型放到对应 `src/modules/*`；组件内尽量只保留 UI、交互与必要的局部状态。
+- 导航复用：新增"按记录跳转"入口优先复用 `markerNavigation.ts`；新增地图状态优先扩展 `useMapContext.ts`。
+- 写操作：store 写操作优先走 `useTravelStoreActions.ts` 与其 helper，不要在 UI 层再做重复去重或活跃用户维持逻辑。
+- 权限：后台能力必须先经过 `requireAdminAccount()`；前端不要自行判权。
+- 文档：新增技术文档优先写在 `docs/technical/`；AI 协作材料写在 `docs/prompts/`，并视为辅助素材而非事实源。
+- 每次 PR：同步 `CHANGELOG.md` 与涉及的 `docs/` 说明，保持 README 为入口级信息。
+- PR 默认直接创建为 Ready for review；除非明确要求 Draft。
+
+Summary: The project enforces bilingual docs, strict layering, and a single source of truth to keep long-term maintenance cost low.
+
+---
+
+## 5. 延伸阅读 / Further Reading
+
+- [认证与会话技术方案（含附录架构图与时序图）](./auth-technical-design.md)
+- [登录注册交互手册](./auth-login-register.md)
+- [主业务 API Contract](./app-api-contract.md)
+- [攻略搜索功能说明](./guide-search-feature.md)
+- [攻略搜索 / 收藏 / 关联设计](./travel-guide-search-design.md)
+- [Guide Search API Contract](./guide-search-api-contract.md)
+- [地图渲染与 Hover 性能说明](./map-rendering-and-hover-performance.md)
+- [地图回放模式](./map-replay-mode.md)
+- [本地联调排查文档](./local-dev-troubleshooting.md)
+- [未来 Roadmap](./future-roadmap.md)
+- 历史档案：[MySQL 升级技术方案（归档）](./archived/mysql-upgrade-design.md)
+
+Summary: Use this section as a jump table into feature-specific specs; start here and drill further only when you need the details.
