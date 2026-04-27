@@ -2,6 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import FancySelect from './ui/FancySelect';
 import { formatVisitedRange } from '../lib/date';
 import { getDateOnlyYear } from '../lib/date';
+import {
+  MARKER_BUDGET_LEVEL_LABELS,
+  MARKER_MOOD_LABELS,
+  MARKER_TAG_LABELS,
+  MARKER_TRANSPORT_LABELS,
+  MARKER_WEATHER_LABELS,
+} from '../lib/markerMetadata';
 import { sortMarkersDesc } from '../lib/markerSorting';
 import type { Scope, UserProfile, VisitMarker } from '../types';
 import type { MarkerSearchResponseDto, SearchMarkersQuery } from '../lib/api/types';
@@ -241,6 +248,13 @@ export function MarkerList({
             const hasLongNote = marker.note.trim().length > 54;
             const isExpanded = !!expandedNotes[marker.id];
             const imageUrls = marker.imageUrls ?? [];
+            const tagSummary = (marker.tags ?? []).slice(0, 3).map((tag) => MARKER_TAG_LABELS[tag].zh);
+            const metadataSummary = [
+              marker.mood ? `心情 ${MARKER_MOOD_LABELS[marker.mood].zh}` : null,
+              marker.weather ? `天气 ${MARKER_WEATHER_LABELS[marker.weather].zh}` : null,
+              marker.transport ? `交通 ${MARKER_TRANSPORT_LABELS[marker.transport].zh}` : null,
+              marker.budgetLevel ? `预算 ${MARKER_BUDGET_LEVEL_LABELS[marker.budgetLevel].zh}` : null,
+            ].filter(Boolean);
 
             return (
               <article
@@ -300,6 +314,28 @@ export function MarkerList({
                     </button>
                   ) : null}
                 </div>
+                {tagSummary.length > 0 || metadataSummary.length > 0 ? (
+                  <div className="marker-rich-meta">
+                    {tagSummary.length > 0 ? (
+                      <div className="marker-tag-list" aria-label="记录标签">
+                        {tagSummary.map((tag) => (
+                          <span key={`${marker.id}-${tag}`} className="marker-tag-chip">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                    {metadataSummary.length > 0 ? (
+                      <div className="marker-metadata-line" aria-label="旅行体验摘要">
+                        {metadataSummary.map((item) => (
+                          <span key={`${marker.id}-${item}`} className="marker-metadata-chip">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
                 {imageUrls.length > 0 ? (
                   <div className="marker-image-block">
                     <div className="marker-image-block-header">

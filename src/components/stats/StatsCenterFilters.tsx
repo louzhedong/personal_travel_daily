@@ -1,4 +1,11 @@
 import FancySelect from '../ui/FancySelect';
+import {
+  MARKER_BUDGET_LEVEL_OPTIONS,
+  MARKER_MOOD_OPTIONS,
+  MARKER_TAG_OPTIONS,
+  MARKER_TRANSPORT_OPTIONS,
+  MARKER_WEATHER_OPTIONS,
+} from '../../lib/markerMetadata';
 import type { StatsOverviewResponseDto } from '../../lib/api/types';
 import type { StatsUiFilters } from '../../modules/stats/statsCenterModel';
 
@@ -58,6 +65,41 @@ export default function StatsCenterFilters({ filters, data, onChange }: StatsCen
             label: trip.name,
           })),
         ]}
+      />
+      <FancySelect
+        value={filters.tag}
+        onChange={(value) => onChange({ ...filters, tag: value as StatsUiFilters['tag'] })}
+        placeholder="全部标签"
+        ariaLabel="按标签筛选统计中心"
+        options={[{ value: 'all', label: '全部标签' }, ...MARKER_TAG_OPTIONS]}
+      />
+      <FancySelect
+        value={filters.mood}
+        onChange={(value) => onChange({ ...filters, mood: value as StatsUiFilters['mood'] })}
+        placeholder="全部心情"
+        ariaLabel="按心情筛选统计中心"
+        options={[{ value: 'all', label: '全部心情' }, ...MARKER_MOOD_OPTIONS]}
+      />
+      <FancySelect
+        value={filters.weather}
+        onChange={(value) => onChange({ ...filters, weather: value as StatsUiFilters['weather'] })}
+        placeholder="全部天气"
+        ariaLabel="按天气筛选统计中心"
+        options={[{ value: 'all', label: '全部天气' }, ...MARKER_WEATHER_OPTIONS]}
+      />
+      <FancySelect
+        value={filters.transport}
+        onChange={(value) => onChange({ ...filters, transport: value as StatsUiFilters['transport'] })}
+        placeholder="全部交通方式"
+        ariaLabel="按交通方式筛选统计中心"
+        options={[{ value: 'all', label: '全部交通方式' }, ...MARKER_TRANSPORT_OPTIONS]}
+      />
+      <FancySelect
+        value={filters.budgetLevel}
+        onChange={(value) => onChange({ ...filters, budgetLevel: value as StatsUiFilters['budgetLevel'] })}
+        placeholder="全部预算级别"
+        ariaLabel="按预算级别筛选统计中心"
+        options={[{ value: 'all', label: '全部预算级别' }, ...MARKER_BUDGET_LEVEL_OPTIONS]}
       />
     </section>
   );

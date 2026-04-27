@@ -15,6 +15,11 @@ export type MarkerSearchRow = {
   scopeName: string;
   city: string;
   note: string;
+  tags: unknown;
+  mood: string | null;
+  weather: string | null;
+  transport: string | null;
+  budgetLevel: string | null;
   isDeleted: boolean;
   visitedStartAt: Date;
   visitedEndAt: Date;

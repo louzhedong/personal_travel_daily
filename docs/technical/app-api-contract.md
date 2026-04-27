@@ -273,6 +273,11 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - `scope`：可选，`all | domestic | international`
 - `companionId`：可选，单旅伴筛选
 - `tripId`：可选，单行程筛选；传 `unassigned` 表示未归入行程
+- `tag`：可选，记录标签枚举值，如 `food | hiking | beach | museum | photography | family | weekend | business | nature | citywalk`
+- `mood`：可选，心情枚举值，如 `relaxed | excited | tired | surprised | peaceful`
+- `weather`：可选，天气枚举值，如 `sunny | cloudy | rainy | snowy | windy`
+- `transport`：可选，交通方式枚举值，如 `walk | car | train | plane | metro | bus`
+- `budgetLevel`：可选，预算级别枚举值，如 `low | medium | high`
 
 成功响应示例：
 
@@ -280,7 +285,12 @@ Summary: The API contract maps directly onto the current backend layering of rou
 {
   "filters": {
     "year": "all",
-    "scope": "all"
+    "scope": "all",
+    "tag": "citywalk",
+    "mood": "relaxed",
+    "weather": "sunny",
+    "transport": "walk",
+    "budgetLevel": "medium"
   },
   "availableYears": ["2026", "2025"],
   "companions": [
@@ -349,6 +359,41 @@ Summary: The API contract maps directly onto the current backend layering of rou
   ],
   "tripRanking": [],
   "tripDetails": [],
+  "topTags": [
+    {
+      "value": "citywalk",
+      "label": "城市漫游",
+      "markerCount": 2
+    }
+  ],
+  "topMoods": [
+    {
+      "value": "relaxed",
+      "label": "放松",
+      "markerCount": 2
+    }
+  ],
+  "topWeather": [
+    {
+      "value": "sunny",
+      "label": "晴",
+      "markerCount": 2
+    }
+  ],
+  "topTransports": [
+    {
+      "value": "walk",
+      "label": "步行",
+      "markerCount": 2
+    }
+  ],
+  "topBudgetLevels": [
+    {
+      "value": "medium",
+      "label": "中预算",
+      "markerCount": 2
+    }
+  ],
   "tripHighlights": {},
   "heatmap": [
     {
@@ -599,6 +644,11 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - `keyword`：可选，按地区、城市和游记描述做服务端全文搜索
 - `companionId`：可选，限制到某个旅伴
 - `scope`：可选，`domestic` / `international` / `all`，默认 `all`
+- `tag`：可选，标签枚举值
+- `mood`：可选，心情枚举值
+- `weather`：可选，天气枚举值
+- `transport`：可选，交通方式枚举值
+- `budgetLevel`：可选，预算级别枚举值
 - `year`：可选，按 `visitedStartAt` 年份筛选，格式 `YYYY`
 - `page`：可选，默认 `1`
 - `pageSize`：可选，默认 `20`，最大 `50`
@@ -619,6 +669,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 
 - 仅返回当前登录账号下未删除的旅行记录
 - 关键词命中 `scopeName`、`city` 或 `note`
+- `tag` 采用“命中任一选中标签”的筛选语义；其余元数据筛选采用精确匹配
 - 返回的 `items` 使用现有旅行记录 DTO
 - 中文内容优先依赖 MySQL FULLTEXT ngram 索引，短关键词使用受限兜底匹配
 - 每次成功搜索会写入 `marker_search_events`，记录账号、可选旅伴、关键词、范围、年份、结果总数、页码、页大小和搜索时间
@@ -639,6 +690,11 @@ Summary: The API contract maps directly onto the current backend layering of rou
   "scopeName": "京都府",
   "city": "京都",
   "note": "春天赏樱",
+  "tags": ["citywalk", "photography"],
+  "mood": "excited",
+  "weather": "sunny",
+  "transport": "walk",
+  "budgetLevel": "medium",
   "imageUrls": ["https://example.com/1.jpg"],
   "visitedStartAt": "2026-04-01",
   "visitedEndAt": "2026-04-05"
@@ -653,6 +709,8 @@ Summary: The API contract maps directly onto the current backend layering of rou
 
 - `visitedStartAt` / `visitedEndAt` 必须使用 `YYYY-MM-DD`
 - `visitedEndAt` 不可早于 `visitedStartAt`
+- `tags` 可选，最多 10 个固定枚举值
+- `mood` / `weather` / `transport` / `budgetLevel` 都是可空的固定枚举值
 - `imageUrls` 会映射到 `visit_marker_images`
 - `companionId` 必须是当前账户下有效旅伴
 - `tripId` 可选；若传入，必须是当前账户下有效行程
@@ -664,6 +722,11 @@ Summary: The API contract maps directly onto the current backend layering of rou
 ```json
 {
   "note": "更新后的备注",
+  "tags": ["food", "weekend"],
+  "mood": "relaxed",
+  "weather": "cloudy",
+  "transport": "train",
+  "budgetLevel": "high",
   "imageUrls": ["https://example.com/updated.jpg"],
   "tripId": null
 }
@@ -676,6 +739,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 规则：
 
 - 至少提交一个字段
+- 新字段 `tags` / `mood` / `weather` / `transport` / `budgetLevel` 均支持轻量更新
 - 若传入 `imageUrls`，服务端会重建该记录下的图片列表
 - 若传入日期字段，仍会校验日期范围
 - `tripId` 可传有效行程 id，传 `null` 表示解除行程归属

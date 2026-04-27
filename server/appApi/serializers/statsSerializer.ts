@@ -6,6 +6,11 @@ export interface StatsOverviewModel {
     scope: 'all' | 'domestic' | 'international';
     companionId?: string;
     tripId?: string | 'unassigned';
+    tag?: StatsOverviewResponseDto['filters']['tag'];
+    mood?: StatsOverviewResponseDto['filters']['mood'];
+    weather?: StatsOverviewResponseDto['filters']['weather'];
+    transport?: StatsOverviewResponseDto['filters']['transport'];
+    budgetLevel?: StatsOverviewResponseDto['filters']['budgetLevel'];
   };
   availableYears: string[];
   companions: Array<{
@@ -51,6 +56,11 @@ export interface StatsOverviewModel {
     coverImageUrl?: string;
     note: string;
   }>;
+  topTags: StatsOverviewResponseDto['topTags'];
+  topMoods: StatsOverviewResponseDto['topMoods'];
+  topWeather: StatsOverviewResponseDto['topWeather'];
+  topTransports: StatsOverviewResponseDto['topTransports'];
+  topBudgetLevels: StatsOverviewResponseDto['topBudgetLevels'];
   tripHighlights: StatsOverviewResponseDto['tripHighlights'];
   heatmap: StatsOverviewResponseDto['heatmap'];
   generatedAt: Date;
@@ -91,6 +101,11 @@ export function serializeStatsOverview(model: StatsOverviewModel): StatsOverview
       startsAt: toDateOnlyString(trip.startsAt),
       endsAt: toDateOnlyString(trip.endsAt),
     })),
+    topTags: model.topTags,
+    topMoods: model.topMoods,
+    topWeather: model.topWeather,
+    topTransports: model.topTransports,
+    topBudgetLevels: model.topBudgetLevels,
     tripHighlights: model.tripHighlights,
     heatmap: model.heatmap,
     generatedAt: toIsoString(model.generatedAt),

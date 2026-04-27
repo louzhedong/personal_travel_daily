@@ -1,6 +1,14 @@
 export type Scope = 'domestic' | 'international';
 export type AccountRoleDto = 'admin' | 'member';
 
+import type {
+  MarkerBudgetLevel,
+  MarkerMood,
+  MarkerTag,
+  MarkerTransport,
+  MarkerWeather,
+} from '../../shared/markerMetadata.js';
+
 export interface CurrentAccountDto {
   id: string;
   name: string;
@@ -33,6 +41,11 @@ export interface VisitMarkerDto {
   scopeName: string;
   city: string;
   note: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;
@@ -140,6 +153,11 @@ export interface AdminMarkerNodeDto {
   scopeName: string;
   city: string;
   note: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;
@@ -223,6 +241,11 @@ export interface AdminOverviewResponseDto {
 export type StatsScopeDto = Scope | 'all';
 export type StatsYearFilterDto = string | 'all';
 export type StatsTripFilterDto = string | 'unassigned';
+export type StatsMarkerTagFilterDto = MarkerTag | 'all';
+export type StatsMarkerMoodFilterDto = MarkerMood | 'all';
+export type StatsMarkerWeatherFilterDto = MarkerWeather | 'all';
+export type StatsMarkerTransportFilterDto = MarkerTransport | 'all';
+export type StatsMarkerBudgetFilterDto = MarkerBudgetLevel | 'all';
 
 export interface StatsCompanionFilterOptionDto {
   id: string;
@@ -242,6 +265,11 @@ export interface StatsFiltersDto {
   scope: StatsScopeDto;
   companionId?: string;
   tripId?: StatsTripFilterDto;
+  tag?: StatsMarkerTagFilterDto;
+  mood?: StatsMarkerMoodFilterDto;
+  weather?: StatsMarkerWeatherFilterDto;
+  transport?: StatsMarkerTransportFilterDto;
+  budgetLevel?: StatsMarkerBudgetFilterDto;
 }
 
 export interface StatsSummaryDto {
@@ -317,6 +345,12 @@ export interface StatsHeatmapItemDto {
   markerCount: number;
 }
 
+export interface StatsMetadataRankingItemDto {
+  value: string;
+  label: string;
+  markerCount: number;
+}
+
 export interface StatsOverviewResponseDto {
   filters: StatsFiltersDto;
   availableYears: string[];
@@ -330,6 +364,11 @@ export interface StatsOverviewResponseDto {
   companionRanking: StatsCompanionRankingItemDto[];
   tripRanking: StatsTripRankingItemDto[];
   tripDetails: StatsTripDetailItemDto[];
+  topTags: StatsMetadataRankingItemDto[];
+  topMoods: StatsMetadataRankingItemDto[];
+  topWeather: StatsMetadataRankingItemDto[];
+  topTransports: StatsMetadataRankingItemDto[];
+  topBudgetLevels: StatsMetadataRankingItemDto[];
   tripHighlights: {
     longestTrip?: { tripId: string; tripName: string; days: number };
     mostMarkersTrip?: { tripId: string; tripName: string; markerCount: number };
@@ -369,6 +408,11 @@ export interface AnnualReviewMarkerDto {
   scopeName: string;
   city: string;
   note: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
   visitedStartAt: string;
   visitedEndAt: string;
 }
@@ -440,6 +484,11 @@ export interface TripDetailMarkerItemDto {
   scopeName: string;
   city: string;
   note: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;

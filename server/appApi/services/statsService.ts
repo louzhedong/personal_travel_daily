@@ -12,6 +12,11 @@ import {
   buildCompanionRanking,
   buildHeatmap,
   buildMonthlyDistribution,
+  buildTopBudgetLevels,
+  buildTopMoods,
+  buildTopTags,
+  buildTopTransports,
+  buildTopWeather,
   buildPhotos,
   buildSummary,
   buildTopCities,
@@ -23,9 +28,14 @@ import {
   serializeAnnualMarker,
   toDateOnlyString,
   toIsoString,
+  withBudgetLevelFilter,
   withCompanionFilter,
+  withMoodFilter,
   withScopeFilter,
+  withTagFilter,
+  withTransportFilter,
   withTripFilter,
+  withWeatherFilter,
   withYearFilter,
   type RawCompanion,
   type RawTrip,
@@ -69,7 +79,22 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
 
   const allMarkers = source.markers;
   const yearAgnosticMarkers = withTripFilter(
-    withCompanionFilter(withScopeFilter(allMarkers, query.scope), query.companionId),
+    withBudgetLevelFilter(
+      withTransportFilter(
+        withWeatherFilter(
+          withMoodFilter(
+            withTagFilter(
+              withCompanionFilter(withScopeFilter(allMarkers, query.scope), query.companionId),
+              query.tag,
+            ),
+            query.mood,
+          ),
+          query.weather,
+        ),
+        query.transport,
+      ),
+      query.budgetLevel,
+    ),
     query.tripId,
   );
   const filteredMarkers = withYearFilter(yearAgnosticMarkers, query.year);
@@ -82,6 +107,11 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
       scope: query.scope,
       companionId: query.companionId,
       tripId: query.tripId as StatsOverviewModel['filters']['tripId'],
+      tag: query.tag,
+      mood: query.mood,
+      weather: query.weather,
+      transport: query.transport,
+      budgetLevel: query.budgetLevel,
     },
     availableYears: buildAvailableYears(allMarkers),
     companions: source.companions.map((companion) => ({
@@ -103,6 +133,11 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
     companionRanking: buildCompanionRanking(filteredMarkers, source.companions),
     tripRanking: buildTripRanking(tripDetails),
     tripDetails,
+    topTags: buildTopTags(filteredMarkers),
+    topMoods: buildTopMoods(filteredMarkers),
+    topWeather: buildTopWeather(filteredMarkers),
+    topTransports: buildTopTransports(filteredMarkers),
+    topBudgetLevels: buildTopBudgetLevels(filteredMarkers),
     tripHighlights: buildTripHighlights(tripDetails),
     heatmap: buildHeatmap(filteredMarkers),
     generatedAt: new Date(),

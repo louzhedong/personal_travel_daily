@@ -13,6 +13,10 @@ const markers: VisitMarker[] = [
     scopeName: '浙江',
     city: '杭州',
     note: '西湖',
+    tags: ['nature', 'photography'],
+    weather: 'sunny',
+    transport: 'car',
+    budgetLevel: 'medium',
     visitedStartAt: '2026-05-01',
     visitedEndAt: '2026-05-02',
     createdAt: '2026-05-03T10:00:00.000Z',
@@ -99,6 +103,12 @@ describe('TripTimelinePanel', () => {
 
     await user.click(screen.getByRole('button', { name: /浙江 · 杭州/i }));
     expect(onOpenMarkerDetail).toHaveBeenCalledWith('m-1');
+  });
+
+  it('shows metadata summary on timeline marker items', () => {
+    renderTimelinePanel();
+
+    expect(screen.getByText('自然风景 · 摄影 · 晴 · 自驾 · 中预算')).toBeInTheDocument();
   });
 
   it('filters by scope and year', async () => {

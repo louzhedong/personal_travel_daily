@@ -278,6 +278,51 @@
   gap: 6px;
 }
 
+.marker-rich-meta {
+  display: grid;
+  gap: 10px;
+}
+
+.marker-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.marker-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(191, 219, 254, 0.92);
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.marker-metadata-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  row-gap: 10px;
+}
+
+.marker-metadata-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .marker-note:not(.expanded) {
   display: -webkit-box;
   -webkit-line-clamp: 2;

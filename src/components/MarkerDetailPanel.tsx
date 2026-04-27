@@ -1,6 +1,23 @@
 import { useEffect, useState } from 'react';
 import { uploadImageToImgBB } from '../lib/imageUpload';
 import { formatVisitedRange, getTripDays } from '../lib/date';
+import {
+  MARKER_BUDGET_LEVEL_LABELS,
+  MARKER_BUDGET_LEVEL_OPTIONS,
+  MARKER_MOOD_LABELS,
+  MARKER_MOOD_OPTIONS,
+  MARKER_TAG_LABELS,
+  MARKER_TAG_OPTIONS,
+  MARKER_TRANSPORT_LABELS,
+  MARKER_TRANSPORT_OPTIONS,
+  MARKER_WEATHER_LABELS,
+  MARKER_WEATHER_OPTIONS,
+  type MarkerBudgetLevel,
+  type MarkerMood,
+  type MarkerTag,
+  type MarkerTransport,
+  type MarkerWeather,
+} from '../lib/markerMetadata';
 import FancySelect from './ui/FancySelect';
 import TravelIcon from './ui/TravelIcon';
 import type { SavedGuide, TripCollection, UserProfile, VisitMarker } from '../types';
@@ -17,7 +34,16 @@ interface MarkerDetailPanelProps {
   trips?: TripCollection[];
   onUpdate: (
     markerId: string,
-    updates: { note: string; imageUrls?: string[]; tripId?: string | null },
+    updates: {
+      note: string;
+      tags?: MarkerTag[];
+      mood?: MarkerMood | null;
+      weather?: MarkerWeather | null;
+      transport?: MarkerTransport | null;
+      budgetLevel?: MarkerBudgetLevel | null;
+      imageUrls?: string[];
+      tripId?: string | null;
+    },
   ) => Promise<void> | void;
   relatedGuides?: SavedGuide[];
   onRemoveRelatedGuide?: (savedGuideId: string) => void;
@@ -46,6 +72,11 @@ export function MarkerDetailPanel({
   const [draftNote, setDraftNote] = useState('');
   const [draftImageUrls, setDraftImageUrls] = useState<string[]>([]);
   const [draftTripId, setDraftTripId] = useState('');
+  const [draftTags, setDraftTags] = useState<MarkerTag[]>([]);
+  const [draftMood, setDraftMood] = useState<MarkerMood | ''>('');
+  const [draftWeather, setDraftWeather] = useState<MarkerWeather | ''>('');
+  const [draftTransport, setDraftTransport] = useState<MarkerTransport | ''>('');
+  const [draftBudgetLevel, setDraftBudgetLevel] = useState<MarkerBudgetLevel | ''>('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState('');
@@ -85,6 +116,11 @@ export function MarkerDetailPanel({
     setDraftNote(displayMarker.note);
     setDraftImageUrls(displayMarker.imageUrls ?? []);
     setDraftTripId(displayMarker.tripId ?? '');
+    setDraftTags(displayMarker.tags ?? []);
+    setDraftMood(displayMarker.mood ?? '');
+    setDraftWeather(displayMarker.weather ?? '');
+    setDraftTransport(displayMarker.transport ?? '');
+    setDraftBudgetLevel(displayMarker.budgetLevel ?? '');
     setIsEditing(false);
     setEditError('');
     setSaveFeedback('');
@@ -110,10 +146,21 @@ export function MarkerDetailPanel({
   const originalNote = displayMarker?.note.trim() ?? '';
   const originalImageUrls = displayMarker?.imageUrls ?? [];
   const originalTripId = displayMarker?.tripId ?? '';
+  const originalTags = displayMarker?.tags ?? [];
+  const originalMood = displayMarker?.mood ?? '';
+  const originalWeather = displayMarker?.weather ?? '';
+  const originalTransport = displayMarker?.transport ?? '';
+  const originalBudgetLevel = displayMarker?.budgetLevel ?? '';
   const currentTrip = displayMarker?.tripId ? trips.find((trip) => trip.id === displayMarker.tripId) : undefined;
   const hasChanged =
     normalizedDraftNote !== originalNote ||
     draftTripId !== originalTripId ||
+    draftMood !== originalMood ||
+    draftWeather !== originalWeather ||
+    draftTransport !== originalTransport ||
+    draftBudgetLevel !== originalBudgetLevel ||
+    draftTags.length !== originalTags.length ||
+    draftTags.some((item, index) => item !== originalTags[index]) ||
     draftImageUrls.length !== originalImageUrls.length ||
     draftImageUrls.some((item, index) => item !== originalImageUrls[index]);
   const canSave = hasChanged && !saving && !uploadingImage;
@@ -188,6 +235,11 @@ export function MarkerDetailPanel({
     try {
       await onUpdate(displayMarker.id, {
         note: trimmedNote,
+        tags: draftTags,
+        mood: draftMood || null,
+        weather: draftWeather || null,
+        transport: draftTransport || null,
+        budgetLevel: draftBudgetLevel || null,
         imageUrls: draftImageUrls.length > 0 ? draftImageUrls : undefined,
         tripId: draftTripId || null,
       });
@@ -206,6 +258,11 @@ export function MarkerDetailPanel({
     return null;
   }
   const panelMarker = displayMarker;
+  const metadataSummary = [
+    panelMarker.weather ? MARKER_WEATHER_LABELS[panelMarker.weather].zh : null,
+    panelMarker.transport ? MARKER_TRANSPORT_LABELS[panelMarker.transport].zh : null,
+    panelMarker.budgetLevel ? MARKER_BUDGET_LEVEL_LABELS[panelMarker.budgetLevel].zh : null,
+  ].filter(Boolean);
 
   return (
     <div className={visible ? 'detail-backdrop is-visible' : 'detail-backdrop'} onClick={onClose}>
@@ -279,6 +336,7 @@ export function MarkerDetailPanel({
               <span className={currentTrip ? 'detail-trip-pill' : 'detail-trip-pill is-empty'}>
                 所属行程：{currentTrip ? currentTrip.name : '未归入行程'}
               </span>
+              {metadataSummary.length > 0 ? <span className="detail-trip-pill">{metadataSummary.join(' · ')}</span> : null}
             </div>
           </div>
         </div>
@@ -332,6 +390,43 @@ export function MarkerDetailPanel({
           </section>
         ) : null}
 
+        {!isEditing ? (
+          <section className="detail-section stack gap-10">
+            <div className="detail-section-heading">
+              <strong>标签与元数据</strong>
+            </div>
+            {panelMarker.tags && panelMarker.tags.length > 0 ? (
+              <div className="detail-tag-list">
+                {panelMarker.tags.map((tag) => (
+                  <span key={tag} className="detail-tag-pill">
+                    {MARKER_TAG_LABELS[tag].zh}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className="detail-meta-empty">还没有添加主题标签。</span>
+            )}
+            <div className="detail-metadata-grid">
+              <div className="detail-fact-card">
+                <span className="detail-fact-label">心情</span>
+                <strong>{panelMarker.mood ? MARKER_MOOD_LABELS[panelMarker.mood].zh : '未填写'}</strong>
+              </div>
+              <div className="detail-fact-card">
+                <span className="detail-fact-label">天气</span>
+                <strong>{panelMarker.weather ? MARKER_WEATHER_LABELS[panelMarker.weather].zh : '未填写'}</strong>
+              </div>
+              <div className="detail-fact-card">
+                <span className="detail-fact-label">交通方式</span>
+                <strong>{panelMarker.transport ? MARKER_TRANSPORT_LABELS[panelMarker.transport].zh : '未填写'}</strong>
+              </div>
+              <div className="detail-fact-card">
+                <span className="detail-fact-label">预算级别</span>
+                <strong>{panelMarker.budgetLevel ? MARKER_BUDGET_LEVEL_LABELS[panelMarker.budgetLevel].zh : '未填写'}</strong>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         {isEditing ? (
           <section className="detail-section detail-edit-workspace stack gap-16">
             <div className="detail-section-heading detail-edit-heading">
@@ -379,6 +474,69 @@ export function MarkerDetailPanel({
                 />
               </label>
             ) : null}
+            <div className="field">
+              <span className="field-label">主题标签</span>
+              <div className="marker-form-tag-grid">
+                {MARKER_TAG_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={draftTags.includes(option.value) ? 'marker-form-tag-chip is-active' : 'marker-form-tag-chip'}
+                    onClick={() =>
+                      setDraftTags((current) =>
+                        current.includes(option.value)
+                          ? current.filter((item) => item !== option.value)
+                          : [...current, option.value],
+                      )
+                    }
+                  >
+                    {MARKER_TAG_LABELS[option.value].zh}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="detail-metadata-edit-grid">
+              <label className="field">
+                <span className="field-label">心情</span>
+                <FancySelect
+                  value={draftMood}
+                  onChange={(nextValue) => setDraftMood(nextValue as MarkerMood | '')}
+                  placeholder="选择心情"
+                  options={[{ value: '', label: '暂不填写' }, ...MARKER_MOOD_OPTIONS]}
+                  triggerClassName="marker-form-select"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">天气</span>
+                <FancySelect
+                  value={draftWeather}
+                  onChange={(nextValue) => setDraftWeather(nextValue as MarkerWeather | '')}
+                  placeholder="选择天气"
+                  options={[{ value: '', label: '暂不填写' }, ...MARKER_WEATHER_OPTIONS]}
+                  triggerClassName="marker-form-select"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">交通方式</span>
+                <FancySelect
+                  value={draftTransport}
+                  onChange={(nextValue) => setDraftTransport(nextValue as MarkerTransport | '')}
+                  placeholder="选择交通方式"
+                  options={[{ value: '', label: '暂不填写' }, ...MARKER_TRANSPORT_OPTIONS]}
+                  triggerClassName="marker-form-select"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">预算级别</span>
+                <FancySelect
+                  value={draftBudgetLevel}
+                  onChange={(nextValue) => setDraftBudgetLevel(nextValue as MarkerBudgetLevel | '')}
+                  placeholder="选择预算级别"
+                  options={[{ value: '', label: '暂不填写' }, ...MARKER_BUDGET_LEVEL_OPTIONS]}
+                  triggerClassName="marker-form-select"
+                />
+              </label>
+            </div>
             <div className="detail-edit-subsection">
               <div className="detail-section-heading">
                 <strong>旅行图片</strong>
@@ -551,6 +709,11 @@ export function MarkerDetailPanel({
                   setDraftNote(panelMarker.note);
                   setDraftImageUrls(panelMarker.imageUrls ?? []);
                   setDraftTripId(panelMarker.tripId ?? '');
+                  setDraftTags(panelMarker.tags ?? []);
+                  setDraftMood(panelMarker.mood ?? '');
+                  setDraftWeather(panelMarker.weather ?? '');
+                  setDraftTransport(panelMarker.transport ?? '');
+                  setDraftBudgetLevel(panelMarker.budgetLevel ?? '');
                   setEditError('');
                   setSaveFeedback('');
                   setIsEditing(false);

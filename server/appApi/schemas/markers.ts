@@ -1,10 +1,22 @@
 import { z } from 'zod';
+import {
+  MARKER_BUDGET_LEVELS,
+  MARKER_MOODS,
+  MARKER_TAGS,
+  MARKER_TRANSPORTS,
+  MARKER_WEATHERS,
+} from '../../../shared/markerMetadata.js';
 
 const dateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'date must use YYYY-MM-DD format');
 
 const imageUrlsSchema = z.array(z.string().url('imageUrls must contain valid URLs')).max(20).optional();
+const markerTagsSchema = z.array(z.enum(MARKER_TAGS)).max(10).optional();
+const markerMoodSchema = z.enum(MARKER_MOODS).optional().nullable();
+const markerWeatherSchema = z.enum(MARKER_WEATHERS).optional().nullable();
+const markerTransportSchema = z.enum(MARKER_TRANSPORTS).optional().nullable();
+const markerBudgetLevelSchema = z.enum(MARKER_BUDGET_LEVELS).optional().nullable();
 
 function hasValidDateRange(startAt: string, endAt: string) {
   return endAt >= startAt;
@@ -19,6 +31,11 @@ export const createMarkerBodySchema = z
     scopeName: z.string().trim().min(1, 'scopeName is required').max(50),
     city: z.string().trim().min(1, 'city is required').max(50),
     note: z.string().trim().max(500, 'note must be 500 characters or fewer'),
+    tags: markerTagsSchema,
+    mood: markerMoodSchema,
+    weather: markerWeatherSchema,
+    transport: markerTransportSchema,
+    budgetLevel: markerBudgetLevelSchema,
     imageUrls: imageUrlsSchema,
     visitedStartAt: dateSchema,
     visitedEndAt: dateSchema,
@@ -36,6 +53,11 @@ export const searchMarkersQuerySchema = z.object({
   keyword: z.string().trim().max(100, 'keyword must be 100 characters or fewer').optional(),
   companionId: z.string().trim().min(1, 'companionId is required').optional(),
   scope: z.enum(['domestic', 'international', 'all']).optional().default('all'),
+  tag: z.enum(MARKER_TAGS).optional(),
+  mood: z.enum(MARKER_MOODS).optional(),
+  weather: z.enum(MARKER_WEATHERS).optional(),
+  transport: z.enum(MARKER_TRANSPORTS).optional(),
+  budgetLevel: z.enum(MARKER_BUDGET_LEVELS).optional(),
   year: z
     .string()
     .trim()
@@ -48,6 +70,11 @@ export const searchMarkersQuerySchema = z.object({
 export const updateMarkerBodySchema = z
   .object({
     note: z.string().trim().max(500, 'note must be 500 characters or fewer').optional(),
+    tags: markerTagsSchema,
+    mood: markerMoodSchema,
+    weather: markerWeatherSchema,
+    transport: markerTransportSchema,
+    budgetLevel: markerBudgetLevelSchema,
     imageUrls: imageUrlsSchema,
     visitedStartAt: dateSchema.optional(),
     visitedEndAt: dateSchema.optional(),
@@ -56,6 +83,11 @@ export const updateMarkerBodySchema = z
   .refine(
     (value) =>
       value.note !== undefined ||
+      value.tags !== undefined ||
+      value.mood !== undefined ||
+      value.weather !== undefined ||
+      value.transport !== undefined ||
+      value.budgetLevel !== undefined ||
       value.imageUrls !== undefined ||
       value.visitedStartAt !== undefined ||
       value.visitedEndAt !== undefined ||

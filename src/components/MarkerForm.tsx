@@ -3,6 +3,19 @@ import FancySelect from './ui/FancySelect';
 import DateField from './ui/DateField';
 import { getTodayDateOnly, getTripDays } from '../lib/date';
 import { uploadImageToImgBB } from '../lib/imageUpload';
+import {
+  MARKER_BUDGET_LEVEL_OPTIONS,
+  MARKER_MOOD_OPTIONS,
+  MARKER_TAG_LABELS,
+  MARKER_TAG_OPTIONS,
+  MARKER_TRANSPORT_OPTIONS,
+  MARKER_WEATHER_OPTIONS,
+  type MarkerBudgetLevel,
+  type MarkerMood,
+  type MarkerTag,
+  type MarkerTransport,
+  type MarkerWeather,
+} from '../lib/markerMetadata';
 import type { RegionOption, Scope, TripCollection } from '../types';
 
 export interface MarkerFormValue {
@@ -11,6 +24,11 @@ export interface MarkerFormValue {
   scopeName: string;
   city: string;
   note: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;
@@ -49,6 +67,11 @@ export function MarkerForm({
   const [scopeId, setScopeId] = useState(initialValue?.scopeId ?? '');
   const [city, setCity] = useState(initialValue?.city ?? '');
   const [note, setNote] = useState(initialValue?.note ?? '');
+  const [tags, setTags] = useState<MarkerTag[]>(initialValue?.tags ?? []);
+  const [mood, setMood] = useState<MarkerMood | ''>(initialValue?.mood ?? '');
+  const [weather, setWeather] = useState<MarkerWeather | ''>(initialValue?.weather ?? '');
+  const [transport, setTransport] = useState<MarkerTransport | ''>(initialValue?.transport ?? '');
+  const [budgetLevel, setBudgetLevel] = useState<MarkerBudgetLevel | ''>(initialValue?.budgetLevel ?? '');
   const [imageUrls, setImageUrls] = useState(initialValue?.imageUrls ?? []);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [visitedStartAt, setVisitedStartAt] = useState(initialValue?.visitedStartAt ?? getTodayDateOnly());
@@ -66,6 +89,10 @@ export function MarkerForm({
 
   const availableCities = useMemo(() => selectedRegion?.cities ?? [], [selectedRegion]);
   const tripDays = useMemo(() => getTripDays(visitedStartAt, visitedEndAt), [visitedEndAt, visitedStartAt]);
+
+  const toggleTag = (tag: MarkerTag) => {
+    setTags((current) => (current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]));
+  };
 
   useEffect(() => {
     setErrors({});
@@ -166,6 +193,11 @@ export function MarkerForm({
       scopeName: selectedRegion.name,
       city: city.trim(),
       note: note.trim(),
+      tags: tags.length > 0 ? tags : undefined,
+      mood: mood || undefined,
+      weather: weather || undefined,
+      transport: transport || undefined,
+      budgetLevel: budgetLevel || undefined,
       imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       visitedStartAt,
       visitedEndAt,
@@ -313,6 +345,66 @@ export function MarkerForm({
         <span className="marker-form-hint">{note.trim().length}/500</span>
         {errors.note ? <span className="marker-form-error">{errors.note}</span> : null}
       </label>
+
+      <div className="field">
+        <span className="field-label marker-form-label">记录标签</span>
+        <div className="marker-form-tag-grid">
+          {MARKER_TAG_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className={tags.includes(option.value) ? 'marker-form-tag-chip is-active' : 'marker-form-tag-chip'}
+              onClick={() => toggleTag(option.value)}
+            >
+              {MARKER_TAG_LABELS[option.value].zh}
+            </button>
+          ))}
+        </div>
+        <span className="marker-form-hint">可多选，建议选择最能代表这条记录的 1-3 个主题标签。</span>
+      </div>
+
+      <div className="marker-form-metadata-grid">
+        <label className="field">
+          <span className="field-label marker-form-label">心情</span>
+          <FancySelect
+            value={mood}
+            onChange={(nextValue) => setMood(nextValue as MarkerMood | '')}
+            placeholder="选择心情"
+            options={[{ value: '', label: '暂不填写' }, ...MARKER_MOOD_OPTIONS]}
+            triggerClassName="marker-form-select"
+          />
+        </label>
+        <label className="field">
+          <span className="field-label marker-form-label">天气</span>
+          <FancySelect
+            value={weather}
+            onChange={(nextValue) => setWeather(nextValue as MarkerWeather | '')}
+            placeholder="选择天气"
+            options={[{ value: '', label: '暂不填写' }, ...MARKER_WEATHER_OPTIONS]}
+            triggerClassName="marker-form-select"
+          />
+        </label>
+        <label className="field">
+          <span className="field-label marker-form-label">交通方式</span>
+          <FancySelect
+            value={transport}
+            onChange={(nextValue) => setTransport(nextValue as MarkerTransport | '')}
+            placeholder="选择交通方式"
+            options={[{ value: '', label: '暂不填写' }, ...MARKER_TRANSPORT_OPTIONS]}
+            triggerClassName="marker-form-select"
+          />
+        </label>
+        <label className="field">
+          <span className="field-label marker-form-label">预算级别</span>
+          <FancySelect
+            value={budgetLevel}
+            onChange={(nextValue) => setBudgetLevel(nextValue as MarkerBudgetLevel | '')}
+            placeholder="选择预算级别"
+            options={[{ value: '', label: '暂不填写' }, ...MARKER_BUDGET_LEVEL_OPTIONS]}
+            triggerClassName="marker-form-select"
+          />
+        </label>
+      </div>
 
       <div className="field">
         <span className="field-label marker-form-label">旅行图片</span>

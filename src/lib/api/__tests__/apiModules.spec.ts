@@ -29,6 +29,7 @@ import { createGuideSearchHistory, fetchGuideSearchHistories } from '../guideSea
 import { batchUpdateMarkersTrip, createMarker, deleteMarker, searchMarkers, updateMarker } from '../markersApi';
 import { createSavedGuide, deleteSavedGuide, fetchSavedGuides } from '../savedGuidesApi';
 import { createTrip, deleteTrip, fetchTripDetail, updateTrip } from '../tripsApi';
+import type { CreateMarkerInput } from '../types';
 
 describe('app api modules', () => {
   beforeEach(() => {
@@ -122,25 +123,42 @@ describe('app api modules', () => {
   });
 
   it('forwards marker create, update, batch trip update and delete requests', async () => {
-    const markerPayload = {
+    const markerPayload: CreateMarkerInput = {
       companionId: 'user-alice',
       scope: 'international' as const,
       scopeId: 'jp-kyoto',
       scopeName: '京都府',
       city: '京都',
       note: '春天赏樱',
+      tags: ['citywalk', 'photography'],
+      mood: 'excited' as const,
+      weather: 'sunny' as const,
+      transport: 'walk' as const,
+      budgetLevel: 'medium' as const,
       visitedStartAt: '2026-04-01',
       visitedEndAt: '2026-04-05',
     };
 
     await createMarker(markerPayload);
-    await updateMarker('marker-1', { note: '更新后的备注' });
+    await updateMarker('marker-1', {
+      note: '更新后的备注',
+      tags: ['citywalk'],
+      mood: 'relaxed',
+      weather: 'cloudy',
+      transport: 'train',
+      budgetLevel: 'high',
+    });
     await batchUpdateMarkersTrip({ markerIds: ['marker-1', 'marker-2'], tripId: 'trip-1' });
     await deleteMarker('marker-1');
 
     expect(mocks.postMock).toHaveBeenCalledWith('/api', '/markers', markerPayload);
     expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/markers/marker-1', {
       note: '更新后的备注',
+      tags: ['citywalk'],
+      mood: 'relaxed',
+      weather: 'cloudy',
+      transport: 'train',
+      budgetLevel: 'high',
     });
     expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/markers/batch-trip', {
       markerIds: ['marker-1', 'marker-2'],
@@ -155,6 +173,11 @@ describe('app api modules', () => {
       scope: 'international',
       companionId: 'user-alice',
       year: '2026',
+      tag: 'citywalk',
+      mood: 'relaxed',
+      weather: 'sunny',
+      transport: 'walk',
+      budgetLevel: 'medium',
       page: 1,
       pageSize: 20,
     });
@@ -164,6 +187,11 @@ describe('app api modules', () => {
       scope: 'international',
       companionId: 'user-alice',
       year: '2026',
+      tag: 'citywalk',
+      mood: 'relaxed',
+      weather: 'sunny',
+      transport: 'walk',
+      budgetLevel: 'medium',
       page: 1,
       pageSize: 20,
     });

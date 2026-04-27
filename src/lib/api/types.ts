@@ -3,6 +3,11 @@ import type {
   GuideDocument,
   GuideSearchHistoryItem,
   GuideSearchResult,
+  MarkerBudgetLevel,
+  MarkerMood,
+  MarkerTag,
+  MarkerTransport,
+  MarkerWeather,
   SavedGuide,
   Scope,
   TripCollection,
@@ -56,6 +61,11 @@ export interface CreateMarkerInput {
   scopeName: string;
   city: string;
   note: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;
@@ -63,6 +73,11 @@ export interface CreateMarkerInput {
 
 export interface UpdateMarkerInput {
   note?: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood | null;
+  weather?: MarkerWeather | null;
+  transport?: MarkerTransport | null;
+  budgetLevel?: MarkerBudgetLevel | null;
   imageUrls?: string[];
   visitedStartAt?: string;
   visitedEndAt?: string;
@@ -79,6 +94,11 @@ export interface SearchMarkersQuery {
   companionId?: string;
   scope?: Scope | 'all';
   year?: string;
+  tag?: MarkerTag | 'all';
+  mood?: MarkerMood | 'all';
+  weather?: MarkerWeather | 'all';
+  transport?: MarkerTransport | 'all';
+  budgetLevel?: MarkerBudgetLevel | 'all';
   page?: number;
   pageSize?: number;
 }
@@ -162,6 +182,11 @@ export interface AdminMarkerNodeDto {
   scopeName: string;
   city: string;
   note: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;
@@ -245,6 +270,11 @@ export interface AdminOverviewResponseDto {
 export type StatsScopeDto = Scope | 'all';
 export type StatsYearFilterDto = string | 'all';
 export type StatsTripFilterDto = string | 'unassigned';
+export type StatsMarkerTagFilterDto = MarkerTag | 'all';
+export type StatsMarkerMoodFilterDto = MarkerMood | 'all';
+export type StatsMarkerWeatherFilterDto = MarkerWeather | 'all';
+export type StatsMarkerTransportFilterDto = MarkerTransport | 'all';
+export type StatsMarkerBudgetFilterDto = MarkerBudgetLevel | 'all';
 
 export interface StatsCompanionFilterOptionDto {
   id: string;
@@ -264,6 +294,11 @@ export interface StatsFiltersDto {
   scope: StatsScopeDto;
   companionId?: string;
   tripId?: StatsTripFilterDto;
+  tag?: StatsMarkerTagFilterDto;
+  mood?: StatsMarkerMoodFilterDto;
+  weather?: StatsMarkerWeatherFilterDto;
+  transport?: StatsMarkerTransportFilterDto;
+  budgetLevel?: StatsMarkerBudgetFilterDto;
 }
 
 export interface StatsSummaryDto {
@@ -339,6 +374,12 @@ export interface StatsHeatmapItemDto {
   markerCount: number;
 }
 
+export interface StatsMetadataRankingItemDto {
+  value: string;
+  label: string;
+  markerCount: number;
+}
+
 export interface StatsOverviewResponseDto {
   filters: StatsFiltersDto;
   availableYears: string[];
@@ -352,6 +393,11 @@ export interface StatsOverviewResponseDto {
   companionRanking: StatsCompanionRankingItemDto[];
   tripRanking: StatsTripRankingItemDto[];
   tripDetails: StatsTripDetailItemDto[];
+  topTags: StatsMetadataRankingItemDto[];
+  topMoods: StatsMetadataRankingItemDto[];
+  topWeather: StatsMetadataRankingItemDto[];
+  topTransports: StatsMetadataRankingItemDto[];
+  topBudgetLevels: StatsMetadataRankingItemDto[];
   tripHighlights: {
     longestTrip?: { tripId: string; tripName: string; days: number };
     mostMarkersTrip?: { tripId: string; tripName: string; markerCount: number };
@@ -391,6 +437,11 @@ export interface AnnualReviewMarkerDto {
   scopeName: string;
   city: string;
   note: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
   visitedStartAt: string;
   visitedEndAt: string;
 }
@@ -462,6 +513,11 @@ export interface TripDetailMarkerItemDto {
   scopeName: string;
   city: string;
   note: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;

@@ -3,10 +3,24 @@
 // Prisma / I/O free; performs pure, side-effect-free aggregation and ranking over RawStatsSource
 // derived types.
 import type { TravelScope } from '@prisma/client';
+import {
+  MARKER_BUDGET_LEVELS,
+  MARKER_MOODS,
+  MARKER_TAGS,
+  MARKER_TRANSPORTS,
+  MARKER_WEATHERS,
+} from '../../../../shared/markerMetadata.js';
 import { INTERNATIONAL_COUNTRY_BY_SCOPE_PREFIX } from './countryMapping.js';
 import type { StatsOverviewModel } from '../../serializers/statsSerializer.js';
 import type { AnnualReviewResponseDto } from '../../types.js';
 import type { getStatsOverviewSource } from '../../repositories/statsRepository.js';
+import {
+  normalizeMarkerBudgetLevel,
+  normalizeMarkerMood,
+  normalizeMarkerTags,
+  normalizeMarkerTransport,
+  normalizeMarkerWeather,
+} from '../../serializers/bootstrap/markers.js';
 
 type RawStatsSource = NonNullable<Awaited<ReturnType<typeof getStatsOverviewSource>>>;
 export type RawCompanion = RawStatsSource['companions'][number];
@@ -135,6 +149,169 @@ export function withYearFilter(markers: RawMarker[], year?: string) {
     return markers;
   }
   return markers.filter((marker) => getYear(marker.visitedStartAt) === year);
+}
+
+export function withTagFilter(markers: RawMarker[], tag?: StatsOverviewModel['filters']['tag']) {
+  if (!tag || tag === 'all') {
+    return markers;
+  }
+  return markers.filter((marker) => normalizeMarkerTags(marker.tags)?.includes(tag) ?? false);
+}
+
+export function withMoodFilter(markers: RawMarker[], mood?: StatsOverviewModel['filters']['mood']) {
+  if (!mood || mood === 'all') {
+    return markers;
+  }
+  return markers.filter((marker) => marker.mood === mood);
+}
+
+export function withWeatherFilter(markers: RawMarker[], weather?: StatsOverviewModel['filters']['weather']) {
+  if (!weather || weather === 'all') {
+    return markers;
+  }
+  return markers.filter((marker) => marker.weather === weather);
+}
+
+export function withTransportFilter(markers: RawMarker[], transport?: StatsOverviewModel['filters']['transport']) {
+  if (!transport || transport === 'all') {
+    return markers;
+  }
+  return markers.filter((marker) => marker.transport === transport);
+}
+
+export function withBudgetLevelFilter(markers: RawMarker[], budgetLevel?: StatsOverviewModel['filters']['budgetLevel']) {
+  if (!budgetLevel || budgetLevel === 'all') {
+    return markers;
+  }
+  return markers.filter((marker) => marker.budgetLevel === budgetLevel);
+}
+
+function buildMetadataRanking(
+  counts: Map<string, number>,
+  labels: Record<string, string>,
+): StatsOverviewModel['topTags'] {
+  return Array.from(counts.entries())
+    .map(([value, markerCount]) => ({
+      value,
+      label: labels[value] ?? value,
+      markerCount,
+    }))
+    .sort((left, right) => {
+      if (right.markerCount !== left.markerCount) {
+        return right.markerCount - left.markerCount;
+      }
+      return left.label.localeCompare(right.label);
+    })
+    .slice(0, 8);
+}
+
+export function buildTopTags(markers: RawMarker[]) {
+  const counts = new Map<string, number>();
+  markers.forEach((marker) => {
+    const tags = normalizeMarkerTags(marker.tags);
+    if (!tags) {
+      return;
+    }
+    tags.forEach((tag) => {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    });
+  });
+  return buildMetadataRanking(
+    counts,
+    Object.fromEntries(
+      MARKER_TAGS.map((tag) => [
+        tag,
+        {
+          food: '美食',
+          hiking: '徒步',
+          beach: '海边',
+          museum: '博物馆',
+          photography: '摄影',
+          family: '亲子',
+          weekend: '周末',
+          business: '出差',
+          nature: '自然风景',
+          citywalk: '城市漫游',
+        }[tag],
+      ]),
+    ),
+  );
+}
+
+export function buildTopMoods(markers: RawMarker[]) {
+  const counts = new Map<string, number>();
+  markers.forEach((marker) => {
+    const mood = normalizeMarkerMood(marker.mood);
+    if (mood) {
+      counts.set(mood, (counts.get(mood) ?? 0) + 1);
+    }
+  });
+  return buildMetadataRanking(
+    counts,
+    Object.fromEntries(
+      MARKER_MOODS.map((value) => [
+        value,
+        { relaxed: '放松', excited: '兴奋', tired: '疲惫', surprised: '惊喜', peaceful: '平静' }[value],
+      ]),
+    ),
+  );
+}
+
+export function buildTopWeather(markers: RawMarker[]) {
+  const counts = new Map<string, number>();
+  markers.forEach((marker) => {
+    const weather = normalizeMarkerWeather(marker.weather);
+    if (weather) {
+      counts.set(weather, (counts.get(weather) ?? 0) + 1);
+    }
+  });
+  return buildMetadataRanking(
+    counts,
+    Object.fromEntries(
+      MARKER_WEATHERS.map((value) => [
+        value,
+        { sunny: '晴', cloudy: '多云', rainy: '雨', snowy: '雪', windy: '大风' }[value],
+      ]),
+    ),
+  );
+}
+
+export function buildTopTransports(markers: RawMarker[]) {
+  const counts = new Map<string, number>();
+  markers.forEach((marker) => {
+    const transport = normalizeMarkerTransport(marker.transport);
+    if (transport) {
+      counts.set(transport, (counts.get(transport) ?? 0) + 1);
+    }
+  });
+  return buildMetadataRanking(
+    counts,
+    Object.fromEntries(
+      MARKER_TRANSPORTS.map((value) => [
+        value,
+        { walk: '步行', car: '自驾', train: '火车', plane: '飞机', metro: '地铁', bus: '公交/大巴' }[value],
+      ]),
+    ),
+  );
+}
+
+export function buildTopBudgetLevels(markers: RawMarker[]) {
+  const counts = new Map<string, number>();
+  markers.forEach((marker) => {
+    const budgetLevel = normalizeMarkerBudgetLevel(marker.budgetLevel);
+    if (budgetLevel) {
+      counts.set(budgetLevel, (counts.get(budgetLevel) ?? 0) + 1);
+    }
+  });
+  return buildMetadataRanking(
+    counts,
+    Object.fromEntries(
+      MARKER_BUDGET_LEVELS.map((value) => [
+        value,
+        { low: '低预算', medium: '中预算', high: '高预算' }[value],
+      ]),
+    ),
+  );
 }
 
 export function buildSummary(markers: RawMarker[], tripDetails: StatsOverviewModel['tripDetails']) {

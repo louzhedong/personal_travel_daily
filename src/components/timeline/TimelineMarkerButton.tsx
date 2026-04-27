@@ -1,4 +1,10 @@
 import { formatVisitedRange } from '../../lib/date';
+import {
+  MARKER_BUDGET_LEVEL_LABELS,
+  MARKER_TAG_LABELS,
+  MARKER_TRANSPORT_LABELS,
+  MARKER_WEATHER_LABELS,
+} from '../../lib/markerMetadata';
 import type { VisitMarker } from '../../types';
 
 /**
@@ -24,6 +30,13 @@ export default function TimelineMarkerButton({
   onToggleSelect,
   onOpenDetail,
 }: TimelineMarkerButtonProps) {
+  const tagSummary = (marker.tags ?? []).slice(0, 2).map((tag) => MARKER_TAG_LABELS[tag].zh);
+  const metadataSummary = [
+    marker.weather ? MARKER_WEATHER_LABELS[marker.weather].zh : null,
+    marker.transport ? MARKER_TRANSPORT_LABELS[marker.transport].zh : null,
+    marker.budgetLevel ? MARKER_BUDGET_LEVEL_LABELS[marker.budgetLevel].zh : null,
+  ].filter(Boolean);
+
   if (selectionMode) {
     return (
       <button
@@ -40,6 +53,11 @@ export default function TimelineMarkerButton({
           <span>{isSelected ? '已选中' : '点击选择'}</span>
         </span>
         <span className="trip-timeline-item-subtitle">{formatVisitedRange(marker)}</span>
+        {tagSummary.length > 0 || metadataSummary.length > 0 ? (
+          <span className="trip-timeline-item-subtitle">
+            {[...tagSummary, metadataSummary.join(' · ')].filter(Boolean).join(' · ')}
+          </span>
+        ) : null}
       </button>
     );
   }
@@ -55,6 +73,11 @@ export default function TimelineMarkerButton({
         <span>{marker.scope === 'domestic' ? '国内' : '国际'}</span>
       </span>
       <span className="trip-timeline-item-subtitle">{formatVisitedRange(marker)}</span>
+        {tagSummary.length > 0 || metadataSummary.length > 0 ? (
+          <span className="trip-timeline-item-subtitle">
+            {[...tagSummary, metadataSummary.join(' · ')].filter(Boolean).join(' · ')}
+          </span>
+        ) : null}
     </button>
   );
 }

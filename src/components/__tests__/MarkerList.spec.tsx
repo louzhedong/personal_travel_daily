@@ -18,6 +18,11 @@ const markers: VisitMarker[] = [
     scopeName: '青海',
     city: '西宁',
     note: '湖很蓝',
+    tags: ['nature', 'photography'],
+    mood: 'relaxed',
+    weather: 'sunny',
+    transport: 'car',
+    budgetLevel: 'medium',
     imageUrls: ['https://example.com/a.jpg'],
     visitedStartAt: '2026-05-01',
     visitedEndAt: '2026-05-03',
@@ -169,5 +174,26 @@ describe('MarkerList', () => {
     await userEvent.click(await screen.findByRole('button', { name: '查看详情' }));
 
     expect(onFocusSearchResult).toHaveBeenCalledWith('m2');
+  });
+
+  it('shows marker tags and metadata summary in the list card', () => {
+    render(
+      <MarkerList
+        scope="domestic"
+        markers={markers.filter((marker) => marker.scope === 'domestic')}
+        allMarkers={markers}
+        users={users}
+        activeUserId="u1"
+        onDelete={() => {}}
+        onViewDetail={() => {}}
+      />,
+    );
+
+    expect(screen.getByText('自然风景')).toBeInTheDocument();
+    expect(screen.getByText('摄影')).toBeInTheDocument();
+    expect(screen.getByText('心情 放松')).toBeInTheDocument();
+    expect(screen.getByText('天气 晴')).toBeInTheDocument();
+    expect(screen.getByText('交通 自驾')).toBeInTheDocument();
+    expect(screen.getByText('预算 中预算')).toBeInTheDocument();
   });
 });
