@@ -1,0 +1,78 @@
+.stats-filter-panel {
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+  position: relative;
+  z-index: 8;
+  overflow: visible;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98));
+}
+
+.stats-filter-panel:has(.fancy-select-menu) {
+  z-index: 24;
+}
+
+.stats-yearbook-button {
+  width: 100%;
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(20, 184, 166, 0.12));
+  color: #0f766e;
+  font-weight: 700;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.stats-yearbook-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.stats-filter-panel-head {
+  display: grid;
+  gap: 10px;
+}
+
+.stats-filter-panel-head strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
+  color: var(--brand-ink);
+}
+
+.stats-filter-panel-head p {
+  margin: 6px 0 0;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.stats-generated-at {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stats-loading-card {
+  padding: 24px 28px;
+  display: grid;
+  gap: 8px;
+}
+
+.stats-loading-card p {
+  margin: 0;
+  color: #52627a;
+}
+
+.stats-loading-card-error {
+  border-color: rgba(248, 113, 113, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(254, 242, 242, 0.94));
+}
+
+.stats-center-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+  overflow: visible;
+}

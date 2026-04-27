@@ -4,26 +4,23 @@ import DateField from './ui/DateField';
 import Dialog from './ui/Dialog';
 import FancySelect from './ui/FancySelect';
 import TravelIcon from './ui/TravelIcon';
+import TimelineList, { type TimelineDayGroup } from './timeline/TimelineList';
+import TripBatchToolbar from './timeline/TripBatchToolbar';
+import TripGroupList, { type TripTimelineGroup } from './timeline/TripGroupList';
 import { formatDateRange, formatVisitedRange, getDateOnlyYear } from '../lib/date';
 import { sortMarkersDesc } from '../lib/markerSorting';
+import { useTripTimelineActions } from '../modules/app/useTripTimelineActions';
 import type { Scope, TripCollection, VisitMarker } from '../types';
+
+/**
+ * Container component orchestrating the trip timeline panel.
+ * 行程时间线面板容器：负责筛选、分组计算与子组件编排，
+ * 将对话框/批量整理等 UI 状态交由 useTripTimelineActions 管理，
+ * 将分支渲染交由 TimelineList / TripGroupList / TripBatchToolbar 承担。
+ */
 
 type TimelineScopeFilter = Scope | 'all';
 type TimelineYearFilter = 'all' | string;
-
-interface TimelineGroup {
-  date: string;
-  markers: VisitMarker[];
-}
-
-interface TripTimelineGroup {
-  id: string;
-  title: string;
-  range: string;
-  markers: VisitMarker[];
-  startsAt: string;
-  coverImageUrl?: string;
-}
 
 interface TripTimelinePanelProps {
   markers: VisitMarker[];
@@ -53,48 +50,44 @@ export default function TripTimelinePanel({
   onDeleteTrip,
   onBulkAssignMarkersToTrip,
 }: TripTimelinePanelProps) {
+  // 筛选相关的 UI state 保留在容器中 / scope & year filters stay in container
   const [scopeFilter, setScopeFilter] = useState<TimelineScopeFilter>('all');
   const [yearFilter, setYearFilter] = useState<TimelineYearFilter>('all');
-  const [tripName, setTripName] = useState('');
-  const [tripStartsAt, setTripStartsAt] = useState('');
-  const [tripEndsAt, setTripEndsAt] = useState('');
-  const [tripNote, setTripNote] = useState('');
-  const [tripDialogMode, setTripDialogMode] = useState<'create' | 'edit' | null>(null);
-  const [editingTripId, setEditingTripId] = useState<string | null>(null);
-  const [pendingDeleteTripId, setPendingDeleteTripId] = useState<string | null>(null);
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedMarkerIds, setSelectedMarkerIds] = useState<string[]>([]);
-  const [batchTripTarget, setBatchTripTarget] = useState('');
-  const canSubmitTrip = tripName.trim().length > 0 && !!tripStartsAt && !!tripEndsAt && tripEndsAt >= tripStartsAt;
-  const pendingDeleteTrip = pendingDeleteTripId ? trips.find((trip) => trip.id === pendingDeleteTripId) : undefined;
 
-  const resetTripForm = () => {
-    setTripName('');
-    setTripStartsAt('');
-    setTripEndsAt('');
-    setTripNote('');
-    setEditingTripId(null);
-  };
+  // 对话框、表单、整理模式交给 hook / dialog/form/selection managed by hook
+  const actions = useTripTimelineActions();
+  const {
+    tripDialogMode,
+    editingTripId,
+    tripName,
+    tripStartsAt,
+    tripEndsAt,
+    tripNote,
+    setTripName,
+    setTripStartsAt,
+    setTripEndsAt,
+    setTripNote,
+    canSubmitTrip,
+    openCreateTripDialog,
+    openEditTripDialog,
+    closeTripDialog,
+    pendingDeleteTripId,
+    setPendingDeleteTripId,
+    selectionMode,
+    selectedMarkerIds,
+    setSelectedMarkerIds,
+    enterSelectionMode,
+    exitSelectionMode,
+    toggleMarkerSelection,
+    batchTripTarget,
+    setBatchTripTarget,
+  } = actions;
 
-  const closeTripDialog = () => {
-    resetTripForm();
-    setTripDialogMode(null);
-  };
+  const pendingDeleteTrip = pendingDeleteTripId
+    ? trips.find((trip) => trip.id === pendingDeleteTripId)
+    : undefined;
 
-  const openCreateTripDialog = () => {
-    resetTripForm();
-    setTripDialogMode('create');
-  };
-
-  const openEditTripDialog = (trip: TripCollection) => {
-    setEditingTripId(trip.id);
-    setTripName(trip.name);
-    setTripStartsAt(trip.startsAt);
-    setTripEndsAt(trip.endsAt);
-    setTripNote(trip.note);
-    setTripDialogMode('edit');
-  };
-
+  // 提交行程表单 / submit trip form
   const handleSubmitTrip = () => {
     const name = tripName.trim();
     if (!canSubmitTrip || !tripDialogMode) {
@@ -117,17 +110,20 @@ export default function TripTimelinePanel({
     closeTripDialog();
   };
 
+  // 当前用户的记录（倒序） / current user markers sorted desc
   const currentUserMarkers = useMemo(
     () => markers.filter((item) => item.userId === activeUserId).sort(sortMarkersDesc),
     [activeUserId, markers],
   );
 
+  // 可选的年份列表 / available year options
   const yearOptions = useMemo(() => {
-    return Array.from(new Set(currentUserMarkers.map((item) => getDateOnlyYear(item.visitedStartAt)))).sort(
-      (left, right) => right.localeCompare(left),
-    );
+    return Array.from(
+      new Set(currentUserMarkers.map((item) => getDateOnlyYear(item.visitedStartAt))),
+    ).sort((left, right) => right.localeCompare(left));
   }, [currentUserMarkers]);
 
+  // 根据筛选条件过滤 / apply scope/year filters
   const filteredMarkers = useMemo(() => {
     return currentUserMarkers.filter((item) => {
       if (scopeFilter !== 'all' && item.scope !== scopeFilter) {
@@ -140,12 +136,20 @@ export default function TripTimelinePanel({
     });
   }, [currentUserMarkers, scopeFilter, yearFilter]);
 
+  // 可见集合变化时同步已选集合 / sync selection with visible markers
   useEffect(() => {
     const visibleMarkerIds = new Set(filteredMarkers.map((marker) => marker.id));
-    setSelectedMarkerIds((current) => current.filter((markerId) => visibleMarkerIds.has(markerId)));
-  }, [filteredMarkers]);
+    setSelectedMarkerIds((current) => {
+      const next = current.filter((markerId) => visibleMarkerIds.has(markerId));
+      if (next.length === current.length && next.every((markerId, index) => markerId === current[index])) {
+        return current;
+      }
+      return next;
+    });
+  }, [filteredMarkers, setSelectedMarkerIds]);
 
-  const timelineGroups = useMemo<TimelineGroup[]>(() => {
+  // 普通时间线分组（按日期） / plain timeline groups by date
+  const timelineGroups = useMemo<TimelineDayGroup[]>(() => {
     const groupMap = new Map<string, VisitMarker[]>();
     filteredMarkers.forEach((marker) => {
       const group = groupMap.get(marker.visitedStartAt) ?? [];
@@ -161,6 +165,7 @@ export default function TripTimelinePanel({
       .sort((left, right) => right.date.localeCompare(left.date));
   }, [filteredMarkers]);
 
+  // 按行程分组 / trip-based groups
   const tripGroups = useMemo<TripTimelineGroup[]>(() => {
     const tripMap = new Map(trips.map((trip) => [trip.id, trip]));
     const grouped = new Map<string, VisitMarker[]>();
@@ -196,6 +201,8 @@ export default function TripTimelinePanel({
     value: trip.id,
     label: trip.name,
   }));
+
+  // 已选标记对象 / selected marker objects (for tooltip)
   const selectedMarkers = useMemo(
     () =>
       selectedMarkerIds
@@ -209,27 +216,21 @@ export default function TripTimelinePanel({
       ? `${activeUserName ?? '当前旅伴'}共有 ${currentUserMarkers.length} 条旅行记录，按时间回看更清晰。`
       : '还没有旅行记录，创建第一条后这里会自动生成时间线。';
 
-  const toggleMarkerSelection = (markerId: string) => {
-    setSelectedMarkerIds((current) =>
-      current.includes(markerId) ? current.filter((item) => item !== markerId) : [...current, markerId],
-    );
-  };
-
-  const handleExitSelectionMode = () => {
-    setSelectionMode(false);
-    setSelectedMarkerIds([]);
-    setBatchTripTarget('');
-  };
-
+  // 应用批量归属 / apply batch trip assignment
   const handleApplyBatchTrip = () => {
     if (!batchTripTarget || selectedMarkerIds.length === 0) {
       return;
     }
 
-    onBulkAssignMarkersToTrip(selectedMarkerIds, batchTripTarget === 'unassigned' ? null : batchTripTarget);
-    handleExitSelectionMode();
+    onBulkAssignMarkersToTrip(
+      selectedMarkerIds,
+      batchTripTarget === 'unassigned' ? null : batchTripTarget,
+    );
+    exitSelectionMode();
   };
 
+  // marker 按钮渲染：在选择态和查看态之间切换，由两个分支共享
+  // render marker button shared between branches, toggling selection vs detail
   const renderMarkerButton = (marker: VisitMarker) =>
     selectionMode ? (
       <button
@@ -278,13 +279,15 @@ export default function TripTimelinePanel({
         <div className="trip-timeline-header-actions">
           <button
             type="button"
-            className={selectionMode ? 'ghost-button trip-create-entry is-active' : 'ghost-button trip-create-entry'}
+            className={
+              selectionMode ? 'ghost-button trip-create-entry is-active' : 'ghost-button trip-create-entry'
+            }
             onClick={() => {
               if (selectionMode) {
-                handleExitSelectionMode();
+                exitSelectionMode();
                 return;
               }
-              setSelectionMode(true);
+              enterSelectionMode();
             }}
           >
             <span className="travel-icon-inline detail-action-icon">
@@ -339,66 +342,14 @@ export default function TripTimelinePanel({
           />
         </label>
         {selectionMode ? (
-          <div className="trip-batch-toolbar">
-            <div className="trip-batch-summary">
-              <strong>整理模式</strong>
-              <div className="trip-batch-summary-meta">
-                <div className="trip-batch-selected-summary-wrap">
-                  <span
-                    className={selectedMarkers.length > 0 ? 'trip-batch-selected-summary has-tooltip' : 'trip-batch-selected-summary'}
-                    tabIndex={selectedMarkers.length > 0 ? 0 : undefined}
-                  >
-                    已选 {selectedMarkerIds.length} 条记录
-                  </span>
-                  {selectedMarkers.length > 0 ? (
-                    <div
-                      role="tooltip"
-                      className={
-                        selectedMarkers.length > 5
-                          ? 'trip-batch-selection-tooltip is-scrollable'
-                          : 'trip-batch-selection-tooltip'
-                      }
-                    >
-                      <strong>已选记录</strong>
-                      <ul className="trip-batch-selection-tooltip-list">
-                        {selectedMarkers.map((marker) => (
-                          <li key={marker.id}>
-                            <span className="trip-batch-selection-tooltip-primary">
-                              {marker.scopeName} · {marker.city}
-                            </span>
-                            <span className="trip-batch-selection-tooltip-secondary">
-                              {formatVisitedRange(marker)}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-            <div className="trip-batch-actions">
-              <FancySelect
-                value={batchTripTarget}
-                onChange={setBatchTripTarget}
-                placeholder="选择目标行程"
-                ariaLabel="选择批量整理的目标行程"
-                triggerClassName="trip-timeline-year-trigger trip-batch-select-trigger"
-                options={[
-                  { value: 'unassigned', label: '移回未归入行程' },
-                  ...tripOptions,
-                ]}
-              />
-              <button
-                type="button"
-                className="primary-button trip-batch-submit"
-                disabled={!batchTripTarget || selectedMarkerIds.length === 0}
-                onClick={handleApplyBatchTrip}
-              >
-                应用整理
-              </button>
-            </div>
-          </div>
+          <TripBatchToolbar
+            selectedMarkerIds={selectedMarkerIds}
+            selectedMarkers={selectedMarkers}
+            batchTripTarget={batchTripTarget}
+            onBatchTripTargetChange={setBatchTripTarget}
+            tripOptions={tripOptions}
+            onApplyBatch={handleApplyBatchTrip}
+          />
         ) : null}
       </div>
 
@@ -476,72 +427,17 @@ export default function TripTimelinePanel({
       />
 
       {shouldShowTripGroups && tripGroups.length > 0 ? (
-        <div className="trip-collection-list">
-          {tripGroups.map((group) => (
-            <article key={group.id} className="trip-collection-card">
-              {group.coverImageUrl ? (
-                <img src={group.coverImageUrl} alt="" className="trip-collection-cover" />
-              ) : null}
-              <div className="trip-collection-card-header">
-                <div>
-                  <strong>{group.title}</strong>
-                  <span>{group.range} · {group.markers.length} 条记录</span>
-                </div>
-                <div className="trip-collection-card-actions">
-                  {group.id !== 'unassigned' && onOpenTripDetail ? (
-                    <button type="button" className="ghost-button trip-card-action-button" onClick={() => onOpenTripDetail(group.id)}>
-                      查看详情
-                    </button>
-                  ) : null}
-                  {group.id !== 'unassigned' ? (
-                    <button
-                      type="button"
-                      className="ghost-button trip-card-action-button"
-                      onClick={() => {
-                        const trip = trips.find((item) => item.id === group.id);
-                        if (trip) {
-                          openEditTripDialog(trip);
-                        }
-                      }}
-                    >
-                      编辑行程
-                    </button>
-                  ) : null}
-                  {group.id !== 'unassigned' ? (
-                    <button
-                      type="button"
-                      className="ghost-button trip-card-action-button trip-card-action-danger"
-                      onClick={() => setPendingDeleteTripId(group.id)}
-                    >
-                      删除行程
-                    </button>
-                  ) : selectionMode ? (
-                    <span className="trip-unassigned-hint">可多选后归入行程</span>
-                  ) : null}
-                </div>
-              </div>
-              <div className="trip-timeline-day-items">
-                {group.markers.map((marker) => renderMarkerButton(marker))}
-              </div>
-            </article>
-          ))}
-        </div>
+        <TripGroupList
+          groups={tripGroups}
+          trips={trips}
+          selectionMode={selectionMode}
+          onOpenTripDetail={onOpenTripDetail}
+          onEditTrip={openEditTripDialog}
+          onRequestDeleteTrip={setPendingDeleteTripId}
+          renderMarkerButton={renderMarkerButton}
+        />
       ) : timelineGroups.length > 0 ? (
-        <div className="trip-timeline-list-shell">
-          <div className="trip-timeline-list">
-            {timelineGroups.map((group) => (
-              <article key={group.date} className="trip-timeline-day-card">
-                <div className="trip-timeline-day-header">
-                  <strong>{group.date}</strong>
-                  <span>{group.markers.length} 条记录</span>
-                </div>
-                <div className="trip-timeline-day-items">
-                  {group.markers.map((marker) => renderMarkerButton(marker))}
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
+        <TimelineList groups={timelineGroups} renderMarkerButton={renderMarkerButton} />
       ) : (
         <div className="saved-guides-empty">当前筛选条件下暂无记录。</div>
       )}

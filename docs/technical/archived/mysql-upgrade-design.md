@@ -1,3 +1,11 @@
+> **Historical / 已完成**
+>
+> 本地存储 → MySQL 升级方案已在 v1.x 完成，本文件仅作为历史档案保留，不再更新。
+> 如需了解当前后端与数据层情况，请改看 [`project-overview.md`](../project-overview.md) 与 [`backend-architecture.md`](../backend-architecture.md)（后者将在文档刷新第二波创建）。
+>
+> The local-storage to MySQL upgrade has been completed in v1.x. This document is kept purely as a historical archive and will no longer be updated.
+> For the current backend and data-layer status, please read [`project-overview.md`](../project-overview.md) and [`backend-architecture.md`](../backend-architecture.md) (to be created in the second documentation refresh wave).
+
 # MySQL 升级技术方案
 
 ## 文档目标

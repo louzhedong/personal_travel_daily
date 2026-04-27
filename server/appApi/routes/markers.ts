@@ -1,3 +1,9 @@
+// markers 路由注册顺序 / Marker route registration order.
+// 注意：静态路径 `/api/markers/batch-trip` 必须先于动态路径 `/api/markers/:id` 注册，
+// 否则会被动态路由吞掉（参见 PR #22）。修改本文件时请保持此顺序不变。
+// Note: the static path `/api/markers/batch-trip` must be registered before the dynamic path
+// `/api/markers/:id`; otherwise Fastify will route batch-trip requests into the :id handler
+// (see PR #22). Preserve this ordering when editing this file.
 import type { FastifyInstance } from 'fastify';
 import { requireAuthenticatedAccount } from '../auth/requestAuth.js';
 import {

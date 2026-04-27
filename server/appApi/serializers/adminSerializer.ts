@@ -21,6 +21,14 @@ import type {
   GuideDocumentDto,
   GuideSearchResultDto,
 } from '../types.js';
+import { buildAdminAccountStats } from '../services/admin/accountStats.js';
+
+// admin serializer：model → DTO 映射。
+// admin serializer: model → DTO mapping.
+// 派生聚合（账号级 stats 计数）已下沉到 services/adminService.ts 的 buildAdminAccountStats，
+// 本文件只保留序列化职责。
+// Derived aggregations (per-account stats counts) live in services/adminService.ts#buildAdminAccountStats,
+// keeping this file focused on serialization.
 
 type CompanionWithRelations = TravelCompanion & {
   markers: Array<VisitMarker & { images: VisitMarkerImage[] }>;
@@ -187,22 +195,6 @@ function serializeAccount(account: AccountWithRelations): AdminAccountNodeDto {
   const trips = account.trips.map(serializeTrip);
   const companions = account.companions.map(serializeCompanion);
   const markerSearchEvents = account.markerSearchEvents.map(serializeMarkerSearchEvent);
-  const stats = companions.reduce(
-    (summary, companion) => ({
-      companionCount: summary.companionCount + 1,
-      markerCount: summary.markerCount + companion.markers.length,
-      savedGuideCount: summary.savedGuideCount + companion.savedGuides.length,
-      guideSearchHistoryCount: summary.guideSearchHistoryCount + companion.guideSearchHistory.length,
-      markerSearchEventCount: summary.markerSearchEventCount,
-    }),
-    {
-      companionCount: 0,
-      markerCount: 0,
-      savedGuideCount: 0,
-      guideSearchHistoryCount: 0,
-      markerSearchEventCount: markerSearchEvents.length,
-    },
-  );
 
   return {
     id: account.id,
@@ -213,10 +205,11 @@ function serializeAccount(account: AccountWithRelations): AdminAccountNodeDto {
     trips,
     companions,
     markerSearchEvents,
-    stats: {
+    stats: buildAdminAccountStats({
       tripCount: trips.length,
-      ...stats,
-    },
+      companions,
+      markerSearchEventCount: markerSearchEvents.length,
+    }),
   };
 }
 

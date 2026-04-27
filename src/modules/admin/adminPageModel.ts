@@ -1,9 +1,50 @@
 import type {
   AdminAccountNodeDto,
+  AdminGuideSearchHistoryNodeDto,
+  AdminMarkerNodeDto,
+  AdminMarkerSearchEventNodeDto,
   AdminOverviewResponseDto,
+  AdminSavedGuideNodeDto,
+  AdminTripNodeDto,
 } from '../../lib/api/types';
 
 export type AdminDetailTab = 'trips' | 'markers' | 'savedGuides' | 'guideSearchHistory' | 'markerSearchEvents';
+
+export interface AdminTabItem {
+  key: AdminDetailTab;
+  label: string;
+}
+
+export type AdminTripDetailRow = AdminTripNodeDto & { markerCount: number };
+export type AdminMarkerDetailRow = AdminMarkerNodeDto & {
+  companionName: string;
+  tripName: string;
+};
+export type AdminSavedGuideDetailRow = AdminSavedGuideNodeDto & { companionName: string };
+export type AdminGuideSearchHistoryDetailRow = AdminGuideSearchHistoryNodeDto & {
+  companionName: string;
+};
+export type AdminMarkerSearchEventDetailRow = AdminMarkerSearchEventNodeDto & {
+  companionName: string;
+};
+
+export interface AdminDetailCollections {
+  trips: AdminTripDetailRow[];
+  markers: AdminMarkerDetailRow[];
+  savedGuides: AdminSavedGuideDetailRow[];
+  guideSearchHistory: AdminGuideSearchHistoryDetailRow[];
+  markerSearchEvents: AdminMarkerSearchEventDetailRow[];
+}
+
+// Keep tab metadata centralized for container/components parity.
+// 统一维护标签页元数据，确保容器与子组件渲染完全一致。
+export const ADMIN_DETAIL_TABS: AdminTabItem[] = [
+  { key: 'trips', label: '行程' },
+  { key: 'markers', label: '旅行记录' },
+  { key: 'savedGuides', label: '收藏攻略' },
+  { key: 'guideSearchHistory', label: '攻略搜索' },
+  { key: 'markerSearchEvents', label: '记录搜索' },
+];
 
 export function formatAdminDate(value: string) {
   try {
@@ -31,6 +72,14 @@ export function formatAdminDateOnly(value: string) {
   }
 }
 
+export function formatAdminScope(value: 'all' | 'domestic' | 'international') {
+  if (value === 'all') {
+    return '全部';
+  }
+
+  return value === 'domestic' ? '国内' : '国际';
+}
+
 export function getAdminSummary(overview: AdminOverviewResponseDto) {
   return overview.accounts.reduce(
     (acc, account) => ({
@@ -55,7 +104,7 @@ export function getAdminSummary(overview: AdminOverviewResponseDto) {
   );
 }
 
-export function getAccountDetailCollections(account: AdminAccountNodeDto) {
+export function getAccountDetailCollections(account: AdminAccountNodeDto): AdminDetailCollections {
   const companions = account.companions;
   const tripById = new Map(account.trips.map((trip) => [trip.id, trip]));
   const markerCountByTripId = new Map<string, number>();

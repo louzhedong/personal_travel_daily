@@ -7,103 +7,28 @@ import TravelApp from './TravelApp';
 import StatsPage from './stats/StatsPage';
 import TripDetailPage from './trips/TripDetailPage';
 import AnnualReviewPage from './yearbook/AnnualReviewPage';
-
-type AppRoute =
-  | { kind: 'home'; pathname: '/' }
-  | { kind: 'login'; pathname: '/login' }
-  | { kind: 'register'; pathname: '/register' }
-  | { kind: 'admin'; pathname: '/admin' }
-  | { kind: 'stats'; pathname: '/stats' }
-  | { kind: 'tripDetail'; pathname: string; tripId: string }
-  | { kind: 'annualReview'; pathname: string; year: string };
-
-function createHomeRoute(): AppRoute {
-  return { kind: 'home', pathname: '/' };
-}
-
-function createLoginRoute(): AppRoute {
-  return { kind: 'login', pathname: '/login' };
-}
-
-function createRegisterRoute(): AppRoute {
-  return { kind: 'register', pathname: '/register' };
-}
-
-function createAdminRoute(): AppRoute {
-  return { kind: 'admin', pathname: '/admin' };
-}
-
-function createStatsRoute(): AppRoute {
-  return { kind: 'stats', pathname: '/stats' };
-}
-
-function createTripDetailRoute(tripId: string): AppRoute {
-  return {
-    kind: 'tripDetail',
-    pathname: `/trips/${encodeURIComponent(tripId)}`,
-    tripId,
-  };
-}
-
-function createAnnualReviewRoute(year: string): AppRoute {
-  return {
-    kind: 'annualReview',
-    pathname: `/yearbook/${encodeURIComponent(year)}`,
-    year,
-  };
-}
-
-function normalizePathname(pathname: string): AppRoute {
-  const annualReviewMatch = pathname.match(/^\/yearbook\/(\d{4})$/);
-  if (annualReviewMatch) {
-    return createAnnualReviewRoute(decodeURIComponent(annualReviewMatch[1]));
-  }
-
-  const tripDetailMatch = pathname.match(/^\/trips\/([^/]+)$/);
-  if (tripDetailMatch) {
-    return createTripDetailRoute(decodeURIComponent(tripDetailMatch[1]));
-  }
-
-  if (pathname === '/admin') {
-    return createAdminRoute();
-  }
-
-  if (pathname === '/stats') {
-    return createStatsRoute();
-  }
-
-  if (pathname === '/register') {
-    return createRegisterRoute();
-  }
-
-  if (pathname === '/login' || pathname === '/auth') {
-    return createLoginRoute();
-  }
-
-  return createHomeRoute();
-}
-
-function replaceRoute(route: AppRoute) {
-  if (window.location.pathname !== route.pathname) {
-    window.history.replaceState({}, '', route.pathname);
-  }
-}
+// 中文：统一从 app/router 模块消费手写路由（类型 / 工厂 / hook）。
+// English: consume the hand-rolled router (types / factories / hook) from app/router.
+import {
+  createAdminRoute,
+  createAnnualReviewRoute,
+  createHomeRoute,
+  createLoginRoute,
+  createRegisterRoute,
+  createStatsRoute,
+  createTripDetailRoute,
+  useAppRouter,
+  type AppRoute,
+} from './app/router';
 
 function App() {
-  const [route, setRoute] = useState<AppRoute>(() =>
-    typeof window === 'undefined' ? createHomeRoute() : normalizePathname(window.location.pathname),
-  );
+  // 中文：route / 导航动作均来自 useAppRouter，App.tsx 不再直接触碰 history。
+  // English: route state and navigation actions come from useAppRouter; App.tsx
+  // no longer manipulates window.history directly.
+  const { route, replace } = useAppRouter();
   const [account, setAccount] = useState<AuthAccount | null>(null);
   const [loading, setLoading] = useState(true);
   const [entryMessage, setEntryMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    const syncPathname = () => setRoute(normalizePathname(window.location.pathname));
-    window.addEventListener('popstate', syncPathname);
-    return () => {
-      window.removeEventListener('popstate', syncPathname);
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -132,15 +57,13 @@ function App() {
         } else {
           nextRoute = createHomeRoute();
         }
-        replaceRoute(nextRoute);
-        setRoute(nextRoute);
+        replace(nextRoute);
       })
       .catch(() => {
         if (!cancelled) {
           setAccount(null);
           const nextRoute = route.kind === 'register' ? createRegisterRoute() : createLoginRoute();
-          replaceRoute(nextRoute);
-          setRoute(nextRoute);
+          replace(nextRoute);
         }
       })
       .finally(() => {
@@ -152,14 +75,15 @@ function App() {
     return () => {
       cancelled = true;
     };
+    // 中文：仅在挂载时恢复登录状态，沿用原有行为。
+    // English: run only on mount to restore the session, preserving the original behaviour.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAuthenticated = (nextAccount: AuthAccount) => {
     setAccount(nextAccount);
     setEntryMessage(null);
-    const nextRoute = createHomeRoute();
-    replaceRoute(nextRoute);
-    setRoute(nextRoute);
+    replace(createHomeRoute());
   };
 
   const handleLogin = async (input: { username: string; password: string }) => {
@@ -176,9 +100,7 @@ function App() {
     await logout();
     setAccount(null);
     setEntryMessage(null);
-    const nextRoute = createLoginRoute();
-    replaceRoute(nextRoute);
-    setRoute(nextRoute);
+    replace(createLoginRoute());
   };
 
   if (loading) {
@@ -198,16 +120,8 @@ function App() {
         mode={route.kind === 'register' ? 'register' : 'login'}
         onLogin={handleLogin}
         onRegister={handleRegister}
-        onNavigateLogin={() => {
-          const nextRoute = createLoginRoute();
-          replaceRoute(nextRoute);
-          setRoute(nextRoute);
-        }}
-        onNavigateRegister={() => {
-          const nextRoute = createRegisterRoute();
-          replaceRoute(nextRoute);
-          setRoute(nextRoute);
-        }}
+        onNavigateLogin={() => replace(createLoginRoute())}
+        onNavigateRegister={() => replace(createRegisterRoute())}
       />
     );
   }
@@ -219,9 +133,7 @@ function App() {
         onLogout={handleLogout}
         onNavigateHome={() => {
           setEntryMessage(null);
-          const nextRoute = createHomeRoute();
-          replaceRoute(nextRoute);
-          setRoute(nextRoute);
+          replace(createHomeRoute());
         }}
       />
     );
@@ -235,9 +147,7 @@ function App() {
         onLogout={handleLogout}
         onNavigateBack={() => {
           setEntryMessage(null);
-          const nextRoute = createStatsRoute();
-          replaceRoute(nextRoute);
-          setRoute(nextRoute);
+          replace(createStatsRoute());
         }}
       />
     );
@@ -251,15 +161,9 @@ function App() {
         onLogout={handleLogout}
         onNavigateBack={() => {
           setEntryMessage(null);
-          const nextRoute = createStatsRoute();
-          replaceRoute(nextRoute);
-          setRoute(nextRoute);
+          replace(createStatsRoute());
         }}
-        onOpenTripDetail={(tripId) => {
-          const nextRoute = createTripDetailRoute(tripId);
-          replaceRoute(nextRoute);
-          setRoute(nextRoute);
-        }}
+        onOpenTripDetail={(tripId) => replace(createTripDetailRoute(tripId))}
       />
     );
   }
@@ -271,20 +175,10 @@ function App() {
         onLogout={handleLogout}
         onNavigateHome={() => {
           setEntryMessage(null);
-          const nextRoute = createHomeRoute();
-          replaceRoute(nextRoute);
-          setRoute(nextRoute);
+          replace(createHomeRoute());
         }}
-        onOpenTripDetail={(tripId) => {
-          const nextRoute = createTripDetailRoute(tripId);
-          replaceRoute(nextRoute);
-          setRoute(nextRoute);
-        }}
-        onOpenAnnualReview={(year) => {
-          const nextRoute = createAnnualReviewRoute(year);
-          replaceRoute(nextRoute);
-          setRoute(nextRoute);
-        }}
+        onOpenTripDetail={(tripId) => replace(createTripDetailRoute(tripId))}
+        onOpenAnnualReview={(year) => replace(createAnnualReviewRoute(year))}
       />
     );
   }
@@ -293,23 +187,13 @@ function App() {
     <TravelApp
       account={account}
       onLogout={handleLogout}
-      onOpenStats={() => {
-        const nextRoute = createStatsRoute();
-        replaceRoute(nextRoute);
-        setRoute(nextRoute);
-      }}
-      onOpenTripDetail={(tripId) => {
-        const nextRoute = createTripDetailRoute(tripId);
-        replaceRoute(nextRoute);
-        setRoute(nextRoute);
-      }}
+      onOpenStats={() => replace(createStatsRoute())}
+      onOpenTripDetail={(tripId) => replace(createTripDetailRoute(tripId))}
       onOpenAdmin={
         account.role === 'admin'
           ? () => {
               setEntryMessage(null);
-              const nextRoute = createAdminRoute();
-              replaceRoute(nextRoute);
-              setRoute(nextRoute);
+              replace(createAdminRoute());
             }
           : undefined
       }
