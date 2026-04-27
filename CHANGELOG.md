@@ -5,7 +5,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-27
 
-### PR 待定 / TBD `refactor: 收口前后端架构拆分并刷新技术文档 / Consolidate frontend-backend architecture splits and refresh technical docs`
+### PR #23 `refactor: 收口前后端架构拆分并刷新技术文档 / Consolidate frontend-backend architecture splits and refresh technical docs`
 
 ### Added / 新增
 
