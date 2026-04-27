@@ -5,7 +5,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-25
 
-### PR TBD `feat: 行程集合二期管理台 / Add trip collection phase-two management`
+### PR #22 `feat: 行程集合二期管理台 / Add trip collection phase-two management`
 
 ### Added / 新增
 
