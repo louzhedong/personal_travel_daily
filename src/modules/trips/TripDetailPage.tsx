@@ -5,6 +5,12 @@ import DateField from '../../components/ui/DateField';
 import Dialog from '../../components/ui/Dialog';
 import FancySelect from '../../components/ui/FancySelect';
 import { deleteTrip, fetchTripDetail, updateTrip } from '../../lib/api/tripsApi';
+import {
+  MARKER_BUDGET_LEVEL_LABELS,
+  MARKER_TAG_LABELS,
+  MARKER_TRANSPORT_LABELS,
+  MARKER_WEATHER_LABELS,
+} from '../../lib/markerMetadata';
 import type { TripDetailResponseDto } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
 import {
@@ -400,6 +406,26 @@ export default function TripDetailPage({ account, tripId, onNavigateBack, onLogo
                             <div className="trip-detail-marker-meta">
                               <span>{marker.scope === 'domestic' ? '国内行程' : '国际行程'}</span>
                               <span>{marker.imageUrls?.length ?? 0} 张图片</span>
+                              {marker.tags?.length ? (
+                                <span>{marker.tags.slice(0, 2).map((tag) => MARKER_TAG_LABELS[tag].zh).join(' · ')}</span>
+                              ) : null}
+                              {[
+                                marker.weather ? MARKER_WEATHER_LABELS[marker.weather].zh : null,
+                                marker.transport ? MARKER_TRANSPORT_LABELS[marker.transport].zh : null,
+                                marker.budgetLevel ? MARKER_BUDGET_LEVEL_LABELS[marker.budgetLevel].zh : null,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ') ? (
+                                <span>
+                                  {[
+                                    marker.weather ? MARKER_WEATHER_LABELS[marker.weather].zh : null,
+                                    marker.transport ? MARKER_TRANSPORT_LABELS[marker.transport].zh : null,
+                                    marker.budgetLevel ? MARKER_BUDGET_LEVEL_LABELS[marker.budgetLevel].zh : null,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(' · ')}
+                                </span>
+                              ) : null}
                             </div>
                           </article>
                         ))}

@@ -208,6 +208,11 @@ describe('app api routes', () => {
       filters: {
         year: 'all',
         scope: 'all',
+        tag: 'citywalk',
+        mood: 'relaxed',
+        weather: 'sunny',
+        transport: 'walk',
+        budgetLevel: 'medium',
       },
       availableYears: ['2026'],
       companions: [{ id: 'user-alice', name: '小悠', color: '#2563eb' }],
@@ -237,6 +242,11 @@ describe('app api routes', () => {
       ],
       tripRanking: [],
       tripDetails: [],
+      topTags: [{ value: 'citywalk', label: '城市漫游', markerCount: 2 }],
+      topMoods: [{ value: 'relaxed', label: '放松', markerCount: 2 }],
+      topWeather: [{ value: 'sunny', label: '晴', markerCount: 2 }],
+      topTransports: [{ value: 'walk', label: '步行', markerCount: 2 }],
+      topBudgetLevels: [{ value: 'medium', label: '中预算', markerCount: 2 }],
       tripHighlights: {},
       heatmap: [{ scopeId: 'zj', scopeName: '浙江', scope: 'domestic', intensity: 5, markerCount: 2 }],
       generatedAt: '2026-04-22T00:00:00.000Z',
@@ -246,15 +256,25 @@ describe('app api routes', () => {
     try {
       const response = await app.inject({
         method: 'GET',
-        url: '/api/stats/overview?scope=domestic&year=2026',
+        url: '/api/stats/overview?scope=domestic&year=2026&tag=citywalk&mood=relaxed&weather=sunny&transport=walk&budgetLevel=medium',
       });
 
       expect(response.statusCode).toBe(200);
       expect(mocks.getStatsOverviewMock).toHaveBeenCalledWith(currentAccount, {
         scope: 'domestic',
         year: '2026',
+        tag: 'citywalk',
+        mood: 'relaxed',
+        weather: 'sunny',
+        transport: 'walk',
+        budgetLevel: 'medium',
       });
       expect(response.json().summary.totalMarkers).toBe(2);
+      expect(response.json().topTags[0]).toEqual({
+        value: 'citywalk',
+        label: '城市漫游',
+        markerCount: 2,
+      });
     } finally {
       await app.close();
     }
@@ -492,11 +512,17 @@ describe('app api routes', () => {
         url: '/api/markers',
         payload: {
           companionId: 'user-alice',
+          tripId: 'trip-1',
           scope: 'international',
           scopeId: 'jp-kyoto',
           scopeName: '京都府',
           city: '京都',
           note: '春天赏樱',
+          tags: ['citywalk', 'photography'],
+          mood: 'excited',
+          weather: 'sunny',
+          transport: 'walk',
+          budgetLevel: 'medium',
           visitedStartAt: '2026-04-01',
           visitedEndAt: '2026-04-05',
         },
@@ -509,7 +535,22 @@ describe('app api routes', () => {
           message: 'database is unavailable, please start MySQL and retry',
         },
       });
-      expect(mocks.createMarkerRecordMock).toHaveBeenCalledTimes(1);
+      expect(mocks.createMarkerRecordMock).toHaveBeenCalledWith('acct-1', {
+        companionId: 'user-alice',
+        tripId: 'trip-1',
+        scope: 'international',
+        scopeId: 'jp-kyoto',
+        scopeName: '京都府',
+        city: '京都',
+        note: '春天赏樱',
+        tags: ['citywalk', 'photography'],
+        mood: 'excited',
+        weather: 'sunny',
+        transport: 'walk',
+        budgetLevel: 'medium',
+        visitedStartAt: '2026-04-01',
+        visitedEndAt: '2026-04-05',
+      });
     } finally {
       await app.close();
     }
@@ -528,7 +569,7 @@ describe('app api routes', () => {
     try {
       const response = await app.inject({
         method: 'GET',
-        url: '/api/markers/search?keyword=%E4%BA%AC%E9%83%BD&scope=international&companionId=user-alice&year=2026&page=1&pageSize=20',
+        url: '/api/markers/search?keyword=%E4%BA%AC%E9%83%BD&scope=international&companionId=user-alice&tag=citywalk&mood=relaxed&weather=sunny&transport=walk&budgetLevel=medium&year=2026&page=1&pageSize=20',
       });
 
       expect(response.statusCode).toBe(200);
@@ -536,6 +577,11 @@ describe('app api routes', () => {
         keyword: '京都',
         scope: 'international',
         companionId: 'user-alice',
+        tag: 'citywalk',
+        mood: 'relaxed',
+        weather: 'sunny',
+        transport: 'walk',
+        budgetLevel: 'medium',
         year: '2026',
         page: 1,
         pageSize: 20,
@@ -561,6 +607,11 @@ describe('app api routes', () => {
         url: '/api/markers/marker-1',
         payload: {
           note: '更新后的备注',
+          tags: ['food', 'weekend'],
+          mood: 'relaxed',
+          weather: 'cloudy',
+          transport: 'train',
+          budgetLevel: 'high',
           imageUrls: ['https://example.com/updated.jpg'],
         },
       });
@@ -568,6 +619,11 @@ describe('app api routes', () => {
       expect(response.statusCode).toBe(200);
       expect(mocks.updateMarkerRecordMock).toHaveBeenCalledWith('acct-1', 'marker-1', {
         note: '更新后的备注',
+        tags: ['food', 'weekend'],
+        mood: 'relaxed',
+        weather: 'cloudy',
+        transport: 'train',
+        budgetLevel: 'high',
         imageUrls: ['https://example.com/updated.jpg'],
       });
     } finally {

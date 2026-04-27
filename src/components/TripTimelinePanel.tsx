@@ -5,9 +5,10 @@ import Dialog from './ui/Dialog';
 import FancySelect from './ui/FancySelect';
 import TravelIcon from './ui/TravelIcon';
 import TimelineList, { type TimelineDayGroup } from './timeline/TimelineList';
+import TimelineMarkerButton from './timeline/TimelineMarkerButton';
 import TripBatchToolbar from './timeline/TripBatchToolbar';
 import TripGroupList, { type TripTimelineGroup } from './timeline/TripGroupList';
-import { formatDateRange, formatVisitedRange, getDateOnlyYear } from '../lib/date';
+import { formatDateRange, getDateOnlyYear } from '../lib/date';
 import { sortMarkersDesc } from '../lib/markerSorting';
 import { useTripTimelineActions } from '../modules/app/useTripTimelineActions';
 import type { Scope, TripCollection, VisitMarker } from '../types';
@@ -232,36 +233,15 @@ export default function TripTimelinePanel({
   // marker 按钮渲染：在选择态和查看态之间切换，由两个分支共享
   // render marker button shared between branches, toggling selection vs detail
   const renderMarkerButton = (marker: VisitMarker) =>
-    selectionMode ? (
-      <button
+    (
+      <TimelineMarkerButton
         key={marker.id}
-        type="button"
-        className={
-          selectedMarkerIds.includes(marker.id)
-            ? 'trip-timeline-item-button is-selecting is-selected'
-            : 'trip-timeline-item-button is-selecting'
-        }
-        onClick={() => toggleMarkerSelection(marker.id)}
-      >
-        <span className="trip-timeline-item-top">
-          <strong>{marker.scopeName} · {marker.city}</strong>
-          <span>{selectedMarkerIds.includes(marker.id) ? '已选中' : '点击选择'}</span>
-        </span>
-        <span className="trip-timeline-item-subtitle">{formatVisitedRange(marker)}</span>
-      </button>
-    ) : (
-      <button
-        key={marker.id}
-        type="button"
-        className="trip-timeline-item-button"
-        onClick={() => onOpenMarkerDetail(marker.id)}
-      >
-        <span className="trip-timeline-item-top">
-          <strong>{marker.scopeName} · {marker.city}</strong>
-          <span>{marker.scope === 'domestic' ? '国内' : '国际'}</span>
-        </span>
-        <span className="trip-timeline-item-subtitle">{formatVisitedRange(marker)}</span>
-      </button>
+        marker={marker}
+        selectionMode={selectionMode}
+        isSelected={selectedMarkerIds.includes(marker.id)}
+        onToggleSelect={toggleMarkerSelection}
+        onOpenDetail={onOpenMarkerDetail}
+      />
     );
 
   return (

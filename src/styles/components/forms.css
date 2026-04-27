@@ -417,6 +417,35 @@
   padding: 8px 10px;
 }
 
+.marker-form-tag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.marker-form-tag-chip {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(191, 219, 254, 0.95);
+  background: rgba(239, 246, 255, 0.88);
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.marker-form-tag-chip.is-active {
+  background: rgba(29, 78, 216, 0.92);
+  border-color: rgba(29, 78, 216, 0.92);
+  color: #fff;
+}
+
+.marker-form-metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .marker-form-error {
   font-size: 12px;
   color: #dc2626;

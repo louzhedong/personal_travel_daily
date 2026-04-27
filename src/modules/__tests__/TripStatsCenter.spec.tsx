@@ -18,6 +18,11 @@ describe('TripStatsCenter', () => {
     filters: {
       year: 'all',
       scope: 'all' as const,
+      tag: 'all' as const,
+      mood: 'all' as const,
+      weather: 'all' as const,
+      transport: 'all' as const,
+      budgetLevel: 'all' as const,
     },
     availableYears: ['2026', '2025'],
     companions: [{ id: 'user-alice', name: '小悠', color: '#2563eb' }],
@@ -77,6 +82,11 @@ describe('TripStatsCenter', () => {
         note: '杭州与苏州周末行',
       },
     ],
+    topTags: [{ value: 'food', label: '美食', markerCount: 2 }],
+    topMoods: [{ value: 'relaxed', label: '放松', markerCount: 1 }],
+    topWeather: [{ value: 'sunny', label: '晴', markerCount: 2 }],
+    topTransports: [{ value: 'walk', label: '步行', markerCount: 2 }],
+    topBudgetLevels: [{ value: 'medium', label: '中预算', markerCount: 2 }],
     tripHighlights: {
       longestTrip: {
         tripId: 'trip-1',
@@ -108,6 +118,11 @@ describe('TripStatsCenter', () => {
       scope: 'all',
       companionId: undefined,
       tripId: undefined,
+      tag: undefined,
+      mood: undefined,
+      weather: undefined,
+      transport: undefined,
+      budgetLevel: undefined,
     });
   });
 
@@ -125,6 +140,11 @@ describe('TripStatsCenter', () => {
         scope: 'all',
         companionId: undefined,
         tripId: undefined,
+        tag: undefined,
+        mood: undefined,
+        weather: undefined,
+        transport: undefined,
+        budgetLevel: undefined,
       });
     });
   });

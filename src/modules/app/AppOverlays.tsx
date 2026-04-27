@@ -32,7 +32,16 @@ interface AppOverlaysProps {
   closeDetail: () => void;
   onUpdateMarker: (
     markerId: string,
-    updates: { note: string; imageUrls?: string[]; tripId?: string | null },
+    updates: {
+      note: string;
+      tags?: VisitMarker['tags'];
+      mood?: VisitMarker['mood'] | null;
+      weather?: VisitMarker['weather'] | null;
+      transport?: VisitMarker['transport'] | null;
+      budgetLevel?: VisitMarker['budgetLevel'] | null;
+      imageUrls?: string[];
+      tripId?: string | null;
+    },
   ) => Promise<void> | void;
   onRemoveSavedGuide: (savedGuideId: string) => void;
   onOpenGuideSearchFromDetail: (query: string, scope: Scope, markerId?: string | null) => void;

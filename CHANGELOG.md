@@ -5,6 +5,30 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-27
 
+### PR 待定 / TBD `feat: 记录标签与轻量元数据闭环 / Add marker tags and lightweight metadata`
+
+### Added / 新增
+
+- 新增 `shared/markerMetadata.ts` 与 `src/lib/markerMetadata.ts`，统一维护旅行记录标签、心情、天气、交通方式与预算级别的固定枚举和双语标签映射。  
+  Added `shared/markerMetadata.ts` and `src/lib/markerMetadata.ts` to centralize the fixed vocabularies and bilingual labels for marker tags, mood, weather, transport, and budget level.
+- 新增 `docs/technical/marker-tags-and-metadata.md`，系统记录本次元数据闭环的词表、数据流、筛选语义、统计聚合与后续扩展边界。  
+  Added `docs/technical/marker-tags-and-metadata.md` to document the vocabulary, data flow, filter semantics, stats aggregation, and follow-up boundaries for this metadata loop.
+
+### Changed / 变更
+
+- `VisitMarker` 已扩展 `tags / mood / weather / transport / budgetLevel` 字段，前后端类型、Prisma schema、marker create/update/search、bootstrap serializer 与统计 DTO 同步完成对齐。  
+  `VisitMarker` now includes `tags / mood / weather / transport / budgetLevel`, with aligned Prisma schema, frontend/backend types, marker create/update/search, bootstrap serialization, and statistics DTOs.
+- `MarkerForm`、`MarkerDetailPanel`、`TimelineMarkerButton`、`TripDetailPage` 与统计中心已打通录入、轻编辑、时间线摘要、详情摘要、筛选和排行展示。  
+  `MarkerForm`, `MarkerDetailPanel`, `TimelineMarkerButton`, `TripDetailPage`, and the stats center now form a complete loop across capture, lightweight editing, timeline summaries, detail summaries, filters, and rankings.
+- 更新 `docs/technical/app-api-contract.md` 与 `docs/technical/future-roadmap.md`，将该能力从待规划项迁移为已完成第一阶段，并补齐 API 契约中的元数据字段和统计返回说明。  
+  Updated `docs/technical/app-api-contract.md` and `docs/technical/future-roadmap.md` to move this capability from planned work to a completed first-phase milestone and to document the metadata fields plus stats responses in the API contract.
+
+### Verified / 已验证
+
+- `npx tsc -p tsconfig.server.json --noEmit`
+- `npx tsc -p tsconfig.app.json --noEmit`
+- `npm run test -- --run server/__tests__/appApiRoutes.spec.ts server/__tests__/statsService.spec.ts src/components/__tests__/TripTimelinePanel.spec.tsx src/components/__tests__/MarkerDetailPanel.spec.tsx src/modules/__tests__/TripStatsCenter.spec.tsx src/lib/api/__tests__/apiModules.spec.ts`
+
 ### PR #23 `refactor: 收口前后端架构拆分并刷新技术文档 / Consolidate frontend-backend architecture splits and refresh technical docs`
 
 ### Added / 新增

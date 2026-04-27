@@ -12,7 +12,7 @@ This document gives a full overview of every shipped module in the repository. I
 
 - 国内 / 国际双范围切换、区域 hover 反馈与图例说明。
 - 地图区域点击打开记录弹窗，城市列表自动填充。
-- 记录表单支持日期区间、游记描述与多图上传。
+- 记录表单支持日期区间、游记描述、多图上传，以及标签、心情、天气、交通方式、预算级别等轻量元数据。
 
 Summary: The homepage map supports domestic / international switching, region hover, legend guidance, and a click-to-capture marker creation flow.
 
@@ -20,7 +20,7 @@ Summary: The homepage map supports domestic / international switching, region ho
 
 - 当前范围下的记录列表，支持按旅伴筛选。
 - 仅当前活跃用户可编辑 / 删除自己的记录。
-- 详情面板支持游记、图片、关联攻略、所属行程的轻量查看与编辑。
+- 详情面板支持游记、图片、标签、轻量元数据、关联攻略、所属行程的轻量查看与编辑。
 
 Summary: Marker list and detail panel provide per-scope browsing, permission-aware editing, and trip / guide cross-linking.
 
@@ -49,7 +49,7 @@ Summary: Trip Collection is a true content container with create / edit / delete
 
 ### 1.6 统计中心 / Stats Center
 
-- 独立页面 `/stats`，覆盖总览 KPI、年度趋势、月度分布、地区 / 城市 / 旅伴 / 行程排行、区域热力图与行程明细。
+- 独立统计中心 `/stats`，覆盖总览 KPI、年度趋势、月度分布、地区 / 城市 / 旅伴 / 行程排行、区域热力图、标签 / 心情 / 交通 / 预算级别排行与行程明细。
 - 国内使用中国省级地图热力，国际使用世界地图热力。
 - 可从统计中心一键钻取到行程详情。
 

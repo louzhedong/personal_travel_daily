@@ -372,6 +372,40 @@ export default function TripStatsCenter({ onOpenTripDetail, onOpenAnnualReview }
             />
           </div>
 
+          <div className="stats-two-column-grid">
+            <SectionBars
+              title="热门标签"
+              description="看看当前筛选条件下，哪类旅行主题最常出现。"
+              items={data.topTags}
+              renderLabel={(item) => item.label}
+              renderValue={(item) => `${item.markerCount} 条记录`}
+            />
+            <SectionBars
+              title="常见交通方式"
+              description="用轻量排行快速了解你最常用的出行方式。"
+              items={data.topTransports}
+              renderLabel={(item) => item.label}
+              renderValue={(item) => `${item.markerCount} 条记录`}
+            />
+          </div>
+
+          <div className="stats-two-column-grid">
+            <SectionBars
+              title="心情与天气"
+              description="观察这段旅程里最常见的情绪与天气氛围。"
+              items={data.topMoods}
+              renderLabel={(item) => item.label}
+              renderValue={(item) => `${item.markerCount} 条记录`}
+            />
+            <SectionBars
+              title="预算级别"
+              description="快速查看当前筛选范围内的消费档位分布。"
+              items={data.topBudgetLevels}
+              renderLabel={(item) => item.label}
+              renderValue={(item) => `${item.markerCount} 条记录`}
+            />
+          </div>
+
           <StatsHeatmapPanel scope={filters.scope} heatmap={data.heatmap} />
           <TripDetailsPanel items={data.tripDetails} onOpenTripDetail={onOpenTripDetail} />
         </>

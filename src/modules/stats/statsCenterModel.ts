@@ -3,12 +3,24 @@ import type {
   StatsHeatmapItemDto,
   StatsOverviewResponseDto,
 } from '../../lib/api/types';
+import type {
+  MarkerBudgetLevel,
+  MarkerMood,
+  MarkerTag,
+  MarkerTransport,
+  MarkerWeather,
+} from '../../types';
 
 export interface StatsUiFilters {
   year: string;
   scope: 'all' | 'domestic' | 'international';
   companionId: string;
   tripId: string;
+  tag: MarkerTag | 'all';
+  mood: MarkerMood | 'all';
+  weather: MarkerWeather | 'all';
+  transport: MarkerTransport | 'all';
+  budgetLevel: MarkerBudgetLevel | 'all';
 }
 
 export function createDefaultStatsUiFilters(): StatsUiFilters {
@@ -17,6 +29,11 @@ export function createDefaultStatsUiFilters(): StatsUiFilters {
     scope: 'all',
     companionId: 'all',
     tripId: 'all',
+    tag: 'all',
+    mood: 'all',
+    weather: 'all',
+    transport: 'all',
+    budgetLevel: 'all',
   };
 }
 
@@ -26,6 +43,11 @@ export function mapResponseFiltersToUi(filters: StatsFiltersDto): StatsUiFilters
     scope: filters.scope,
     companionId: filters.companionId ?? 'all',
     tripId: filters.tripId ?? 'all',
+    tag: filters.tag ?? 'all',
+    mood: filters.mood ?? 'all',
+    weather: filters.weather ?? 'all',
+    transport: filters.transport ?? 'all',
+    budgetLevel: filters.budgetLevel ?? 'all',
   };
 }
 
@@ -35,6 +57,11 @@ export function mapUiFiltersToQuery(filters: StatsUiFilters) {
     scope: filters.scope,
     companionId: filters.companionId === 'all' ? undefined : filters.companionId,
     tripId: filters.tripId === 'all' ? undefined : filters.tripId,
+    tag: filters.tag === 'all' ? undefined : filters.tag,
+    mood: filters.mood === 'all' ? undefined : filters.mood,
+    weather: filters.weather === 'all' ? undefined : filters.weather,
+    transport: filters.transport === 'all' ? undefined : filters.transport,
+    budgetLevel: filters.budgetLevel === 'all' ? undefined : filters.budgetLevel,
   };
 }
 

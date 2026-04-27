@@ -1,5 +1,21 @@
 export type Scope = 'domestic' | 'international';
 
+export type {
+  MarkerBudgetLevel,
+  MarkerMood,
+  MarkerTag,
+  MarkerTransport,
+  MarkerWeather,
+} from '../shared/markerMetadata';
+
+import type {
+  MarkerBudgetLevel,
+  MarkerMood,
+  MarkerTag,
+  MarkerTransport,
+  MarkerWeather,
+} from '../shared/markerMetadata';
+
 export interface AuthAccount {
   id: string;
   name: string;
@@ -32,10 +48,23 @@ export interface VisitMarker {
   scopeName: string;
   city: string;
   note: string;
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;
   createdAt: string;
+}
+
+export interface MarkerMetadata {
+  tags?: MarkerTag[];
+  mood?: MarkerMood;
+  weather?: MarkerWeather;
+  transport?: MarkerTransport;
+  budgetLevel?: MarkerBudgetLevel;
 }
 
 export interface GuideSearchParams {

@@ -1,6 +1,13 @@
 // visitMarker 写路径 / Visit marker write-path mutations.
 // 包含 create / update / softDelete 等写操作。
 // Includes create / update / softDelete write operations.
+import type {
+  MarkerBudgetLevel,
+  MarkerMood,
+  MarkerTag,
+  MarkerTransport,
+  MarkerWeather,
+} from '../../../../shared/markerMetadata.js';
 import type { PrismaExecutor } from './types.js';
 
 export async function createMarker(
@@ -15,6 +22,11 @@ export async function createMarker(
     scopeName: string;
     city: string;
     note: string;
+    tags?: MarkerTag[];
+    mood?: MarkerMood | null;
+    weather?: MarkerWeather | null;
+    transport?: MarkerTransport | null;
+    budgetLevel?: MarkerBudgetLevel | null;
     visitedStartAt: Date;
     visitedEndAt: Date;
     imageUrls?: string[];
@@ -31,6 +43,11 @@ export async function createMarker(
       scopeName: input.scopeName,
       city: input.city,
       note: input.note,
+      tags: input.tags ?? [],
+      mood: input.mood ?? null,
+      weather: input.weather ?? null,
+      transport: input.transport ?? null,
+      budgetLevel: input.budgetLevel ?? null,
       visitedStartAt: input.visitedStartAt,
       visitedEndAt: input.visitedEndAt,
       images:
@@ -59,6 +76,11 @@ export async function updateMarker(
   markerId: string,
   input: {
     note?: string;
+    tags?: MarkerTag[];
+    mood?: MarkerMood | null;
+    weather?: MarkerWeather | null;
+    transport?: MarkerTransport | null;
+    budgetLevel?: MarkerBudgetLevel | null;
     visitedStartAt?: Date;
     visitedEndAt?: Date;
     tripId?: string | null;
@@ -77,6 +99,11 @@ export async function updateMarker(
     where: { id: markerId },
     data: {
       ...(input.note !== undefined ? { note: input.note } : {}),
+      ...(input.tags !== undefined ? { tags: input.tags } : {}),
+      ...(input.mood !== undefined ? { mood: input.mood } : {}),
+      ...(input.weather !== undefined ? { weather: input.weather } : {}),
+      ...(input.transport !== undefined ? { transport: input.transport } : {}),
+      ...(input.budgetLevel !== undefined ? { budgetLevel: input.budgetLevel } : {}),
       ...(input.visitedStartAt !== undefined ? { visitedStartAt: input.visitedStartAt } : {}),
       ...(input.visitedEndAt !== undefined ? { visitedEndAt: input.visitedEndAt } : {}),
       ...(input.tripId !== undefined ? { tripId: input.tripId } : {}),

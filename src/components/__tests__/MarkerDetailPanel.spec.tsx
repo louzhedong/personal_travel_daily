@@ -60,6 +60,11 @@ const marker: VisitMarker = {
   scopeName: '青海',
   city: '西宁',
   note: '原始描述',
+  tags: ['nature', 'photography'],
+  mood: 'relaxed',
+  weather: 'sunny',
+  transport: 'car',
+  budgetLevel: 'medium',
   imageUrls: ['https://example.com/a.jpg', 'https://example.com/b.jpg'],
   visitedStartAt: '2026-05-01',
   visitedEndAt: '2026-05-03',
@@ -93,6 +98,11 @@ describe('MarkerDetailPanel', () => {
 
     expect(onUpdate).toHaveBeenCalledWith('m1', {
       note: '新的旅行描述',
+      tags: ['nature', 'photography'],
+      mood: 'relaxed',
+      weather: 'sunny',
+      transport: 'car',
+      budgetLevel: 'medium',
       imageUrls: ['https://example.com/a.jpg', 'https://example.com/b.jpg'],
       tripId: null,
     });
@@ -120,9 +130,36 @@ describe('MarkerDetailPanel', () => {
 
     expect(onUpdate).toHaveBeenCalledWith('m1', {
       note: '原始描述',
+      tags: ['nature', 'photography'],
+      mood: 'relaxed',
+      weather: 'sunny',
+      transport: 'car',
+      budgetLevel: 'medium',
       imageUrls: ['https://example.com/a.jpg', 'https://example.com/b.jpg'],
       tripId: 'trip-1',
     });
+  });
+
+  it('shows marker tags and metadata in read mode', () => {
+    render(
+      <MarkerDetailPanel
+        marker={marker}
+        user={user}
+        open
+        canEdit
+        trips={trips}
+        onClose={() => {}}
+        onUpdate={() => {}}
+      />,
+    );
+
+    expect(screen.getByText('标签与元数据')).toBeInTheDocument();
+    expect(screen.getByText('自然风景')).toBeInTheDocument();
+    expect(screen.getByText('摄影')).toBeInTheDocument();
+    expect(screen.getByText('放松')).toBeInTheDocument();
+    expect(screen.getByText('晴')).toBeInTheDocument();
+    expect(screen.getByText('自驾')).toBeInTheDocument();
+    expect(screen.getByText('中预算')).toBeInTheDocument();
   });
 
   it('supports keyboard navigation and escape close in lightbox', async () => {

@@ -34,6 +34,11 @@ export function useMarkerActions({
         scopeName: value.scopeName,
         city: value.city,
         note: value.note,
+        tags: value.tags,
+        mood: value.mood,
+        weather: value.weather,
+        transport: value.transport,
+        budgetLevel: value.budgetLevel,
         imageUrls: value.imageUrls,
         visitedStartAt: value.visitedStartAt,
         visitedEndAt: value.visitedEndAt,
@@ -77,7 +82,16 @@ export function useMarkerActions({
 
   const handleUpdateMarker = async (
     markerId: string,
-    updates: { note: string; imageUrls?: string[]; tripId?: string | null },
+    updates: {
+      note: string;
+      tags?: MarkerFormValue['tags'];
+      mood?: MarkerFormValue['mood'] | null;
+      weather?: MarkerFormValue['weather'] | null;
+      transport?: MarkerFormValue['transport'] | null;
+      budgetLevel?: MarkerFormValue['budgetLevel'] | null;
+      imageUrls?: string[];
+      tripId?: string | null;
+    },
   ) => {
     const target = store.markers.find((item) => item.id === markerId);
     if (!target || target.userId !== store.activeUserId) {
@@ -87,6 +101,11 @@ export function useMarkerActions({
     try {
       const nextStore = await remoteTravelStoreRepository.updateMarker(markerId, {
         note: updates.note,
+        tags: updates.tags,
+        mood: updates.mood,
+        weather: updates.weather,
+        transport: updates.transport,
+        budgetLevel: updates.budgetLevel,
         imageUrls: updates.imageUrls,
         tripId: updates.tripId,
       });

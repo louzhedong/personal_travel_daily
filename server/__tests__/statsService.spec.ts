@@ -65,6 +65,11 @@ describe('statsService', () => {
           createdAt: new Date('2026-05-03T00:00:00.000Z'),
           updatedAt: new Date('2026-05-03T00:00:00.000Z'),
           isDeleted: false,
+          tags: ['citywalk', 'photography'],
+          mood: 'relaxed',
+          weather: 'sunny',
+          transport: 'walk',
+          budgetLevel: 'medium',
           images: [],
         },
         {
@@ -82,6 +87,11 @@ describe('statsService', () => {
           createdAt: new Date('2026-05-03T00:00:00.000Z'),
           updatedAt: new Date('2026-05-03T00:00:00.000Z'),
           isDeleted: false,
+          tags: ['food'],
+          mood: 'excited',
+          weather: 'cloudy',
+          transport: 'train',
+          budgetLevel: 'high',
           images: [],
         },
       ],
@@ -108,7 +118,124 @@ describe('statsService', () => {
       scopeId: 'zj',
       markerCount: 2,
     });
+    expect(result.topTags).toContainEqual({
+      value: 'citywalk',
+      label: '城市漫游',
+      markerCount: 1,
+    });
+    expect(result.topWeather).toContainEqual({
+      value: 'cloudy',
+      label: '多云',
+      markerCount: 1,
+    });
+    expect(result.topTransports).toContainEqual({
+      value: 'train',
+      label: '火车',
+      markerCount: 1,
+    });
+    expect(result.topBudgetLevels).toContainEqual({
+      value: 'high',
+      label: '高预算',
+      markerCount: 1,
+    });
     expect(result.heatmap[0]?.intensity).toBe(5);
+  });
+
+  it('applies metadata filters and keeps metadata rankings in sync', async () => {
+    mocks.getStatsOverviewSourceMock.mockResolvedValue({
+      id: 'acct-1',
+      companions: [
+        {
+          id: 'user-alice',
+          name: '小悠',
+          color: '#2563eb',
+          sortOrder: 0,
+          createdAt: new Date('2026-05-01T00:00:00.000Z'),
+        },
+      ],
+      trips: [],
+      markers: [
+        {
+          id: 'marker-1',
+          accountId: 'acct-1',
+          companionId: 'user-alice',
+          tripId: null,
+          scope: 'domestic',
+          scopeId: 'zj',
+          scopeName: '浙江',
+          city: '杭州',
+          note: '西湖 citywalk',
+          visitedStartAt: new Date('2026-05-01T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-05-01T00:00:00.000Z'),
+          createdAt: new Date('2026-05-01T00:00:00.000Z'),
+          updatedAt: new Date('2026-05-01T00:00:00.000Z'),
+          isDeleted: false,
+          tags: ['citywalk', 'food'],
+          mood: 'relaxed',
+          weather: 'sunny',
+          transport: 'walk',
+          budgetLevel: 'medium',
+          images: [],
+        },
+        {
+          id: 'marker-2',
+          accountId: 'acct-1',
+          companionId: 'user-alice',
+          tripId: null,
+          scope: 'domestic',
+          scopeId: 'js',
+          scopeName: '江苏',
+          city: '苏州',
+          note: '园林',
+          visitedStartAt: new Date('2026-05-02T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-05-02T00:00:00.000Z'),
+          createdAt: new Date('2026-05-02T00:00:00.000Z'),
+          updatedAt: new Date('2026-05-02T00:00:00.000Z'),
+          isDeleted: false,
+          tags: ['museum'],
+          mood: 'peaceful',
+          weather: 'cloudy',
+          transport: 'train',
+          budgetLevel: 'high',
+          images: [],
+        },
+      ],
+    });
+
+    const result = await getStatsOverview(
+      {
+        id: 'acct-1',
+        name: 'Voyage Atlas',
+        username: 'demo',
+        role: 'member',
+      },
+      {
+        scope: 'domestic',
+        year: '2026',
+        tag: 'citywalk',
+        mood: 'relaxed',
+        weather: 'sunny',
+        transport: 'walk',
+        budgetLevel: 'medium',
+      },
+    );
+
+    expect(result.filters).toMatchObject({
+      tag: 'citywalk',
+      mood: 'relaxed',
+      weather: 'sunny',
+      transport: 'walk',
+      budgetLevel: 'medium',
+    });
+    expect(result.summary.totalMarkers).toBe(1);
+    expect(result.topTags).toEqual([
+      { value: 'citywalk', label: '城市漫游', markerCount: 1 },
+      { value: 'food', label: '美食', markerCount: 1 },
+    ]);
+    expect(result.topMoods).toEqual([{ value: 'relaxed', label: '放松', markerCount: 1 }]);
+    expect(result.topWeather).toEqual([{ value: 'sunny', label: '晴', markerCount: 1 }]);
+    expect(result.topTransports).toEqual([{ value: 'walk', label: '步行', markerCount: 1 }]);
+    expect(result.topBudgetLevels).toEqual([{ value: 'medium', label: '中预算', markerCount: 1 }]);
   });
 
   it('aggregates international heatmap by country for map rendering', async () => {

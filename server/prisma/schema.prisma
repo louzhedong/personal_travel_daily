@@ -128,6 +128,11 @@ model VisitMarker {
   scopeName      String             @map("scope_name")
   city           String
   note           String             @db.Text
+  tags           Json?
+  mood           String?
+  weather        String?
+  transport      String?
+  budgetLevel    String?            @map("budget_level")
   isDeleted      Boolean            @default(false) @map("is_deleted")
   visitedStartAt DateTime           @map("visited_start_at")
   visitedEndAt   DateTime           @map("visited_end_at")

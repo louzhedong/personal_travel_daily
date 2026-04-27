@@ -2,6 +2,18 @@
 // 使用 MySQL 全文索引 + LIKE fallback，返回分页结果。
 // Uses MySQL fulltext index with a LIKE fallback; returns paginated search results.
 import { Prisma } from '@prisma/client';
+import {
+  MARKER_BUDGET_LEVELS,
+  MARKER_MOODS,
+  MARKER_TAGS,
+  MARKER_TRANSPORTS,
+  MARKER_WEATHERS,
+  type MarkerBudgetLevel,
+  type MarkerMood,
+  type MarkerTag,
+  type MarkerTransport,
+  type MarkerWeather,
+} from '../../../../shared/markerMetadata.js';
 import type { MarkerSearchRow, PrismaExecutor } from './types.js';
 
 export type { MarkerSearchRow } from './types.js';
@@ -14,6 +26,11 @@ export async function searchActiveMarkersByAccountId(
     companionId?: string;
     scope?: 'domestic' | 'international' | 'all';
     year?: string;
+    tag?: MarkerTag;
+    mood?: MarkerMood;
+    weather?: MarkerWeather;
+    transport?: MarkerTransport;
+    budgetLevel?: MarkerBudgetLevel;
     page: number;
     pageSize: number;
   },
@@ -44,6 +61,28 @@ export async function searchActiveMarkersByAccountId(
     whereParts.push(Prisma.sql`m.visited_start_at < ${startOfNextYear}`);
   }
 
+  if (input.tag && MARKER_TAGS.includes(input.tag)) {
+    whereParts.push(
+      Prisma.sql`JSON_SEARCH(COALESCE(m.tags, JSON_ARRAY()), 'one', ${input.tag}) IS NOT NULL`,
+    );
+  }
+
+  if (input.mood && MARKER_MOODS.includes(input.mood)) {
+    whereParts.push(Prisma.sql`m.mood = ${input.mood}`);
+  }
+
+  if (input.weather && MARKER_WEATHERS.includes(input.weather)) {
+    whereParts.push(Prisma.sql`m.weather = ${input.weather}`);
+  }
+
+  if (input.transport && MARKER_TRANSPORTS.includes(input.transport)) {
+    whereParts.push(Prisma.sql`m.transport = ${input.transport}`);
+  }
+
+  if (input.budgetLevel && MARKER_BUDGET_LEVELS.includes(input.budgetLevel)) {
+    whereParts.push(Prisma.sql`m.budget_level = ${input.budgetLevel}`);
+  }
+
   if (hasKeyword) {
     whereParts.push(
       usesLikeFallback
@@ -70,6 +109,11 @@ export async function searchActiveMarkersByAccountId(
         m.scope_name AS scopeName,
         m.city,
         m.note,
+        m.tags,
+        m.mood,
+        m.weather,
+        m.transport,
+        m.budget_level AS budgetLevel,
         m.is_deleted AS isDeleted,
         m.visited_start_at AS visitedStartAt,
         m.visited_end_at AS visitedEndAt,
