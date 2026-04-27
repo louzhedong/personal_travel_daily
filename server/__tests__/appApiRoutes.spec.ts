@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   createMarkerRecordMock: vi.fn(),
   searchMarkerRecordsMock: vi.fn(),
   updateMarkerRecordMock: vi.fn(),
+    batchUpdateMarkersTripMock: vi.fn(),
   deleteMarkerRecordMock: vi.fn(),
   listSavedGuidesResourceMock: vi.fn(),
   createSavedGuideResourceMock: vi.fn(),
@@ -54,6 +55,7 @@ vi.mock('../appApi/services/markerService.js', () => ({
   createMarkerRecord: mocks.createMarkerRecordMock,
   searchMarkerRecords: mocks.searchMarkerRecordsMock,
   updateMarkerRecord: mocks.updateMarkerRecordMock,
+  batchUpdateMarkersTrip: mocks.batchUpdateMarkersTripMock,
   deleteMarkerRecord: mocks.deleteMarkerRecordMock,
 }));
 
@@ -567,6 +569,36 @@ describe('app api routes', () => {
       expect(mocks.updateMarkerRecordMock).toHaveBeenCalledWith('acct-1', 'marker-1', {
         note: '更新后的备注',
         imageUrls: ['https://example.com/updated.jpg'],
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('forwards marker batch trip updates to the service layer', async () => {
+    mocks.batchUpdateMarkersTripMock.mockResolvedValue({
+      users: [],
+      markers: [],
+      activeUserId: 'user-alice',
+      savedGuides: [],
+      guideSearchHistory: [],
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/markers/batch-trip',
+        payload: {
+          markerIds: ['marker-1', 'marker-2'],
+          tripId: 'trip-1',
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mocks.batchUpdateMarkersTripMock).toHaveBeenCalledWith('acct-1', {
+        markerIds: ['marker-1', 'marker-2'],
+        tripId: 'trip-1',
       });
     } finally {
       await app.close();

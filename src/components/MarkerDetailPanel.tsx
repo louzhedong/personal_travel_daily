@@ -276,7 +276,9 @@ export function MarkerDetailPanel({
               </span>
               <span className="marker-date-badge">{formatVisitedRange(panelMarker)}</span>
               {tripDays ? <span className="detail-trip-days">{tripDays} 天旅程</span> : null}
-              {currentTrip ? <span className="detail-trip-days">{currentTrip.name}</span> : null}
+              <span className={currentTrip ? 'detail-trip-pill' : 'detail-trip-pill is-empty'}>
+                所属行程：{currentTrip ? currentTrip.name : '未归入行程'}
+              </span>
             </div>
           </div>
         </div>

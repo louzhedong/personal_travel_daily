@@ -64,6 +64,33 @@ export async function findActiveMarkerById(
   });
 }
 
+export async function findActiveMarkersByIds(
+  prisma: PrismaExecutor,
+  accountId: string,
+  markerIds: string[],
+) {
+  if (markerIds.length === 0) {
+    return [];
+  }
+
+  return prisma.visitMarker.findMany({
+    where: {
+      id: {
+        in: markerIds,
+      },
+      accountId,
+      isDeleted: false,
+    },
+    include: {
+      images: {
+        orderBy: {
+          sortOrder: 'asc',
+        },
+      },
+    },
+  });
+}
+
 export async function searchActiveMarkersByAccountId(
   prisma: PrismaExecutor,
   input: {
@@ -276,6 +303,28 @@ export async function updateMarker(
           sortOrder: 'asc',
         },
       },
+    },
+  });
+}
+
+export async function updateMarkersTripId(
+  prisma: PrismaExecutor,
+  markerIds: string[],
+  tripId: string | null,
+) {
+  if (markerIds.length === 0) {
+    return { count: 0 };
+  }
+
+  return prisma.visitMarker.updateMany({
+    where: {
+      id: {
+        in: markerIds,
+      },
+      isDeleted: false,
+    },
+    data: {
+      tripId,
     },
   });
 }

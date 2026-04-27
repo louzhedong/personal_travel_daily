@@ -1,4 +1,4 @@
-﻿.detail-backdrop {
+.detail-backdrop {
   position: fixed;
   inset: 0;
   z-index: 140;
@@ -209,6 +209,22 @@
   color: #0f766e;
   font-size: 13px;
   font-weight: 700;
+}
+
+.detail-trip-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(239, 246, 255, 0.96);
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.detail-trip-pill.is-empty {
+  background: rgba(241, 245, 249, 0.96);
+  color: #64748b;
 }
 
 .detail-section {
@@ -473,5 +489,4 @@
   opacity: 1;
   transform: translateX(0);
 }
-
 

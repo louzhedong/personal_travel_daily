@@ -65,7 +65,13 @@ export const updateMarkerBodySchema = z
     },
   );
 
+export const batchUpdateMarkersTripBodySchema = z.object({
+  markerIds: z.array(z.string().trim().min(1, 'markerId is required')).min(1, 'markerIds is required').max(100),
+  tripId: z.string().trim().min(1, 'tripId is required').nullable().optional(),
+});
+
 export type CreateMarkerBody = z.infer<typeof createMarkerBodySchema>;
 export type MarkerParams = z.infer<typeof markerParamsSchema>;
 export type SearchMarkersQuery = z.infer<typeof searchMarkersQuerySchema>;
 export type UpdateMarkerBody = z.infer<typeof updateMarkerBodySchema>;
+export type BatchUpdateMarkersTripBody = z.infer<typeof batchUpdateMarkersTripBodySchema>;

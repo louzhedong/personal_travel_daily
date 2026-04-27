@@ -26,7 +26,7 @@ import { fetchStatsOverview } from '../statsApi';
 import { fetchSession, login, logout, register } from '../authApi';
 import { createCompanion, updateCompanion } from '../companionsApi';
 import { createGuideSearchHistory, fetchGuideSearchHistories } from '../guideSearchHistoryApi';
-import { createMarker, deleteMarker, searchMarkers, updateMarker } from '../markersApi';
+import { batchUpdateMarkersTrip, createMarker, deleteMarker, searchMarkers, updateMarker } from '../markersApi';
 import { createSavedGuide, deleteSavedGuide, fetchSavedGuides } from '../savedGuidesApi';
 import { createTrip, deleteTrip, fetchTripDetail, updateTrip } from '../tripsApi';
 
@@ -121,7 +121,7 @@ describe('app api modules', () => {
     expect(mocks.deleteMock).toHaveBeenCalledWith('/api', '/trips/trip-1');
   });
 
-  it('forwards marker create, update and delete requests', async () => {
+  it('forwards marker create, update, batch trip update and delete requests', async () => {
     const markerPayload = {
       companionId: 'user-alice',
       scope: 'international' as const,
@@ -135,11 +135,16 @@ describe('app api modules', () => {
 
     await createMarker(markerPayload);
     await updateMarker('marker-1', { note: '更新后的备注' });
+    await batchUpdateMarkersTrip({ markerIds: ['marker-1', 'marker-2'], tripId: 'trip-1' });
     await deleteMarker('marker-1');
 
     expect(mocks.postMock).toHaveBeenCalledWith('/api', '/markers', markerPayload);
     expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/markers/marker-1', {
       note: '更新后的备注',
+    });
+    expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/markers/batch-trip', {
+      markerIds: ['marker-1', 'marker-2'],
+      tripId: 'trip-1',
     });
     expect(mocks.deleteMock).toHaveBeenCalledWith('/api', '/markers/marker-1');
   });

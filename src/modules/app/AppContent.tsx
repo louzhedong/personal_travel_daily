@@ -31,7 +31,14 @@ interface AppContentProps {
   onSwitchUser: (userId: string) => void;
   onCreateUser: (payload: { name: string; color: string }) => void;
   onCreateTrip: (payload: { name: string; startsAt: string; endsAt: string; note?: string }) => void;
+  onUpdateTrip: (
+    tripId: string,
+    payload: { name?: string; startsAt?: string; endsAt?: string; note?: string },
+  ) => void;
+  onDeleteTrip: (tripId: string) => void;
+  onBulkAssignMarkersToTrip: (markerIds: string[], tripId?: string | null) => void;
   onOpenMarkerFromTimeline: (markerId: string) => void;
+  onOpenTripDetail?: (tripId: string) => void;
   onOpenMarkerFromGuide: (markerId: string) => void;
   onRemoveSavedGuide: (savedGuideId: string) => void;
 }
@@ -61,7 +68,11 @@ export default function AppContent({
   onSwitchUser,
   onCreateUser,
   onCreateTrip,
+  onUpdateTrip,
+  onDeleteTrip,
+  onBulkAssignMarkersToTrip,
   onOpenMarkerFromTimeline,
+  onOpenTripDetail,
   onOpenMarkerFromGuide,
   onRemoveSavedGuide,
 }: AppContentProps) {
@@ -109,7 +120,11 @@ export default function AppContent({
           activeUserId={activeUserId}
           activeUserName={activeUserName}
           onOpenMarkerDetail={onOpenMarkerFromTimeline}
+          onOpenTripDetail={onOpenTripDetail}
           onCreateTrip={onCreateTrip}
+          onUpdateTrip={onUpdateTrip}
+          onDeleteTrip={onDeleteTrip}
+          onBulkAssignMarkersToTrip={onBulkAssignMarkersToTrip}
         />
         <SavedGuidesPanel
           savedGuides={savedGuides}

@@ -1,7 +1,14 @@
 import type { FastifyInstance } from 'fastify';
 import { requireAuthenticatedAccount } from '../auth/requestAuth.js';
-import { createMarkerRecord, deleteMarkerRecord, searchMarkerRecords, updateMarkerRecord } from '../services/markerService.js';
 import {
+  batchUpdateMarkersTrip,
+  createMarkerRecord,
+  deleteMarkerRecord,
+  searchMarkerRecords,
+  updateMarkerRecord,
+} from '../services/markerService.js';
+import {
+  batchUpdateMarkersTripBodySchema,
   createMarkerBodySchema,
   markerParamsSchema,
   searchMarkersQuerySchema,
@@ -20,6 +27,12 @@ export async function registerMarkerRoutes(app: FastifyInstance) {
     const account = await requireAuthenticatedAccount(request);
     const body = parseWithSchema(createMarkerBodySchema, request.body);
     return createMarkerRecord(account.id, body);
+  });
+
+  app.patch('/api/markers/batch-trip', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const body = parseWithSchema(batchUpdateMarkersTripBodySchema, request.body);
+    return batchUpdateMarkersTrip(account.id, body);
   });
 
   app.patch('/api/markers/:id', async (request) => {

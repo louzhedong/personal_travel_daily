@@ -646,6 +646,28 @@
 - 若传入日期字段，仍会校验日期范围
 - `tripId` 可传有效行程 id，传 `null` 表示解除行程归属
 
+### `PATCH /api/markers/batch-trip`
+
+请求体：
+
+```json
+{
+  "markerIds": ["marker-1", "marker-2"],
+  "tripId": "trip-2026-spring"
+}
+```
+
+成功响应：
+
+- 返回最新的整包 `TravelStore`
+
+规则：
+
+- `markerIds` 必填，至少 1 条，最多 100 条
+- 所有 `markerIds` 都必须属于当前登录账号且未被删除
+- `tripId` 可传有效行程 id，传 `null` 表示批量移回未归入行程
+- 服务端会在单事务内完成校验和批量更新，避免部分成功部分失败
+
 ### `DELETE /api/markers/:id`
 
 成功响应：

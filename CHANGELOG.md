@@ -5,6 +5,35 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-25
 
+### PR #22 `feat: 行程集合二期管理台 / Add trip collection phase-two management`
+
+### Added / 新增
+
+- 新增行程时间线“整理模式”，支持多选旅行记录后批量归属到某个行程，或批量移回未归入行程。  
+  Added a timeline-based organization mode so users can multi-select markers and batch-assign them to a trip, or move them back to the unassigned bucket.
+- 新增 `PATCH /api/markers/batch-trip` 批量归属接口，并在前端 API / repository 层补齐对应调用封装。  
+  Added the `PATCH /api/markers/batch-trip` bulk assignment endpoint and corresponding client-side API/repository wrappers.
+
+### Changed / 变更
+
+- `TripTimelinePanel` 升级为行程管理台，补齐创建、编辑、删除、查看详情和批量整理记录的统一入口。  
+  `TripTimelinePanel` now works as a trip management console with unified entry points for create, edit, delete, view-detail, and bulk organization flows.
+- 批量整理模式补充“已选记录” tooltip，支持逐条列出已选项，并在超过 5 条时启用内部滚动与文本截断，避免浮层撑爆布局。  
+  Batch organization mode now includes an "selected records" tooltip that lists chosen items one by one, with internal scrolling and text truncation once the selection exceeds five records.
+- 行程详情页从只读回看升级为轻编辑模式，支持修改名称、日期、备注和封面，并保留统计中心回退链路。  
+  The trip-detail page is upgraded from a read-only retrospective to a lightweight editing surface, supporting name, date, note, and cover updates while preserving the stats-center return path.
+- 旅行记录详情更明确展示所属行程信息，提升单条记录和行程容器之间的结构化关联感。  
+  Marker detail now shows trip ownership more explicitly, making the relationship between a single marker and its parent trip container easier to understand.
+- 更新 Roadmap、API Contract 与 README，收口年度回顾已完成状态，并同步记录行程集合二期能力边界。  
+  Updated the roadmap, API contract, and README to mark annual review as completed and document the scope of trip collection phase two.
+
+### Verified / 已验证
+
+- `npm run test -- --run server/__tests__/appApiRoutes.spec.ts`
+- `npm run test -- --run src/lib/api/__tests__/apiModules.spec.ts`
+- `npm run test -- --run src/components/__tests__/TripTimelinePanel.spec.tsx`
+- `npm run test -- --run src/modules/__tests__/TripDetailPage.spec.tsx`
+
 ### PR TBD `feat: 地图回放模式一期 / Add map replay mode phase one`
 
 ### Added / 新增
