@@ -66,21 +66,32 @@ const trips: TripCollection[] = [
   },
 ];
 
+function renderTimelinePanel(overrides?: Partial<React.ComponentProps<typeof TripTimelinePanel>>) {
+  return render(
+    <TripTimelinePanel
+      markers={markers}
+      trips={[]}
+      activeUserId="u1"
+      activeUserName="小悠"
+      onOpenMarkerDetail={vi.fn()}
+      onOpenTripDetail={vi.fn()}
+      onCreateTrip={vi.fn()}
+      onUpdateTrip={vi.fn()}
+      onDeleteTrip={vi.fn()}
+      onBulkAssignMarkersToTrip={vi.fn()}
+      {...overrides}
+    />,
+  );
+}
+
 describe('TripTimelinePanel', () => {
   it('groups same-day markers and opens marker detail', async () => {
     const onOpenMarkerDetail = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <TripTimelinePanel
-        markers={markers}
-        trips={[]}
-        activeUserId="u1"
-        activeUserName="小悠"
-        onOpenMarkerDetail={onOpenMarkerDetail}
-        onCreateTrip={() => {}}
-      />,
-    );
+    renderTimelinePanel({
+      onOpenMarkerDetail,
+    });
 
     expect(screen.getAllByText('2026-05-01').length).toBeGreaterThan(0);
     expect(screen.getByText('2 条记录')).toBeInTheDocument();
@@ -93,15 +104,7 @@ describe('TripTimelinePanel', () => {
   it('filters by scope and year', async () => {
     const user = userEvent.setup();
 
-    render(
-      <TripTimelinePanel
-        markers={markers}
-        trips={[]}
-        activeUserId="u1"
-        onOpenMarkerDetail={() => {}}
-        onCreateTrip={() => {}}
-      />,
-    );
+    renderTimelinePanel();
 
     await user.click(screen.getByRole('tab', { name: '国际' }));
     expect(screen.getByText('日本 · 京都')).toBeInTheDocument();
@@ -114,34 +117,24 @@ describe('TripTimelinePanel', () => {
   });
 
   it('groups assigned markers by trip collection', () => {
-    render(
-      <TripTimelinePanel
-        markers={[{ ...markers[0], tripId: 'trip-1' }, markers[1]]}
-        trips={trips}
-        activeUserId="u1"
-        onOpenMarkerDetail={() => {}}
-        onCreateTrip={() => {}}
-      />,
-    );
+    renderTimelinePanel({
+      markers: [{ ...markers[0], tripId: 'trip-1' }, markers[1]],
+      trips,
+    });
 
     expect(screen.getByText('江南春游')).toBeInTheDocument();
     expect(screen.getByText(/2026-05-01 - 2026-05-03/)).toBeInTheDocument();
     expect(screen.getByText('未归入行程')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '查看详情' })).toBeInTheDocument();
   });
 
   it('opens trip creation in a dialog', async () => {
     const user = userEvent.setup();
     const onCreateTrip = vi.fn();
 
-    render(
-      <TripTimelinePanel
-        markers={markers}
-        trips={[]}
-        activeUserId="u1"
-        onOpenMarkerDetail={() => {}}
-        onCreateTrip={onCreateTrip}
-      />,
-    );
+    renderTimelinePanel({
+      onCreateTrip,
+    });
 
     expect(screen.queryByRole('dialog', { name: '创建行程' })).not.toBeInTheDocument();
 
@@ -164,5 +157,186 @@ describe('TripTimelinePanel', () => {
       endsAt: '2026-05-03',
       note: undefined,
     });
+  });
+
+  it('opens trip edit dialog and forwards updated payload', async () => {
+    const user = userEvent.setup();
+    const onUpdateTrip = vi.fn();
+
+    renderTimelinePanel({
+      markers: [{ ...markers[0], tripId: 'trip-1' }],
+      trips,
+      onUpdateTrip,
+    });
+
+    await user.click(screen.getByRole('button', { name: '编辑行程' }));
+    const dialog = screen.getByRole('dialog', { name: '编辑行程' });
+
+    await user.clear(within(dialog).getByPlaceholderText('新建行程，例如 2025 日本春游'));
+    await user.type(within(dialog).getByPlaceholderText('新建行程，例如 2025 日本春游'), '更新后的江南春游');
+    await user.click(within(dialog).getByRole('button', { name: '保存行程' }));
+
+    expect(onUpdateTrip).toHaveBeenCalledWith('trip-1', {
+      name: '更新后的江南春游',
+      startsAt: '2026-05-01',
+      endsAt: '2026-05-03',
+      note: undefined,
+    });
+  });
+
+  it('selects markers in batch mode and assigns them to a trip', async () => {
+    const user = userEvent.setup();
+    const onBulkAssignMarkersToTrip = vi.fn();
+
+    renderTimelinePanel({
+      trips,
+      onBulkAssignMarkersToTrip,
+    });
+
+    await user.click(screen.getByRole('button', { name: '整理记录' }));
+    await user.click(screen.getByRole('button', { name: /浙江 · 杭州/i }));
+    await user.click(screen.getByRole('button', { name: '选择批量整理的目标行程' }));
+    await user.click(screen.getByRole('button', { name: '江南春游' }));
+    await user.click(screen.getByRole('button', { name: '应用整理' }));
+
+    expect(onBulkAssignMarkersToTrip).toHaveBeenCalledWith(['m-1'], 'trip-1');
+  });
+
+  it('still allows selecting markers in batch mode when showing plain timeline groups', async () => {
+    const user = userEvent.setup();
+    const onBulkAssignMarkersToTrip = vi.fn();
+
+    renderTimelinePanel({
+      trips: [],
+      onBulkAssignMarkersToTrip,
+    });
+
+    await user.click(screen.getByRole('button', { name: '整理记录' }));
+    await user.click(screen.getByRole('button', { name: /浙江 · 杭州/i }));
+    await user.click(screen.getByRole('button', { name: '选择批量整理的目标行程' }));
+    await user.click(screen.getByRole('button', { name: '移回未归入行程' }));
+    await user.click(screen.getByRole('button', { name: '应用整理' }));
+
+    expect(onBulkAssignMarkersToTrip).toHaveBeenCalledWith(['m-1'], null);
+  });
+
+  it('shows selected markers in a tooltip list in batch mode', async () => {
+    const user = userEvent.setup();
+
+    renderTimelinePanel({
+      trips,
+    });
+
+    await user.click(screen.getByRole('button', { name: '整理记录' }));
+    expect(screen.getByText('已选 0 条记录')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /浙江 · 杭州/i }));
+    await user.click(screen.getByRole('button', { name: /日本 · 京都/i }));
+    expect(screen.getByText('已选 2 条记录')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '选择批量整理的目标行程' }));
+    await user.click(screen.getByRole('button', { name: '江南春游' }));
+
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip).toHaveTextContent('已选记录');
+    expect(tooltip).toHaveTextContent('浙江 · 杭州');
+    expect(tooltip).toHaveTextContent('日本 · 京都');
+  });
+
+  it('makes the tooltip scrollable when more than five markers are selected', async () => {
+    const user = userEvent.setup();
+    const manyMarkers: VisitMarker[] = [
+      {
+        id: 'm-10',
+        userId: 'u1',
+        scope: 'domestic',
+        scopeId: 'zhejiang',
+        scopeName: '一段非常长的省份名称用于验证文本截断效果',
+        city: '一段非常长的城市名称用于验证文本截断效果',
+        note: '',
+        visitedStartAt: '2026-04-01',
+        visitedEndAt: '2026-04-01',
+        createdAt: '2026-04-02T10:00:00.000Z',
+      },
+      {
+        id: 'm-11',
+        userId: 'u1',
+        scope: 'domestic',
+        scopeId: 'jiangsu',
+        scopeName: '江苏',
+        city: '南京',
+        note: '',
+        visitedStartAt: '2026-04-02',
+        visitedEndAt: '2026-04-02',
+        createdAt: '2026-04-03T10:00:00.000Z',
+      },
+      {
+        id: 'm-12',
+        userId: 'u1',
+        scope: 'domestic',
+        scopeId: 'anhui',
+        scopeName: '安徽',
+        city: '黄山',
+        note: '',
+        visitedStartAt: '2026-04-03',
+        visitedEndAt: '2026-04-03',
+        createdAt: '2026-04-04T10:00:00.000Z',
+      },
+      {
+        id: 'm-13',
+        userId: 'u1',
+        scope: 'international',
+        scopeId: 'france',
+        scopeName: '法国',
+        city: '巴黎',
+        note: '',
+        visitedStartAt: '2026-04-04',
+        visitedEndAt: '2026-04-04',
+        createdAt: '2026-04-05T10:00:00.000Z',
+      },
+      {
+        id: 'm-14',
+        userId: 'u1',
+        scope: 'international',
+        scopeId: 'italy',
+        scopeName: '意大利',
+        city: '罗马',
+        note: '',
+        visitedStartAt: '2026-04-05',
+        visitedEndAt: '2026-04-05',
+        createdAt: '2026-04-06T10:00:00.000Z',
+      },
+      {
+        id: 'm-15',
+        userId: 'u1',
+        scope: 'international',
+        scopeId: 'spain',
+        scopeName: '西班牙',
+        city: '巴塞罗那',
+        note: '',
+        visitedStartAt: '2026-04-06',
+        visitedEndAt: '2026-04-06',
+        createdAt: '2026-04-07T10:00:00.000Z',
+      },
+    ];
+
+    renderTimelinePanel({
+      markers: manyMarkers,
+      trips,
+    });
+
+    await user.click(screen.getByRole('button', { name: '整理记录' }));
+    await user.click(screen.getByRole('button', { name: /一段非常长的省份名称用于验证文本截断效果 · 一段非常长的城市名称用于验证文本截断效果/i }));
+    await user.click(screen.getByRole('button', { name: /江苏 · 南京/i }));
+    await user.click(screen.getByRole('button', { name: /安徽 · 黄山/i }));
+    await user.click(screen.getByRole('button', { name: /法国 · 巴黎/i }));
+    await user.click(screen.getByRole('button', { name: /意大利 · 罗马/i }));
+    await user.click(screen.getByRole('button', { name: /西班牙 · 巴塞罗那/i }));
+
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip).toHaveClass('is-scrollable');
+    expect(tooltip.querySelectorAll('li')).toHaveLength(6);
+    expect(tooltip.querySelector('.trip-batch-selection-tooltip-primary')).not.toBeNull();
+    expect(tooltip.querySelector('.trip-batch-selection-tooltip-secondary')).not.toBeNull();
   });
 });

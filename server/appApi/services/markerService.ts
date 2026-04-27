@@ -1,7 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { createNotFoundError, createValidationError } from '../errors.js';
 import { getPrismaClient } from '../prisma.js';
-import type { CreateMarkerBody, UpdateMarkerBody } from '../schemas/markers.js';
+import type {
+  BatchUpdateMarkersTripBody,
+  CreateMarkerBody,
+  UpdateMarkerBody,
+} from '../schemas/markers.js';
 import type { SearchMarkersQuery } from '../schemas/markers.js';
 import {
   findActiveCompanionById,
@@ -9,10 +13,12 @@ import {
 import { findActiveTripById } from '../repositories/tripRepository.js';
 import {
   createMarker,
+  findActiveMarkersByIds,
   findActiveMarkerById,
   searchActiveMarkersByAccountId,
   softDeleteMarker,
   updateMarker,
+  updateMarkersTripId,
 } from '../repositories/visitMarkerRepository.js';
 import { softDeleteSavedGuidesByMarkerId } from '../repositories/savedGuideRepository.js';
 import { createMarkerSearchEvent } from '../repositories/markerSearchEventRepository.js';
@@ -112,6 +118,33 @@ export async function deleteMarkerRecord(accountId: string, markerId: string) {
     const deletedAt = new Date();
     await softDeleteMarker(tx, markerId, deletedAt);
     await softDeleteSavedGuidesByMarkerId(tx, markerId, deletedAt);
+  });
+
+  return buildCurrentStoreSnapshot(accountId);
+}
+
+export async function batchUpdateMarkersTrip(
+  accountId: string,
+  input: BatchUpdateMarkersTripBody,
+) {
+  const prisma = getPrismaClient();
+  const markerIds = Array.from(new Set(input.markerIds));
+
+  await prisma.$transaction(async (tx) => {
+    const markers = await findActiveMarkersByIds(tx, accountId, markerIds);
+
+    if (markers.length !== markerIds.length) {
+      throw createNotFoundError('marker not found');
+    }
+
+    if (input.tripId) {
+      const trip = await findActiveTripById(tx, accountId, input.tripId);
+      if (!trip) {
+        throw createNotFoundError('trip not found');
+      }
+    }
+
+    await updateMarkersTripId(tx, markerIds, input.tripId ?? null);
   });
 
   return buildCurrentStoreSnapshot(accountId);

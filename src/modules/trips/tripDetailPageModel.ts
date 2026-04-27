@@ -16,6 +16,11 @@ export interface TripPhotoGroup {
   items: TripDetailPhotoItemDto[];
 }
 
+export interface TripCoverOption {
+  value: string;
+  label: string;
+}
+
 export function buildTripDetailSummaryCards(data: TripDetailResponseDto) {
   return [
     { label: '旅行记录', value: data.summary.markerCount, description: '当前行程内的记录总数' },
@@ -68,6 +73,24 @@ export function formatTripMarkerRange(marker: TripDetailMarkerItemDto) {
 
 export function buildTripPhotoAlt(photo: TripDetailPhotoItemDto) {
   return `${photo.markerTitle} ${photo.visitedStartAt}`;
+}
+
+export function buildTripCoverOptions(photos: TripDetailPhotoItemDto[]): TripCoverOption[] {
+  const seen = new Set<string>();
+
+  return photos.flatMap((photo) => {
+    if (seen.has(photo.imageUrl)) {
+      return [];
+    }
+
+    seen.add(photo.imageUrl);
+    return [
+      {
+        value: photo.imageUrl,
+        label: `${photo.markerTitle} · ${photo.visitedStartAt}`,
+      },
+    ];
+  });
 }
 
 export function buildTripGuideMeta(guide: TripDetailGuideItemDto) {

@@ -65,6 +65,11 @@ export interface UpdateMarkerInput {
   tripId?: string | null;
 }
 
+export interface BatchUpdateMarkersTripInput {
+  markerIds: string[];
+  tripId?: string | null;
+}
+
 export interface SearchMarkersQuery {
   keyword?: string;
   companionId?: string;

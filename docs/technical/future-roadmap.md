@@ -16,6 +16,8 @@ This document redefines the next iteration plan based on what the product alread
 - Trip collections v1 are available, including trip creation, marker ownership, timeline grouping, admin visibility, and a read-only trip detail page.
 - 独立统计中心 `/stats` 已完成，支持筛选、排行、趋势、国内中国地图 / 国际世界地图热力图，以及从统计钻取到行程详情。
 - A standalone `/stats` center is available with filters, rankings, trends, China/world map heatmaps, and drill-down into trip details.
+- 年度回顾页 `/yearbook/:year` 已上线，支持按年份生成私有年鉴式回看，并继续钻取到单次行程详情。
+- The `/yearbook/:year` annual review page is live, offering a private yearbook-style retrospective with continued drill-down into trip details.
 - 攻略搜索、正文阅读增强、搜索历史、收藏、关联到旅行记录与返回链路已经打通。
 - 登录注册、Cookie Session、管理员只读后台、搜索行为日志和 MySQL / Prisma 持久化主链路已经可用。
 - Docker MySQL + Adminer、本地 seed、`db:prepare-demo`、迁移工作流与关键前后端测试已经具备。
@@ -88,22 +90,20 @@ This means the next roadmap should amplify the value of existing data assets ins
 - 后续增强：
   - 账号设置、多设备会话治理、后台分析和修复工具。
 
+### 年度回顾页 / Annual Review Page
+
+- 状态：已完成第一版。
+- 已落地范围：
+  - 提供 `/yearbook/:year` 独立年度回顾页。
+  - 汇总年度摘要、高光、月度节奏、热力分布、照片和关联攻略。
+  - 支持从年度回顾继续钻取到单次行程详情。
+- 后续增强：
+  - 年度一句话总结和更强的故事化模板。
+  - 分享态和导出态的表达优化。
+
 ## 下一阶段路线图 / Next-Phase Roadmap
 
-### 1. 年度回顾页 / Annual Review Page
-
-- 优先级：`P1`
-- 为什么值得做：
-  - 现有统计中心已经具备基础数据，但还没有形成“值得反复打开”的年度内容页。
-  - 这是最能把地图、统计、照片和行程结合起来的升级方向。
-- 建议范围：
-  - 年度封面：年度旅行天数、国家数、城市数、最长行程。
-  - 年度高光：最远一次、最忙一个月、最常同行旅伴。
-  - 年度热力地图与月份分布。
-  - 年度代表照片与“年度一句话总结”。
-  - 支持生成只读年鉴页，先不急着开放公网分享。
-
-### 2. 地图回放模式 / Map Replay Mode
+### 1. 地图回放模式 / Map Replay Mode
 
 - 优先级：`P1`
 - 当前状态：一期已完成并上线首页地图卡片。
@@ -131,9 +131,10 @@ This means the next roadmap should amplify the value of existing data assets ins
 - World-map replay no longer depends on manually selecting a country. Domestic city records automatically collapse into China and join international records as country-level paths.
 - Replay and journey arcs now share the same region-mapping logic so world-map behavior stays country-semantic and consistent.
 
-### 3. 行程集合二期 / Trip Collection Phase 2
+### 2. 行程集合二期 / Trip Collection Phase 2
 
 - 优先级：`P1`
+- 当前状态：已启动完整版迭代。
 - 为什么值得做：
   - 行程已经从“字段”升级成“对象”，下一步应让它变成真正可管理的内容容器。
 - 建议范围：
@@ -143,7 +144,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 行程照片精选与“封面故事”区块。
   - 行程内的地图回放入口。
 
-### 4. 记录标签 + 轻量元数据 / Marker Tags and Lightweight Metadata
+### 3. 记录标签 + 轻量元数据 / Marker Tags and Lightweight Metadata
 
 - 优先级：`P1`
 - 为什么值得做：
@@ -154,7 +155,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 支持按标签和元数据筛选时间线、统计页和服务端搜索。
   - 支持统计“最常出现的旅行主题”。
 
-### 5. 攻略提炼为行前清单 / Guide-to-Checklist Workflow
+### 4. 攻略提炼为行前清单 / Guide-to-Checklist Workflow
 
 - 优先级：`P1`
 - 为什么值得做：
@@ -165,7 +166,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 清单绑定某个行程。
   - 支持标记完成状态，区分“出发前 / 旅途中 / 已完成”。
 
-### 6. 旅行故事页 / Travel Story Page
+### 5. 旅行故事页 / Travel Story Page
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -176,7 +177,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 支持“杂志风”和“纪念册风”两种模板。
   - 第一阶段先做本地只读页。
 
-### 7. 城市愿望清单 / Wishlist Map
+### 6. 城市愿望清单 / Wishlist Map
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -188,7 +189,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 可从攻略搜索结果一键加入愿望清单。
   - 后续可与行程规划联动。
 
-### 8. 旅行成就系统 / Travel Achievement System
+### 7. 旅行成就系统 / Travel Achievement System
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -198,7 +199,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 在统计页或年度回顾页展示。
   - 成就支持时间维度和里程碑解释。
 
-### 9. 搜索增强 / Search Enhancements
+### 8. 搜索增强 / Search Enhancements
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -209,7 +210,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 搜索结果分页加载更多。
   - 后台按关键词和时间范围查看搜索趋势。
 
-### 10. 旅伴协作与共同回忆 / Companion Collaboration
+### 9. 旅伴协作与共同回忆 / Companion Collaboration
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -219,7 +220,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 同一行程下不同旅伴的视角统计。
   - 未来可扩展到真实邀请协作，但第一阶段可先做“共同回忆聚合”。
 
-### 11. 账号设置与同步治理 / Account Settings and Sync Governance
+### 10. 账号设置与同步治理 / Account Settings and Sync Governance
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -229,7 +230,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 最近登录设备、会话治理。
   - 冲突策略和同步状态提示。
 
-### 12. 来源治理与内容质量评分 / Source Governance and Content Quality
+### 11. 来源治理与内容质量评分 / Source Governance and Content Quality
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -240,7 +241,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 结果质量评分。
   - 失效内容与抓取异常监控。
 
-### 13. 架构继续瘦身 / Continued Architecture Slimming
+### 12. 架构继续瘦身 / Continued Architecture Slimming
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -254,19 +255,18 @@ This means the next roadmap should amplify the value of existing data assets ins
 
 建议按下面顺序推进：
 
-1. 年度回顾页 / Annual Review Page
-2. 地图回放模式 / Map Replay Mode
-3. 行程集合二期 / Trip Collection Phase 2
-4. 记录标签 + 轻量元数据 / Marker Tags and Lightweight Metadata
-5. 攻略提炼为行前清单 / Guide-to-Checklist Workflow
-6. 旅行故事页 / Travel Story Page
-7. 城市愿望清单 / Wishlist Map
-8. 旅行成就系统 / Travel Achievement System
-9. 搜索增强 / Search Enhancements
-10. 旅伴协作与共同回忆 / Companion Collaboration
-11. 账号设置与同步治理 / Account Settings and Sync Governance
-12. 来源治理与内容质量评分 / Source Governance and Content Quality
-13. 架构继续瘦身 / Continued Architecture Slimming
+1. 地图回放模式 / Map Replay Mode
+2. 行程集合二期 / Trip Collection Phase 2
+3. 记录标签 + 轻量元数据 / Marker Tags and Lightweight Metadata
+4. 攻略提炼为行前清单 / Guide-to-Checklist Workflow
+5. 旅行故事页 / Travel Story Page
+6. 城市愿望清单 / Wishlist Map
+7. 旅行成就系统 / Travel Achievement System
+8. 搜索增强 / Search Enhancements
+9. 旅伴协作与共同回忆 / Companion Collaboration
+10. 账号设置与同步治理 / Account Settings and Sync Governance
+11. 来源治理与内容质量评分 / Source Governance and Content Quality
+12. 架构继续瘦身 / Continued Architecture Slimming
 
 ## 选题原则 / Feature Selection Rules
 

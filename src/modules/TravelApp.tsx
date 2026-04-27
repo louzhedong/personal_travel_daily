@@ -18,10 +18,11 @@ interface TravelAppProps {
   onLogout: () => Promise<void> | void;
   onOpenAdmin?: () => void;
   onOpenStats?: () => void;
+  onOpenTripDetail?: (tripId: string) => void;
   entryMessage?: string | null;
 }
 
-function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, entryMessage }: TravelAppProps) {
+function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, onOpenTripDetail, entryMessage }: TravelAppProps) {
   const [store, setStore] = useState<TravelStore>(() => createDefaultStore());
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [detailMarkerId, setDetailMarkerId] = useState<string | null>(null);
@@ -130,6 +131,9 @@ function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, entryMessage }
     handleSwitchUser,
     handleCreateUser,
     handleCreateTrip,
+    handleUpdateTrip,
+    handleDeleteTrip,
+    handleBulkAssignMarkersToTrip,
     handleSubmitMarker,
     handleDeleteMarker,
     handleUpdateMarker,
@@ -250,7 +254,11 @@ function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, entryMessage }
         onSwitchUser={handleSwitchUser}
         onCreateUser={handleCreateUser}
         onCreateTrip={handleCreateTrip}
+        onUpdateTrip={handleUpdateTrip}
+        onDeleteTrip={handleDeleteTrip}
+        onBulkAssignMarkersToTrip={handleBulkAssignMarkersToTrip}
         onOpenMarkerFromTimeline={handleFocusMarkerFromTimeline}
+        onOpenTripDetail={onOpenTripDetail}
         onOpenMarkerFromGuide={handleFocusMarkerFromGuide}
         onRemoveSavedGuide={handleRemoveSavedGuide}
       />

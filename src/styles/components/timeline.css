@@ -1,4 +1,4 @@
-﻿.trip-timeline-panel {
+.trip-timeline-panel {
   position: relative;
   background:
     radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 30%),
@@ -30,6 +30,19 @@
   border-radius: 12px;
 }
 
+.trip-timeline-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.trip-create-entry.is-active {
+  border-color: rgba(59, 130, 246, 0.72);
+  background: rgba(239, 246, 255, 0.9);
+  color: #1d4ed8;
+}
+
 .trip-timeline-header p {
   margin: 0;
   color: #64748b;
@@ -40,6 +53,156 @@
 .trip-timeline-toolbar {
   display: grid;
   gap: 10px;
+}
+
+.trip-batch-toolbar {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(191, 219, 254, 0.9);
+  background: rgba(239, 246, 255, 0.82);
+}
+
+.trip-batch-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.trip-batch-summary strong {
+  color: #0f172a;
+  font-size: 13px;
+  padding-top: 2px;
+}
+
+.trip-batch-summary span {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trip-batch-summary-meta {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  min-width: 0;
+}
+
+.trip-batch-selected-summary-wrap {
+  position: relative;
+  display: inline-flex;
+  justify-content: flex-end;
+}
+
+.trip-batch-selected-summary {
+  color: #2563eb;
+}
+
+.trip-batch-selected-summary.has-tooltip {
+  cursor: help;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.trip-batch-selection-tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 8;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(191, 219, 254, 0.95);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.trip-batch-selection-tooltip strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.trip-batch-selection-tooltip-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trip-batch-selection-tooltip.is-scrollable .trip-batch-selection-tooltip-list {
+  max-height: 252px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.trip-batch-selection-tooltip.is-scrollable .trip-batch-selection-tooltip-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.trip-batch-selection-tooltip-list li {
+  display: grid;
+  gap: 2px;
+  padding: 7px 8px;
+  border-radius: 10px;
+  background: rgba(248, 250, 252, 0.96);
+  min-width: 0;
+}
+
+.trip-batch-selection-tooltip-primary {
+  display: block;
+  color: #1e3a8a;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trip-batch-selection-tooltip-secondary {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trip-batch-selected-summary-wrap:hover .trip-batch-selection-tooltip,
+.trip-batch-selected-summary-wrap:focus-within .trip-batch-selection-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.trip-batch-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.trip-batch-select-trigger {
+  min-height: 38px;
+}
+
+.trip-batch-submit {
+  min-width: 96px;
+  min-height: 38px;
+  border-radius: 12px;
 }
 
 .trip-timeline-year-filter {
@@ -135,6 +298,11 @@
   font-size: 13px;
 }
 
+.trip-collection-textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
 .trip-collection-date-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -180,8 +348,10 @@
 }
 
 .trip-collection-card-header {
-  display: grid;
-  gap: 4px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .trip-collection-card-header strong {
@@ -191,6 +361,35 @@
 
 .trip-collection-card-header span {
   color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trip-collection-card-header > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.trip-collection-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.trip-card-action-button {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.trip-card-action-danger {
+  color: #dc2626;
+}
+
+.trip-unassigned-hint {
+  color: #2563eb;
   font-size: 12px;
   font-weight: 700;
 }
@@ -250,6 +449,15 @@
   transform: translateY(-1px);
 }
 
+.trip-timeline-item-button.is-selecting {
+  border-style: dashed;
+}
+
+.trip-timeline-item-button.is-selected {
+  border-color: rgba(37, 99, 235, 0.82);
+  background: rgba(219, 234, 254, 0.92);
+}
+
 .trip-timeline-item-top {
   display: flex;
   align-items: center;
@@ -271,4 +479,31 @@
 .trip-timeline-item-subtitle {
   color: #64748b;
   font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .trip-batch-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .trip-batch-summary-meta {
+    justify-items: start;
+  }
+
+  .trip-batch-selected-summary-wrap {
+    justify-content: flex-start;
+  }
+
+  .trip-batch-selection-tooltip {
+    left: 0;
+    right: auto;
+  }
+
+  .trip-batch-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .trip-batch-submit {
+    width: 100%;
+  }
 }

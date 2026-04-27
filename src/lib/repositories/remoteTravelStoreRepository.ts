@@ -2,12 +2,13 @@ import type { TravelStore } from '../../types';
 import { fetchAppBootstrap } from '../api/appBootstrapApi';
 import { createCompanion, updateCompanion } from '../api/companionsApi';
 import { createGuideSearchHistory, fetchGuideSearchHistories } from '../api/guideSearchHistoryApi';
-import { createMarker, deleteMarker, updateMarker } from '../api/markersApi';
+import { batchUpdateMarkersTrip, createMarker, deleteMarker, updateMarker } from '../api/markersApi';
 import { createSavedGuide, deleteSavedGuide, fetchSavedGuides } from '../api/savedGuidesApi';
 import { createTrip, deleteTrip, updateTrip } from '../api/tripsApi';
 import type {
   CreateCompanionInput,
   CreateGuideSearchHistoryInput,
+  BatchUpdateMarkersTripInput,
   CreateMarkerInput,
   CreateSavedGuideInput,
   CreateTripInput,
@@ -27,6 +28,7 @@ export interface RemoteTravelStoreRepository {
   deleteTrip(id: string): Promise<TravelStore>;
   createMarker(input: CreateMarkerInput): Promise<TravelStore>;
   updateMarker(id: string, input: UpdateMarkerInput): Promise<TravelStore>;
+  batchUpdateMarkersTrip(input: BatchUpdateMarkersTripInput): Promise<TravelStore>;
   deleteMarker(id: string): Promise<TravelStore>;
   listSavedGuides(query?: ListSavedGuidesQuery): Promise<TravelStore['savedGuides']>;
   createSavedGuide(input: CreateSavedGuideInput): Promise<{
@@ -54,6 +56,7 @@ export function createRemoteTravelStoreRepository(): RemoteTravelStoreRepository
     deleteTrip,
     createMarker,
     updateMarker,
+    batchUpdateMarkersTrip,
     deleteMarker,
     async listSavedGuides(query) {
       const response = await fetchSavedGuides(query);

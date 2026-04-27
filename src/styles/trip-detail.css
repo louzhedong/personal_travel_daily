@@ -46,6 +46,10 @@
   gap: 10px;
 }
 
+.trip-detail-danger-button {
+  color: #dc2626;
+}
+
 .trip-detail-note-card {
   min-width: 280px;
   max-width: 360px;
@@ -58,11 +62,25 @@
   border: 1px solid rgba(191, 219, 254, 0.9);
 }
 
+.trip-detail-note-cover {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 16px;
+  background: rgba(226, 232, 240, 0.8);
+}
+
 .trip-detail-note-eyebrow {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--brand-blue);
+}
+
+.trip-detail-note-empty {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .trip-detail-state-card {
@@ -73,6 +91,33 @@
 .trip-detail-state-card p {
   margin: 0;
   color: #64748b;
+}
+
+.trip-detail-editor-form {
+  display: grid;
+  gap: 10px;
+}
+
+.trip-detail-editor-input {
+  min-height: 40px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.trip-detail-editor-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.trip-detail-editor-date-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.trip-detail-editor-select {
+  min-height: 42px;
+  border-radius: 12px;
 }
 
 .trip-detail-state-card-error {
@@ -464,6 +509,10 @@
 
   .trip-detail-summary-grid,
   .trip-detail-photo-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .trip-detail-editor-date-row {
     grid-template-columns: minmax(0, 1fr);
   }
 

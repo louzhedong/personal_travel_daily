@@ -298,6 +298,11 @@ function App() {
         replaceRoute(nextRoute);
         setRoute(nextRoute);
       }}
+      onOpenTripDetail={(tripId) => {
+        const nextRoute = createTripDetailRoute(tripId);
+        replaceRoute(nextRoute);
+        setRoute(nextRoute);
+      }}
       onOpenAdmin={
         account.role === 'admin'
           ? () => {
