@@ -32,6 +32,7 @@ export type AppRoute =
   | { kind: 'admin'; pathname: '/admin' }
   | { kind: 'stats'; pathname: '/stats' }
   | { kind: 'tripDetail'; pathname: string; tripId: string }
+  | { kind: 'tripStory'; pathname: string; tripId: string }
   | { kind: 'tripChecklist'; pathname: string; tripId: string }
   | { kind: 'annualReview'; pathname: string; year: string };
 
@@ -65,6 +66,14 @@ export function createTripDetailRoute(tripId: string): AppRoute {
   };
 }
 
+export function createTripStoryRoute(tripId: string): AppRoute {
+  return {
+    kind: 'tripStory',
+    pathname: `/trips/${encodeURIComponent(tripId)}/story`,
+    tripId,
+  };
+}
+
 export function createTripChecklistRoute(tripId: string): AppRoute {
   return {
     kind: 'tripChecklist',
@@ -91,6 +100,11 @@ export function parsePathname(pathname: string): AppRoute {
   const annualReviewMatch = pathname.match(/^\/yearbook\/(\d{4})$/);
   if (annualReviewMatch) {
     return createAnnualReviewRoute(decodeURIComponent(annualReviewMatch[1]));
+  }
+
+  const tripStoryMatch = pathname.match(/^\/trips\/([^/]+)\/story$/);
+  if (tripStoryMatch) {
+    return createTripStoryRoute(decodeURIComponent(tripStoryMatch[1]));
   }
 
   const tripChecklistMatch = pathname.match(/^\/trips\/([^/]+)\/checklist$/);

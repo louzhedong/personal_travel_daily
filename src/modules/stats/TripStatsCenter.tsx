@@ -208,6 +208,40 @@ function CompanionRankingPanel({ items }: { items: StatsCompanionRankingItemDto[
   );
 }
 
+function StatsCenterSkeleton() {
+  return (
+    <section className="route-inline-skeleton" aria-label="统计中心加载中">
+      <div className="route-skeleton-panel">
+        <div className="route-skeleton-panel-head">
+          <div>
+            <div className="route-skeleton-line route-skeleton-kicker" />
+            <div className="route-skeleton-line route-skeleton-section-title" />
+          </div>
+          <div className="route-skeleton-line route-skeleton-section-copy" />
+        </div>
+        <div className="route-skeleton-panel-body">
+          <div className="route-skeleton-row" />
+          <div className="route-skeleton-row route-skeleton-row-short" />
+        </div>
+      </div>
+      <div className="route-skeleton-grid">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <article key={index} className="route-skeleton-card">
+            <div className="route-skeleton-line route-skeleton-card-label" />
+            <div className="route-skeleton-line route-skeleton-card-value" />
+            <div className="route-skeleton-line route-skeleton-card-copy" />
+          </article>
+        ))}
+      </div>
+      <div className="route-skeleton-panel">
+        <div className="route-skeleton-row" />
+        <div className="route-skeleton-row" />
+        <div className="route-skeleton-row route-skeleton-row-short" />
+      </div>
+    </section>
+  );
+}
+
 export default function TripStatsCenter({ onOpenTripDetail, onOpenAnnualReview }: TripStatsCenterProps) {
   const [filters, setFilters] = useState<StatsUiFilters>(() => createDefaultStatsUiFilters());
   const [data, setData] = useState<StatsOverviewResponseDto | null>(null);
@@ -263,10 +297,13 @@ export default function TripStatsCenter({ onOpenTripDetail, onOpenAnnualReview }
   return (
     <section className="stats-center-section">
       {loading ? (
-        <section className="card stats-loading-card">
+        <>
+        <StatsCenterSkeleton />
+        <section className="card stats-loading-card stats-loading-card-hidden">
           <strong>正在生成统计中心...</strong>
           <p>正在从当前账号的旅行记录、行程与旅伴数据中聚合统计结果。</p>
         </section>
+        </>
       ) : null}
 
       {!loading && errorMessage ? (

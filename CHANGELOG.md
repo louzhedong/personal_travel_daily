@@ -3,6 +3,27 @@
 本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。  
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
+## 2026-04-28
+
+### PR 待定 / TBD `feat: 旅行故事页 / Add trip story page`
+
+### Added / 新增
+
+- 新增 `/trips/:id/story` 私有只读旅行故事页，复用现有行程详情聚合数据，把封面、摘要、路线胶片、时间线、照片、攻略和清单回顾组织成一页故事化回看体验。  
+  Added the private read-only `/trips/:id/story` trip story page, reusing the existing trip-detail aggregate to present cover, highlights, route film, timeline, photos, guide excerpts, and checklist review in one storytelling view.
+- 新增 `tripStoryPageModel` 与对应测试，用纯展示模型从 `TripDetailResponseDto` 派生故事摘要、按日期分组的叙事时间线、照片段落、路线停靠点和清单完成度。  
+  Added `tripStoryPageModel` and tests to derive story highlights, date-grouped timeline sections, photo groups, route stops, and checklist completion from `TripDetailResponseDto`.
+
+### Changed / 变更
+
+- 扩展手写路由支持 `tripStory`，并在行程详情页增加“查看故事页”入口。  
+  Extended the hand-rolled router with `tripStory` support and added a "View story page" entry point from trip detail.
+
+### Verified / 已验证
+
+- `npm.cmd run test -- --run src/modules/app/__tests__/router.spec.ts src/modules/__tests__/TripStoryPage.spec.tsx src/modules/trips/__tests__/tripStoryPageModel.spec.ts`
+- `npm.cmd run test -- --run src/modules/__tests__/App.spec.tsx src/modules/__tests__/TripDetailPage.spec.tsx`
+
 ## 2026-04-27
 
 ### PR 待定 / TBD `feat: 攻略提炼为行前清单 / Add guide-to-checklist workflow`

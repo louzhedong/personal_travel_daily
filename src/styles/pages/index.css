@@ -3,4 +3,5 @@
 @import './home.css';
 @import './stats-center.css';
 @import './trip-detail.css';
+@import '../trip-story.css';
 @import './annual-review.css';

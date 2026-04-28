@@ -273,8 +273,15 @@ describe('TripDetailPage', () => {
   });
 
   it('renders trip detail blocks after loading', async () => {
+    const onOpenTripStory = vi.fn();
     render(
-      <TripDetailPage account={account} tripId="trip-1" onNavigateBack={vi.fn()} onLogout={vi.fn()} />,
+      <TripDetailPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+        onOpenTripStory={onOpenTripStory}
+      />,
     );
 
     expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
@@ -284,6 +291,8 @@ describe('TripDetailPage', () => {
     expect(screen.getByRole('heading', { name: '关联攻略' })).toBeInTheDocument();
     expect(screen.getAllByRole('heading', { name: '行前清单' })[0]).toBeInTheDocument();
     expect(screen.getByText('杭州周末攻略')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '查看故事页' }));
+    expect(onOpenTripStory).toHaveBeenCalledWith('trip-1');
   });
 
   it('edits the trip and updates local state after save', async () => {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import TripChecklistBoard from '../../components/trips/TripChecklistBoard';
+import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
 import {
   createTripChecklistItem,
   deleteTripChecklistItem,
@@ -108,6 +109,10 @@ export default function TripChecklistPage({
     wrapMutation(async () => {
       await deleteTripChecklistItem(tripId, itemId);
     }, '已删除这条清单。');
+
+  if (loading) {
+    return <RoutePageSkeleton variant="checklist" />;
+  }
 
   return (
     <main className="trip-detail-stage">
