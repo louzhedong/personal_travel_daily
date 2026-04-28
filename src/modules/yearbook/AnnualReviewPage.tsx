@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import StatsHeatmapPanel from '../../components/stats/StatsHeatmapPanel';
+import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
 import { fetchAnnualReview } from '../../lib/api/statsApi';
 import type { AnnualReviewResponseDto } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
@@ -96,6 +97,10 @@ export default function AnnualReviewPage({
     return 'is-hidden';
   };
 
+  if (loading) {
+    return <RoutePageSkeleton variant="story" />;
+  }
+
   return (
     <main className="annual-review-stage">
       <div className="annual-review-shell">
@@ -152,14 +157,7 @@ export default function AnnualReviewPage({
           )}
         </section>
 
-        {loading ? (
-          <section className="card annual-review-state">
-            <strong>正在生成年度回顾...</strong>
-            <p>正在从当前账号的旅行记录、行程、照片和攻略中整理这一年的故事。</p>
-          </section>
-        ) : null}
-
-        {!loading && errorMessage ? (
+        {errorMessage ? (
           <section className="card annual-review-state annual-review-state-error">
             <strong>年度回顾加载失败</strong>
             <p>{errorMessage}</p>
@@ -169,7 +167,7 @@ export default function AnnualReviewPage({
           </section>
         ) : null}
 
-        {!loading && data ? (
+        {data ? (
           isEmpty ? (
             <section className="card annual-review-empty">
               <strong>{year} 年还没有旅行记录</strong>

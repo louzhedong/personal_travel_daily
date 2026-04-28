@@ -5,6 +5,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import DateField from '../../components/ui/DateField';
 import Dialog from '../../components/ui/Dialog';
 import FancySelect from '../../components/ui/FancySelect';
+import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
 import {
   createTripChecklistItem,
   deleteTrip,
@@ -44,6 +45,7 @@ interface TripDetailPageProps {
   onNavigateBack: () => void;
   onLogout: () => Promise<void> | void;
   onOpenTripChecklist?: (tripId: string) => void;
+  onOpenTripStory?: (tripId: string) => void;
 }
 
 export default function TripDetailPage({
@@ -52,6 +54,7 @@ export default function TripDetailPage({
   onNavigateBack,
   onLogout,
   onOpenTripChecklist,
+  onOpenTripStory,
 }: TripDetailPageProps) {
   const [data, setData] = useState<TripDetailResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -216,6 +219,10 @@ export default function TripDetailPage({
     }
   };
 
+  if (loading) {
+    return <RoutePageSkeleton variant="detail" />;
+  }
+
   return (
     <main className="trip-detail-stage">
       <div className="trip-detail-shell">
@@ -239,10 +246,19 @@ export default function TripDetailPage({
               {data ? (
                 <button
                   type="button"
-                  className="primary-button trip-detail-action-button trip-detail-action-button-primary"
+                  className="ghost-button trip-detail-action-button trip-detail-action-button-primary"
                   onClick={openTripEditor}
                 >
                   编辑行程
+                </button>
+              ) : null}
+              {data && onOpenTripStory ? (
+                <button
+                  type="button"
+                  className="ghost-button trip-detail-action-button trip-detail-action-button-secondary"
+                  onClick={() => onOpenTripStory(tripId)}
+                >
+                  查看故事页
                 </button>
               ) : null}
               {data ? (
@@ -282,14 +298,7 @@ export default function TripDetailPage({
           </section>
         ) : null}
 
-        {loading ? (
-          <section className="card trip-detail-state-card">
-            <strong>正在加载行程详情...</strong>
-            <p>正在聚合这段旅程里的记录、攻略和照片。</p>
-          </section>
-        ) : null}
-
-        {!loading && errorMessage ? (
+        {errorMessage ? (
           <section className="card trip-detail-state-card trip-detail-state-card-error">
             <strong>{isTripDetailNotFoundError(errorMessage) ? '行程不存在或无权访问' : '行程详情加载失败'}</strong>
             <p>{errorMessage}</p>
@@ -380,7 +389,7 @@ export default function TripDetailPage({
           }}
         />
 
-        {!loading && data ? (
+        {data ? (
           <>
             <section className="trip-detail-summary-grid">
               {summaryCards.map((card) => (

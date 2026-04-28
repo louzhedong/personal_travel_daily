@@ -6,6 +6,7 @@ import AuthPage from './auth/AuthPage';
 import TravelApp from './TravelApp';
 import StatsPage from './stats/StatsPage';
 import TripDetailPage from './trips/TripDetailPage';
+import TripStoryPage from './trips/TripStoryPage';
 import AnnualReviewPage from './yearbook/AnnualReviewPage';
 // 中文：统一从 app/router 模块消费手写路由（类型 / 工厂 / hook）。
 // English: consume the hand-rolled router (types / factories / hook) from app/router.
@@ -18,6 +19,7 @@ import {
   createStatsRoute,
   createTripChecklistRoute,
   createTripDetailRoute,
+  createTripStoryRoute,
   useAppRouter,
   type AppRoute,
 } from './app/router';
@@ -61,6 +63,8 @@ function App() {
           nextRoute = createAdminRoute();
         } else if (route.kind === 'tripDetail') {
           nextRoute = createTripDetailRoute(route.tripId);
+        } else if (route.kind === 'tripStory') {
+          nextRoute = createTripStoryRoute(route.tripId);
         } else if (route.kind === 'tripChecklist') {
           nextRoute = createTripChecklistRoute(route.tripId);
         } else if (route.kind === 'annualReview') {
@@ -160,6 +164,18 @@ function App() {
         onLogout={handleLogout}
         onNavigateBack={() => goBackOrReplace(createStatsRoute())}
         onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
+        onOpenTripStory={(tripId) => navigate(createTripStoryRoute(tripId))}
+      />
+    );
+  }
+
+  if (route.kind === 'tripStory') {
+    return (
+      <TripStoryPage
+        account={account}
+        tripId={route.tripId}
+        onLogout={handleLogout}
+        onNavigateBack={() => goBackOrReplace(createTripDetailRoute(route.tripId))}
       />
     );
   }

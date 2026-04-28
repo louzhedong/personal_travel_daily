@@ -248,3 +248,175 @@
   background: rgba(241, 245, 249, 0.9);
   border: 0;
 }
+
+.route-skeleton-stage {
+  min-height: 100vh;
+  padding: 28px max(28px, env(safe-area-inset-right)) 40px max(28px, env(safe-area-inset-left));
+  background:
+    linear-gradient(180deg, rgba(241, 245, 249, 0.96), rgba(248, 250, 252, 1)),
+    #f8fafc;
+}
+
+.route-skeleton-shell {
+  width: min(1180px, calc(100vw - 56px));
+  margin: 0 auto;
+  display: grid;
+  gap: 20px;
+}
+
+.route-skeleton-hero,
+.route-skeleton-card,
+.route-skeleton-panel {
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.route-skeleton-hero {
+  min-height: 320px;
+  padding: 46px 56px;
+  display: grid;
+  align-content: end;
+  gap: 16px;
+}
+
+.route-skeleton-hero-story {
+  min-height: 430px;
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.86), rgba(30, 41, 59, 0.58)),
+    linear-gradient(135deg, #334155, #0f172a);
+}
+
+.route-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.route-skeleton-card {
+  min-height: 132px;
+  padding: 18px;
+}
+
+.route-skeleton-panel {
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+}
+
+.route-skeleton-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.route-skeleton-panel-body {
+  display: grid;
+  gap: 12px;
+}
+
+.route-skeleton-line,
+.route-skeleton-pill,
+.route-skeleton-row {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f8fafc 48%, #e2e8f0 100%);
+  background-size: 220% 100%;
+  animation: routeSkeletonPulse 1.35s ease-in-out infinite;
+}
+
+.route-skeleton-hero-story .route-skeleton-line,
+.route-skeleton-hero-story .route-skeleton-pill {
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.32), rgba(226, 232, 240, 0.52), rgba(148, 163, 184, 0.32));
+  background-size: 220% 100%;
+}
+
+.route-skeleton-kicker {
+  width: 160px;
+  height: 18px;
+}
+
+.route-skeleton-title {
+  width: min(560px, 82%);
+  height: 54px;
+  border-radius: 18px;
+}
+
+.route-skeleton-copy {
+  width: min(620px, 88%);
+  height: 18px;
+}
+
+.route-skeleton-copy-short {
+  width: min(420px, 62%);
+}
+
+.route-skeleton-action-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.route-skeleton-pill {
+  width: 118px;
+  height: 42px;
+}
+
+.route-skeleton-card-label {
+  width: 70px;
+  height: 14px;
+}
+
+.route-skeleton-card-value {
+  width: 52px;
+  height: 34px;
+  margin: 18px 0 14px;
+  border-radius: 12px;
+}
+
+.route-skeleton-card-copy {
+  width: 86%;
+  height: 14px;
+}
+
+.route-skeleton-section-title {
+  width: 180px;
+  height: 28px;
+  margin-top: 10px;
+  border-radius: 12px;
+}
+
+.route-skeleton-section-copy {
+  width: min(360px, 40%);
+  height: 18px;
+}
+
+.route-skeleton-row {
+  height: 72px;
+  border-radius: 18px;
+}
+
+.route-skeleton-row-short {
+  width: 72%;
+}
+
+.route-inline-skeleton {
+  display: grid;
+  gap: 20px;
+}
+
+.stats-loading-card.stats-loading-card-hidden {
+  display: none;
+}
+
+@keyframes routeSkeletonPulse {
+  0% {
+    background-position: 120% 0;
+  }
+
+  100% {
+    background-position: -120% 0;
+  }
+}

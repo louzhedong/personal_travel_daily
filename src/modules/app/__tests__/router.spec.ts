@@ -5,6 +5,7 @@ import {
   createHomeRoute,
   createTripChecklistRoute,
   createTripDetailRoute,
+  createTripStoryRoute,
   parsePathname,
   pushRoute,
   replaceRoute,
@@ -29,6 +30,11 @@ describe('router', () => {
       pathname: '/trips/trip-1',
       tripId: 'trip-1',
     });
+    expect(parsePathname('/trips/trip-1/story')).toEqual({
+      kind: 'tripStory',
+      pathname: '/trips/trip-1/story',
+      tripId: 'trip-1',
+    });
     expect(parsePathname('/trips/trip-1/checklist')).toEqual({
       kind: 'tripChecklist',
       pathname: '/trips/trip-1/checklist',
@@ -51,6 +57,11 @@ describe('router', () => {
     expect(createTripChecklistRoute('trip 1')).toEqual({
       kind: 'tripChecklist',
       pathname: '/trips/trip%201/checklist',
+      tripId: 'trip 1',
+    });
+    expect(createTripStoryRoute('trip 1')).toEqual({
+      kind: 'tripStory',
+      pathname: '/trips/trip%201/story',
       tripId: 'trip 1',
     });
     expect(createAnnualReviewRoute('2026/summary')).toEqual({

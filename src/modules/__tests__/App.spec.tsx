@@ -113,6 +113,10 @@ vi.mock('../trips/TripDetailPage', () => ({
   default: ({ tripId }: { tripId: string }) => <div data-testid="trip-detail-page">trip-detail-{tripId}</div>,
 }));
 
+vi.mock('../trips/TripStoryPage', () => ({
+  default: ({ tripId }: { tripId: string }) => <div data-testid="trip-story-page">trip-story-{tripId}</div>,
+}));
+
 vi.mock('../trips/TripChecklistPage', () => ({
   default: ({ tripId }: { tripId: string }) => (
     <div data-testid="trip-checklist-page">trip-checklist-{tripId}</div>
@@ -352,6 +356,15 @@ describe('App auth and guide permissions', () => {
 
     expect(await screen.findByTestId('trip-checklist-page')).toHaveTextContent('trip-checklist-trip-1');
     expect(window.location.pathname).toBe('/trips/trip-1/checklist');
+  });
+
+  it('allows authenticated users to access /trips/:id/story and renders the story page', async () => {
+    window.history.replaceState({}, '', '/trips/trip-1/story');
+
+    render(<App />);
+
+    expect(await screen.findByTestId('trip-story-page')).toHaveTextContent('trip-story-trip-1');
+    expect(window.location.pathname).toBe('/trips/trip-1/story');
   });
 
   it('allows authenticated users to access /stats and renders the standalone stats page', async () => {
