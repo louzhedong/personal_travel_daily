@@ -1,12 +1,14 @@
 import { createNotFoundError } from '../errors.js';
 import { getPrismaClient } from '../prisma.js';
 import { findTripDetailSource } from '../repositories/tripDetailRepository.js';
+import { listActiveTripChecklistItemsByTripId } from '../repositories/tripChecklistRepository.js';
 import {
   serializeTripDetail,
   serializeTripDetailGuide,
   serializeTripDetailMarker,
   type TripDetailModel,
 } from '../serializers/tripDetailSerializer.js';
+import { buildTripChecklistGroups, buildTripChecklistSummary } from '../serializers/tripChecklistSerializer.js';
 
 type TripDetailSource = NonNullable<Awaited<ReturnType<typeof findTripDetailSource>>>;
 type TripDetailMarkerSource = TripDetailSource['markers'][number];
@@ -112,6 +114,7 @@ export async function getTripDetail(accountId: string, tripId: string) {
     throw createNotFoundError('trip not found');
   }
 
+  const checklistItems = await listActiveTripChecklistItemsByTripId(prisma, accountId, tripId);
   const guides = buildGuides(source.markers);
   const photos = buildPhotos(source.markers);
   const model: TripDetailModel = {
@@ -121,6 +124,8 @@ export async function getTripDetail(accountId: string, tripId: string) {
     markers: source.markers.map(serializeTripDetailMarker),
     photos,
     guides,
+    checklistSummary: buildTripChecklistSummary(checklistItems),
+    checklistGroups: buildTripChecklistGroups(checklistItems),
     meta: {
       generatedAt: new Date(),
     },

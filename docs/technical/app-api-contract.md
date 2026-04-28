@@ -6,6 +6,7 @@
 
 - 提供旅行主数据聚合加载能力
 - 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史的服务端读写接口
+- 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史，以及 trip-bound 行前清单的服务端读写接口
 - 作为前端 `remoteTravelStoreRepository` 的默认数据源
 
 ## 当前后端实现对照 / Current Backend Architecture References
@@ -589,6 +590,21 @@ Summary: The API contract maps directly onto the current backend layering of rou
       }
     }
   ],
+  "checklistSummary": {
+    "total": 3,
+    "preDepartureCount": 2,
+    "inTransitCount": 1,
+    "doneCount": 0
+  },
+  "checklistGroups": [
+    {
+      "stage": "pre_departure",
+      "title": "出发前准备",
+      "description": "把预约、路线、装备和行前确认放在这里。",
+      "itemCount": 2,
+      "items": []
+    }
+  ],
   "meta": {
     "generatedAt": "2026-05-06T00:00:00.000Z"
   }
@@ -601,6 +617,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - 行程不存在、已删除或不属于当前账号时统一返回 `404 NOT_FOUND`
 - `guides` 会去重同一攻略的重复关联，优先保留最新保存记录
 - `photos` 仅包含当前行程记录上的图片
+- `checklistSummary` 与 `checklistGroups` 直接内嵌在详情响应中，供 `/trips/:id` 首屏展示行前清单面板
 
 错误：
 
@@ -608,6 +625,139 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - `401 UNAUTHORIZED`
 - `404 NOT_FOUND`
 - `503 DATABASE_UNAVAILABLE`
+
+### `GET /api/trips/:id/checklist`
+
+用途：
+
+- 返回某个行程当前的行前清单分组与摘要
+- 供 `/trips/:id/checklist` 放大页与详情页局部刷新使用
+
+成功响应示例：
+
+```json
+{
+  "summary": {
+    "total": 3,
+    "preDepartureCount": 2,
+    "inTransitCount": 1,
+    "doneCount": 0
+  },
+  "groups": [
+    {
+      "stage": "pre_departure",
+      "title": "出发前准备",
+      "description": "把预约、路线、装备和行前确认放在这里。",
+      "itemCount": 2,
+      "items": [
+        {
+          "id": "item-1",
+          "companionId": "user-alice",
+          "companionName": "小悠",
+          "companionColor": "#2563eb",
+          "title": "提前确认清水寺预约方式",
+          "note": "尽量避开中午高峰",
+          "stage": "pre_departure",
+          "sortOrder": 0,
+          "origin": "generated",
+          "sourceGuideTitle": "京都春日路线",
+          "sourceGuideSourceName": "示例来源",
+          "sourceGuideSourceUrl": "https://example.com/guides/kyoto",
+          "sourceSnippet": "建议提前预约热门景点",
+          "createdAt": "2026-05-01T00:00:00.000Z",
+          "updatedAt": "2026-05-01T00:00:00.000Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### `POST /api/trips/:id/checklist/generate`
+
+请求体：
+
+```json
+{
+  "companionId": "user-alice",
+  "guide": {
+    "title": "京都春日路线",
+    "summary": "适合第一次去京都的三天行程。",
+    "sourceName": "示例来源",
+    "sourceUrl": "https://example.com/guides/kyoto"
+  }
+}
+```
+
+规则：
+
+- 需要登录
+- `id` 必须是当前账号可访问的行程
+- 服务端会优先读取 `guide-api` 正文，再按固定规则提炼 3~8 条清单项
+- 若正文不可用，则自动回退到 `guide.summary`
+- 同一行程下会按“来源攻略 + 标准化标题”去重，避免重复生成
+
+成功响应：
+
+```json
+{
+  "createdCount": 4,
+  "deduplicatedCount": 1,
+  "items": []
+}
+```
+
+### `POST /api/trips/:id/checklist/items`
+
+请求体：
+
+```json
+{
+  "companionId": "user-alice",
+  "title": "准备机场到市区交通方案",
+  "note": "优先考虑地铁和巴士接驳",
+  "stage": "pre_departure"
+}
+```
+
+规则：
+
+- 手动新增一条 trip-bound checklist item
+- `stage` 固定为 `pre_departure | in_transit | done`
+- `title` 长度 `1-120`
+- `note` 最多 `500` 字符
+
+### `PATCH /api/trips/:id/checklist/items/:itemId`
+
+请求体：
+
+```json
+{
+  "stage": "done",
+  "note": "已完成预约"
+}
+```
+
+规则：
+
+- 至少提交一个字段
+- 可更新 `title`、`note`、`stage`、`sortOrder`
+- 当 `stage` 变化且未显式传 `sortOrder` 时，服务端会自动将其放到新分组末尾
+
+### `DELETE /api/trips/:id/checklist/items/:itemId`
+
+成功响应：
+
+```json
+{
+  "deletedId": "item-1"
+}
+```
+
+规则：
+
+- 删除采用软删除
+- 当前账号不可访问的行程或条目统一返回 `404 NOT_FOUND`
 
 ### `PATCH /api/companions/:id`
 
@@ -939,6 +1089,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - `src/lib/api/markersApi.ts`
 - `src/lib/api/savedGuidesApi.ts`
 - `src/lib/api/guideSearchHistoryApi.ts`
+- `src/lib/api/tripsApi.ts`
 - `src/lib/repositories/remoteTravelStoreRepository.ts`
 
 ## 联调建议

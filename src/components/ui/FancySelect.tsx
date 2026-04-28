@@ -35,6 +35,7 @@ export function FancySelect({
   const [open, setOpen] = useState(false);
   const [menuRect, setMenuRect] = useState<{ left: number; top: number; width: number } | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const selectedOption = useMemo(
     () => options.find((option) => option.value === value),
@@ -43,7 +44,10 @@ export function FancySelect({
 
   useEffect(() => {
     const handleOutside = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedInsideTrigger = rootRef.current?.contains(target);
+      const clickedInsideMenu = menuRef.current?.contains(target);
+      if (!clickedInsideTrigger && !clickedInsideMenu) {
         setOpen(false);
       }
     };
@@ -81,6 +85,7 @@ export function FancySelect({
 
   const menu = open ? (
     <div
+      ref={menuRef}
       className={`fancy-select-menu ${menuClassName}`.trim()}
       style={
         usePortal && menuRect

@@ -39,6 +39,42 @@ export interface TripCollection {
   createdAt: string;
 }
 
+export type TripChecklistStage = 'pre_departure' | 'in_transit' | 'done';
+
+export interface TripChecklistItem {
+  id: string;
+  companionId: string;
+  companionName: string;
+  companionColor: string;
+  title: string;
+  note?: string;
+  stage: TripChecklistStage;
+  sortOrder: number;
+  origin: 'generated' | 'manual';
+  sourceGuideIdentity?: string;
+  sourceGuideTitle?: string;
+  sourceGuideSourceName?: string;
+  sourceGuideSourceUrl?: string;
+  sourceSnippet?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TripChecklistGroup {
+  stage: TripChecklistStage;
+  title: string;
+  description: string;
+  itemCount: number;
+  items: TripChecklistItem[];
+}
+
+export interface TripChecklistSummary {
+  total: number;
+  preDepartureCount: number;
+  inTransitCount: number;
+  doneCount: number;
+}
+
 export interface VisitMarker {
   id: string;
   userId: string;

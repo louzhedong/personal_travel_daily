@@ -9,6 +9,7 @@ const envSchema = z.object({
   APP_DEFAULT_ACCOUNT_NAME: z.string().default('Voyage Atlas'),
   APP_DEFAULT_ACCOUNT_USERNAME: z.string().default('demo'),
   APP_DEFAULT_ACCOUNT_PASSWORD: z.string().default('demo123456'),
+  GUIDE_API_BASE_URL: z.string().url().default('http://127.0.0.1:8383'),
 });
 
 export type AppApiEnv = z.infer<typeof envSchema>;

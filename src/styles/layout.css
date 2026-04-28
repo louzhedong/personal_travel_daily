@@ -4,6 +4,69 @@
   padding: 24px;
 }
 
+.app-toast-layer {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 260;
+  pointer-events: none;
+}
+
+.app-toast {
+  min-width: min(420px, calc(100vw - 32px));
+  max-width: min(460px, calc(100vw - 32px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(14px);
+}
+
+.app-toast-success {
+  border-color: rgba(45, 212, 191, 0.4);
+  background: linear-gradient(135deg, rgba(240, 253, 250, 0.98), rgba(255, 255, 255, 0.96));
+}
+
+.app-toast-error {
+  border-color: rgba(248, 113, 113, 0.34);
+  background: linear-gradient(135deg, rgba(254, 242, 242, 0.98), rgba(255, 255, 255, 0.96));
+}
+
+.app-toast-info {
+  border-color: rgba(147, 197, 253, 0.42);
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.98), rgba(255, 255, 255, 0.96));
+}
+
+.app-toast-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #2563eb;
+  box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.12);
+}
+
+.app-toast-success .app-toast-dot {
+  background: #14b8a6;
+  box-shadow: 0 0 0 5px rgba(20, 184, 166, 0.12);
+}
+
+.app-toast-error .app-toast-dot {
+  background: #ef4444;
+  box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.12);
+}
+
+.app-toast-message {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
 .app-back-to-top {
   position: fixed;
   right: 28px;

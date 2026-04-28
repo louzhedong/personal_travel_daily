@@ -57,6 +57,9 @@ interface AppOverlaysProps {
   onAttachGuideToMarker: (guide: GuideSearchResult, keyword: string, markerId: string) => void;
   guideSearchHistory: GuideSearchHistoryItem[];
   onSaveSearchHistory: (keyword: string, scope: Scope | 'all') => Promise<GuideSearchHistoryItem[]>;
+  onGenerateTripChecklist: (tripId: string, guide: GuideSearchResult) => Promise<{ createdCount: number } | void>;
+  onOpenTripDetail: (tripId: string) => void;
+  onOpenTripChecklist: (tripId: string) => void;
 }
 
 export default function AppOverlays({
@@ -91,6 +94,9 @@ export default function AppOverlays({
   onAttachGuideToMarker,
   guideSearchHistory,
   onSaveSearchHistory,
+  onGenerateTripChecklist,
+  onOpenTripDetail,
+  onOpenTripChecklist,
 }: AppOverlaysProps) {
   return (
     <>
@@ -195,6 +201,10 @@ export default function AppOverlays({
         onAttachGuideToMarker={onAttachGuideToMarker}
         onRemoveSavedGuide={onRemoveSavedGuide}
         onSaveSearchHistory={onSaveSearchHistory}
+        trips={store.trips ?? []}
+        onGenerateTripChecklist={onGenerateTripChecklist}
+        onOpenTripDetail={onOpenTripDetail}
+        onOpenTripChecklist={onOpenTripChecklist}
       />
     </>
   );

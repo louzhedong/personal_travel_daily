@@ -1,10 +1,26 @@
-import type { SavedGuide, Trip, TravelCompanion, VisitMarker, VisitMarkerImage } from '@prisma/client';
+import type {
+  SavedGuide,
+  Trip,
+  TravelCompanion,
+  TripChecklistItem,
+  VisitMarker,
+  VisitMarkerImage,
+} from '@prisma/client';
 import type {
   GuideContentBlockDto,
   GuideDocumentDto,
   GuideSearchResultDto,
+  TripChecklistGroupDto,
+  TripChecklistItemDto,
   TripDetailResponseDto,
 } from '../types.js';
+import {
+  normalizeMarkerBudgetLevel,
+  normalizeMarkerMood,
+  normalizeMarkerTags,
+  normalizeMarkerTransport,
+  normalizeMarkerWeather,
+} from './bootstrap/markers.js';
 
 export interface TripDetailModel {
   trip: Trip;
@@ -26,6 +42,8 @@ export interface TripDetailModel {
       savedAt: Date;
     }
   >;
+  checklistSummary: TripDetailResponseDto['checklistSummary'];
+  checklistGroups: TripDetailResponseDto['checklistGroups'];
   meta: {
     generatedAt: Date;
   };
@@ -115,6 +133,42 @@ export function serializeTripDetailGuide(savedGuide: SavedGuide) {
   };
 }
 
+export function serializeTripChecklistItem(
+  item: TripChecklistItem & {
+    createdByCompanion: TravelCompanion;
+  },
+): TripChecklistItemDto {
+  return {
+    id: item.id,
+    companionId: item.createdByCompanionId,
+    companionName: item.createdByCompanion.name,
+    companionColor: item.createdByCompanion.color,
+    title: item.title,
+    note: item.note ?? undefined,
+    stage: item.stage,
+    sortOrder: item.sortOrder,
+    origin: item.origin === 'manual' ? 'manual' : 'generated',
+    sourceGuideIdentity: item.sourceGuideIdentity ?? undefined,
+    sourceGuideTitle: item.sourceGuideTitle ?? undefined,
+    sourceGuideSourceName: item.sourceGuideSourceName ?? undefined,
+    sourceGuideSourceUrl: item.sourceGuideSourceUrl ?? undefined,
+    sourceSnippet: item.sourceSnippet ?? undefined,
+    createdAt: toIsoString(item.createdAt),
+    updatedAt: toIsoString(item.updatedAt),
+  };
+}
+
+export function buildTripChecklistGroupMeta(stage: TripChecklistGroupDto['stage']) {
+  switch (stage) {
+    case 'pre_departure':
+      return { title: '出发前准备', description: '把预约、路线、装备和行前确认放在这里。' };
+    case 'in_transit':
+      return { title: '旅途中留意', description: '把路上节奏、交通衔接和现场提醒收在这里。' };
+    case 'done':
+      return { title: '已经完成', description: '完成的事项会沉淀到这一组，方便回看。' };
+  }
+}
+
 export function buildTripDetailMarkerImageUrls(marker: VisitMarker & { images: VisitMarkerImage[] }) {
   const imageUrls = marker.images.map((image) => image.imageUrl).filter(Boolean);
   return imageUrls.length > 0 ? imageUrls : undefined;
@@ -133,6 +187,11 @@ export function serializeTripDetailMarker(
     scopeName: marker.scopeName,
     city: marker.city,
     note: marker.note,
+    tags: normalizeMarkerTags(marker.tags),
+    mood: normalizeMarkerMood(marker.mood),
+    weather: normalizeMarkerWeather(marker.weather),
+    transport: normalizeMarkerTransport(marker.transport),
+    budgetLevel: normalizeMarkerBudgetLevel(marker.budgetLevel),
     imageUrls: buildTripDetailMarkerImageUrls(marker),
     visitedStartAt: marker.visitedStartAt,
     visitedEndAt: marker.visitedEndAt,
@@ -165,6 +224,8 @@ export function serializeTripDetail(model: TripDetailModel): TripDetailResponseD
       ...guide,
       savedAt: toIsoString(guide.savedAt),
     })),
+    checklistSummary: model.checklistSummary,
+    checklistGroups: model.checklistGroups,
     meta: {
       generatedAt: toIsoString(model.meta.generatedAt),
     },

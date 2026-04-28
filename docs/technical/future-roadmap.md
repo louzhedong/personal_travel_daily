@@ -44,9 +44,23 @@ Summary: The stats center and trip detail loop ships with drill-through and map 
   - 收藏、搜索历史、关联到记录与回跳链路。
 - 后续增强：
   - 攻略质量治理。
-  - 行前准备清单与结构化提炼。
+  - 攻略质量治理后的来源治理与质量评分。
 
 Summary: Guide search, reading, save, and linking are all production-ready.
+
+### 攻略提炼为行前清单 / Guide-to-Checklist Workflow
+
+- 状态：已完成第一阶段闭环。
+- 已落地范围：
+  - 支持从攻略搜索结果即刻生成绑定到某个行程的行前清单，不要求先收藏。
+  - 自动优先基于攻略正文提炼 3~8 条清单项，失败时会回退到搜索摘要。
+  - 清单按 `出发前 / 旅途中 / 已完成` 三段分组，并支持手动新增、编辑、删除和切换阶段。
+  - 行程详情页 `/trips/:id` 已内嵌清单面板，同时提供独立放大页 `/trips/:id/checklist`。
+- 后续增强：
+  - 支持从收藏攻略发起生成。
+  - 引入更强的来源治理、拖拽排序与多攻略合并整理。
+
+Summary: Guide-to-checklist now ships as a first-phase loop from search-result generation through trip-bound checklist management and an expanded checklist page.
 
 ### 认证、后台与主数据层 / Auth, Admin, and Persistent Data
 
@@ -134,6 +148,7 @@ Summary: Marker tags and lightweight metadata now ship as a first-phase closed l
 - 地图回放一期已上线，首页地图卡片内嵌回放控制条、移动圆点与国家级路径回放。
 - Map Replay Phase 1 is shipped inside the homepage map card with inline controls, moving dot labels, and country-level path replay.
 - 攻略搜索、正文阅读增强、搜索历史、收藏、关联到旅行记录与返回链路已经打通。
+- 攻略搜索结果已支持直接生成绑定到行程的行前清单，并在行程详情与独立清单页中持续管理。
 - 登录注册、Cookie Session、管理员只读后台、搜索行为日志和 MySQL / Prisma 持久化主链路已经可用。
 - Docker MySQL + Adminer、本地 seed、`db:prepare-demo`、迁移工作流与关键前后端测试已经具备。
 
@@ -162,18 +177,7 @@ This means the next roadmap should amplify the value of existing data assets ins
 
 ## 下一阶段路线图 / Next-Phase Roadmap
 
-### 1. 攻略提炼为行前清单 / Guide-to-Checklist Workflow
-
-- 优先级：`P1`
-- 为什么值得做：
-  - 当前攻略已经"可查、可读、可存"，但还没有变成真正可执行的准备材料。
-- 建议范围：
-  - 从收藏攻略中提取"必做事项 / 交通提示 / 注意事项"。
-  - 手动整理为清单。
-  - 清单绑定某个行程。
-  - 支持标记完成状态，区分"出发前 / 旅途中 / 已完成"。
-
-### 2. 旅行故事页 / Travel Story Page
+### 1. 旅行故事页 / Travel Story Page
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -184,7 +188,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 支持"杂志风"和"纪念册风"两种模板。
   - 第一阶段先做本地只读页。
 
-### 3. 城市愿望清单 / Wishlist Map
+### 2. 城市愿望清单 / Wishlist Map
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -196,7 +200,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 可从攻略搜索结果一键加入愿望清单。
   - 后续可与行程规划联动。
 
-### 4. 旅行成就系统 / Travel Achievement System
+### 3. 旅行成就系统 / Travel Achievement System
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -206,7 +210,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 在统计页或年度回顾页展示。
   - 成就支持时间维度和里程碑解释。
 
-### 5. 搜索增强 / Search Enhancements
+### 4. 搜索增强 / Search Enhancements
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -217,7 +221,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 搜索结果分页加载更多。
   - 后台按关键词和时间范围查看搜索趋势。
 
-### 6. 旅伴协作与共同回忆 / Companion Collaboration
+### 5. 旅伴协作与共同回忆 / Companion Collaboration
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -227,7 +231,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 同一行程下不同旅伴的视角统计。
   - 未来可扩展到真实邀请协作，但第一阶段可先做"共同回忆聚合"。
 
-### 7. 账号设置与同步治理 / Account Settings and Sync Governance
+### 6. 账号设置与同步治理 / Account Settings and Sync Governance
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -237,7 +241,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 最近登录设备、会话治理。
   - 冲突策略和同步状态提示。
 
-### 8. 来源治理与内容质量评分 / Source Governance and Content Quality
+### 7. 来源治理与内容质量评分 / Source Governance and Content Quality
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -248,7 +252,7 @@ This means the next roadmap should amplify the value of existing data assets ins
   - 结果质量评分。
   - 失效内容与抓取异常监控。
 
-### 9. 架构继续瘦身 / Continued Architecture Slimming
+### 8. 架构继续瘦身 / Continued Architecture Slimming
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -262,15 +266,14 @@ This means the next roadmap should amplify the value of existing data assets ins
 
 建议按下面顺序推进（已完成项已挪到文档开头）：
 
-1. 攻略提炼为行前清单 / Guide-to-Checklist Workflow
-2. 旅行故事页 / Travel Story Page
-3. 城市愿望清单 / Wishlist Map
-4. 旅行成就系统 / Travel Achievement System
-5. 搜索增强 / Search Enhancements
-6. 旅伴协作与共同回忆 / Companion Collaboration
-7. 账号设置与同步治理 / Account Settings and Sync Governance
-8. 来源治理与内容质量评分 / Source Governance and Content Quality
-9. 架构继续瘦身 / Continued Architecture Slimming
+1. 旅行故事页 / Travel Story Page
+2. 城市愿望清单 / Wishlist Map
+3. 旅行成就系统 / Travel Achievement System
+4. 搜索增强 / Search Enhancements
+5. 旅伴协作与共同回忆 / Companion Collaboration
+6. 账号设置与同步治理 / Account Settings and Sync Governance
+7. 来源治理与内容质量评分 / Source Governance and Content Quality
+8. 架构继续瘦身 / Continued Architecture Slimming
 
 ## 选题原则 / Feature Selection Rules
 

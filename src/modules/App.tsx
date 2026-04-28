@@ -16,19 +16,30 @@ import {
   createLoginRoute,
   createRegisterRoute,
   createStatsRoute,
+  createTripChecklistRoute,
   createTripDetailRoute,
   useAppRouter,
   type AppRoute,
 } from './app/router';
+import TripChecklistPage from './trips/TripChecklistPage';
 
 function App() {
   // 中文：route / 导航动作均来自 useAppRouter，App.tsx 不再直接触碰 history。
   // English: route state and navigation actions come from useAppRouter; App.tsx
   // no longer manipulates window.history directly.
-  const { route, replace } = useAppRouter();
+  const { route, navigate, replace, goBack } = useAppRouter();
   const [account, setAccount] = useState<AuthAccount | null>(null);
   const [loading, setLoading] = useState(true);
   const [entryMessage, setEntryMessage] = useState<string | null>(null);
+
+  const goBackOrReplace = (fallbackRoute: AppRoute) => {
+    setEntryMessage(null);
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      goBack();
+      return;
+    }
+    replace(fallbackRoute);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -50,6 +61,8 @@ function App() {
           nextRoute = createAdminRoute();
         } else if (route.kind === 'tripDetail') {
           nextRoute = createTripDetailRoute(route.tripId);
+        } else if (route.kind === 'tripChecklist') {
+          nextRoute = createTripChecklistRoute(route.tripId);
         } else if (route.kind === 'annualReview') {
           nextRoute = createAnnualReviewRoute(route.year);
         } else if (route.kind === 'stats') {
@@ -120,8 +133,8 @@ function App() {
         mode={route.kind === 'register' ? 'register' : 'login'}
         onLogin={handleLogin}
         onRegister={handleRegister}
-        onNavigateLogin={() => replace(createLoginRoute())}
-        onNavigateRegister={() => replace(createRegisterRoute())}
+        onNavigateLogin={() => navigate(createLoginRoute())}
+        onNavigateRegister={() => navigate(createRegisterRoute())}
       />
     );
   }
@@ -133,7 +146,7 @@ function App() {
         onLogout={handleLogout}
         onNavigateHome={() => {
           setEntryMessage(null);
-          replace(createHomeRoute());
+          goBackOrReplace(createHomeRoute());
         }}
       />
     );
@@ -145,10 +158,19 @@ function App() {
         account={account}
         tripId={route.tripId}
         onLogout={handleLogout}
-        onNavigateBack={() => {
-          setEntryMessage(null);
-          replace(createStatsRoute());
-        }}
+        onNavigateBack={() => goBackOrReplace(createStatsRoute())}
+        onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
+      />
+    );
+  }
+
+  if (route.kind === 'tripChecklist') {
+    return (
+      <TripChecklistPage
+        account={account}
+        tripId={route.tripId}
+        onLogout={handleLogout}
+        onNavigateBack={() => goBackOrReplace(createTripDetailRoute(route.tripId))}
       />
     );
   }
@@ -159,11 +181,8 @@ function App() {
         account={account}
         year={route.year}
         onLogout={handleLogout}
-        onNavigateBack={() => {
-          setEntryMessage(null);
-          replace(createStatsRoute());
-        }}
-        onOpenTripDetail={(tripId) => replace(createTripDetailRoute(tripId))}
+        onNavigateBack={() => goBackOrReplace(createStatsRoute())}
+        onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
       />
     );
   }
@@ -175,10 +194,10 @@ function App() {
         onLogout={handleLogout}
         onNavigateHome={() => {
           setEntryMessage(null);
-          replace(createHomeRoute());
+          goBackOrReplace(createHomeRoute());
         }}
-        onOpenTripDetail={(tripId) => replace(createTripDetailRoute(tripId))}
-        onOpenAnnualReview={(year) => replace(createAnnualReviewRoute(year))}
+        onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
+        onOpenAnnualReview={(year) => navigate(createAnnualReviewRoute(year))}
       />
     );
   }
@@ -187,13 +206,14 @@ function App() {
     <TravelApp
       account={account}
       onLogout={handleLogout}
-      onOpenStats={() => replace(createStatsRoute())}
-      onOpenTripDetail={(tripId) => replace(createTripDetailRoute(tripId))}
+      onOpenStats={() => navigate(createStatsRoute())}
+      onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
+      onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
       onOpenAdmin={
         account.role === 'admin'
           ? () => {
               setEntryMessage(null);
-              replace(createAdminRoute());
+              navigate(createAdminRoute());
             }
           : undefined
       }

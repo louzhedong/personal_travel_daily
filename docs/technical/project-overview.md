@@ -47,6 +47,15 @@ Summary: Timeline aggregates the current companion's markers, supports filtering
 
 Summary: Trip Collection is a true content container with create / edit / delete, batch marker assignment, cover management, and a dedicated detail page.
 
+### 1.5B 攻略提炼为行前清单 / Guide-to-Checklist Workflow
+
+- 支持从攻略搜索结果直接发起“生成行前清单”，不要求先收藏。
+- 自动优先基于攻略正文提炼 `出发前 / 旅途中 / 已完成` 三段清单项，提炼失败时回退到摘要版生成。
+- 清单绑定到某个行程，在 `/trips/:id` 中内嵌展示，并可在 `/trips/:id/checklist` 独立放大查看。
+- 用户可手动新增、编辑、删除与切换清单项阶段。
+
+Summary: Guide-to-checklist turns search results into trip-bound checklist items with automatic extraction, manual editing, and both embedded and expanded views.
+
 ### 1.6 统计中心 / Stats Center
 
 - 独立统计中心 `/stats`，覆盖总览 KPI、年度趋势、月度分布、地区 / 城市 / 旅伴 / 行程排行、区域热力图、标签 / 心情 / 交通 / 预算级别排行与行程明细。
@@ -108,7 +117,7 @@ Summary: `/admin` is an admin-only read-only overview page whose permissions are
 
 ### 2.1 前端应用壳 / Frontend App Shell
 
-- `src/modules/App.tsx`：应用顶层容器。会话恢复、路由分流（`/login`、`/register`、`/admin`、`/`、`/trips/:id`、`/stats`、`/yearbook/:year` 等）、根据角色决定进入主应用或后台。
+- `src/modules/App.tsx`：应用顶层容器。会话恢复、路由分流（`/login`、`/register`、`/admin`、`/`、`/trips/:id`、`/trips/:id/checklist`、`/stats`、`/yearbook/:year` 等）、根据角色决定进入主应用或后台。
 - `src/modules/app/AppHero.tsx` / `AppContent.tsx` / `AppOverlays.tsx`：页面组合层。
 - `src/modules/app/useMapContext.ts`：地图范围、区域列表、选区、当前范围 marker 派生。
 - `src/modules/app/useTravelStoreActions.ts`：TravelStore 写操作（远端写入 + 本地回填）。
@@ -123,7 +132,8 @@ Summary: The frontend shell separates routing, page composition, map state, stor
 - `src/components/TravelMap.tsx`：地图主体，承载国内 / 国际切换、hover、轨迹弧线、回放控制条与移动圆点标签。
 - `src/components/MarkerList.tsx` / `MarkerDetailPanel.tsx`：旅行记录的列表与详情。
 - `src/components/TripTimelinePanel.tsx`：时间线面板，兼任"整理模式"与行程管理台。
-- `src/components/GuideSearchPanel.tsx`：攻略搜索、收藏、关联面板。
+- `src/components/GuideSearchPanel.tsx`：攻略搜索、收藏、关联与“生成行前清单”面板。
+- `src/components/trips/TripChecklistBoard.tsx`：行前清单的共享展示与编辑组件，供行程详情页和放大页复用。
 - `src/components/DataSync.tsx`：数据备份（仅导出）。
 
 Summary: Components follow module-scoped responsibilities; cross-feature flows use shared helpers instead of ad-hoc wiring.
@@ -143,7 +153,7 @@ Summary: Pure logic is pulled out of components into `src/lib` and per-module vi
 
 - `src/lib/api/httpClient.ts`：主业务 API 客户端基础能力，默认携带 `credentials`，本地开发优先走同源 `/api` 代理。
 - `src/lib/api/authApi.ts`：`register` / `login` / `fetchSession` / `logout`。
-- `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats` 等领域客户端。
+- `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats` 等领域客户端，其中 `tripsApi.ts` 继续承接 checklist 子资源。
 - `src/lib/repositories/remoteTravelStoreRepository.ts`：组合多个 API 调用，为页面层提供稳定边界。
 - `src/lib/repositories/*`：IndexedDB 仅保留攻略缓存与本地辅助状态，不再作为主数据持久化。
 
@@ -153,6 +163,7 @@ Summary: The frontend talks to the backend through typed API modules and a remot
 
 - `server/appApiServer.ts`：Fastify 入口。
 - `server/appApi/routes/*`：`auth` / `bootstrap` / `companions` / `markers` / `savedGuides` / `guideSearchHistories` / `trips` / `stats` / `admin` 等路由。
+- `server/appApi/services/tripChecklistService.ts` / `tripChecklistGenerationService.ts` / `guideDocumentService.ts`：行前清单查询、写操作、攻略正文提炼与回退策略。
 - `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、trip detail、admin overview 等）。
 - `server/appApi/auth/*`：`requestAuth`（恢复 / 鉴权）、`session`（token、cookie 序列化）、`password`（hash / verify）。
 - `server/appApi/repositories/*`：Prisma 查询封装。

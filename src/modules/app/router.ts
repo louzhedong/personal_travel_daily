@@ -32,6 +32,7 @@ export type AppRoute =
   | { kind: 'admin'; pathname: '/admin' }
   | { kind: 'stats'; pathname: '/stats' }
   | { kind: 'tripDetail'; pathname: string; tripId: string }
+  | { kind: 'tripChecklist'; pathname: string; tripId: string }
   | { kind: 'annualReview'; pathname: string; year: string };
 
 // ---------- 路由工厂 / Route factories ----------
@@ -64,6 +65,14 @@ export function createTripDetailRoute(tripId: string): AppRoute {
   };
 }
 
+export function createTripChecklistRoute(tripId: string): AppRoute {
+  return {
+    kind: 'tripChecklist',
+    pathname: `/trips/${encodeURIComponent(tripId)}/checklist`,
+    tripId,
+  };
+}
+
 export function createAnnualReviewRoute(year: string): AppRoute {
   return {
     kind: 'annualReview',
@@ -82,6 +91,11 @@ export function parsePathname(pathname: string): AppRoute {
   const annualReviewMatch = pathname.match(/^\/yearbook\/(\d{4})$/);
   if (annualReviewMatch) {
     return createAnnualReviewRoute(decodeURIComponent(annualReviewMatch[1]));
+  }
+
+  const tripChecklistMatch = pathname.match(/^\/trips\/([^/]+)\/checklist$/);
+  if (tripChecklistMatch) {
+    return createTripChecklistRoute(decodeURIComponent(tripChecklistMatch[1]));
   }
 
   const tripDetailMatch = pathname.match(/^\/trips\/([^/]+)$/);

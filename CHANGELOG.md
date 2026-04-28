@@ -5,6 +5,32 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-04-27
 
+### PR 待定 / TBD `feat: 攻略提炼为行前清单 / Add guide-to-checklist workflow`
+
+### Added / 新增
+
+- 新增 `TripChecklistItem` Prisma 模型、正式 migration 与 trip checklist API，支持 trip-bound 行前清单的查询、自动生成、手动新增、编辑、删除与阶段切换。  
+  Added the `TripChecklistItem` Prisma model, a formal migration, and trip-checklist APIs to support trip-bound checklist querying, automatic generation, manual creation, editing, deletion, and stage switching.
+- 新增独立放大页 `/trips/:id/checklist` 与共享组件 `TripChecklistBoard`，用于管理“出发前 / 旅途中 / 已完成”三段清单。  
+  Added the standalone `/trips/:id/checklist` page and the shared `TripChecklistBoard` component for managing the three checklist stages: pre-departure, in-transit, and done.
+- 新增 `docs/technical/guide-to-checklist-workflow.md`，系统记录正文提炼策略、trip-bound 模型、页面流和回退规则。  
+  Added `docs/technical/guide-to-checklist-workflow.md` to document the document-first extraction strategy, trip-bound model, page flow, and fallback rules.
+
+### Changed / 变更
+
+- `GuideSearchPanel` 与 `GuideSearchResultList` 现在支持从搜索结果直接生成行前清单，并在生成后跳转到行程详情或放大页。  
+  `GuideSearchPanel` and `GuideSearchResultList` now support generating trip checklists directly from search results and linking through to trip detail or the expanded page afterwards.
+- `TripDetailPage` 已内嵌固定高度的行前清单面板，并与行程详情聚合接口一起返回 checklist summary/groups。  
+  `TripDetailPage` now embeds a fixed-height checklist panel, and the trip-detail aggregate API returns checklist summaries and grouped items together.
+- 更新 `README.md`、`project-overview.md`、`future-roadmap.md` 与 `app-api-contract.md`，将“攻略提炼为行前清单”从 roadmap 待办迁移到当前已完成能力。  
+  Updated `README.md`, `project-overview.md`, `future-roadmap.md`, and `app-api-contract.md` to move the guide-to-checklist workflow from roadmap planning into the current shipped capability set.
+
+### Verified / 已验证
+
+- `npx tsc -p tsconfig.server.json --noEmit`
+- `npx tsc -p tsconfig.app.json --noEmit`
+- `npm run test -- --run server/__tests__/tripChecklistService.spec.ts server/__tests__/tripDetailService.spec.ts server/__tests__/appApiRoutes.spec.ts src/components/__tests__/GuideSearchPanel.spec.tsx src/modules/__tests__/TripDetailPage.spec.tsx src/modules/__tests__/TripChecklistPage.spec.tsx src/lib/api/__tests__/apiModules.spec.ts`
+
 ### PR 待定 / TBD `feat: 记录标签与轻量元数据闭环 / Add marker tags and lightweight metadata`
 
 ### Added / 新增

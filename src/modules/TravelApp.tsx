@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import AppToast, { type AppToastTone } from '../components/ui/AppToast';
 import StatsPanel from '../components/StatsPanel';
 import { searchMarkers } from '../lib/api/markersApi';
 import { createDefaultStore } from '../lib/storage';
@@ -19,10 +20,19 @@ interface TravelAppProps {
   onOpenAdmin?: () => void;
   onOpenStats?: () => void;
   onOpenTripDetail?: (tripId: string) => void;
+  onOpenTripChecklist?: (tripId: string) => void;
   entryMessage?: string | null;
 }
 
-function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, onOpenTripDetail, entryMessage }: TravelAppProps) {
+function TravelApp({
+  account,
+  onLogout,
+  onOpenAdmin,
+  onOpenStats,
+  onOpenTripDetail,
+  onOpenTripChecklist,
+  entryMessage,
+}: TravelAppProps) {
   const [store, setStore] = useState<TravelStore>(() => createDefaultStore());
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [detailMarkerId, setDetailMarkerId] = useState<string | null>(null);
@@ -36,6 +46,7 @@ function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, onOpenTripDeta
   const [dataSyncOpen, setDataSyncOpen] = useState(false);
   const [pendingDeleteMarkerId, setPendingDeleteMarkerId] = useState<string | null>(null);
   const [message, setMessage] = useState(entryMessage ?? '点击地图区域即可弹出表单，快速记录你的旅行足迹。');
+  const [toast, setToast] = useState<{ message: string; tone: AppToastTone } | null>(null);
 
   const closeMarkerModal = () => setMarkerModalOpen(false);
   const closeDataSync = () => setDataSyncOpen(false);
@@ -53,6 +64,22 @@ function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, onOpenTripDeta
       setMessage(entryMessage);
     }
   }, [entryMessage]);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToast(null);
+    }, 2800);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [toast]);
+
+  const showToast = (nextMessage: string, tone: AppToastTone = 'info') => {
+    setToast({ message: nextMessage, tone });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -141,10 +168,12 @@ function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, onOpenTripDeta
     handleAttachGuideToMarker,
     handleRemoveSavedGuide,
     handleSaveSearchHistory,
+    handleGenerateTripChecklist,
   } = useTravelStoreActions({
     store,
     setStore,
     setMessage,
+    showToast,
     setSaving,
     setSelectedRegionId,
     setMarkerModalOpen,
@@ -218,6 +247,7 @@ function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, onOpenTripDeta
 
   return (
     <div className="app-shell">
+      <AppToast open={!!toast} message={toast?.message ?? ''} tone={toast?.tone} />
       <AppHero
         message={message}
         onOpenGuideSearch={() => openGuideSearch('', 'all')}
@@ -303,6 +333,9 @@ function TravelApp({ account, onLogout, onOpenAdmin, onOpenStats, onOpenTripDeta
         onSaveGuide={handleSaveGuide}
         onAttachGuideToMarker={handleAttachGuideToMarker}
         onSaveSearchHistory={handleSaveSearchHistory}
+        onGenerateTripChecklist={handleGenerateTripChecklist}
+        onOpenTripDetail={(tripId) => onOpenTripDetail?.(tripId)}
+        onOpenTripChecklist={(tripId) => onOpenTripChecklist?.(tripId)}
       />
 
       <ConfirmDialog

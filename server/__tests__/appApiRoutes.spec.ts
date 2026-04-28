@@ -9,6 +9,11 @@ const mocks = vi.hoisted(() => ({
   getStatsOverviewMock: vi.fn(),
   getAnnualReviewMock: vi.fn(),
   getTripDetailMock: vi.fn(),
+  listTripChecklistMock: vi.fn(),
+  createTripChecklistItemResourceMock: vi.fn(),
+  updateTripChecklistItemResourceMock: vi.fn(),
+  deleteTripChecklistItemResourceMock: vi.fn(),
+  generateTripChecklistMock: vi.fn(),
   createCompanionRecordMock: vi.fn(),
   updateCompanionRecordMock: vi.fn(),
   createMarkerRecordMock: vi.fn(),
@@ -44,6 +49,14 @@ vi.mock('../appApi/services/statsService.js', () => ({
 
 vi.mock('../appApi/services/tripDetailService.js', () => ({
   getTripDetail: mocks.getTripDetailMock,
+}));
+
+vi.mock('../appApi/services/tripChecklistService.js', () => ({
+  listTripChecklist: mocks.listTripChecklistMock,
+  createTripChecklistItemResource: mocks.createTripChecklistItemResourceMock,
+  updateTripChecklistItemResource: mocks.updateTripChecklistItemResourceMock,
+  deleteTripChecklistItemResource: mocks.deleteTripChecklistItemResourceMock,
+  generateTripChecklist: mocks.generateTripChecklistMock,
 }));
 
 vi.mock('../appApi/services/companionService.js', () => ({
@@ -348,6 +361,35 @@ describe('app api routes', () => {
       markers: [],
       photos: [],
       guides: [],
+      checklistSummary: {
+        total: 2,
+        preDepartureCount: 1,
+        inTransitCount: 1,
+        doneCount: 0,
+      },
+      checklistGroups: [
+        {
+          stage: 'pre_departure',
+          title: '出发前准备',
+          description: '把预约、路线、装备和行前确认放在这里。',
+          itemCount: 1,
+          items: [],
+        },
+        {
+          stage: 'in_transit',
+          title: '旅途中留意',
+          description: '把路上节奏、交通衔接和现场提醒收在这里。',
+          itemCount: 1,
+          items: [],
+        },
+        {
+          stage: 'done',
+          title: '已经完成',
+          description: '完成的事项会沉淀到这一组，方便回看。',
+          itemCount: 0,
+          items: [],
+        },
+      ],
       meta: {
         generatedAt: '2026-04-22T00:00:00.000Z',
       },
@@ -363,6 +405,108 @@ describe('app api routes', () => {
       expect(response.statusCode).toBe(200);
       expect(mocks.getTripDetailMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1');
       expect(response.json().trip.name).toBe('江南春游');
+      expect(response.json().checklistSummary.total).toBe(2);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('supports trip checklist routes for authenticated accounts', async () => {
+    mocks.listTripChecklistMock.mockResolvedValue({
+      summary: { total: 1, preDepartureCount: 1, inTransitCount: 0, doneCount: 0 },
+      groups: [],
+    });
+    mocks.generateTripChecklistMock.mockResolvedValue({
+      createdCount: 3,
+      deduplicatedCount: 0,
+      items: [],
+    });
+    mocks.createTripChecklistItemResourceMock.mockResolvedValue({
+      id: 'item-1',
+      companionId: 'user-alice',
+      companionName: '小悠',
+      companionColor: '#2563eb',
+      title: '准备机场交通',
+      stage: 'pre_departure',
+      sortOrder: 0,
+      origin: 'manual',
+      createdAt: '2026-05-01T00:00:00.000Z',
+      updatedAt: '2026-05-01T00:00:00.000Z',
+    });
+    mocks.updateTripChecklistItemResourceMock.mockResolvedValue({
+      id: 'item-1',
+      companionId: 'user-alice',
+      companionName: '小悠',
+      companionColor: '#2563eb',
+      title: '准备机场交通',
+      stage: 'done',
+      sortOrder: 0,
+      origin: 'manual',
+      createdAt: '2026-05-01T00:00:00.000Z',
+      updatedAt: '2026-05-02T00:00:00.000Z',
+    });
+    mocks.deleteTripChecklistItemResourceMock.mockResolvedValue({
+      deletedId: 'item-1',
+    });
+
+    const app = await buildApp();
+    try {
+      const listResponse = await app.inject({
+        method: 'GET',
+        url: '/api/trips/trip-1/checklist',
+      });
+      const generateResponse = await app.inject({
+        method: 'POST',
+        url: '/api/trips/trip-1/checklist/generate',
+        payload: {
+          companionId: 'user-alice',
+          guide: {
+            title: '京都春日路线',
+            summary: '适合第一次去京都的三天行程。',
+            sourceName: 'Mock Guide',
+            sourceUrl: 'https://example.com/guides/kyoto',
+          },
+        },
+      });
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/trips/trip-1/checklist/items',
+        payload: {
+          companionId: 'user-alice',
+          title: '准备机场交通',
+          note: '优先地铁',
+          stage: 'pre_departure',
+        },
+      });
+      const updateResponse = await app.inject({
+        method: 'PATCH',
+        url: '/api/trips/trip-1/checklist/items/item-1',
+        payload: {
+          stage: 'done',
+        },
+      });
+      const deleteResponse = await app.inject({
+        method: 'DELETE',
+        url: '/api/trips/trip-1/checklist/items/item-1',
+      });
+
+      expect(listResponse.statusCode).toBe(200);
+      expect(generateResponse.statusCode).toBe(200);
+      expect(createResponse.statusCode).toBe(200);
+      expect(updateResponse.statusCode).toBe(200);
+      expect(deleteResponse.statusCode).toBe(200);
+      expect(mocks.listTripChecklistMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1');
+      expect(mocks.generateTripChecklistMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1', expect.any(Object));
+      expect(mocks.createTripChecklistItemResourceMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1', {
+        companionId: 'user-alice',
+        title: '准备机场交通',
+        note: '优先地铁',
+        stage: 'pre_departure',
+      });
+      expect(mocks.updateTripChecklistItemResourceMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1', 'item-1', {
+        stage: 'done',
+      });
+      expect(mocks.deleteTripChecklistItemResourceMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1', 'item-1');
     } finally {
       await app.close();
     }

@@ -44,6 +44,7 @@ const store: TravelStore = {
 describe('useMarkerActions', () => {
   const setStore = vi.fn();
   const setMessage = vi.fn();
+  const showToast = vi.fn();
   const setSaving = vi.fn();
   const setSelectedRegionId = vi.fn();
   const setMarkerModalOpen = vi.fn();
@@ -52,6 +53,7 @@ describe('useMarkerActions', () => {
   beforeEach(() => {
     setStore.mockReset();
     setMessage.mockReset();
+    showToast.mockReset();
     setSaving.mockReset();
     setSelectedRegionId.mockReset();
     setMarkerModalOpen.mockReset();
@@ -59,6 +61,7 @@ describe('useMarkerActions', () => {
     Object.values(remoteTravelStoreRepositoryMock).forEach((mock) => mock.mockReset());
     remoteTravelStoreRepositoryMock.createMarker.mockResolvedValue(store);
     remoteTravelStoreRepositoryMock.updateMarker.mockResolvedValue(store);
+    remoteTravelStoreRepositoryMock.deleteMarker.mockResolvedValue(store);
   });
 
   it('forwards metadata fields when creating a marker', async () => {
@@ -67,6 +70,7 @@ describe('useMarkerActions', () => {
         store,
         setStore,
         setMessage,
+        showToast,
         setSaving,
         setSelectedRegionId,
         setMarkerModalOpen,
@@ -109,6 +113,7 @@ describe('useMarkerActions', () => {
       visitedStartAt: '2026-04-01',
       visitedEndAt: '2026-04-05',
     });
+    expect(showToast).toHaveBeenCalledWith('已保存 小悠 在 京都府 · 京都 的旅行记录。', 'success');
   });
 
   it('forwards metadata fields when updating a marker', async () => {
@@ -117,6 +122,7 @@ describe('useMarkerActions', () => {
         store,
         setStore,
         setMessage,
+        showToast,
         setSaving,
         setSelectedRegionId,
         setMarkerModalOpen,
@@ -147,5 +153,27 @@ describe('useMarkerActions', () => {
       imageUrls: ['https://example.com/1.jpg'],
       tripId: 'trip-2',
     });
+    expect(showToast).toHaveBeenCalledWith('已更新 浙江 · 杭州 的旅行记录。', 'success');
+  });
+
+  it('shows a success toast after deleting a marker', async () => {
+    const { result } = renderHook(() =>
+      useMarkerActions({
+        store,
+        setStore,
+        setMessage,
+        showToast,
+        setSaving,
+        setSelectedRegionId,
+        setMarkerModalOpen,
+        setDetailMarkerId,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.handleDeleteMarker('marker-1');
+    });
+
+    expect(showToast).toHaveBeenCalledWith('已删除 浙江 · 杭州 的旅行记录。', 'success');
   });
 });

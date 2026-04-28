@@ -1,6 +1,16 @@
 import { httpClient, getResourceBaseUrl } from './httpClient';
-import type { TravelStore } from '../../types';
-import type { CreateTripInput, TripDetailResponseDto, UpdateTripInput } from './types';
+import type { TravelStore, TripChecklistItem } from '../../types';
+import type {
+  CreateTripInput,
+  CreateTripChecklistItemInput,
+  DeleteTripChecklistItemResponseDto,
+  GenerateTripChecklistInput,
+  GenerateTripChecklistResultDto,
+  TripChecklistResponseDto,
+  TripDetailResponseDto,
+  UpdateTripChecklistItemInput,
+  UpdateTripInput,
+} from './types';
 
 export async function createTrip(input: CreateTripInput) {
   return httpClient.post<TravelStore>(getResourceBaseUrl(), '/trips', input);
@@ -8,6 +18,26 @@ export async function createTrip(input: CreateTripInput) {
 
 export async function fetchTripDetail(id: string) {
   return httpClient.get<TripDetailResponseDto>(getResourceBaseUrl(), `/trips/${id}/detail`);
+}
+
+export async function fetchTripChecklist(id: string) {
+  return httpClient.get<TripChecklistResponseDto>(getResourceBaseUrl(), `/trips/${id}/checklist`);
+}
+
+export async function generateTripChecklist(id: string, input: GenerateTripChecklistInput) {
+  return httpClient.post<GenerateTripChecklistResultDto>(getResourceBaseUrl(), `/trips/${id}/checklist/generate`, input);
+}
+
+export async function createTripChecklistItem(id: string, input: CreateTripChecklistItemInput) {
+  return httpClient.post<TripChecklistItem>(getResourceBaseUrl(), `/trips/${id}/checklist/items`, input);
+}
+
+export async function updateTripChecklistItem(id: string, itemId: string, input: UpdateTripChecklistItemInput) {
+  return httpClient.patch<TripChecklistItem>(getResourceBaseUrl(), `/trips/${id}/checklist/items/${itemId}`, input);
+}
+
+export async function deleteTripChecklistItem(id: string, itemId: string) {
+  return httpClient.delete<DeleteTripChecklistItemResponseDto>(getResourceBaseUrl(), `/trips/${id}/checklist/items/${itemId}`);
 }
 
 export async function updateTrip(id: string, input: UpdateTripInput) {

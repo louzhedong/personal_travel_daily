@@ -28,7 +28,17 @@ import { createCompanion, updateCompanion } from '../companionsApi';
 import { createGuideSearchHistory, fetchGuideSearchHistories } from '../guideSearchHistoryApi';
 import { batchUpdateMarkersTrip, createMarker, deleteMarker, searchMarkers, updateMarker } from '../markersApi';
 import { createSavedGuide, deleteSavedGuide, fetchSavedGuides } from '../savedGuidesApi';
-import { createTrip, deleteTrip, fetchTripDetail, updateTrip } from '../tripsApi';
+import {
+  createTrip,
+  createTripChecklistItem,
+  deleteTrip,
+  deleteTripChecklistItem,
+  fetchTripChecklist,
+  fetchTripDetail,
+  generateTripChecklist,
+  updateTrip,
+  updateTripChecklistItem,
+} from '../tripsApi';
 import type { CreateMarkerInput } from '../types';
 
 describe('app api modules', () => {
@@ -87,8 +97,54 @@ describe('app api modules', () => {
 
   it('routes trip detail requests through the resource base url', async () => {
     await fetchTripDetail('trip-1');
+    await fetchTripChecklist('trip-1');
 
     expect(mocks.getMock).toHaveBeenCalledWith('/api', '/trips/trip-1/detail');
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/trips/trip-1/checklist');
+  });
+
+  it('forwards trip checklist generation and item mutations', async () => {
+    await generateTripChecklist('trip-1', {
+      companionId: 'user-alice',
+      guide: {
+        title: '京都春日路线',
+        summary: '适合第一次去京都的三天行程。',
+        sourceName: 'Mock Guide',
+        sourceUrl: 'https://example.com/guides/kyoto',
+      },
+    });
+    await createTripChecklistItem('trip-1', {
+      companionId: 'user-alice',
+      title: '提前预约清水寺周边时段',
+      note: '尽量避开中午高峰',
+      stage: 'pre_departure',
+    });
+    await updateTripChecklistItem('trip-1', 'item-1', {
+      stage: 'done',
+      note: '已预约完成',
+    });
+    await deleteTripChecklistItem('trip-1', 'item-1');
+
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/trips/trip-1/checklist/generate', {
+      companionId: 'user-alice',
+      guide: {
+        title: '京都春日路线',
+        summary: '适合第一次去京都的三天行程。',
+        sourceName: 'Mock Guide',
+        sourceUrl: 'https://example.com/guides/kyoto',
+      },
+    });
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/trips/trip-1/checklist/items', {
+      companionId: 'user-alice',
+      title: '提前预约清水寺周边时段',
+      note: '尽量避开中午高峰',
+      stage: 'pre_departure',
+    });
+    expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/trips/trip-1/checklist/items/item-1', {
+      stage: 'done',
+      note: '已预约完成',
+    });
+    expect(mocks.deleteMock).toHaveBeenCalledWith('/api', '/trips/trip-1/checklist/items/item-1');
   });
 
   it('forwards companion create and update payloads', async () => {

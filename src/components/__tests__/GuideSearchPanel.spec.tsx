@@ -2,10 +2,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GuideSearchPanel from '../GuideSearchPanel';
-import type { SavedGuide } from '../../types';
+import type { SavedGuide, TripCollection } from '../../types';
 
 describe('GuideSearchPanel', () => {
   const onSaveSearchHistory = vi.fn(async () => []);
+  const onGenerateTripChecklist = vi.fn(async () => ({ createdCount: 4 }));
+  const trips: TripCollection[] = [
+    {
+      id: 'trip-1',
+      name: '京都春日行',
+      note: '',
+      startsAt: '2026-04-01',
+      endsAt: '2026-04-05',
+      createdAt: '2026-03-01T00:00:00.000Z',
+    },
+  ];
 
   beforeEach(() => {
     vi.unstubAllEnvs();
@@ -13,6 +24,7 @@ describe('GuideSearchPanel', () => {
     HTMLElement.prototype.scrollIntoView = vi.fn();
     HTMLElement.prototype.scrollTo = vi.fn();
     onSaveSearchHistory.mockClear();
+    onGenerateTripChecklist.mockClear();
   });
 
   it('applies drawer animation classes when opened', async () => {
@@ -30,6 +42,10 @@ describe('GuideSearchPanel', () => {
         onRemoveSavedGuide={() => {}}
         searchHistory={[]}
         onSaveSearchHistory={onSaveSearchHistory}
+        trips={trips}
+        onGenerateTripChecklist={onGenerateTripChecklist}
+        onOpenTripDetail={() => {}}
+        onOpenTripChecklist={() => {}}
       />,
     );
 
@@ -59,6 +75,10 @@ describe('GuideSearchPanel', () => {
         onRemoveSavedGuide={onRemoveSavedGuide}
         searchHistory={[]}
         onSaveSearchHistory={onSaveSearchHistory}
+        trips={trips}
+        onGenerateTripChecklist={onGenerateTripChecklist}
+        onOpenTripDetail={() => {}}
+        onOpenTripChecklist={() => {}}
       />,
     );
 
@@ -107,6 +127,10 @@ describe('GuideSearchPanel', () => {
         onRemoveSavedGuide={() => {}}
         searchHistory={[]}
         onSaveSearchHistory={onSaveSearchHistory}
+        trips={trips}
+        onGenerateTripChecklist={onGenerateTripChecklist}
+        onOpenTripDetail={() => {}}
+        onOpenTripChecklist={() => {}}
       />,
     );
 
@@ -133,6 +157,10 @@ describe('GuideSearchPanel', () => {
         onRemoveSavedGuide={() => {}}
         searchHistory={[]}
         onSaveSearchHistory={onSaveSearchHistory}
+        trips={trips}
+        onGenerateTripChecklist={onGenerateTripChecklist}
+        onOpenTripDetail={() => {}}
+        onOpenTripChecklist={() => {}}
       />,
     );
 
@@ -189,6 +217,10 @@ describe('GuideSearchPanel', () => {
         onRemoveSavedGuide={onRemoveSavedGuide}
         searchHistory={[]}
         onSaveSearchHistory={onSaveSearchHistory}
+        trips={trips}
+        onGenerateTripChecklist={onGenerateTripChecklist}
+        onOpenTripDetail={() => {}}
+        onOpenTripChecklist={() => {}}
       />,
     );
 
@@ -203,5 +235,44 @@ describe('GuideSearchPanel', () => {
     await userEvent.click(screen.getByRole('button', { name: '解除关联' }));
     expect(onRemoveSavedGuide).toHaveBeenCalledWith('saved-favorite');
     expect(onRemoveSavedGuide).toHaveBeenCalledWith('saved-marker');
+  });
+
+  it('generates a trip checklist from a search result after choosing a trip', async () => {
+    render(
+      <GuideSearchPanel
+        open
+        initialQuery="Kyoto"
+        initialScope="international"
+        activeUserId="u1"
+        linkedMarkerId={null}
+        savedGuides={[]}
+        onClose={() => {}}
+        onSaveGuide={() => {}}
+        onAttachGuideToMarker={() => {}}
+        onRemoveSavedGuide={() => {}}
+        searchHistory={[]}
+        onSaveSearchHistory={onSaveSearchHistory}
+        trips={trips}
+        onGenerateTripChecklist={onGenerateTripChecklist}
+        onOpenTripDetail={() => {}}
+        onOpenTripChecklist={() => {}}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '搜索' }));
+    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+
+    await userEvent.click(screen.getAllByRole('button', { name: '生成行前清单' })[0]);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole('button', { name: '生成行前清单' })[1]);
+
+    await waitFor(() => {
+      expect(onGenerateTripChecklist).toHaveBeenCalledWith(
+        'trip-1',
+        expect.objectContaining({ title: 'Kyoto Spring Cherry Blossom Guide' }),
+      );
+    });
+
+    expect(screen.getByText(/已为《Kyoto Spring Cherry Blossom Guide》在行程《京都春日行》中生成 4 条行前清单/)).toBeInTheDocument();
   });
 });

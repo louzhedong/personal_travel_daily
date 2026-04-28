@@ -11,7 +11,7 @@ import type { UseTravelStoreActionsArgs } from './useTravelStoreActions';
 export function useMarkerActions({
   store,
   setStore,
-  setMessage,
+  showToast,
   setSaving,
   setSelectedRegionId,
   setMarkerModalOpen,
@@ -56,9 +56,9 @@ export function useMarkerActions({
         ),
       );
       setMarkerModalOpen(false);
-      setMessage(`已保存 ${activeUser.name} 在 ${value.scopeName} · ${value.city} 的旅行记录。`);
+      showToast(`已保存 ${activeUser.name} 在 ${value.scopeName} · ${value.city} 的旅行记录。`, 'success');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '保存旅行记录失败，请稍后重试。');
+      showToast(error instanceof Error ? error.message : '保存旅行记录失败，请稍后重试。', 'error');
     } finally {
       setSaving(false);
     }
@@ -74,9 +74,9 @@ export function useMarkerActions({
       const nextStore = await remoteTravelStoreRepository.deleteMarker(markerId);
       setStore((current) => keepCurrentActiveUser(nextStore, current));
       setDetailMarkerId((current) => (current === markerId ? null : current));
-      setMessage(`已删除 ${target.scopeName} · ${target.city} 的旅行记录。`);
+      showToast(`已删除 ${target.scopeName} · ${target.city} 的旅行记录。`, 'success');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '删除旅行记录失败，请稍后重试。');
+      showToast(error instanceof Error ? error.message : '删除旅行记录失败，请稍后重试。', 'error');
     }
   };
 
@@ -110,9 +110,9 @@ export function useMarkerActions({
         tripId: updates.tripId,
       });
       setStore((current) => keepCurrentActiveUser(nextStore, current));
-      setMessage(`已更新 ${target.scopeName} · ${target.city} 的旅行记录。`);
+      showToast(`已更新 ${target.scopeName} · ${target.city} 的旅行记录。`, 'success');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '更新旅行记录失败，请稍后重试。');
+      showToast(error instanceof Error ? error.message : '更新旅行记录失败，请稍后重试。', 'error');
     }
   };
 
