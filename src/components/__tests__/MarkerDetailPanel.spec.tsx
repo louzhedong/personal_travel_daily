@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MarkerDetailPanel from '../MarkerDetailPanel';
 import type { SavedGuide, TripCollection, UserProfile, VisitMarker } from '../../types';
+import { uploadImageToImgBB } from '../../lib/imageUpload';
 
 vi.mock('../../lib/imageUpload', () => ({
   uploadImageToImgBB: vi.fn(),
@@ -72,10 +73,14 @@ const marker: VisitMarker = {
 };
 
 describe('MarkerDetailPanel', () => {
+  beforeEach(() => {
+    vi.mocked(uploadImageToImgBB).mockReset();
+  });
+
   it('allows editing note and saving changes', async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
 
-    render(
+    const { container } = render(
       <MarkerDetailPanel
         marker={marker}
         user={user}
@@ -112,7 +117,7 @@ describe('MarkerDetailPanel', () => {
   it('allows assigning an existing marker to a trip', async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
 
-    render(
+    const { container } = render(
       <MarkerDetailPanel
         marker={marker}
         user={user}
@@ -141,7 +146,7 @@ describe('MarkerDetailPanel', () => {
   });
 
   it('shows marker tags and metadata in read mode', () => {
-    render(
+    const { container } = render(
       <MarkerDetailPanel
         marker={marker}
         user={user}
@@ -163,7 +168,7 @@ describe('MarkerDetailPanel', () => {
   });
 
   it('supports keyboard navigation and escape close in lightbox', async () => {
-    render(
+    const { container } = render(
       <MarkerDetailPanel
         marker={marker}
         user={user}
@@ -190,7 +195,7 @@ describe('MarkerDetailPanel', () => {
   it('opens guide search from the detail panel', async () => {
     const onOpenGuideSearch = vi.fn();
 
-    render(
+    const { container } = render(
       <MarkerDetailPanel
         marker={marker}
         user={user}
@@ -284,5 +289,97 @@ describe('MarkerDetailPanel', () => {
 
     expect(screen.getByRole('button', { name: '查找攻略' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '解除关联' })).not.toBeInTheDocument();
+  });
+
+  it('shows empty states, supports close actions, and opens lightbox navigation buttons', async () => {
+    const onClose = vi.fn();
+
+    const { container } = render(
+      <MarkerDetailPanel
+        marker={{ ...marker, note: '', imageUrls: [], tags: [], mood: null, weather: null, transport: null, budgetLevel: null }}
+        user={user}
+        open
+        canEdit={false}
+        onClose={onClose}
+        onUpdate={() => {}}
+      />,
+    );
+
+    expect(screen.getByText('这条记录还没有上传旅行图片。')).toBeInTheDocument();
+    expect(screen.getByText('这条记录还没有填写旅行印象。')).toBeInTheDocument();
+    expect(screen.getByText('还没有关联攻略，可点击上方“查找攻略”后进行关联。')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '关闭详情面板' }));
+    fireEvent.click(container.querySelector('.detail-backdrop')!);
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('uploads and removes images while editing, then can cancel edits', async () => {
+    vi.mocked(uploadImageToImgBB)
+      .mockResolvedValueOnce('https://example.com/c.jpg')
+      .mockResolvedValueOnce('https://example.com/d.jpg');
+
+    const { container } = render(
+      <MarkerDetailPanel
+        marker={marker}
+        user={user}
+        open
+        canEdit
+        trips={trips}
+        onClose={() => {}}
+        onUpdate={vi.fn()}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '编辑记录' }));
+    const fileInput = container.querySelector('.detail-upload-input') as HTMLInputElement;
+    await userEvent.upload(fileInput, [
+      new File(['a'], 'a.png', { type: 'image/png' }),
+      new File(['b'], 'b.png', { type: 'image/png' }),
+    ]);
+
+    await waitFor(() => {
+      expect(uploadImageToImgBB).toHaveBeenCalledTimes(2);
+    });
+    expect(screen.getByText('4 张图片')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByLabelText('删除第 4 张图片'));
+    expect(screen.getByText('3 张图片')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '取消' }));
+    expect(await screen.findByRole('button', { name: '编辑记录' })).toBeInTheDocument();
+    expect(screen.getByText('2 张')).toBeInTheDocument();
+  });
+
+  it('shows upload and save errors, plus note length validation', async () => {
+    const onUpdate = vi.fn().mockRejectedValue(new Error('保存失败啦'));
+    vi.mocked(uploadImageToImgBB).mockRejectedValueOnce(new Error('上传失败啦'));
+
+    const { container } = render(
+      <MarkerDetailPanel
+        marker={marker}
+        user={user}
+        open
+        canEdit
+        trips={trips}
+        onClose={() => {}}
+        onUpdate={onUpdate}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: '编辑记录' }));
+    const fileInput = container.querySelector('.detail-upload-input') as HTMLInputElement;
+    await userEvent.upload(fileInput, new File(['a'], 'a.png', { type: 'image/png' }));
+    expect(await screen.findByText('上传失败啦')).toBeInTheDocument();
+
+    const textarea = screen.getByPlaceholderText('补充这次旅行中最值得留下的记忆');
+    await userEvent.clear(textarea);
+    await userEvent.type(textarea, 'a'.repeat(501));
+    await userEvent.click(screen.getByRole('button', { name: '保存修改' }));
+    expect(screen.getByText('旅行印象不能超过 500 个字符')).toBeInTheDocument();
+
+    await userEvent.clear(textarea);
+    await userEvent.type(textarea, '可以保存的内容');
+    await userEvent.click(screen.getByRole('button', { name: '保存修改' }));
+    expect(await screen.findByText('保存失败啦')).toBeInTheDocument();
   });
 });

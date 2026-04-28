@@ -19,7 +19,8 @@
     "db:studio": "prisma studio --schema server/prisma/schema.prisma",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run --environment jsdom"
+    "test": "vitest run --environment jsdom",
+    "test:coverage": "vitest run --environment jsdom --coverage"
   },
   "prisma": {
     "seed": "tsx server/prisma/seed.ts"
@@ -45,6 +46,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^26.1.0",
     "prisma": "^6.16.2",

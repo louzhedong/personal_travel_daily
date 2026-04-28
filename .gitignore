@@ -1,6 +1,7 @@
 .env
 .env.local
 dist
+coverage/
 node_modules
 .npm-cache
 .tools
