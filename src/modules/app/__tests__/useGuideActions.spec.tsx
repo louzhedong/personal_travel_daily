@@ -114,6 +114,54 @@ describe('useGuideActions', () => {
     expect(showToast).toHaveBeenCalledWith('已收藏攻略《京都春日路线》。', 'success');
   });
 
+  it('shows an info toast when saving a duplicate guide', async () => {
+    remoteTravelStoreRepositoryMock.createSavedGuide.mockResolvedValue({
+      deduplicated: true,
+      item: {
+        id: 'saved-duplicate',
+        savedByUserId: 'u1',
+        keyword: '京都',
+        savedAt: '2026-03-02T00:00:00.000Z',
+        result: {
+          id: 'guide-1',
+          title: '京都春日路线',
+          summary: '适合第一次去京都的三天行程。',
+          sourceName: 'Mock Guide',
+          sourceUrl: 'https://example.com/guides/kyoto',
+        },
+      },
+    });
+
+    const { result } = renderHook(() =>
+      useGuideActions({
+        store,
+        setStore,
+        setMessage,
+        showToast,
+        setSaving,
+        setSelectedRegionId,
+        setMarkerModalOpen,
+        setDetailMarkerId,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.handleSaveGuide(
+        {
+          id: 'guide-1',
+          title: '京都春日路线',
+          summary: '适合第一次去京都的三天行程。',
+          sourceName: 'Mock Guide',
+          sourceUrl: 'https://example.com/guides/kyoto',
+        },
+        '京都',
+      );
+    });
+
+    expect(setStore).not.toHaveBeenCalled();
+    expect(showToast).toHaveBeenCalledWith('这篇攻略已经收藏过了。', 'info');
+  });
+
   it('shows a success toast after attaching a guide to a marker', async () => {
     remoteTravelStoreRepositoryMock.createSavedGuide.mockResolvedValue({
       deduplicated: false,
@@ -186,6 +234,38 @@ describe('useGuideActions', () => {
     expect(showToast).toHaveBeenCalledWith('已将《西湖散步攻略》关联到 浙江 · 杭州。', 'success');
   });
 
+  it('shows a message when attaching a guide to a missing marker', async () => {
+    const { result } = renderHook(() =>
+      useGuideActions({
+        store,
+        setStore,
+        setMessage,
+        showToast,
+        setSaving,
+        setSelectedRegionId,
+        setMarkerModalOpen,
+        setDetailMarkerId,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.handleAttachGuideToMarker(
+        {
+          id: 'guide-2',
+          title: '西湖散步攻略',
+          summary: '半日散步路线。',
+          sourceName: 'Mock Guide',
+          sourceUrl: 'https://example.com/guides/hangzhou',
+        },
+        '杭州',
+        'missing-marker',
+      );
+    });
+
+    expect(remoteTravelStoreRepositoryMock.createSavedGuide).not.toHaveBeenCalled();
+    expect(setMessage).toHaveBeenCalledWith('当前旅行记录不存在，暂时无法关联攻略。');
+  });
+
   it('shows a success toast after generating checklist items', async () => {
     generateTripChecklistMock.mockResolvedValue({
       createdCount: 3,
@@ -217,6 +297,39 @@ describe('useGuideActions', () => {
     });
 
     expect(showToast).toHaveBeenCalledWith('已生成 3 条行前清单，另外跳过了 1 条重复项。', 'success');
+  });
+
+  it('shows an info toast when checklist items are already generated', async () => {
+    generateTripChecklistMock.mockResolvedValue({
+      createdCount: 0,
+      deduplicatedCount: 2,
+      items: [],
+    });
+
+    const { result } = renderHook(() =>
+      useGuideActions({
+        store,
+        setStore,
+        setMessage,
+        showToast,
+        setSaving,
+        setSelectedRegionId,
+        setMarkerModalOpen,
+        setDetailMarkerId,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.handleGenerateTripChecklist('trip-1', {
+        id: 'guide-1',
+        title: '京都春日路线',
+        summary: '适合第一次去京都的三天行程。',
+        sourceName: 'Mock Guide',
+        sourceUrl: 'https://example.com/guides/kyoto',
+      });
+    });
+
+    expect(showToast).toHaveBeenCalledWith('这篇攻略对应的清单项已经生成过了。', 'info');
   });
 
   it('shows a success toast after removing a saved guide', async () => {
@@ -312,5 +425,84 @@ describe('useGuideActions', () => {
     ).rejects.toThrow('生成失败');
 
     expect(showToast).toHaveBeenCalledWith('生成失败', 'error');
+  });
+
+  it('saves guide search history and returns the updated list', async () => {
+    remoteTravelStoreRepositoryMock.createGuideSearchHistory.mockResolvedValue({
+      item: {
+        id: 'history-1',
+        keyword: 'Kyoto',
+        scope: 'international',
+        createdAt: '2026-05-05T00:00:00.000Z',
+      },
+      deduplicated: false,
+    });
+
+    const { result } = renderHook(() =>
+      useGuideActions({
+        store,
+        setStore,
+        setMessage,
+        showToast,
+        setSaving,
+        setSelectedRegionId,
+        setMarkerModalOpen,
+        setDetailMarkerId,
+      }),
+    );
+
+    let histories: unknown;
+    await act(async () => {
+      histories = await result.current.handleSaveSearchHistory('Kyoto', 'international');
+    });
+
+    expect(remoteTravelStoreRepositoryMock.createGuideSearchHistory).toHaveBeenCalledWith({
+      companionId: 'u1',
+      keyword: 'Kyoto',
+      scope: 'international',
+    });
+    expect(setStore).toHaveBeenCalledOnce();
+    expect(histories).toEqual([
+      {
+        id: 'history-1',
+        keyword: 'Kyoto',
+        scope: 'international',
+        createdAt: '2026-05-05T00:00:00.000Z',
+      },
+    ]);
+  });
+
+  it('returns fallback history and sets message when saving search history fails', async () => {
+    const storeWithHistory: TravelStore = {
+      ...store,
+      guideSearchHistory: Array.from({ length: 7 }, (_, index) => ({
+        id: `history-${index}`,
+        keyword: `keyword-${index}`,
+        scope: 'all',
+        createdAt: `2026-05-0${(index % 5) + 1}T00:00:00.000Z`,
+      })),
+    };
+    remoteTravelStoreRepositoryMock.createGuideSearchHistory.mockRejectedValue('unknown');
+
+    const { result } = renderHook(() =>
+      useGuideActions({
+        store: storeWithHistory,
+        setStore,
+        setMessage,
+        showToast,
+        setSaving,
+        setSelectedRegionId,
+        setMarkerModalOpen,
+        setDetailMarkerId,
+      }),
+    );
+
+    let histories: unknown;
+    await act(async () => {
+      histories = await result.current.handleSaveSearchHistory('Kyoto', 'all');
+    });
+
+    expect(setMessage).toHaveBeenCalledWith('保存搜索历史失败，请稍后重试。');
+    expect(histories).toEqual(storeWithHistory.guideSearchHistory.slice(0, 6));
   });
 });

@@ -19,6 +19,8 @@ vi.mock('../../lib/api/tripsApi', () => ({
 }));
 
 describe('TripChecklistPage', () => {
+  const account = { id: 'acct-1', name: 'Voyage Atlas', username: 'demo', role: 'member' as const };
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(fetchTripDetail).mockResolvedValue({
@@ -129,7 +131,7 @@ describe('TripChecklistPage', () => {
   it('renders checklist groups and supports manual item creation', async () => {
     render(
       <TripChecklistPage
-        account={{ id: 'acct-1', name: 'Voyage Atlas', username: 'demo', role: 'member' }}
+        account={account}
         tripId="trip-1"
         onNavigateBack={vi.fn()}
         onLogout={vi.fn()}
@@ -146,5 +148,99 @@ describe('TripChecklistPage', () => {
     await waitFor(() => {
       expect(createTripChecklistItem).toHaveBeenCalledWith('trip-1', expect.objectContaining({ title: '准备交通方案' }));
     });
+  });
+
+  it('edits checklist items', async () => {
+    render(
+      <TripChecklistPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole('heading', { name: '京都春日行' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '编辑' }));
+    const titleInput = screen.getByDisplayValue('提前确认景点预约');
+    await userEvent.clear(titleInput);
+    await userEvent.type(titleInput, '更新清单标题');
+    await userEvent.click(screen.getByRole('button', { name: '保存修改' }));
+
+    await waitFor(() => {
+      expect(updateTripChecklistItem).toHaveBeenCalledWith('trip-1', 'item-1', {
+        title: '更新清单标题',
+        note: '尽量避开中午高峰',
+      });
+    });
+  });
+
+  it('deletes checklist items', async () => {
+    render(
+      <TripChecklistPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole('heading', { name: '京都春日行' })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '删除' }));
+    await waitFor(() => {
+      expect(deleteTripChecklistItem).toHaveBeenCalledWith('trip-1', 'item-1');
+    });
+  });
+
+  it('handles create/update/delete failures plus logout', async () => {
+    vi.mocked(createTripChecklistItem).mockRejectedValueOnce(new Error('新增失败'));
+    vi.mocked(updateTripChecklistItem).mockRejectedValueOnce(new Error('更新失败'));
+    vi.mocked(deleteTripChecklistItem).mockRejectedValueOnce(new Error('删除失败'));
+    const onLogout = vi.fn();
+
+    render(
+      <TripChecklistPage account={account} tripId="trip-1" onNavigateBack={vi.fn()} onLogout={onLogout} />,
+    );
+
+    expect(await screen.findByText('提前确认景点预约')).toBeInTheDocument();
+    await userEvent.type(screen.getByPlaceholderText(/例如：提前确认景点预约/), '失败清单');
+    await userEvent.click(screen.getByRole('button', { name: '新增清单项' }));
+    expect(await screen.findByText('新增失败')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '编辑' }));
+    await userEvent.click(screen.getByRole('button', { name: '保存修改' }));
+    expect(await screen.findByText('更新失败')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '删除' }));
+    expect(await screen.findByText('删除失败')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '退出登录' }));
+    expect(onLogout).toHaveBeenCalledOnce();
+  });
+
+  it('shows empty state after a successful stage change reloads an empty checklist', async () => {
+    vi.mocked(fetchTripChecklist).mockResolvedValueOnce({
+      summary: {
+        total: 0,
+        preDepartureCount: 0,
+        inTransitCount: 0,
+        doneCount: 0,
+      },
+      groups: [],
+    } as never);
+
+    render(
+      <TripChecklistPage account={account} tripId="trip-1" onNavigateBack={vi.fn()} onLogout={vi.fn()} />,
+    );
+
+    expect(await screen.findByText('提前确认景点预约')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '调整 提前确认景点预约 的阶段' }));
+    const doneButtons = await screen.findAllByRole('button', { name: '已经完成' });
+    await userEvent.click(doneButtons[doneButtons.length - 1]);
+    await waitFor(() => {
+      expect(updateTripChecklistItem).toHaveBeenCalledWith('trip-1', 'item-1', { stage: 'done' });
+    });
+    expect(await screen.findByText('还没有行前清单，可以先从攻略搜索结果生成，也可以在这里手动补充。')).toBeInTheDocument();
   });
 });

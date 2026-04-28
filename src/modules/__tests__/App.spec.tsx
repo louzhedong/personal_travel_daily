@@ -113,6 +113,12 @@ vi.mock('../trips/TripDetailPage', () => ({
   default: ({ tripId }: { tripId: string }) => <div data-testid="trip-detail-page">trip-detail-{tripId}</div>,
 }));
 
+vi.mock('../trips/TripChecklistPage', () => ({
+  default: ({ tripId }: { tripId: string }) => (
+    <div data-testid="trip-checklist-page">trip-checklist-{tripId}</div>
+  ),
+}));
+
 vi.mock('../yearbook/AnnualReviewPage', () => ({
   default: ({ year }: { year: string }) => <div data-testid="annual-review-page">annual-review-{year}</div>,
 }));
@@ -339,6 +345,15 @@ describe('App auth and guide permissions', () => {
     expect(window.location.pathname).toBe('/trips/trip-1');
   });
 
+  it('allows authenticated users to access /trips/:id/checklist and renders the checklist page', async () => {
+    window.history.replaceState({}, '', '/trips/trip-1/checklist');
+
+    render(<App />);
+
+    expect(await screen.findByTestId('trip-checklist-page')).toHaveTextContent('trip-checklist-trip-1');
+    expect(window.location.pathname).toBe('/trips/trip-1/checklist');
+  });
+
   it('allows authenticated users to access /stats and renders the standalone stats page', async () => {
     window.history.replaceState({}, '', '/stats');
 
@@ -356,6 +371,23 @@ describe('App auth and guide permissions', () => {
 
     expect(await screen.findByTestId('annual-review-page')).toHaveTextContent('annual-review-2026');
     expect(window.location.pathname).toBe('/yearbook/2026');
+  });
+
+  it('redirects members away from /admin back to the main app shell', async () => {
+    window.history.replaceState({}, '', '/admin');
+    authApiMock.fetchSession.mockResolvedValueOnce({
+      account: {
+        id: 'acct-member',
+        name: 'Traveler',
+        username: 'member',
+        role: 'member',
+      },
+    });
+
+    const { rerender } = render(<App />);
+
+    expect(await screen.findByText('搜索旅游攻略')).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/');
   });
 
   it('redirects non-admin users from /admin back to the main app', async () => {
