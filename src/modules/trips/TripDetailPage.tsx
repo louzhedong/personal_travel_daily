@@ -1,17 +1,30 @@
 import { useEffect, useMemo, useState } from 'react';
+import TripChecklistBoard from '../../components/trips/TripChecklistBoard';
 import TravelIcon from '../../components/ui/TravelIcon';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import DateField from '../../components/ui/DateField';
 import Dialog from '../../components/ui/Dialog';
 import FancySelect from '../../components/ui/FancySelect';
-import { deleteTrip, fetchTripDetail, updateTrip } from '../../lib/api/tripsApi';
+import {
+  createTripChecklistItem,
+  deleteTrip,
+  deleteTripChecklistItem,
+  fetchTripChecklist,
+  fetchTripDetail,
+  updateTrip,
+  updateTripChecklistItem,
+} from '../../lib/api/tripsApi';
 import {
   MARKER_BUDGET_LEVEL_LABELS,
   MARKER_TAG_LABELS,
   MARKER_TRANSPORT_LABELS,
   MARKER_WEATHER_LABELS,
 } from '../../lib/markerMetadata';
-import type { TripDetailResponseDto } from '../../lib/api/types';
+import type {
+  CreateTripChecklistItemInput,
+  TripDetailResponseDto,
+  UpdateTripChecklistItemInput,
+} from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
 import {
   buildTripCoverOptions,
@@ -30,9 +43,16 @@ interface TripDetailPageProps {
   tripId: string;
   onNavigateBack: () => void;
   onLogout: () => Promise<void> | void;
+  onOpenTripChecklist?: (tripId: string) => void;
 }
 
-export default function TripDetailPage({ account, tripId, onNavigateBack, onLogout }: TripDetailPageProps) {
+export default function TripDetailPage({
+  account,
+  tripId,
+  onNavigateBack,
+  onLogout,
+  onOpenTripChecklist,
+}: TripDetailPageProps) {
   const [data, setData] = useState<TripDetailResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -45,6 +65,7 @@ export default function TripDetailPage({ account, tripId, onNavigateBack, onLogo
   const [tripDraftCoverImageUrl, setTripDraftCoverImageUrl] = useState('');
   const [tripSaving, setTripSaving] = useState(false);
   const [tripDeleteOpen, setTripDeleteOpen] = useState(false);
+  const [checklistBusy, setChecklistBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,6 +109,47 @@ export default function TripDetailPage({ account, tripId, onNavigateBack, onLogo
     [data],
   );
   const displayCoverUrl = data?.trip.coverImageUrl ?? data?.photos[0]?.imageUrl;
+
+  const reloadChecklist = async () => {
+    const response = await fetchTripChecklist(tripId);
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            checklistSummary: response.summary,
+            checklistGroups: response.groups,
+          }
+        : current,
+    );
+  };
+
+  const wrapChecklistMutation = async (action: () => Promise<void>, successMessage: string) => {
+    setChecklistBusy(true);
+    try {
+      await action();
+      await reloadChecklist();
+      setFeedbackMessage(successMessage);
+    } catch (error) {
+      setFeedbackMessage(error instanceof Error ? error.message : '行前清单更新失败');
+    } finally {
+      setChecklistBusy(false);
+    }
+  };
+
+  const handleCreateChecklistItem = async (input: CreateTripChecklistItemInput) =>
+    wrapChecklistMutation(async () => {
+      await createTripChecklistItem(tripId, input);
+    }, '已新增一条行前清单。');
+
+  const handleUpdateChecklistItem = async (itemId: string, input: UpdateTripChecklistItemInput) =>
+    wrapChecklistMutation(async () => {
+      await updateTripChecklistItem(tripId, itemId, input);
+    }, '已更新这条清单。');
+
+  const handleDeleteChecklistItem = async (itemId: string) =>
+    wrapChecklistMutation(async () => {
+      await deleteTripChecklistItem(tripId, itemId);
+    }, '已删除这条清单。');
 
   const openTripEditor = () => {
     if (!data) {
@@ -167,18 +229,26 @@ export default function TripDetailPage({ account, tripId, onNavigateBack, onLogo
                 : '从统计中心钻取后，可在这里回看某个具体行程的记录、攻略和照片。'}
             </p>
             <div className="trip-detail-hero-actions">
-              <button type="button" className="ghost-button" onClick={onNavigateBack}>
+              <button
+                type="button"
+                className="ghost-button trip-detail-action-button trip-detail-action-button-secondary"
+                onClick={onNavigateBack}
+              >
                 返回统计中心
               </button>
               {data ? (
-                <button type="button" className="ghost-button" onClick={openTripEditor}>
+                <button
+                  type="button"
+                  className="primary-button trip-detail-action-button trip-detail-action-button-primary"
+                  onClick={openTripEditor}
+                >
                   编辑行程
                 </button>
               ) : null}
               {data ? (
                 <button
                   type="button"
-                  className="ghost-button trip-detail-danger-button"
+                  className="ghost-button trip-detail-action-button trip-detail-action-button-danger"
                   onClick={() => {
                     setFeedbackMessage('');
                     setTripDeleteOpen(true);
@@ -187,7 +257,11 @@ export default function TripDetailPage({ account, tripId, onNavigateBack, onLogo
                   删除行程
                 </button>
               ) : null}
-              <button type="button" className="ghost-button" onClick={() => void onLogout()}>
+              <button
+                type="button"
+                className="ghost-button trip-detail-action-button trip-detail-action-button-subtle"
+                onClick={() => void onLogout()}
+              >
                 退出登录
               </button>
             </div>
@@ -330,11 +404,30 @@ export default function TripDetailPage({ account, tripId, onNavigateBack, onLogo
                   {data.companions.map((companion) => (
                     <article key={companion.id} className="trip-detail-companion-card">
                       <div className="trip-detail-companion-card-head">
-                        <span className="trip-detail-companion-dot" style={{ backgroundColor: companion.color }} />
-                        <strong>{companion.name}</strong>
+                        <div className="trip-detail-companion-card-identity">
+                          <span className="trip-detail-companion-dot" style={{ backgroundColor: companion.color }} />
+                          <strong>{companion.name}</strong>
+                        </div>
+                        <span className="trip-detail-companion-card-badge">
+                          {data.summary.markerCount > 0
+                            ? `${Math.round((companion.markerCount / data.summary.markerCount) * 100)}%`
+                            : '0%'}
+                        </span>
                       </div>
                       <div className="trip-detail-companion-card-metrics">
-                        <span>{companion.markerCount} 条记录</span>
+                        <strong>{companion.markerCount}</strong>
+                        <span>条记录</span>
+                      </div>
+                      <p className="trip-detail-companion-card-note">
+                        {data.summary.markerCount > 0
+                          ? `占这次行程全部记录的 ${Math.round((companion.markerCount / data.summary.markerCount) * 100)}%`
+                          : '当前行程里还没有旅行记录'}
+                      </p>
+                      <div className="trip-detail-companion-card-footer">
+                        <span className="trip-detail-companion-card-footnote">参与情况</span>
+                        <span className="trip-detail-companion-card-footvalue">
+                          {companion.markerCount >= 2 ? '高频出现' : '轻量参与'}
+                        </span>
                       </div>
                     </article>
                   ))}
@@ -365,6 +458,29 @@ export default function TripDetailPage({ account, tripId, onNavigateBack, onLogo
                     <span>统计生成于</span>
                     <strong>{data.meta.generatedAt.slice(0, 16).replace('T', ' ')}</strong>
                   </div>
+                </div>
+              </section>
+
+              <section className="card trip-detail-panel trip-detail-panel-fixed">
+                <div className="trip-detail-section-heading">
+                  <div>
+                    <h2>行前清单</h2>
+                    <p>把这次旅程的准备事项、途中提醒和已完成事项收在一起。</p>
+                  </div>
+                </div>
+                <div className="trip-detail-panel-scroll">
+                  <TripChecklistBoard
+                    activeCompanionId={data.companions[0]?.id ?? account.id}
+                    summary={data.checklistSummary}
+                    groups={data.checklistGroups}
+                    busy={checklistBusy}
+                    feedbackMessage=""
+                    emptyMessage="还没有生成任何行前清单，可以从攻略搜索结果直接生成，或者先手动补充。"
+                    onCreateItem={handleCreateChecklistItem}
+                    onUpdateItem={handleUpdateChecklistItem}
+                    onDeleteItem={handleDeleteChecklistItem}
+                    onOpenExpanded={onOpenTripChecklist ? () => onOpenTripChecklist(tripId) : undefined}
+                  />
                 </div>
               </section>
             </section>

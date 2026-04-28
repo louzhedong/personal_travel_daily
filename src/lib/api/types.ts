@@ -10,6 +10,10 @@ import type {
   MarkerWeather,
   SavedGuide,
   Scope,
+  TripChecklistGroup,
+  TripChecklistItem,
+  TripChecklistSummary,
+  TripChecklistStage,
   TripCollection,
   TravelStore,
   VisitMarker,
@@ -125,6 +129,40 @@ export interface UpdateTripInput {
   note?: string;
   startsAt?: string;
   endsAt?: string;
+}
+
+export interface GenerateTripChecklistInput {
+  companionId: string;
+  guide: Pick<GuideSearchResult, 'title' | 'summary' | 'sourceName' | 'sourceUrl'>;
+}
+
+export interface CreateTripChecklistItemInput {
+  companionId: string;
+  title: string;
+  note?: string;
+  stage: TripChecklistStage;
+}
+
+export interface UpdateTripChecklistItemInput {
+  title?: string;
+  note?: string | null;
+  stage?: TripChecklistStage;
+  sortOrder?: number;
+}
+
+export interface TripChecklistResponseDto {
+  summary: TripChecklistSummary;
+  groups: TripChecklistGroup[];
+}
+
+export interface GenerateTripChecklistResultDto {
+  createdCount: number;
+  deduplicatedCount: number;
+  items: TripChecklistItem[];
+}
+
+export interface DeleteTripChecklistItemResponseDto {
+  deletedId: string;
 }
 
 export interface ListSavedGuidesQuery {
@@ -547,6 +585,8 @@ export interface TripDetailResponseDto {
   markers: TripDetailMarkerItemDto[];
   photos: TripDetailPhotoItemDto[];
   guides: TripDetailGuideItemDto[];
+  checklistSummary: TripChecklistSummary;
+  checklistGroups: TripChecklistGroup[];
   meta: {
     generatedAt: string;
   };

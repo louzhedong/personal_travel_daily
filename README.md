@@ -16,6 +16,7 @@
 - 攻略阅读增强：正文目录、原文视图、站点级正文清洗与"回到顶部"
 - 攻略收藏与关联：同一用户在"收藏"与"关联到某条记录"两个语义下独立去重
 - 行程集合二期：创建、编辑、删除行程，封面管理，从时间线批量整理记录，并提供独立详情页 `/trips/:id`
+- 攻略清单化：支持从攻略搜索结果直接生成绑定到行程的“行前清单”，自动产出 `出发前 / 旅途中 / 已完成` 三段事项，并提供行程详情内嵌面板与独立放大页 `/trips/:id/checklist`
 - 行程时间线：按当前用户聚合、按年份与国内 / 国际筛选，与地图、详情面板联动
 - 统计中心 `/stats`：总览 KPI、趋势、排行、国内 / 世界热力图与行程明细，支持钻取到行程详情
 - 年度回顾 `/yearbook/:year`：年度摘要、高光、热力分布、照片与关联攻略，可继续钻取到行程详情
@@ -23,7 +24,7 @@
 - 数据备份：应用内仅保留导出当前聚合快照为 JSON 的能力
 - 云端主数据：旅行记录、旅伴、攻略收藏 / 关联与搜索历史默认由主业务 API + MySQL 承载
 
-Summary: Every shipped capability above lives under the current bilingual design rules and a single MySQL-backed data layer.
+Summary: Every shipped capability above lives under the current bilingual design rules and a single MySQL-backed data layer, including the new guide-to-checklist trip planning workflow.
 
 ## 技术栈 / Tech Stack
 
@@ -202,6 +203,7 @@ npm run test
 - 攻略搜索、收藏、关联、移除
 - 时间线筛选与联动
 - 行程集合 CRUD 与详情回看
+- 攻略提炼为行前清单与行程详情联动
 - 数据备份（导出）
 - 主业务 API 契约与仓库层行为
 
@@ -234,6 +236,7 @@ npm run test
 
 - [项目总览 / Project Overview](docs/technical/project-overview.md)
 - [未来 Roadmap / Product Roadmap](docs/technical/future-roadmap.md)
+- [攻略提炼为行前清单 / Guide-to-Checklist Workflow](docs/technical/guide-to-checklist-workflow.md)
 - [App API Contract](docs/technical/app-api-contract.md)
 - [Guide Search API Contract](docs/technical/guide-search-api-contract.md)
 - [登录注册交互手册](docs/technical/auth-login-register.md)

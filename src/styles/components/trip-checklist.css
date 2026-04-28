@@ -1,0 +1,238 @@
+.trip-checklist-board {
+  display: grid;
+  gap: 16px;
+}
+
+.trip-checklist-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.trip-checklist-summary-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+}
+
+.trip-checklist-summary-card span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trip-checklist-summary-card strong {
+  color: var(--brand-ink);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.trip-checklist-board-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.trip-checklist-board-top h3 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.trip-checklist-board-top p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.trip-checklist-create-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.98));
+  border: 1px solid rgba(226, 232, 240, 0.92);
+}
+
+.trip-checklist-create-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 10px;
+}
+
+.trip-checklist-stage-select {
+  width: 100%;
+}
+
+.trip-checklist-stage-select-inline {
+  min-width: 150px;
+}
+
+.trip-checklist-stage-trigger {
+  min-height: 42px;
+}
+
+.trip-checklist-stage-menu {
+  z-index: 320;
+}
+
+.trip-checklist-note-textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.trip-checklist-create-actions,
+.trip-checklist-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.trip-checklist-feedback,
+.trip-checklist-empty {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.88);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  color: #475569;
+}
+
+.trip-checklist-groups {
+  display: grid;
+  gap: 16px;
+}
+
+.trip-checklist-group {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+}
+
+.trip-checklist-group-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.trip-checklist-group-header strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+
+.trip-checklist-group-header p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.trip-checklist-group-header span {
+  color: var(--brand-blue);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.trip-checklist-item-list {
+  display: grid;
+  gap: 12px;
+}
+
+.trip-checklist-item-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.88);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.trip-checklist-item-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.trip-checklist-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.trip-checklist-companion-badge,
+.trip-checklist-item-origin {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trip-checklist-item-origin {
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+}
+
+.trip-checklist-item-title {
+  color: var(--brand-ink);
+  font-size: 16px;
+}
+
+.trip-checklist-item-note,
+.trip-checklist-item-source p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+}
+
+.trip-checklist-item-source {
+  display: grid;
+  gap: 6px;
+}
+
+.trip-checklist-item-source span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trip-checklist-item-edit {
+  display: grid;
+  gap: 10px;
+}
+
+.trip-checklist-danger-button {
+  color: #dc2626;
+}
+
+@media (max-width: 900px) {
+  .trip-checklist-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trip-checklist-create-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .trip-checklist-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .trip-checklist-item-top,
+  .trip-checklist-group-header,
+  .trip-checklist-board-top {
+    display: grid;
+  }
+}

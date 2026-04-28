@@ -21,6 +21,12 @@ export interface TripCoverOption {
   label: string;
 }
 
+export interface TripChecklistSummaryCard {
+  label: string;
+  value: number;
+  description: string;
+}
+
 export function buildTripDetailSummaryCards(data: TripDetailResponseDto) {
   return [
     { label: '旅行记录', value: data.summary.markerCount, description: '当前行程内的记录总数' },
@@ -95,6 +101,15 @@ export function buildTripCoverOptions(photos: TripDetailPhotoItemDto[]): TripCov
 
 export function buildTripGuideMeta(guide: TripDetailGuideItemDto) {
   return `${guide.result.sourceName} · ${guide.savedAt.slice(0, 10)}`;
+}
+
+export function buildTripChecklistSummaryCards(data: TripDetailResponseDto): TripChecklistSummaryCard[] {
+  return [
+    { label: '总条目', value: data.checklistSummary.total, description: '这次行程的全部清单项数量' },
+    { label: '出发前', value: data.checklistSummary.preDepartureCount, description: '行前准备和预约确认' },
+    { label: '旅途中', value: data.checklistSummary.inTransitCount, description: '路上提醒和现场留意事项' },
+    { label: '已完成', value: data.checklistSummary.doneCount, description: '已经完成的准备和行程事项' },
+  ];
 }
 
 export function isTripDetailNotFoundError(message: string) {

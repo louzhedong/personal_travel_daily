@@ -50,6 +50,10 @@ interface GuideSearchResultListProps {
   onAttachGuideToMarker: (guide: GuideSearchResult, keyword: string, markerId: string) => void;
   /** Remove a previously saved guide. 移除已收藏的攻略。 */
   onRemoveSavedGuide: (savedGuideId: string) => void;
+  /** Generate a trip checklist from a search result. 从搜索结果生成行前清单。 */
+  onGenerateTripChecklist: (guide: GuideSearchResult) => void;
+  /** Whether checklist generation can be triggered now. 当前是否可生成行前清单。 */
+  canGenerateTripChecklist: boolean;
 }
 
 /**
@@ -73,6 +77,8 @@ export const GuideSearchResultList = forwardRef<HTMLDivElement, GuideSearchResul
       onSaveGuide,
       onAttachGuideToMarker,
       onRemoveSavedGuide,
+      onGenerateTripChecklist,
+      canGenerateTripChecklist,
     },
     resultsBodyRef,
   ) {
@@ -136,6 +142,14 @@ export const GuideSearchResultList = forwardRef<HTMLDivElement, GuideSearchResul
                         onClick={() => onOpenGuide(item)}
                       >
                         查看片段
+                      </button>
+                      <button
+                        type="button"
+                        className="ghost-button guide-action-button"
+                        onClick={() => onGenerateTripChecklist(item)}
+                        disabled={!canGenerateTripChecklist}
+                      >
+                        生成行前清单
                       </button>
                       {getSavedGuideBySourceUrl(item.sourceUrl) ? (
                         <button

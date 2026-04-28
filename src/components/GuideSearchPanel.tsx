@@ -10,7 +10,16 @@ import { GuideSearchInputBar } from './GuideSearchInputBar';
 import { GuideSearchResultList } from './GuideSearchResultList';
 import { GuideDocumentDrawer } from './GuideDocumentDrawer';
 import { useGuideSearchLayoutLock } from './useGuideSearchLayoutLock';
-import type { GuideDocument, GuideSearchHistoryItem, GuideSearchResult, SavedGuide, Scope } from '../types';
+import Dialog from './ui/Dialog';
+import FancySelect from './ui/FancySelect';
+import type {
+  GuideDocument,
+  GuideSearchHistoryItem,
+  GuideSearchResult,
+  SavedGuide,
+  Scope,
+  TripCollection,
+} from '../types';
 
 /**
  * Public props for GuideSearchPanel (container).
@@ -30,6 +39,10 @@ interface GuideSearchPanelProps {
   onRemoveSavedGuide: (savedGuideId: string) => void;
   searchHistory: GuideSearchHistoryItem[];
   onSaveSearchHistory: (keyword: string, scope: Scope | 'all') => Promise<GuideSearchHistoryItem[]>;
+  trips?: TripCollection[];
+  onGenerateTripChecklist?: (tripId: string, guide: GuideSearchResult) => Promise<{ createdCount: number } | void>;
+  onOpenTripDetail?: (tripId: string) => void;
+  onOpenTripChecklist?: (tripId: string) => void;
 }
 
 /**
@@ -51,6 +64,10 @@ export function GuideSearchPanel({
   onRemoveSavedGuide,
   searchHistory,
   onSaveSearchHistory,
+  trips = [],
+  onGenerateTripChecklist = async () => undefined,
+  onOpenTripDetail = () => {},
+  onOpenTripChecklist = () => {},
 }: GuideSearchPanelProps) {
   // Mount / visibility for enter-leave animation. 挂载与入场出场动画。
   const [shouldRender, setShouldRender] = useState(open);
@@ -72,6 +89,11 @@ export function GuideSearchPanel({
   const [documentLoading, setDocumentLoading] = useState(false);
   const [documentError, setDocumentError] = useState('');
   const [documentView, setDocumentView] = useState<'snippet' | 'original'>('snippet');
+  const [checklistGenerationOpen, setChecklistGenerationOpen] = useState(false);
+  const [checklistGenerating, setChecklistGenerating] = useState(false);
+  const [selectedTripId, setSelectedTripId] = useState('');
+  const [guidePendingChecklist, setGuidePendingChecklist] = useState<GuideSearchResult | null>(null);
+  const [checklistGenerationFeedback, setChecklistGenerationFeedback] = useState('');
   // Nested scroll layout lock. 嵌套滚动布局锁定。
   // Refs. DOM 节点与自动搜索去重引用。
   const autoSearchKeyRef = useRef<string | null>(null);
@@ -109,6 +131,10 @@ export function GuideSearchPanel({
   const headingText = useMemo(
     () => (selectedGuide ? selectedGuide.destinationLabel || selectedGuide.title : '攻略搜索'),
     [selectedGuide],
+  );
+  const selectedTrip = useMemo(
+    () => trips.find((trip) => trip.id === selectedTripId) ?? null,
+    [selectedTripId, trips],
   );
 
   // Scroll the document drawer into view. 滚动定位正文抽屉。
@@ -240,6 +266,37 @@ export function GuideSearchPanel({
     }
   };
 
+  const handleOpenChecklistGeneration = (guide: GuideSearchResult) => {
+    if (trips.length === 0) {
+      setChecklistGenerationFeedback('请先创建至少一个行程，再把攻略提炼成行前清单。');
+      return;
+    }
+
+    setGuidePendingChecklist(guide);
+    setSelectedTripId((current) => current || trips[0]?.id || '');
+    setChecklistGenerationFeedback('');
+    setChecklistGenerationOpen(true);
+  };
+
+  const handleConfirmChecklistGeneration = async () => {
+    if (!guidePendingChecklist || !selectedTripId) {
+      return;
+    }
+
+    setChecklistGenerating(true);
+    try {
+      const result = await onGenerateTripChecklist(selectedTripId, guidePendingChecklist);
+      setChecklistGenerationFeedback(
+        `已为《${guidePendingChecklist.title}》在行程《${selectedTrip?.name ?? '当前行程'}》中生成 ${result?.createdCount ?? 0} 条行前清单。`,
+      );
+      setChecklistGenerationOpen(false);
+    } catch (error) {
+      setChecklistGenerationFeedback(error instanceof Error ? error.message : '生成行前清单失败');
+    } finally {
+      setChecklistGenerating(false);
+    }
+  };
+
   // Reset original content scroll when switching to original view.
   // 切换到原文视图时将原文容器滚回顶部。
   useEffect(() => {
@@ -305,6 +362,8 @@ export function GuideSearchPanel({
             onSaveGuide={onSaveGuide}
             onAttachGuideToMarker={onAttachGuideToMarker}
             onRemoveSavedGuide={onRemoveSavedGuide}
+            onGenerateTripChecklist={handleOpenChecklistGeneration}
+            canGenerateTripChecklist={trips.length > 0}
           />
 
           <GuideDocumentDrawer
@@ -325,8 +384,63 @@ export function GuideSearchPanel({
             onJumpToSection={handleJumpToSection}
           />
         </div>
+        {checklistGenerationFeedback ? (
+          <div className="guide-search-generation-feedback">
+            <span>{checklistGenerationFeedback}</span>
+            {selectedTripId ? (
+              <div className="guide-search-generation-feedback-actions">
+                <button type="button" className="ghost-button" onClick={() => onOpenTripDetail(selectedTripId)}>
+                  查看行程详情
+                </button>
+                <button type="button" className="ghost-button" onClick={() => onOpenTripChecklist(selectedTripId)}>
+                  打开行前清单
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         <div aria-hidden="true" style={{ height: panelSpacerHeight }} />
       </aside>
+      <Dialog
+        open={checklistGenerationOpen}
+        eyebrow="攻略清单化"
+        title="选择要绑定的行程"
+        description="系统会优先读取攻略正文，再自动帮你生成一版“出发前 / 旅途中 / 已完成”三段清单。"
+        onClose={() => setChecklistGenerationOpen(false)}
+      >
+        <div className="dialog-form">
+          <label className="dialog-field">
+            <span className="dialog-field-label">目标行程</span>
+            <FancySelect
+              value={selectedTripId}
+              options={trips.map((trip) => ({
+                value: trip.id,
+                label: trip.name,
+              }))}
+              onChange={setSelectedTripId}
+              placeholder="选择目标行程"
+              ariaLabel="选择要绑定的目标行程"
+              className="guide-search-trip-select"
+              triggerClassName="guide-search-trip-select-trigger"
+              menuClassName="guide-search-trip-select-menu"
+              usePortal
+            />
+          </label>
+          <div className="dialog-actions">
+            <button type="button" className="ghost-button" onClick={() => setChecklistGenerationOpen(false)}>
+              取消
+            </button>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => void handleConfirmChecklistGeneration()}
+              disabled={!selectedTripId || checklistGenerating}
+            >
+              {checklistGenerating ? '正在生成...' : '生成行前清单'}
+            </button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

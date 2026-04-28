@@ -1,4 +1,5 @@
 import { remoteTravelStoreRepository } from '../../lib/repositories/remoteTravelStoreRepository';
+import { generateTripChecklist } from '../../lib/api/tripsApi';
 import type { GuideSearchResult } from '../../types';
 import { upsertRecentSearchHistory } from './travelStoreActionHelpers';
 import type { UseTravelStoreActionsArgs } from './useTravelStoreActions';
@@ -7,7 +8,7 @@ import type { UseTravelStoreActionsArgs } from './useTravelStoreActions';
  * Guide-domain actions extracted from the store actions hook.
  * 攻略域动作：负责收藏、关联、移除攻略，以及保存攻略搜索历史。
  */
-export function useGuideActions({ store, setStore, setMessage }: UseTravelStoreActionsArgs) {
+export function useGuideActions({ store, setStore, setMessage, showToast }: UseTravelStoreActionsArgs) {
   const handleSaveGuide = async (guide: GuideSearchResult, keyword: string) => {
     try {
       const response = await remoteTravelStoreRepository.createSavedGuide({
@@ -17,7 +18,7 @@ export function useGuideActions({ store, setStore, setMessage }: UseTravelStoreA
       });
 
       if (response.deduplicated) {
-        setMessage('这篇攻略已经收藏过了。');
+        showToast('这篇攻略已经收藏过了。', 'info');
         return;
       }
 
@@ -25,9 +26,9 @@ export function useGuideActions({ store, setStore, setMessage }: UseTravelStoreA
         ...current,
         savedGuides: [response.item, ...current.savedGuides],
       }));
-      setMessage(`已收藏攻略《${guide.title}》。`);
+      showToast(`已收藏攻略《${guide.title}》。`, 'success');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '收藏攻略失败，请稍后重试。');
+      showToast(error instanceof Error ? error.message : '收藏攻略失败，请稍后重试。', 'error');
     }
   };
 
@@ -48,7 +49,7 @@ export function useGuideActions({ store, setStore, setMessage }: UseTravelStoreA
       });
 
       if (response.deduplicated) {
-        setMessage(`《${guide.title}》已经关联到这条旅行记录。`);
+        showToast(`《${guide.title}》已经关联到这条旅行记录。`, 'info');
         return;
       }
 
@@ -56,9 +57,9 @@ export function useGuideActions({ store, setStore, setMessage }: UseTravelStoreA
         ...current,
         savedGuides: [response.item, ...current.savedGuides],
       }));
-      setMessage(`已将《${guide.title}》关联到 ${targetMarker.scopeName} · ${targetMarker.city}。`);
+      showToast(`已将《${guide.title}》关联到 ${targetMarker.scopeName} · ${targetMarker.city}。`, 'success');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '关联攻略失败，请稍后重试。');
+      showToast(error instanceof Error ? error.message : '关联攻略失败，请稍后重试。', 'error');
     }
   };
 
@@ -74,13 +75,14 @@ export function useGuideActions({ store, setStore, setMessage }: UseTravelStoreA
         ...current,
         savedGuides: current.savedGuides.filter((item) => item.id !== savedGuideId),
       }));
-      setMessage(
+      showToast(
         targetGuide.markerId
           ? `已解除攻略《${targetGuide.result.title}》与旅行记录的关联。`
           : `已取消收藏攻略《${targetGuide.result.title}》。`,
+        'success',
       );
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '移除攻略失败，请稍后重试。');
+      showToast(error instanceof Error ? error.message : '移除攻略失败，请稍后重试。', 'error');
     }
   };
 
@@ -104,10 +106,43 @@ export function useGuideActions({ store, setStore, setMessage }: UseTravelStoreA
     }
   };
 
+  const handleGenerateTripChecklist = async (tripId: string, guide: GuideSearchResult) => {
+    try {
+      const response = await generateTripChecklist(tripId, {
+        companionId: store.activeUserId,
+        guide: {
+          title: guide.title,
+          summary: guide.summary,
+          sourceName: guide.sourceName,
+          sourceUrl: guide.sourceUrl,
+        },
+      });
+
+      const createdCount = response.createdCount;
+      const deduplicatedCount = response.deduplicatedCount;
+      if (createdCount > 0) {
+        showToast(
+          deduplicatedCount > 0
+            ? `已生成 ${createdCount} 条行前清单，另外跳过了 ${deduplicatedCount} 条重复项。`
+            : `已生成 ${createdCount} 条行前清单。`,
+          'success',
+        );
+      } else {
+        showToast('这篇攻略对应的清单项已经生成过了。', 'info');
+      }
+
+      return response;
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '生成行前清单失败，请稍后重试。', 'error');
+      throw error;
+    }
+  };
+
   return {
     handleSaveGuide,
     handleAttachGuideToMarker,
     handleRemoveSavedGuide,
     handleSaveSearchHistory,
+    handleGenerateTripChecklist,
   };
 }

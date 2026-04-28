@@ -311,6 +311,18 @@
   line-height: 1.75;
 }
 
+.guide-search-trip-select {
+  width: 100%;
+}
+
+.guide-search-trip-select-trigger {
+  min-height: 44px;
+}
+
+.guide-search-trip-select-menu {
+  z-index: 320;
+}
+
 .guide-result-match-reason {
   margin: 0;
   padding: 10px 12px;

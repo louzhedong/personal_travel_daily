@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getPrismaClientMock: vi.fn(),
   findTripDetailSourceMock: vi.fn(),
+  listActiveTripChecklistItemsByTripIdMock: vi.fn(),
 }));
 
 vi.mock('../appApi/prisma.js', () => ({
@@ -15,12 +16,49 @@ vi.mock('../appApi/repositories/tripDetailRepository.js', () => ({
   findTripDetailSource: mocks.findTripDetailSourceMock,
 }));
 
+vi.mock('../appApi/repositories/tripChecklistRepository.js', () => ({
+  listActiveTripChecklistItemsByTripId: mocks.listActiveTripChecklistItemsByTripIdMock,
+}));
+
 import { getTripDetail } from '../appApi/services/tripDetailService.js';
 
 describe('tripDetailService', () => {
   beforeEach(() => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
     mocks.getPrismaClientMock.mockReturnValue({});
+    mocks.listActiveTripChecklistItemsByTripIdMock.mockResolvedValue([
+      {
+        id: 'item-1',
+        accountId: 'acct-1',
+        tripId: 'trip-1',
+        createdByCompanionId: 'user-alice',
+        title: '提前确认景点预约',
+        note: '尽量避开中午高峰',
+        stage: 'pre_departure',
+        sortOrder: 0,
+        origin: 'generated',
+        sourceGuideIdentity: 'guide-shared',
+        sourceGuideTitle: '杭州周末攻略',
+        sourceGuideSourceName: 'Qyer',
+        sourceGuideSourceUrl: 'https://example.com/guide',
+        sourceSnippet: '建议提前预约',
+        isDeleted: false,
+        createdAt: new Date('2026-05-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-05-01T00:00:00.000Z'),
+        deletedAt: null,
+        createdByCompanion: {
+          id: 'user-alice',
+          accountId: 'acct-1',
+          name: '小悠',
+          color: '#2563eb',
+          sortOrder: 0,
+          createdAt: new Date('2026-04-20T00:00:00.000Z'),
+          updatedAt: new Date('2026-04-20T00:00:00.000Z'),
+          deletedAt: null,
+          isDeleted: false,
+        },
+      },
+    ]);
   });
 
   it('aggregates a trip detail payload with summary, photos and deduplicated guides', async () => {
@@ -199,5 +237,7 @@ describe('tripDetailService', () => {
       city: '杭州',
       imageUrls: ['https://example.com/hangzhou-1.jpg', 'https://example.com/hangzhou-2.jpg'],
     });
+    expect(result.checklistSummary.total).toBe(1);
+    expect(result.checklistGroups[0].title).toBe('出发前准备');
   });
 });

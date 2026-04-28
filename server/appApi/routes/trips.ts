@@ -7,17 +7,63 @@ import {
   updateTripBodySchema,
 } from '../schemas/trips.js';
 import {
+  createTripChecklistItemBodySchema,
+  generateTripChecklistBodySchema,
+  tripChecklistItemParamsSchema,
+  updateTripChecklistItemBodySchema,
+} from '../schemas/tripChecklist.js';
+import {
   createTripCollection,
   deleteTripCollection,
   updateTripCollection,
 } from '../services/tripService.js';
 import { getTripDetail } from '../services/tripDetailService.js';
+import {
+  createTripChecklistItemResource,
+  deleteTripChecklistItemResource,
+  generateTripChecklist,
+  listTripChecklist,
+  updateTripChecklistItemResource,
+} from '../services/tripChecklistService.js';
 
 export async function registerTripRoutes(app: FastifyInstance) {
   app.get('/api/trips/:id/detail', async (request) => {
     const account = await requireAuthenticatedAccount(request);
     const params = parseWithSchema(tripParamsSchema, request.params);
     return getTripDetail(account.id, params.id);
+  });
+
+  app.get('/api/trips/:id/checklist', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripParamsSchema, request.params);
+    return listTripChecklist(account.id, params.id);
+  });
+
+  app.post('/api/trips/:id/checklist/generate', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripParamsSchema, request.params);
+    const body = parseWithSchema(generateTripChecklistBodySchema, request.body);
+    return generateTripChecklist(account.id, params.id, body);
+  });
+
+  app.post('/api/trips/:id/checklist/items', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripParamsSchema, request.params);
+    const body = parseWithSchema(createTripChecklistItemBodySchema, request.body);
+    return createTripChecklistItemResource(account.id, params.id, body);
+  });
+
+  app.patch('/api/trips/:id/checklist/items/:itemId', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripChecklistItemParamsSchema, request.params);
+    const body = parseWithSchema(updateTripChecklistItemBodySchema, request.body);
+    return updateTripChecklistItemResource(account.id, params.id, params.itemId, body);
+  });
+
+  app.delete('/api/trips/:id/checklist/items/:itemId', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripChecklistItemParamsSchema, request.params);
+    return deleteTripChecklistItemResource(account.id, params.id, params.itemId);
   });
 
   app.post('/api/trips', async (request) => {

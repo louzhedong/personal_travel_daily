@@ -23,6 +23,12 @@ enum AccountRole {
   member
 }
 
+enum TripChecklistStage {
+  pre_departure
+  in_transit
+  done
+}
+
 model Account {
   id           String               @id
   name         String
@@ -38,6 +44,7 @@ model Account {
   histories    GuideSearchHistory[]
   markerSearchEvents MarkerSearchEvent[]
   sessions     AuthSession[]
+  tripChecklistItems TripChecklistItem[]
 
   @@map("accounts")
 }
@@ -76,6 +83,7 @@ model Trip {
   deletedAt     DateTime?     @map("deleted_at")
   account       Account       @relation(fields: [accountId], references: [id])
   markers       VisitMarker[]
+  checklistItems TripChecklistItem[]
 
   @@index([accountId], map: "idx_trips_account_id")
   @@index([startsAt], map: "idx_trips_starts_at")
@@ -112,6 +120,7 @@ model TravelCompanion {
   guides     SavedGuide[]
   histories  GuideSearchHistory[]
   markerSearchEvents MarkerSearchEvent[]
+  tripChecklistItems TripChecklistItem[] @relation("TripChecklistItemCreatedByCompanion")
 
   @@index([accountId], map: "idx_travel_companions_account_id")
   @@unique([accountId, name, isDeleted], map: "uq_travel_companions_account_name_active")
@@ -214,4 +223,34 @@ model GuideSearchHistory {
   @@index([companionId], map: "idx_guide_search_histories_companion_id")
   @@unique([companionId, keywordNormalized, scope, isDeleted], map: "uq_guide_search_histories_scope_keyword_active")
   @@map("guide_search_histories")
+}
+
+model TripChecklistItem {
+  id                   String             @id
+  accountId            String             @map("account_id")
+  tripId               String             @map("trip_id")
+  createdByCompanionId String             @map("created_by_companion_id")
+  title                String
+  note                 String?            @db.Text
+  stage                TripChecklistStage
+  sortOrder            Int                @default(0) @map("sort_order")
+  origin               String
+  sourceGuideIdentity  String?            @map("source_guide_identity")
+  sourceGuideTitle     String?            @map("source_guide_title")
+  sourceGuideSourceName String?           @map("source_guide_source_name")
+  sourceGuideSourceUrl String?            @map("source_guide_source_url")
+  sourceSnippet        String?            @map("source_snippet") @db.Text
+  isDeleted            Boolean            @default(false) @map("is_deleted")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  deletedAt            DateTime?          @map("deleted_at")
+  account              Account            @relation(fields: [accountId], references: [id])
+  trip                 Trip               @relation(fields: [tripId], references: [id])
+  createdByCompanion   TravelCompanion    @relation("TripChecklistItemCreatedByCompanion", fields: [createdByCompanionId], references: [id])
+
+  @@index([accountId], map: "idx_trip_checklist_items_account_id")
+  @@index([tripId], map: "idx_trip_checklist_items_trip_id")
+  @@index([tripId, stage, sortOrder], map: "idx_trip_checklist_items_trip_stage_sort")
+  @@index([tripId, sourceGuideIdentity, isDeleted], map: "idx_trip_checklist_items_trip_guide_identity_active")
+  @@map("trip_checklist_items")
 }

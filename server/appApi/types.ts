@@ -79,8 +79,16 @@ export interface GuideContentBlockDto {
   text: string;
 }
 
+export interface GuideAiSummaryDto {
+  highlights: string[];
+  routeTips: string[];
+  transportTips: string[];
+  warnings: string[];
+}
+
 export interface GuideDocumentDto extends GuideSearchResultDto {
   contentHtml?: string;
+  aiSummary?: GuideAiSummaryDto;
   blocks: GuideContentBlockDto[];
   fetchedAt: string;
 }
@@ -511,6 +519,53 @@ export interface TripDetailGuideItemDto {
   result: GuideSearchResultDto | GuideDocumentDto;
 }
 
+export type TripChecklistStageDto = 'pre_departure' | 'in_transit' | 'done';
+
+export interface TripChecklistItemDto {
+  id: string;
+  companionId: string;
+  companionName: string;
+  companionColor: string;
+  title: string;
+  note?: string;
+  stage: TripChecklistStageDto;
+  sortOrder: number;
+  origin: 'generated' | 'manual';
+  sourceGuideIdentity?: string;
+  sourceGuideTitle?: string;
+  sourceGuideSourceName?: string;
+  sourceGuideSourceUrl?: string;
+  sourceSnippet?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TripChecklistGroupDto {
+  stage: TripChecklistStageDto;
+  title: string;
+  description: string;
+  itemCount: number;
+  items: TripChecklistItemDto[];
+}
+
+export interface TripChecklistSummaryDto {
+  total: number;
+  preDepartureCount: number;
+  inTransitCount: number;
+  doneCount: number;
+}
+
+export interface TripChecklistResponseDto {
+  summary: TripChecklistSummaryDto;
+  groups: TripChecklistGroupDto[];
+}
+
+export interface GenerateTripChecklistResultDto {
+  createdCount: number;
+  deduplicatedCount: number;
+  items: TripChecklistItemDto[];
+}
+
 export interface TripDetailResponseDto {
   trip: TripDto;
   summary: TripDetailSummaryDto;
@@ -518,6 +573,8 @@ export interface TripDetailResponseDto {
   markers: TripDetailMarkerItemDto[];
   photos: TripDetailPhotoItemDto[];
   guides: TripDetailGuideItemDto[];
+  checklistSummary: TripChecklistSummaryDto;
+  checklistGroups: TripChecklistGroupDto[];
   meta: {
     generatedAt: string;
   };
