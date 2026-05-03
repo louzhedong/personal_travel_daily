@@ -107,6 +107,56 @@ export default function AdminRankingTable({ activeTab, detailCollections }: Admi
     );
   }
 
+  if (activeTab === 'planningItems') {
+    return (
+      <section className="admin-data-card">
+        <div className="admin-section-title">
+          <span className="travel-icon-badge travel-icon-badge-teal">
+            <TravelIcon name="spark" size={14} />
+          </span>
+          <h3>行前规划</h3>
+        </div>
+        {detailCollections.planningItems.length === 0 ? (
+          <div className="admin-empty-block">暂无行前规划。</div>
+        ) : (
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>同行人</th>
+                  <th>行程</th>
+                  <th>目的地</th>
+                  <th>优先级</th>
+                  <th>预计日期</th>
+                  <th>状态</th>
+                  <th>来源攻略</th>
+                  <th>创建时间</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detailCollections.planningItems.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.companionName}</td>
+                    <td>{item.tripName}</td>
+                    <td>
+                      <strong>{item.scopeName}</strong>
+                      <div>{item.city}</div>
+                    </td>
+                    <td>{item.priority === 'high' ? '高' : item.priority === 'medium' ? '中' : '低'}</td>
+                    <td>{item.plannedDate ?? '未设置'}</td>
+                    <td>{item.status === 'converted' ? '已转记录' : '规划中'}</td>
+                    <td className="admin-note-cell">{item.sourceGuideTitle ?? '无来源攻略'}</td>
+                    <td>{formatAdminDate(item.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    );
+  }
+
   if (activeTab === 'savedGuides') {
     return (
       <section className="admin-data-card">

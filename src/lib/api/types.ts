@@ -14,6 +14,9 @@ import type {
   TripChecklistItem,
   TripChecklistSummary,
   TripChecklistStage,
+  TripPlanningItem,
+  TripPlanningPriority,
+  TripPlanningSummary,
   TripCollection,
   TravelStore,
   VisitMarker,
@@ -129,6 +132,53 @@ export interface UpdateTripInput {
   note?: string;
   startsAt?: string;
   endsAt?: string;
+}
+
+export interface GuideSourceInput {
+  identity?: string;
+  title?: string;
+  sourceName?: string;
+  sourceUrl?: string;
+}
+
+export interface CreateTripPlanningItemInput {
+  companionId: string;
+  title: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note?: string;
+  priority?: TripPlanningPriority;
+  plannedDate?: string | null;
+  guide?: GuideSourceInput;
+}
+
+export interface UpdateTripPlanningItemInput {
+  title?: string;
+  scope?: Scope;
+  scopeId?: string;
+  scopeName?: string;
+  city?: string;
+  note?: string | null;
+  priority?: TripPlanningPriority;
+  plannedDate?: string | null;
+  sortOrder?: number;
+}
+
+export interface ConvertTripPlanningItemInput {
+  visitedStartAt: string;
+  visitedEndAt: string;
+  note?: string;
+}
+
+export interface TripPlanningResponseDto {
+  summary: TripPlanningSummary;
+  items: TripPlanningItem[];
+}
+
+export interface DeleteTripPlanningItemResponseDto {
+  deletedId: string;
 }
 
 export interface GenerateTripChecklistInput {
@@ -268,6 +318,10 @@ export interface AdminMarkerSearchEventNodeDto {
   createdAt: string;
 }
 
+export interface AdminPlanningItemNodeDto extends TripPlanningItem {
+  tripName: string;
+}
+
 export interface AdminCompanionNodeDto {
   id: string;
   name: string;
@@ -276,6 +330,7 @@ export interface AdminCompanionNodeDto {
   markers: AdminMarkerNodeDto[];
   savedGuides: AdminSavedGuideNodeDto[];
   guideSearchHistory: AdminGuideSearchHistoryNodeDto[];
+  planningItems?: AdminPlanningItemNodeDto[];
 }
 
 export interface AdminAccountNodeDto {
@@ -294,6 +349,8 @@ export interface AdminAccountNodeDto {
     savedGuideCount: number;
     guideSearchHistoryCount: number;
     markerSearchEventCount: number;
+    planningItemCount?: number;
+    convertedPlanningItemCount?: number;
   };
 }
 
@@ -609,6 +666,7 @@ export interface TripDetailResponseDto {
   markers: TripDetailMarkerItemDto[];
   photos: TripDetailPhotoItemDto[];
   guides: TripDetailGuideItemDto[];
+  planningSummary?: TripPlanningSummary;
   checklistSummary: TripChecklistSummary;
   checklistGroups: TripChecklistGroup[];
   meta: {

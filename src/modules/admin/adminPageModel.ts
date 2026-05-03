@@ -4,11 +4,12 @@ import type {
   AdminMarkerNodeDto,
   AdminMarkerSearchEventNodeDto,
   AdminOverviewResponseDto,
+  AdminPlanningItemNodeDto,
   AdminSavedGuideNodeDto,
   AdminTripNodeDto,
 } from '../../lib/api/types';
 
-export type AdminDetailTab = 'trips' | 'markers' | 'savedGuides' | 'guideSearchHistory' | 'markerSearchEvents';
+export type AdminDetailTab = 'trips' | 'markers' | 'planningItems' | 'savedGuides' | 'guideSearchHistory' | 'markerSearchEvents';
 
 export interface AdminTabItem {
   key: AdminDetailTab;
@@ -27,10 +28,12 @@ export type AdminGuideSearchHistoryDetailRow = AdminGuideSearchHistoryNodeDto & 
 export type AdminMarkerSearchEventDetailRow = AdminMarkerSearchEventNodeDto & {
   companionName: string;
 };
+export type AdminPlanningItemDetailRow = AdminPlanningItemNodeDto & { companionName: string };
 
 export interface AdminDetailCollections {
   trips: AdminTripDetailRow[];
   markers: AdminMarkerDetailRow[];
+  planningItems: AdminPlanningItemDetailRow[];
   savedGuides: AdminSavedGuideDetailRow[];
   guideSearchHistory: AdminGuideSearchHistoryDetailRow[];
   markerSearchEvents: AdminMarkerSearchEventDetailRow[];
@@ -41,6 +44,7 @@ export interface AdminDetailCollections {
 export const ADMIN_DETAIL_TABS: AdminTabItem[] = [
   { key: 'trips', label: '行程' },
   { key: 'markers', label: '旅行记录' },
+  { key: 'planningItems', label: '行前规划' },
   { key: 'savedGuides', label: '收藏攻略' },
   { key: 'guideSearchHistory', label: '攻略搜索' },
   { key: 'markerSearchEvents', label: '记录搜索' },
@@ -91,6 +95,9 @@ export function getAdminSummary(overview: AdminOverviewResponseDto) {
       guideSearchHistoryCount:
         acc.guideSearchHistoryCount + account.stats.guideSearchHistoryCount,
       markerSearchEventCount: acc.markerSearchEventCount + account.stats.markerSearchEventCount,
+      planningItemCount: acc.planningItemCount + (account.stats.planningItemCount ?? 0),
+      convertedPlanningItemCount:
+        acc.convertedPlanningItemCount + (account.stats.convertedPlanningItemCount ?? 0),
     }),
     {
       accountCount: 0,
@@ -100,6 +107,8 @@ export function getAdminSummary(overview: AdminOverviewResponseDto) {
       savedGuideCount: 0,
       guideSearchHistoryCount: 0,
       markerSearchEventCount: 0,
+      planningItemCount: 0,
+      convertedPlanningItemCount: 0,
     },
   );
 }
@@ -128,6 +137,12 @@ export function getAccountDetailCollections(account: AdminAccountNodeDto): Admin
       markerCount: markerCountByTripId.get(trip.id) ?? 0,
     })),
     markers,
+    planningItems: companions.flatMap((companion) =>
+      (companion.planningItems ?? []).map((item) => ({
+        ...item,
+        companionName: companion.name,
+      })),
+    ),
     savedGuides: companions.flatMap((companion) =>
       companion.savedGuides.map((guide) => ({
         ...guide,

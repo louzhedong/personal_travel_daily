@@ -12,6 +12,7 @@ import { GuideDocumentDrawer } from './GuideDocumentDrawer';
 import { useGuideSearchLayoutLock } from './useGuideSearchLayoutLock';
 import Dialog from './ui/Dialog';
 import FancySelect from './ui/FancySelect';
+import { createTripPlanningItem } from '../lib/api/tripsApi';
 import type {
   GuideDocument,
   GuideSearchHistoryItem,
@@ -94,6 +95,17 @@ export function GuideSearchPanel({
   const [selectedTripId, setSelectedTripId] = useState('');
   const [guidePendingChecklist, setGuidePendingChecklist] = useState<GuideSearchResult | null>(null);
   const [checklistGenerationFeedback, setChecklistGenerationFeedback] = useState('');
+  const [planningDialogOpen, setPlanningDialogOpen] = useState(false);
+  const [planningSaving, setPlanningSaving] = useState(false);
+  const [guidePendingPlanning, setGuidePendingPlanning] = useState<GuideSearchResult | null>(null);
+  const [planningDraft, setPlanningDraft] = useState({
+    tripId: '',
+    scope: initialScope === 'international' ? 'international' : 'domestic',
+    scopeId: '',
+    scopeName: '',
+    city: '',
+    plannedDate: '',
+  });
   // Nested scroll layout lock. 嵌套滚动布局锁定。
   // Refs. DOM 节点与自动搜索去重引用。
   const autoSearchKeyRef = useRef<string | null>(null);
@@ -278,6 +290,60 @@ export function GuideSearchPanel({
     setChecklistGenerationOpen(true);
   };
 
+  const handleOpenPlanningDialog = (guide: GuideSearchResult) => {
+    if (trips.length === 0) {
+      setChecklistGenerationFeedback('请先创建至少一个行程，再把攻略加入行程规划。');
+      return;
+    }
+
+    const destination = guide.destinationLabel || query.trim();
+    setGuidePendingPlanning(guide);
+    setPlanningDraft({
+      tripId: selectedTripId || trips[0]?.id || '',
+      scope: scope === 'international' ? 'international' : 'domestic',
+      scopeId: destination.toLowerCase().replace(/\s+/g, '-').slice(0, 40) || 'planning',
+      scopeName: destination || '待确认地区',
+      city: destination || '',
+      plannedDate: '',
+    });
+    setChecklistGenerationFeedback('');
+    setPlanningDialogOpen(true);
+  };
+
+  const handleConfirmPlanning = async () => {
+    if (!guidePendingPlanning || !planningDraft.tripId) {
+      return;
+    }
+
+    setPlanningSaving(true);
+    try {
+      await createTripPlanningItem(planningDraft.tripId, {
+        companionId: activeUserId,
+        title: guidePendingPlanning.destinationLabel || guidePendingPlanning.title,
+        scope: planningDraft.scope as Scope,
+        scopeId: planningDraft.scopeId,
+        scopeName: planningDraft.scopeName,
+        city: planningDraft.city,
+        note: guidePendingPlanning.summary,
+        priority: 'medium',
+        plannedDate: planningDraft.plannedDate || null,
+        guide: {
+          identity: guidePendingPlanning.sourceUrl,
+          title: guidePendingPlanning.title,
+          sourceName: guidePendingPlanning.sourceName,
+          sourceUrl: guidePendingPlanning.sourceUrl,
+        },
+      });
+      setSelectedTripId(planningDraft.tripId);
+      setChecklistGenerationFeedback(`已将《${guidePendingPlanning.title}》加入行程规划。`);
+      setPlanningDialogOpen(false);
+    } catch (error) {
+      setChecklistGenerationFeedback(error instanceof Error ? error.message : '加入行程规划失败');
+    } finally {
+      setPlanningSaving(false);
+    }
+  };
+
   const handleConfirmChecklistGeneration = async () => {
     if (!guidePendingChecklist || !selectedTripId) {
       return;
@@ -363,6 +429,7 @@ export function GuideSearchPanel({
             onAttachGuideToMarker={onAttachGuideToMarker}
             onRemoveSavedGuide={onRemoveSavedGuide}
             onGenerateTripChecklist={handleOpenChecklistGeneration}
+            onAddToTripPlanning={handleOpenPlanningDialog}
             canGenerateTripChecklist={trips.length > 0}
           />
 
@@ -437,6 +504,49 @@ export function GuideSearchPanel({
               disabled={!selectedTripId || checklistGenerating}
             >
               {checklistGenerating ? '正在生成...' : '生成行前清单'}
+            </button>
+          </div>
+        </div>
+      </Dialog>
+      <Dialog
+        open={planningDialogOpen}
+        eyebrow="行前规划"
+        title="加入行程规划"
+        description="把攻略先收成一个想去地点，之后可以在行程详情里补日期、备注并转成正式记录。"
+        onClose={() => setPlanningDialogOpen(false)}
+      >
+        <div className="dialog-form">
+          <label className="dialog-field">
+            <span className="dialog-field-label">目标行程</span>
+            <FancySelect
+              value={planningDraft.tripId}
+              options={trips.map((trip) => ({ value: trip.id, label: trip.name }))}
+              onChange={(tripId) => setPlanningDraft((current) => ({ ...current, tripId }))}
+              placeholder="选择目标行程"
+              ariaLabel="选择规划目标行程"
+              className="guide-search-trip-select"
+              triggerClassName="guide-search-trip-select-trigger"
+              menuClassName="guide-search-trip-select-menu"
+              usePortal
+            />
+          </label>
+          <div className="dialog-field-grid">
+            <input className="field-control" value={planningDraft.scopeName} onChange={(event) => setPlanningDraft((current) => ({ ...current, scopeName: event.target.value }))} placeholder="地区/国家" />
+            <input className="field-control" value={planningDraft.scopeId} onChange={(event) => setPlanningDraft((current) => ({ ...current, scopeId: event.target.value }))} placeholder="地区编码" />
+            <input className="field-control" value={planningDraft.city} onChange={(event) => setPlanningDraft((current) => ({ ...current, city: event.target.value }))} placeholder="城市" />
+            <input className="field-control" type="date" value={planningDraft.plannedDate} onChange={(event) => setPlanningDraft((current) => ({ ...current, plannedDate: event.target.value }))} aria-label="预计日期" />
+          </div>
+          <div className="dialog-actions">
+            <button type="button" className="ghost-button" onClick={() => setPlanningDialogOpen(false)}>
+              取消
+            </button>
+            <button
+              type="button"
+              className="primary-button"
+              disabled={!planningDraft.tripId || !planningDraft.scopeName.trim() || !planningDraft.scopeId.trim() || !planningDraft.city.trim() || planningSaving}
+              onClick={() => void handleConfirmPlanning()}
+            >
+              {planningSaving ? '保存中...' : '加入规划'}
             </button>
           </div>
         </div>

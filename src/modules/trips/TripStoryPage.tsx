@@ -79,49 +79,222 @@ export default function TripStoryPage({
       return;
     }
 
+    const width = 1200;
+    const contentX = 96;
+    const background = template === 'magazine' ? '#f8fafc' : '#fff7ed';
+    const elements: string[] = [];
+    let cursorY = 128;
+
     const escapeText = (value: string) =>
       value
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
-    const highlights = story.highlights
-      .slice(0, 6)
-      .map(
-        (item, index) => `
-          <text x="96" y="${520 + index * 92}" fill="#64748b" font-size="24">${escapeText(item.label)}</text>
-          <text x="96" y="${558 + index * 92}" fill="#0f172a" font-size="42" font-weight="700">${escapeText(item.value)}</text>
-          <text x="240" y="${558 + index * 92}" fill="#475569" font-size="24">${escapeText(item.description.slice(0, 26))}</text>
-        `,
-      )
-      .join('');
-    const routeStops = story.routeStops
-      .slice(0, 8)
-      .map(
-        (stop, index) => `
-          <circle cx="108" cy="${1130 + index * 54}" r="8" fill="${escapeText(stop.companionColor)}" />
-          <text x="134" y="${1138 + index * 54}" fill="#334155" font-size="26">${escapeText(stop.date)} · ${escapeText(stop.label)}</text>
-        `,
-      )
-      .join('');
+
+    const truncateText = (value: string, maxLength: number) =>
+      value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
+
+    const wrapText = (value: string, maxChars: number) => {
+      const text = value.trim();
+      if (!text) {
+        return [''];
+      }
+      const lines: string[] = [];
+      for (let index = 0; index < text.length; index += maxChars) {
+        lines.push(text.slice(index, index + maxChars));
+      }
+      return lines;
+    };
+
+    const addText = (input: {
+      text: string;
+      x?: number;
+      y?: number;
+      fill?: string;
+      fontSize?: number;
+      fontWeight?: number;
+      letterSpacing?: number;
+    }) => {
+      elements.push(
+        `<text x="${input.x ?? contentX}" y="${input.y ?? cursorY}" fill="${input.fill ?? '#334155'}" font-size="${input.fontSize ?? 26}"${input.fontWeight ? ` font-weight="${input.fontWeight}"` : ''}${input.letterSpacing ? ` letter-spacing="${input.letterSpacing}"` : ''}>${escapeText(input.text)}</text>`,
+      );
+    };
+
+    const addClippedImage = (input: {
+      href: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      clipId: string;
+    }) => {
+      elements.push(`
+        <clipPath id="${input.clipId}">
+          <rect x="${input.x}" y="${input.y}" width="${input.width}" height="${input.height}" rx="16" />
+        </clipPath>
+        <image href="${escapeText(input.href)}" x="${input.x}" y="${input.y}" width="${input.width}" height="${input.height}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${input.clipId})" />
+      `);
+    };
+
+    const addWrappedText = (input: {
+      text: string;
+      x?: number;
+      y?: number;
+      fill?: string;
+      fontSize?: number;
+      fontWeight?: number;
+      maxChars?: number;
+      lineHeight?: number;
+      advance?: boolean;
+    }) => {
+      const lines = wrapText(input.text, input.maxChars ?? 38);
+      const x = input.x ?? contentX;
+      const y = input.y ?? cursorY;
+      const lineHeight = input.lineHeight ?? Math.round((input.fontSize ?? 26) * 1.45);
+      elements.push(
+        `<text x="${x}" y="${y}" fill="${input.fill ?? '#334155'}" font-size="${input.fontSize ?? 26}"${input.fontWeight ? ` font-weight="${input.fontWeight}"` : ''}>${lines
+          .map((line, index) => `<tspan x="${x}" dy="${index === 0 ? 0 : lineHeight}">${escapeText(line)}</tspan>`)
+          .join('')}</text>`,
+      );
+      if (input.advance !== false) {
+        cursorY = Math.max(cursorY, y + Math.max(1, lines.length - 1) * lineHeight + lineHeight);
+      }
+    };
+
+    const addSectionTitle = (title: string, eyebrow: string) => {
+      cursorY += 56;
+      addText({ text: eyebrow.toUpperCase(), y: cursorY, fill: '#2563eb', fontSize: 22, fontWeight: 700, letterSpacing: 4 });
+      cursorY += 54;
+      addText({ text: title, y: cursorY, fill: '#0f172a', fontSize: 42, fontWeight: 800 });
+      cursorY += 72;
+    };
+
+    addText({ text: 'TRAVEL STORY', y: cursorY, fill: '#2563eb', fontSize: 30, fontWeight: 700, letterSpacing: 6 });
+    cursorY += 92;
+    addWrappedText({ text: story.title, y: cursorY, fill: '#0f172a', fontSize: 70, fontWeight: 800, maxChars: 12, lineHeight: 82 });
+    cursorY += 48;
+    addText({ text: story.dateRange, y: cursorY, fill: '#475569', fontSize: 30 });
+    cursorY += 64;
+    addWrappedText({ text: story.summaryText, y: cursorY, fill: '#334155', fontSize: 30, maxChars: 32, lineHeight: 46 });
+
+    addSectionTitle('故事摘要', 'brief');
+    story.highlights.forEach((item, index) => {
+      const column = index % 2;
+      const row = Math.floor(index / 2);
+      const x = contentX + column * 504;
+      const y = cursorY + row * 118;
+      elements.push(`<rect x="${x}" y="${y - 34}" width="456" height="92" rx="14" fill="#f8fafc" stroke="#e2e8f0" />`);
+      addText({ text: item.label, x: x + 22, y: y, fill: '#64748b', fontSize: 22, fontWeight: 700 });
+      addText({ text: item.value, x: x + 22, y: y + 40, fill: '#0f172a', fontSize: 34, fontWeight: 800 });
+      addText({ text: truncateText(item.description, 18), x: x + 130, y: y + 40, fill: '#475569', fontSize: 22 });
+    });
+    cursorY += Math.ceil(story.highlights.length / 2) * 118 + 10;
+
+    addSectionTitle('智能故事序言', 'narrative');
+    addWrappedText({ text: story.smartNarrative, y: cursorY, fill: '#334155', fontSize: 28, maxChars: 35, lineHeight: 42 });
+
+    addSectionTitle('路线摘录', 'route');
+    if (story.routeStops.length === 0) {
+      addWrappedText({ text: '暂无路线停靠点', y: cursorY, fill: '#64748b', fontSize: 28 });
+    } else {
+      story.routeStops.forEach((stop, index) => {
+        const y = cursorY + index * 54;
+        elements.push(`<circle cx="${contentX + 12}" cy="${y - 8}" r="8" fill="${escapeText(stop.companionColor)}" />`);
+        addText({ text: `${stop.date} · ${stop.label} · ${stop.companionName}`, x: contentX + 38, y, fill: '#334155', fontSize: 26 });
+      });
+      cursorY += story.routeStops.length * 54 + 4;
+    }
+
+    addSectionTitle('时间线叙事', 'timeline');
+    if (story.timelineDays.length === 0) {
+      addWrappedText({ text: '这次行程还没有旅行记录。', y: cursorY, fill: '#64748b', fontSize: 28 });
+    } else {
+      story.timelineDays.forEach((day) => {
+        addText({ text: `${day.date} · ${day.title}`, y: cursorY, fill: '#0f172a', fontSize: 30, fontWeight: 800 });
+        cursorY += 42;
+        day.markers.forEach((marker) => {
+          addWrappedText({
+            text: `${marker.scopeName} · ${marker.city}｜${marker.displayRange}｜${marker.note || '暂无游记'}${marker.metadataLabels.length ? `｜${marker.metadataLabels.join(' / ')}` : ''}`,
+            y: cursorY,
+            fill: '#475569',
+            fontSize: 24,
+            maxChars: 44,
+            lineHeight: 34,
+          });
+          cursorY += 10;
+        });
+        cursorY += 18;
+      });
+    }
+
+    addSectionTitle('照片段落', 'photos');
+    const photos = story.photoGroups.flatMap((group) =>
+      group.photos.map((photo, index) => ({
+        ...photo,
+        displayIndex: index + 1,
+        date: group.date,
+      })),
+    );
+    if (photos.length === 0) {
+      addWrappedText({ text: '这次旅行还没有照片，后续补图后故事页会自动展示。', y: cursorY, fill: '#64748b', fontSize: 28 });
+    } else {
+      const photoStartY = cursorY;
+      photos.forEach((photo, index) => {
+        const column = index % 3;
+        const row = Math.floor(index / 3);
+        const x = contentX + column * 336;
+        const y = photoStartY + row * 154;
+        elements.push(`<rect x="${x}" y="${y}" width="304" height="128" rx="16" fill="#e0f2fe" stroke="#bae6fd" />`);
+        addClippedImage({
+          href: photo.imageUrl,
+          x,
+          y,
+          width: 304,
+          height: 128,
+          clipId: `trip-story-photo-${index}`,
+        });
+        elements.push(`<rect x="${x}" y="${y + 78}" width="304" height="50" rx="16" fill="rgba(15, 23, 42, 0.62)" />`);
+        addText({ text: `PHOTO ${String(index + 1).padStart(2, '0')}`, x: x + 18, y: y + 104, fill: '#ffffff', fontSize: 18, fontWeight: 800 });
+        addText({ text: truncateText(`${photo.date} · ${photo.markerTitle}`, 16), x: x + 120, y: y + 104, fill: '#e0f2fe', fontSize: 18, fontWeight: 700 });
+      });
+      cursorY = photoStartY + Math.ceil(photos.length / 3) * 154;
+    }
+
+    addSectionTitle('攻略摘录', 'guides');
+    if (story.guides.length === 0) {
+      addWrappedText({ text: '这次行程还没有关联攻略。', y: cursorY, fill: '#64748b', fontSize: 28 });
+    } else {
+      story.guides.forEach((guide) => {
+        addText({ text: guide.result.sourceName, y: cursorY, fill: '#2563eb', fontSize: 22, fontWeight: 700 });
+        cursorY += 38;
+        addWrappedText({ text: guide.result.title, y: cursorY, fill: '#0f172a', fontSize: 30, fontWeight: 800, maxChars: 30, lineHeight: 40 });
+        addWrappedText({ text: guide.result.summary, y: cursorY, fill: '#475569', fontSize: 24, maxChars: 42, lineHeight: 34 });
+        cursorY += 20;
+      });
+    }
+
+    addSectionTitle('行前清单回顾', 'checklist');
+    addWrappedText({ text: story.checklistReview.completionText, y: cursorY, fill: '#334155', fontSize: 28, maxChars: 36, lineHeight: 40 });
+    if (story.checklistReview.total > 0) {
+      story.checklistReview.groups.forEach((group) => {
+        addText({ text: `${group.readableStage} · ${group.itemCount} 项 · ${group.title}`, y: cursorY, fill: '#0f172a', fontSize: 28, fontWeight: 800 });
+        cursorY += 40;
+        group.items.forEach((item) => {
+          addWrappedText({ text: `• ${item.title}`, y: cursorY, fill: '#475569', fontSize: 23, maxChars: 44, lineHeight: 32 });
+        });
+        cursorY += 14;
+      });
+    }
+
+    cursorY += 58;
+    addText({ text: 'Voyage Atlas · 私有旅行故事长图', y: cursorY, fill: '#94a3b8', fontSize: 24 });
+    const height = Math.max(1800, cursorY + 84);
     const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1800" viewBox="0 0 1200 1800">
-        <rect width="1200" height="1800" fill="${template === 'magazine' ? '#f8fafc' : '#fff7ed'}" />
-        <rect x="56" y="56" width="1088" height="1688" rx="28" fill="#ffffff" stroke="#dbe4ef" />
-        <text x="96" y="154" fill="#2563eb" font-size="30" font-weight="700" letter-spacing="6">TRAVEL STORY</text>
-        <text x="96" y="260" fill="#0f172a" font-size="76" font-weight="800">${escapeText(story.title.slice(0, 16))}</text>
-        <text x="96" y="324" fill="#475569" font-size="30">${escapeText(story.dateRange)}</text>
-        <text x="96" y="410" fill="#334155" font-size="30">${escapeText(story.summaryText.slice(0, 35))}</text>
-        ${highlights}
-        <text x="96" y="1038" fill="#0f172a" font-size="42" font-weight="800">智能故事序言</text>
-        <foreignObject x="96" y="1060" width="1008" height="190">
-          <div xmlns="http://www.w3.org/1999/xhtml" style="font: 28px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #334155; line-height: 1.55;">
-            ${escapeText(story.smartNarrative)}
-          </div>
-        </foreignObject>
-        <text x="96" y="1098" fill="#0f172a" font-size="42" font-weight="800" transform="translate(0 270)">路线摘录</text>
-        <g transform="translate(0 300)">${routeStops || `<text x="96" y="1138" fill="#64748b" font-size="28">暂无路线停靠点</text>`}</g>
-        <text x="96" y="1660" fill="#94a3b8" font-size="24">Voyage Atlas · 私有旅行故事长图</text>
+      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <rect width="${width}" height="${height}" fill="${background}" />
+        <rect x="56" y="56" width="1088" height="${height - 112}" rx="28" fill="#ffffff" stroke="#dbe4ef" />
+        ${elements.join('\n')}
       </svg>
     `;
     const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });

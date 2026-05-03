@@ -51,6 +51,15 @@ export async function listAdminOverviewAccounts(prisma: PrismaExecutor) {
               createdAt: 'desc',
             },
           },
+          tripPlanningItems: {
+            where: {
+              isDeleted: false,
+            },
+            orderBy: [{ createdAt: 'desc' }],
+            include: {
+              trip: true,
+            },
+          },
         },
       },
       markerSearchEvents: {

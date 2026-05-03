@@ -3,13 +3,18 @@ import type { TravelStore, TripChecklistItem } from '../../types';
 import type {
   CreateTripInput,
   CreateTripChecklistItemInput,
+  CreateTripPlanningItemInput,
+  ConvertTripPlanningItemInput,
   DeleteTripChecklistItemResponseDto,
+  DeleteTripPlanningItemResponseDto,
   GenerateTripChecklistInput,
   GenerateTripChecklistResultDto,
   TripChecklistResponseDto,
   TripDetailResponseDto,
+  TripPlanningResponseDto,
   UpdateTripChecklistItemInput,
   UpdateTripInput,
+  UpdateTripPlanningItemInput,
 } from './types';
 
 export async function createTrip(input: CreateTripInput) {
@@ -22,6 +27,26 @@ export async function fetchTripDetail(id: string) {
 
 export async function fetchTripChecklist(id: string) {
   return httpClient.get<TripChecklistResponseDto>(getResourceBaseUrl(), `/trips/${id}/checklist`);
+}
+
+export async function fetchTripPlanning(id: string) {
+  return httpClient.get<TripPlanningResponseDto>(getResourceBaseUrl(), `/trips/${id}/planning`);
+}
+
+export async function createTripPlanningItem(id: string, input: CreateTripPlanningItemInput) {
+  return httpClient.post<TripPlanningResponseDto['items'][number]>(getResourceBaseUrl(), `/trips/${id}/planning/items`, input);
+}
+
+export async function updateTripPlanningItem(id: string, itemId: string, input: UpdateTripPlanningItemInput) {
+  return httpClient.patch<TripPlanningResponseDto['items'][number]>(getResourceBaseUrl(), `/trips/${id}/planning/items/${itemId}`, input);
+}
+
+export async function deleteTripPlanningItem(id: string, itemId: string) {
+  return httpClient.delete<DeleteTripPlanningItemResponseDto>(getResourceBaseUrl(), `/trips/${id}/planning/items/${itemId}`);
+}
+
+export async function convertTripPlanningItemToMarker(id: string, itemId: string, input: ConvertTripPlanningItemInput) {
+  return httpClient.post<TravelStore>(getResourceBaseUrl(), `/trips/${id}/planning/items/${itemId}/convert-to-marker`, input);
 }
 
 export async function generateTripChecklist(id: string, input: GenerateTripChecklistInput) {

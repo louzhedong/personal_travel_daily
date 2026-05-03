@@ -1,8 +1,8 @@
 # Voyage Atlas / 旅行足迹地图
 
-`Voyage Atlas` 是一个基于 React 19、Vite 7 与 TypeScript 5 的旅行记录应用原型。它把地图选区、多人旅行记录、旅行图片、攻略搜索、攻略收藏 / 关联、时间线回看、行程集合、旅行故事、统计中心、旅行成就、年度回顾、地图回放、管理员后台以及云端主数据能力整合到同一个浏览器端体验里。
+`Voyage Atlas` 是一个基于 React 19、Vite 7 与 TypeScript 5 的旅行记录应用原型。它把地图选区、多人旅行记录、旅行图片、攻略搜索、攻略收藏 / 关联、行前规划、时间线回看、行程集合、旅行故事、统计中心、旅行成就、年度回顾、地图回放、管理员后台以及云端主数据能力整合到同一个浏览器端体验里。
 
-`Voyage Atlas` is a React 19 + Vite 7 + TypeScript 5 travel log prototype that unifies map capture, multi-companion records, guides, timelines, trip collections, trip stories, stats, travel achievements, annual reviews, map replay, an admin backoffice, and a cloud-backed data layer into a single browser experience.
+`Voyage Atlas` is a React 19 + Vite 7 + TypeScript 5 travel log prototype that unifies map capture, multi-companion records, guides, pre-trip planning, timelines, trip collections, trip stories, stats, travel achievements, annual reviews, map replay, an admin backoffice, and a cloud-backed data layer into a single browser experience.
 
 ## 当前能力 / Current Capabilities
 
@@ -16,17 +16,18 @@
 - 攻略阅读增强：正文目录、原文视图、站点级正文清洗与"回到顶部"
 - 攻略收藏与关联：同一用户在"收藏"与"关联到某条记录"两个语义下独立去重
 - 行程集合二期：创建、编辑、删除行程，封面管理，从时间线批量整理记录，并提供独立详情页 `/trips/:id`
-- 旅行故事 `/trips/:id/story`：将单次行程自动整理为私有故事页，支持模板切换、智能序言、长图导出与浏览器打印 / PDF 导出
+- 行前规划工作台：`/trips/:id` 内新增“规划”Tab，支持愿望地点、攻略来源、备注、优先级、预计日期管理，并可在旅行后转成正式旅行记录
+- 旅行故事 `/trips/:id/story`：将单次行程自动整理为私有故事页，支持模板切换、智能序言、动态 SVG 长图导出与浏览器打印 / PDF 导出
 - 攻略清单化：支持从攻略搜索结果直接生成绑定到行程的“行前清单”，自动产出 `出发前 / 旅途中 / 已完成` 三段事项，并提供行程详情内嵌面板与独立放大页 `/trips/:id/checklist`
 - 行程时间线：按当前用户聚合、按年份与国内 / 国际筛选，与地图、详情面板联动
 - 统计中心 `/stats`：总览 KPI、旅行成就、趋势、排行、国内 / 世界热力图与行程明细，支持钻取到行程详情
 - 旅行成就：按当前统计筛选实时计算成就状态、进度、证据与首次解锁时间，支持成就详情弹窗
 - 年度回顾 `/yearbook/:year`：年度摘要、高光、年度成就、热力分布、照片与关联攻略，可打印 / 导出 PDF，并继续钻取到行程详情
-- 管理员后台 `/admin`：`admin` 角色专用的只读概览，后端 `GET /api/admin/overview` 最终裁决权限
+- 管理员后台 `/admin`：`admin` 角色专用的只读概览，含行前规划统计与明细巡检，后端 `GET /api/admin/overview` 最终裁决权限
 - 数据备份：应用内仅保留导出当前聚合快照为 JSON 的能力
 - 云端主数据：旅行记录、旅伴、攻略收藏 / 关联与搜索历史默认由主业务 API + MySQL 承载
 
-Summary: Every shipped capability above lives under the current bilingual design rules and a single MySQL-backed data layer, including printable trip stories, guide-to-checklist planning, and persistent travel-achievement unlock moments.
+Summary: Every shipped capability above lives under the current bilingual design rules and a single MySQL-backed data layer, including trip-bound planning, printable trip stories, guide-to-checklist planning, and persistent travel-achievement unlock moments.
 
 ## 技术栈 / Tech Stack
 
@@ -205,6 +206,7 @@ npm run test
 - 攻略搜索、收藏、关联、移除
 - 时间线筛选与联动
 - 行程集合 CRUD 与详情回看
+- 行前规划 CRUD、攻略搜索加入规划与转旅行记录
 - 攻略提炼为行前清单与行程详情联动
 - 数据备份（导出）
 - 主业务 API 契约与仓库层行为

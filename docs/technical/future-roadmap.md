@@ -62,6 +62,21 @@ Summary: Guide search, reading, save, and linking are all production-ready.
 
 Summary: Guide-to-checklist now ships as a first-phase loop from search-result generation through trip-bound checklist management and an expanded checklist page.
 
+### 行前规划工作台 / Trip Planning Workspace
+
+- 状态：已完成第一阶段闭环。
+- 已落地范围：
+  - `/trips/:id` 行程详情页新增“规划”Tab，支持规划项新增、编辑、删除、优先级筛选和转旅行记录。
+  - `TripPlanningItem` 绑定账号、行程和创建旅伴，保存地点、备注、优先级、预计日期、来源攻略、排序、状态和软删除时间。
+  - 攻略搜索结果可直接加入目标行程规划，与“生成行前清单”并存。
+  - 转旅行记录时复用 marker 创建规则，要求补充访问日期，写入 `convertedMarkerId` 并阻止重复转换。
+  - 管理后台只读展示规划项统计和明细，不提供后台写操作。
+- 后续增强：
+  - 拖拽排序、按天分组、从规划批量生成清单。
+  - 与愿望地图、照片精选和行程故事页进一步联动。
+
+Summary: Trip Planning Workspace now ships as a first-phase trip-bound planning loop from guide search to desired-place management and post-trip conversion into markers.
+
 ### 认证、后台与主数据层 / Auth, Admin, and Persistent Data
 
 - 状态：已完成第一版。
@@ -168,6 +183,8 @@ Summary: Trip stories and annual reviews now support private printable/exportabl
 - 多旅伴切换、颜色区分以及"仅本人可编辑/删除本人记录"的权限边界已经落地。
 - 行程集合二期已完成，支持创建 / 编辑 / 删除行程、批量归属记录、封面管理与独立详情页回看。
 - Trip Collection Phase 2 is available with full CRUD, batch marker assignment, cover management, a dedicated detail page, and a private printable story page.
+- 行程详情页已提供 trip-bound 行前规划工作台，支持攻略搜索加入规划、规划项 CRUD、优先级筛选、预计日期和转旅行记录。
+- Trip detail now includes a trip-bound planning workspace with guide-search intake, planning-item CRUD, priority filtering, planned dates, and marker conversion.
 - 旅行记录已支持标签、心情、天气、交通方式与预算级别等轻量元数据，并已接入时间线、行程详情、统计中心与服务端搜索。
 - Travel markers now support tags, mood, weather, transport, and budget metadata, and those fields are wired into the timeline, trip detail, stats center, and backend search.
 - 独立统计中心 `/stats` 已完成，支持筛选、排行、趋势、国内中国地图 / 国际世界地图热力图，以及从统计钻取到行程详情。
@@ -198,7 +215,7 @@ Given the current product baseline, the product no longer lacks capture surfaces
 1. **更强的旅行回看**
    Turn trips, stats, achievements, photos, guides, and map replay into memorable retrospectives.
 2. **更强的行前规划**
-   Let wishlist, guides, checklists, and trips connect before the user creates actual travel records.
+   Extend the shipped planning workspace into wishlist maps, scheduling, and richer guide/checklist organization.
 3. **更强的整理效率**
    Help users batch organize records, photos, guides, tags, companions, and trip-level assets with less friction.
 4. **更强的表达与分享**
@@ -214,20 +231,7 @@ Given the current product baseline, the product no longer lacks capture surfaces
 
 ## 下一阶段路线图 / Next-Phase Roadmap
 
-### 1. 行前规划工作台 / Trip Planning Workspace
-
-- 优先级：`P1`
-- 为什么值得做：
-  - 当前行程、攻略和清单已经能联动，但仍偏“旅行发生后整理”；规划工作台可以把产品前移到出发前。
-- 建议范围：
-  - 在行程详情中新增“规划”视图，整合愿望地点、攻略、行前清单、预计日期和备注。
-  - 支持从攻略搜索结果加入规划候选，而不仅是生成清单。
-  - 支持把规划项在旅行后转为正式旅行记录，保留来源攻略与清单关联。
-  - 保持一期轻量，不做复杂日程排班和多人实时协作。
-
-Summary: Planning workspace connects guides, checklists, wish items, and trips before records exist.
-
-### 2. 愿望地图 / Wishlist Map
+### 1. 愿望地图 / Wishlist Map
 
 - 优先级：`P1`
 - 为什么值得做：
@@ -240,7 +244,7 @@ Summary: Planning workspace connects guides, checklists, wish items, and trips b
 
 Summary: Wishlist map is the natural planning counterpart to the current visited-map experience.
 
-### 3. 旅行故事页进阶 / Trip Story Evolution
+### 2. 旅行故事页进阶 / Trip Story Evolution
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -253,7 +257,7 @@ Summary: Wishlist map is the natural planning counterpart to the current visited
 
 Summary: Trip story evolution should focus on stronger templates, share cards, and richer story composition.
 
-### 4. 成就系统进阶 / Achievement System Evolution
+### 3. 成就系统进阶 / Achievement System Evolution
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -266,7 +270,7 @@ Summary: Trip story evolution should focus on stronger templates, share cards, a
 
 Summary: Achievement evolution should deepen motivation and explainability without prematurely building a badge-management CMS.
 
-### 5. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
+### 4. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -279,7 +283,7 @@ Summary: Achievement evolution should deepen motivation and explainability witho
 
 Summary: Guide search should evolve from retrieval into a governed content pipeline.
 
-### 6. 照片与媒体整理 / Photo and Media Curation
+### 5. 照片与媒体整理 / Photo and Media Curation
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -292,7 +296,7 @@ Summary: Guide search should evolve from retrieval into a governed content pipel
 
 Summary: Media curation improves every retrospective surface that already depends on photos.
 
-### 7. 旅伴共同回忆 / Companion Shared Memories
+### 6. 旅伴共同回忆 / Companion Shared Memories
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -305,7 +309,7 @@ Summary: Media curation improves every retrospective surface that already depend
 
 Summary: Shared memories make companions emotionally meaningful while preserving the current single-account model.
 
-### 8. 管理后台与质量巡检 / Admin Quality Operations
+### 7. 管理后台与质量巡检 / Admin Quality Operations
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -317,7 +321,7 @@ Summary: Shared memories make companions emotionally meaningful while preserving
 
 Summary: Admin operations should help detect data and integration problems before they become user-facing regressions.
 
-### 9. 账号设置与会话治理 / Account Settings and Session Governance
+### 8. 账号设置与会话治理 / Account Settings and Session Governance
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -330,7 +334,7 @@ Summary: Admin operations should help detect data and integration problems befor
 
 Summary: Account settings are not flashy, but they matter once the app becomes a long-term personal archive.
 
-### 10. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+### 9. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -347,16 +351,15 @@ Summary: Architecture hardening keeps future feature work from becoming slower a
 
 建议按下面顺序推进（已完成项已挪到文档开头）：
 
-1. 行前规划工作台 / Trip Planning Workspace
-2. 愿望地图 / Wishlist Map
-3. 旅行故事页进阶 / Trip Story Evolution
-4. 成就系统进阶 / Achievement System Evolution
-5. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
-6. 照片与媒体整理 / Photo and Media Curation
-7. 旅伴共同回忆 / Companion Shared Memories
-8. 管理后台与质量巡检 / Admin Quality Operations
-9. 账号设置与会话治理 / Account Settings and Session Governance
-10. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+1. 愿望地图 / Wishlist Map
+2. 旅行故事页进阶 / Trip Story Evolution
+3. 成就系统进阶 / Achievement System Evolution
+4. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
+5. 照片与媒体整理 / Photo and Media Curation
+6. 旅伴共同回忆 / Companion Shared Memories
+7. 管理后台与质量巡检 / Admin Quality Operations
+8. 账号设置与会话治理 / Account Settings and Session Governance
+9. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 ## 选题原则 / Feature Selection Rules
 

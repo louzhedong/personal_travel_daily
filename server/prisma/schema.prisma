@@ -29,6 +29,17 @@ enum TripChecklistStage {
   done
 }
 
+enum TripPlanningPriority {
+  low
+  medium
+  high
+}
+
+enum TripPlanningStatus {
+  planned
+  converted
+}
+
 model Account {
   id           String               @id
   name         String
@@ -45,6 +56,7 @@ model Account {
   markerSearchEvents MarkerSearchEvent[]
   sessions     AuthSession[]
   tripChecklistItems TripChecklistItem[]
+  tripPlanningItems TripPlanningItem[]
   achievementUnlocks AchievementUnlock[]
 
   @@map("accounts")
@@ -100,6 +112,7 @@ model Trip {
   account       Account       @relation(fields: [accountId], references: [id])
   markers       VisitMarker[]
   checklistItems TripChecklistItem[]
+  planningItems TripPlanningItem[]
 
   @@index([accountId], map: "idx_trips_account_id")
   @@index([startsAt], map: "idx_trips_starts_at")
@@ -137,6 +150,7 @@ model TravelCompanion {
   histories  GuideSearchHistory[]
   markerSearchEvents MarkerSearchEvent[]
   tripChecklistItems TripChecklistItem[] @relation("TripChecklistItemCreatedByCompanion")
+  tripPlanningItems TripPlanningItem[] @relation("TripPlanningItemCreatedByCompanion")
 
   @@index([accountId], map: "idx_travel_companions_account_id")
   @@unique([accountId, name, isDeleted], map: "uq_travel_companions_account_name_active")
@@ -169,6 +183,7 @@ model VisitMarker {
   trip           Trip?              @relation(fields: [tripId], references: [id])
   images         VisitMarkerImage[]
   savedGuides    SavedGuide[]
+  convertedPlanningItems TripPlanningItem[] @relation("TripPlanningItemConvertedMarker")
 
   @@index([accountId], map: "idx_visit_markers_account_id")
   @@index([companionId], map: "idx_visit_markers_companion_id")
@@ -269,4 +284,41 @@ model TripChecklistItem {
   @@index([tripId, stage, sortOrder], map: "idx_trip_checklist_items_trip_stage_sort")
   @@index([tripId, sourceGuideIdentity, isDeleted], map: "idx_trip_checklist_items_trip_guide_identity_active")
   @@map("trip_checklist_items")
+}
+
+model TripPlanningItem {
+  id                    String               @id
+  accountId             String               @map("account_id")
+  tripId                String               @map("trip_id")
+  createdByCompanionId  String               @map("created_by_companion_id")
+  title                 String
+  scope                 TravelScope
+  scopeId               String               @map("scope_id")
+  scopeName             String               @map("scope_name")
+  city                  String
+  note                  String?              @db.Text
+  priority              TripPlanningPriority @default(medium)
+  plannedDate           DateTime?            @map("planned_date")
+  status                TripPlanningStatus   @default(planned)
+  convertedMarkerId     String?              @map("converted_marker_id")
+  sourceGuideIdentity   String?              @map("source_guide_identity")
+  sourceGuideTitle      String?              @map("source_guide_title")
+  sourceGuideSourceName String?              @map("source_guide_source_name")
+  sourceGuideSourceUrl  String?              @map("source_guide_source_url")
+  sortOrder             Int                  @default(0) @map("sort_order")
+  isDeleted             Boolean              @default(false) @map("is_deleted")
+  createdAt             DateTime             @default(now()) @map("created_at")
+  updatedAt             DateTime             @updatedAt @map("updated_at")
+  deletedAt             DateTime?            @map("deleted_at")
+  account               Account              @relation(fields: [accountId], references: [id])
+  trip                  Trip                 @relation(fields: [tripId], references: [id])
+  createdByCompanion    TravelCompanion      @relation("TripPlanningItemCreatedByCompanion", fields: [createdByCompanionId], references: [id])
+  convertedMarker       VisitMarker?         @relation("TripPlanningItemConvertedMarker", fields: [convertedMarkerId], references: [id])
+
+  @@index([accountId], map: "idx_trip_planning_items_account_id")
+  @@index([tripId], map: "idx_trip_planning_items_trip_id")
+  @@index([tripId, status, sortOrder], map: "idx_trip_planning_items_trip_status_sort")
+  @@index([createdByCompanionId], map: "idx_trip_planning_items_companion_id")
+  @@index([convertedMarkerId], map: "idx_trip_planning_items_converted_marker_id")
+  @@map("trip_planning_items")
 }
