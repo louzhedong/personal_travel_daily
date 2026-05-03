@@ -42,6 +42,7 @@ export interface TripDetailModel {
       savedAt: Date;
     }
   >;
+  planningSummary: TripDetailResponseDto['planningSummary'];
   checklistSummary: TripDetailResponseDto['checklistSummary'];
   checklistGroups: TripDetailResponseDto['checklistGroups'];
   meta: {
@@ -224,6 +225,7 @@ export function serializeTripDetail(model: TripDetailModel): TripDetailResponseD
       ...guide,
       savedAt: toIsoString(guide.savedAt),
     })),
+    planningSummary: model.planningSummary,
     checklistSummary: model.checklistSummary,
     checklistGroups: model.checklistGroups,
     meta: {

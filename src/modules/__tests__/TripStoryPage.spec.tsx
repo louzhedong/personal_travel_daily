@@ -8,6 +8,15 @@ vi.mock('../../lib/api/tripsApi', () => ({
   fetchTripDetail: vi.fn(),
 }));
 
+function readBlobAsText(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => resolve(String(reader.result)));
+    reader.addEventListener('error', () => reject(reader.error));
+    reader.readAsText(blob);
+  });
+}
+
 describe('TripStoryPage', () => {
   const originalPrint = window.print;
   const originalTitle = document.title;
@@ -196,6 +205,21 @@ describe('TripStoryPage', () => {
 
   it('switches story templates and exports a long image', async () => {
     const user = userEvent.setup();
+    vi.mocked(fetchTripDetail).mockResolvedValueOnce({
+      ...tripDetailResponse,
+      summary: {
+        ...tripDetailResponse.summary,
+        photoCount: 18,
+      },
+      photos: Array.from({ length: 18 }, (_, index) => ({
+        markerId: 'marker-1',
+        markerTitle: `浙江 · 杭州 ${index + 1}`,
+        imageUrl: `https://example.com/hangzhou-${index + 1}.jpg`,
+        visitedStartAt: '2026-05-01',
+        scopeName: '浙江',
+        city: '杭州',
+      })),
+    } as never);
 
     render(
       <TripStoryPage
@@ -213,6 +237,12 @@ describe('TripStoryPage', () => {
     await user.click(screen.getByRole('button', { name: '导出长图' }));
 
     expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    const exportedBlob = vi.mocked(URL.createObjectURL).mock.calls[0][0] as Blob;
+    const exportedSvg = await readBlobAsText(exportedBlob);
+    expect(exportedSvg).toContain('照片段落');
+    expect(exportedSvg).toContain('PHOTO 18');
+    expect(exportedSvg).toContain('<image href="https://example.com/hangzhou-18.jpg"');
+    expect(Number(exportedSvg.match(/height="(\d+)"/)?.[1])).toBeGreaterThan(1800);
     expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledOnce();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:story');
   });

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import TripChecklistBoard from '../../components/trips/TripChecklistBoard';
+import TripPlanningBoard from '../../components/trips/TripPlanningBoard';
 import TravelIcon from '../../components/ui/TravelIcon';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import DateField from '../../components/ui/DateField';
@@ -8,12 +9,17 @@ import FancySelect from '../../components/ui/FancySelect';
 import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
 import {
   createTripChecklistItem,
+  createTripPlanningItem,
+  convertTripPlanningItemToMarker,
   deleteTrip,
   deleteTripChecklistItem,
+  deleteTripPlanningItem,
   fetchTripChecklist,
   fetchTripDetail,
+  fetchTripPlanning,
   updateTrip,
   updateTripChecklistItem,
+  updateTripPlanningItem,
 } from '../../lib/api/tripsApi';
 import {
   MARKER_BUDGET_LEVEL_LABELS,
@@ -23,10 +29,13 @@ import {
 } from '../../lib/markerMetadata';
 import type {
   CreateTripChecklistItemInput,
+  CreateTripPlanningItemInput,
+  ConvertTripPlanningItemInput,
   TripDetailResponseDto,
   UpdateTripChecklistItemInput,
+  UpdateTripPlanningItemInput,
 } from '../../lib/api/types';
-import type { AuthAccount } from '../../types';
+import type { AuthAccount, TripPlanningItem, TripPlanningSummary } from '../../types';
 import {
   buildTripCoverOptions,
   buildTripDetailSummaryCards,
@@ -69,6 +78,15 @@ export default function TripDetailPage({
   const [tripSaving, setTripSaving] = useState(false);
   const [tripDeleteOpen, setTripDeleteOpen] = useState(false);
   const [checklistBusy, setChecklistBusy] = useState(false);
+  const [planningBusy, setPlanningBusy] = useState(false);
+  const [planningItems, setPlanningItems] = useState<TripPlanningItem[]>([]);
+  const [planningSummary, setPlanningSummary] = useState<TripPlanningSummary>({
+    total: 0,
+    plannedCount: 0,
+    convertedCount: 0,
+    highPriorityCount: 0,
+  });
+  const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'planning' | 'records' | 'assets'>('overview');
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +98,12 @@ export default function TripDetailPage({
           return;
         }
         setData(response);
+        setPlanningSummary(response.planningSummary ?? {
+          total: 0,
+          plannedCount: 0,
+          convertedCount: 0,
+          highPriorityCount: 0,
+        });
         setErrorMessage('');
       })
       .catch((error) => {
@@ -99,6 +123,33 @@ export default function TripDetailPage({
       cancelled = true;
     };
   }, [tripId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (activeDetailTab !== 'planning' || !data) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    fetchTripPlanning(tripId)
+      .then((response) => {
+        if (!cancelled) {
+          setPlanningItems(response.items);
+          setPlanningSummary(response.summary);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setFeedbackMessage(error instanceof Error ? error.message : '行前规划加载失败');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeDetailTab, data, tripId]);
 
   const summaryCards = useMemo(() => (data ? buildTripDetailSummaryCards(data) : []), [data]);
   const markerGroups = useMemo(() => (data ? groupTripDetailMarkers(data.markers) : []), [data]);
@@ -121,6 +172,20 @@ export default function TripDetailPage({
             ...current,
             checklistSummary: response.summary,
             checklistGroups: response.groups,
+          }
+        : current,
+    );
+  };
+
+  const reloadPlanning = async () => {
+    const response = await fetchTripPlanning(tripId);
+    setPlanningItems(response.items);
+    setPlanningSummary(response.summary);
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            planningSummary: response.summary,
           }
         : current,
     );
@@ -153,6 +218,39 @@ export default function TripDetailPage({
     wrapChecklistMutation(async () => {
       await deleteTripChecklistItem(tripId, itemId);
     }, '已删除这条清单。');
+
+  const wrapPlanningMutation = async (action: () => Promise<void>, successMessage: string) => {
+    setPlanningBusy(true);
+    try {
+      await action();
+      await reloadPlanning();
+      setFeedbackMessage(successMessage);
+    } catch (error) {
+      setFeedbackMessage(error instanceof Error ? error.message : '行前规划更新失败');
+    } finally {
+      setPlanningBusy(false);
+    }
+  };
+
+  const handleCreatePlanningItem = async (input: CreateTripPlanningItemInput) =>
+    wrapPlanningMutation(async () => {
+      await createTripPlanningItem(tripId, input);
+    }, '已新增一条行前规划。');
+
+  const handleUpdatePlanningItem = async (itemId: string, input: UpdateTripPlanningItemInput) =>
+    wrapPlanningMutation(async () => {
+      await updateTripPlanningItem(tripId, itemId, input);
+    }, '已更新这条规划。');
+
+  const handleDeletePlanningItem = async (itemId: string) =>
+    wrapPlanningMutation(async () => {
+      await deleteTripPlanningItem(tripId, itemId);
+    }, '已删除这条规划。');
+
+  const handleConvertPlanningItem = async (itemId: string, input: ConvertTripPlanningItemInput) =>
+    wrapPlanningMutation(async () => {
+      await convertTripPlanningItemToMarker(tripId, itemId, input);
+    }, '已将规划项转为旅行记录。');
 
   const openTripEditor = () => {
     if (!data) {
@@ -401,6 +499,47 @@ export default function TripDetailPage({
               ))}
             </section>
 
+            <section className="trip-detail-tabs" aria-label="行程详情视图">
+              {[
+                { key: 'overview', label: '概览' },
+                { key: 'planning', label: `规划 ${planningSummary.plannedCount}` },
+                { key: 'records', label: `记录 ${data.summary.markerCount}` },
+                { key: 'assets', label: '素材' },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={activeDetailTab === tab.key ? 'is-active' : ''}
+                  onClick={() => setActiveDetailTab(tab.key as typeof activeDetailTab)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </section>
+
+            {activeDetailTab === 'planning' ? (
+              <section className="card trip-detail-panel">
+                <div className="trip-detail-section-heading">
+                  <div>
+                    <h2>行前规划</h2>
+                    <p>把想去地点、攻略来源和预计日期先收进这次行程，回来后再转成正式记录。</p>
+                  </div>
+                </div>
+                <TripPlanningBoard
+                  activeCompanionId={data.companions[0]?.id ?? account.id}
+                  summary={planningSummary}
+                  items={planningItems}
+                  busy={planningBusy}
+                  feedbackMessage=""
+                  onCreateItem={handleCreatePlanningItem}
+                  onUpdateItem={handleUpdatePlanningItem}
+                  onDeleteItem={handleDeletePlanningItem}
+                  onConvertItem={handleConvertPlanningItem}
+                />
+              </section>
+            ) : null}
+
+            {activeDetailTab === 'overview' ? (
             <section className="trip-detail-two-column">
               <section className="card trip-detail-panel">
                 <div className="trip-detail-section-heading">
@@ -493,7 +632,9 @@ export default function TripDetailPage({
                 </div>
               </section>
             </section>
+            ) : null}
 
+            {activeDetailTab === 'overview' || activeDetailTab === 'records' ? (
             <section className="card trip-detail-panel trip-detail-panel-fixed">
               <div className="trip-detail-section-heading">
                 <div>
@@ -560,7 +701,9 @@ export default function TripDetailPage({
                 </div>
               )}
             </section>
+            ) : null}
 
+            {activeDetailTab === 'overview' || activeDetailTab === 'assets' ? (
             <section className="trip-detail-photo-guide-grid">
               <section className="card trip-detail-panel trip-detail-panel-fixed">
                 <div className="trip-detail-section-heading">
@@ -644,6 +787,7 @@ export default function TripDetailPage({
                 )}
               </section>
             </section>
+            ) : null}
           </>
         ) : null}
       </div>

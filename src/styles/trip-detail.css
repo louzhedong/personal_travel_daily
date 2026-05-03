@@ -160,6 +160,103 @@
   gap: 16px;
 }
 
+.trip-detail-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+
+.trip-detail-tabs button {
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(255, 255, 255, 0.88);
+  color: #64748b;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.trip-detail-tabs button.is-active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.trip-planning-board {
+  display: grid;
+  gap: 14px;
+}
+
+.trip-planning-summary,
+.trip-planning-card-meta,
+.trip-planning-card-actions,
+.trip-planning-toolbar,
+.trip-planning-convert-row,
+.trip-planning-inline-editor {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.trip-planning-summary span,
+.trip-planning-card-meta span,
+.trip-planning-card-head span {
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: #64748b;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trip-planning-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.trip-planning-note {
+  min-height: 42px;
+}
+
+.trip-planning-list {
+  display: grid;
+  gap: 12px;
+}
+
+.trip-planning-card {
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 8px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.trip-planning-card-converted {
+  opacity: 0.75;
+}
+
+.trip-planning-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.trip-planning-card-head p,
+.trip-planning-card-note,
+.trip-planning-feedback {
+  margin: 0;
+  color: #64748b;
+}
+
+.trip-planning-select {
+  min-height: 40px;
+}
+
 .trip-detail-summary-card {
   display: grid;
   gap: 8px;

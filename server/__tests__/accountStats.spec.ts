@@ -18,6 +18,10 @@ describe('accountStats', () => {
             markers: [{ id: 'm1' }, { id: 'm2' }],
             savedGuides: [{ id: 'g1' }],
             guideSearchHistory: [{ id: 'h1' }, { id: 'h2' }],
+            planningItems: [
+              { id: 'p1', status: 'planned' },
+              { id: 'p2', status: 'converted' },
+            ],
           },
           {
             id: 'u2',
@@ -27,6 +31,7 @@ describe('accountStats', () => {
             markers: [{ id: 'm3' }],
             savedGuides: [{ id: 'g2' }, { id: 'g3' }],
             guideSearchHistory: [],
+            planningItems: [{ id: 'p3', status: 'converted' }],
           },
         ] as never,
       }),
@@ -36,6 +41,8 @@ describe('accountStats', () => {
       markerCount: 3,
       savedGuideCount: 3,
       guideSearchHistoryCount: 2,
+      planningItemCount: 3,
+      convertedPlanningItemCount: 2,
       markerSearchEventCount: 5,
     });
   });
@@ -53,6 +60,8 @@ describe('accountStats', () => {
       markerCount: 0,
       savedGuideCount: 0,
       guideSearchHistoryCount: 0,
+      planningItemCount: 0,
+      convertedPlanningItemCount: 0,
       markerSearchEventCount: 0,
     });
   });

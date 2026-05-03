@@ -47,7 +47,7 @@ The smart narrative is generated from existing aggregate data only. It does not 
 当前支持两种导出：
 
 - 浏览器原生 `window.print()`：让用户通过系统打印面板保存 PDF。
-- SVG 长图导出：生成一张私有故事长图，包含标题、日期、摘要、亮点、智能序言和路线摘录。
+- SVG 长图导出：生成一张内容驱动高度的私有故事长图，包含标题、日期、摘要、智能序言、完整路线、时间线、照片段落、攻略摘录和行前清单回顾。
 
 实现约束：
 
@@ -55,7 +55,11 @@ The smart narrative is generated from existing aggregate data only. It does not 
 - 打印样式隐藏操作按钮和外部链接。
 - 打印样式固定白底，并尽量避免卡片、照片和段落被分页切断。
 - 图片按浏览器现有能力打印；不做跨域图片代理或长图截图。
-- 长图导出不引入截图依赖，不把图片嵌入 SVG，避免跨域图片污染导出链路。
+- 长图导出不引入截图依赖，不把图片嵌入 SVG，避免跨域图片污染导出链路；照片以 `<image href="...">` 写入 SVG，并使用 `clipPath`、固定画幅和底部字幕层保持重型图库下的布局稳定。
+- SVG 高度会随内容增长，不再使用固定 1800px 画布；段落之间保留显式间距，避免照片、路线、时间线和清单在长内容下互相重叠。
+- 若图片源禁止外链、需要登录、跨域策略限制 SVG 加载，或本地 SVG 查看器不加载网络图片，长图中的图片可能显示为空白；导出文件仍会保留原始图片 URL，后续若需要离线完整图片可另行引入受控图片代理或 base64 内联策略。
+
+Summary: Long-image export is a dynamic SVG layout with real image references, not a screenshot or an offline media archive.
 
 ## 入口 / Entry Points
 
@@ -79,6 +83,7 @@ The smart narrative is generated from existing aggregate data only. It does not 
 - 故事页加载后展示主要区块。
 - 点击“导出 PDF / 打印”调用 `window.print()`。
 - 点击“导出长图”生成 SVG Blob 并触发下载。
+- 重型照片导出会生成超过固定基线的动态高度，包含照片段落和真实 `<image href>`。
 - 模板切换会更新故事页视觉模式。
 - 文档标题使用行程名，供打印/PDF 标题使用。
 - 缺少照片、攻略、清单、记录时空态稳定。

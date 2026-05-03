@@ -209,6 +209,50 @@ export interface AdminMarkerSearchEventNodeDto {
   createdAt: string;
 }
 
+export type TripPlanningPriorityDto = 'low' | 'medium' | 'high';
+export type TripPlanningStatusDto = 'planned' | 'converted';
+
+export interface TripPlanningItemDto {
+  id: string;
+  tripId: string;
+  companionId: string;
+  companionName: string;
+  companionColor: string;
+  title: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note?: string;
+  priority: TripPlanningPriorityDto;
+  plannedDate?: string;
+  status: TripPlanningStatusDto;
+  convertedMarkerId?: string;
+  sourceGuideIdentity?: string;
+  sourceGuideTitle?: string;
+  sourceGuideSourceName?: string;
+  sourceGuideSourceUrl?: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TripPlanningSummaryDto {
+  total: number;
+  plannedCount: number;
+  convertedCount: number;
+  highPriorityCount: number;
+}
+
+export interface TripPlanningResponseDto {
+  summary: TripPlanningSummaryDto;
+  items: TripPlanningItemDto[];
+}
+
+export interface AdminPlanningItemNodeDto extends TripPlanningItemDto {
+  tripName: string;
+}
+
 export interface AdminCompanionNodeDto {
   id: string;
   name: string;
@@ -217,6 +261,7 @@ export interface AdminCompanionNodeDto {
   markers: AdminMarkerNodeDto[];
   savedGuides: AdminSavedGuideNodeDto[];
   guideSearchHistory: AdminGuideSearchHistoryNodeDto[];
+  planningItems: AdminPlanningItemNodeDto[];
 }
 
 export interface AdminAccountNodeDto {
@@ -235,6 +280,8 @@ export interface AdminAccountNodeDto {
     savedGuideCount: number;
     guideSearchHistoryCount: number;
     markerSearchEventCount: number;
+    planningItemCount: number;
+    convertedPlanningItemCount: number;
   };
 }
 
@@ -597,6 +644,7 @@ export interface TripDetailResponseDto {
   markers: TripDetailMarkerItemDto[];
   photos: TripDetailPhotoItemDto[];
   guides: TripDetailGuideItemDto[];
+  planningSummary: TripPlanningSummaryDto;
   checklistSummary: TripChecklistSummaryDto;
   checklistGroups: TripChecklistGroupDto[];
   meta: {

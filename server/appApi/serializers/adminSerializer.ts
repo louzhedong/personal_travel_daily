@@ -5,6 +5,7 @@ import type {
   SavedGuide,
   TravelCompanion,
   Trip,
+  TripPlanningItem,
   VisitMarker,
   VisitMarkerImage,
 } from '@prisma/client';
@@ -15,6 +16,7 @@ import type {
   AdminMarkerSearchEventNodeDto,
   AdminMarkerNodeDto,
   AdminOverviewResponseDto,
+  AdminPlanningItemNodeDto,
   AdminSavedGuideNodeDto,
   AdminTripNodeDto,
   GuideContentBlockDto,
@@ -22,6 +24,7 @@ import type {
   GuideSearchResultDto,
 } from '../types.js';
 import { buildAdminAccountStats } from '../services/admin/accountStats.js';
+import { serializeTripPlanningItem } from './tripPlanningSerializer.js';
 
 // admin serializer：model → DTO 映射。
 // admin serializer: model → DTO mapping.
@@ -34,6 +37,7 @@ type CompanionWithRelations = TravelCompanion & {
   markers: Array<VisitMarker & { images: VisitMarkerImage[] }>;
   guides: SavedGuide[];
   histories: GuideSearchHistory[];
+  tripPlanningItems: Array<TripPlanningItem & { trip: Trip }>;
 };
 
 type AccountWithRelations = Account & {
@@ -179,6 +183,15 @@ function serializeMarkerSearchEvent(event: MarkerSearchEvent): AdminMarkerSearch
   };
 }
 
+function serializePlanningItem(
+  item: TripPlanningItem & { trip: Trip; createdByCompanion: TravelCompanion },
+): AdminPlanningItemNodeDto {
+  return {
+    ...serializeTripPlanningItem(item),
+    tripName: item.trip.name,
+  };
+}
+
 function serializeCompanion(companion: CompanionWithRelations): AdminCompanionNodeDto {
   return {
     id: companion.id,
@@ -188,6 +201,9 @@ function serializeCompanion(companion: CompanionWithRelations): AdminCompanionNo
     markers: companion.markers.map(serializeMarker),
     savedGuides: companion.guides.map(serializeSavedGuide),
     guideSearchHistory: companion.histories.map(serializeGuideSearchHistory),
+    planningItems: companion.tripPlanningItems.map((item) =>
+      serializePlanningItem({ ...item, createdByCompanion: companion }),
+    ),
   };
 }
 

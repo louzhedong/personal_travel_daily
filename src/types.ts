@@ -75,6 +75,41 @@ export interface TripChecklistSummary {
   doneCount: number;
 }
 
+export type TripPlanningPriority = 'low' | 'medium' | 'high';
+export type TripPlanningStatus = 'planned' | 'converted';
+
+export interface TripPlanningItem {
+  id: string;
+  tripId: string;
+  companionId: string;
+  companionName: string;
+  companionColor: string;
+  title: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note?: string;
+  priority: TripPlanningPriority;
+  plannedDate?: string;
+  status: TripPlanningStatus;
+  convertedMarkerId?: string;
+  sourceGuideIdentity?: string;
+  sourceGuideTitle?: string;
+  sourceGuideSourceName?: string;
+  sourceGuideSourceUrl?: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TripPlanningSummary {
+  total: number;
+  plannedCount: number;
+  convertedCount: number;
+  highPriorityCount: number;
+}
+
 export interface VisitMarker {
   id: string;
   userId: string;

@@ -10,6 +10,11 @@ const mocks = vi.hoisted(() => ({
   getAnnualReviewMock: vi.fn(),
   getTripDetailMock: vi.fn(),
   listTripChecklistMock: vi.fn(),
+  listTripPlanningMock: vi.fn(),
+  createTripPlanningItemResourceMock: vi.fn(),
+  updateTripPlanningItemResourceMock: vi.fn(),
+  deleteTripPlanningItemResourceMock: vi.fn(),
+  convertTripPlanningItemToMarkerMock: vi.fn(),
   createTripChecklistItemResourceMock: vi.fn(),
   updateTripChecklistItemResourceMock: vi.fn(),
   deleteTripChecklistItemResourceMock: vi.fn(),
@@ -57,6 +62,14 @@ vi.mock('../appApi/services/tripChecklistService.js', () => ({
   updateTripChecklistItemResource: mocks.updateTripChecklistItemResourceMock,
   deleteTripChecklistItemResource: mocks.deleteTripChecklistItemResourceMock,
   generateTripChecklist: mocks.generateTripChecklistMock,
+}));
+
+vi.mock('../appApi/services/tripPlanningService.js', () => ({
+  listTripPlanning: mocks.listTripPlanningMock,
+  createTripPlanningItemResource: mocks.createTripPlanningItemResourceMock,
+  updateTripPlanningItemResource: mocks.updateTripPlanningItemResourceMock,
+  deleteTripPlanningItemResource: mocks.deleteTripPlanningItemResourceMock,
+  convertTripPlanningItemToMarker: mocks.convertTripPlanningItemToMarkerMock,
 }));
 
 vi.mock('../appApi/services/companionService.js', () => ({
@@ -535,6 +548,82 @@ describe('app api routes', () => {
         stage: 'done',
       });
       expect(mocks.deleteTripChecklistItemResourceMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1', 'item-1');
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('supports trip planning routes for authenticated accounts', async () => {
+    const planningItem = {
+      id: 'plan-1',
+      tripId: 'trip-1',
+      companionId: 'user-alice',
+      companionName: '小悠',
+      companionColor: '#2563eb',
+      title: '岚山竹林',
+      scope: 'international',
+      scopeId: 'japan',
+      scopeName: '日本',
+      city: '京都',
+      priority: 'high',
+      status: 'planned',
+      sortOrder: 0,
+      createdAt: '2026-05-01T00:00:00.000Z',
+      updatedAt: '2026-05-01T00:00:00.000Z',
+    };
+    mocks.listTripPlanningMock.mockResolvedValue({
+      summary: { total: 1, plannedCount: 1, convertedCount: 0, highPriorityCount: 1 },
+      items: [planningItem],
+    });
+    mocks.createTripPlanningItemResourceMock.mockResolvedValue(planningItem);
+    mocks.updateTripPlanningItemResourceMock.mockResolvedValue({ ...planningItem, priority: 'medium' });
+    mocks.deleteTripPlanningItemResourceMock.mockResolvedValue({ deletedId: 'plan-1' });
+    mocks.convertTripPlanningItemToMarkerMock.mockResolvedValue({ markers: [], users: [], trips: [], activeUserId: 'user-alice', savedGuides: [], guideSearchHistory: [] });
+
+    const app = await buildApp();
+    try {
+      const listResponse = await app.inject({ method: 'GET', url: '/api/trips/trip-1/planning' });
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/trips/trip-1/planning/items',
+        payload: {
+          companionId: 'user-alice',
+          title: '岚山竹林',
+          scope: 'international',
+          scopeId: 'japan',
+          scopeName: '日本',
+          city: '京都',
+          priority: 'high',
+        },
+      });
+      const updateResponse = await app.inject({
+        method: 'PATCH',
+        url: '/api/trips/trip-1/planning/items/plan-1',
+        payload: { priority: 'medium' },
+      });
+      const convertResponse = await app.inject({
+        method: 'POST',
+        url: '/api/trips/trip-1/planning/items/plan-1/convert-to-marker',
+        payload: {
+          visitedStartAt: '2026-05-01',
+          visitedEndAt: '2026-05-01',
+        },
+      });
+      const deleteResponse = await app.inject({
+        method: 'DELETE',
+        url: '/api/trips/trip-1/planning/items/plan-1',
+      });
+
+      expect(listResponse.statusCode).toBe(200);
+      expect(createResponse.statusCode).toBe(200);
+      expect(updateResponse.statusCode).toBe(200);
+      expect(convertResponse.statusCode).toBe(200);
+      expect(deleteResponse.statusCode).toBe(200);
+      expect(mocks.listTripPlanningMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1');
+      expect(mocks.createTripPlanningItemResourceMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1', expect.objectContaining({ title: '岚山竹林' }));
+      expect(mocks.updateTripPlanningItemResourceMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1', 'plan-1', { priority: 'medium' });
+      expect(mocks.convertTripPlanningItemToMarkerMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1', 'plan-1', expect.objectContaining({ visitedStartAt: '2026-05-01' }));
+      expect(mocks.deleteTripPlanningItemResourceMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1', 'plan-1');
     } finally {
       await app.close();
     }

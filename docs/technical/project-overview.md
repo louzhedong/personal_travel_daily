@@ -56,11 +56,21 @@ Summary: Trip Collection is a true content container with create / edit / delete
 
 Summary: Guide-to-checklist turns search results into trip-bound checklist items with automatic extraction, manual editing, and both embedded and expanded views.
 
-### 1.5C 旅行故事页 / Trip Story
+### 1.5C 行前规划工作台 / Trip Planning Workspace
+
+- `/trips/:id` 内新增“规划”Tab，管理 trip-bound 愿望地点、攻略来源、备注、优先级、预计日期和状态。
+- 规划项绑定 `accountId + tripId + createdByCompanionId`，只属于已存在行程，不引入全局 wishlist 或地图选点。
+- 攻略搜索结果支持“加入行程规划”，与“生成行前清单”并存，分别承接“想去地点”和“准备事项”两种语义。
+- 旅行结束后可把未转换规划项转为正式 `VisitMarker`，服务端写入 `convertedMarkerId` 并阻止重复转换。
+- 管理后台只读巡检规划项统计和明细，不提供新增、编辑、删除或代用户转记录。
+
+Summary: Trip Planning Workspace adds a trip-bound pre-travel planning loop for desired places, guide-source context, priorities, planned dates, and post-trip conversion into visit markers.
+
+### 1.5D 旅行故事页 / Trip Story
 
 - `/trips/:id/story` 将单次行程整理为私有故事页，自动组合封面、故事摘要、智能序言、路线胶片、时间线、照片、攻略摘录和行前清单回顾。
 - 故事页复用 `GET /api/trips/:id/detail`，不新增后端接口或独立持久化。
-- 支持杂志风 / 纪念册模板切换、SVG 长图导出、浏览器原生打印 / PDF 导出，并提供 print 专用样式。
+- 支持杂志风 / 纪念册模板切换、动态 SVG 长图导出、浏览器原生打印 / PDF 导出，并提供 print 专用样式。
 
 Summary: `/trips/:id/story` turns one trip into a private printable story page by reusing the existing trip-detail aggregate.
 
@@ -116,9 +126,9 @@ Summary: Auth uses Cookie Session with hash-only storage. Only `admin` and `memb
 ### 1.12 管理员后台 / Admin Backoffice
 
 - 独立 `/admin` 后台页，仅 `admin` 可进入；后端 `GET /api/admin/overview` 做最终权限裁决。
-- 后台只读展示账户、旅伴、旅行记录、收藏攻略与搜索历史的系统级概览。
+- 后台只读展示账户、旅伴、旅行记录、行前规划、收藏攻略与搜索历史的系统级概览。
 
-Summary: `/admin` is an admin-only read-only overview page whose permissions are ultimately enforced by the backend.
+Summary: `/admin` is an admin-only read-only overview page for accounts, companions, markers, planning items, saved guides, and search history; permissions are ultimately enforced by the backend.
 
 ---
 
@@ -142,7 +152,8 @@ Summary: The frontend shell separates routing, page composition, map state, stor
 - `src/components/TravelMap.tsx`：地图主体，承载国内 / 国际切换、hover、轨迹弧线、回放控制条与移动圆点标签。
 - `src/components/MarkerList.tsx` / `MarkerDetailPanel.tsx`：旅行记录的列表与详情。
 - `src/components/TripTimelinePanel.tsx`：时间线面板，兼任"整理模式"与行程管理台。
-- `src/components/GuideSearchPanel.tsx`：攻略搜索、收藏、关联与“生成行前清单”面板。
+- `src/components/GuideSearchPanel.tsx`：攻略搜索、收藏、关联、“生成行前清单”与“加入行程规划”面板。
+- `src/components/trips/TripPlanningBoard.tsx`：行程详情规划 Tab 的共享工作台，承接新增、编辑、删除、优先级筛选和转旅行记录。
 - `src/components/trips/TripChecklistBoard.tsx`：行前清单的共享展示与编辑组件，供行程详情页和放大页复用。
 - `src/components/DataSync.tsx`：数据备份（仅导出）。
 
@@ -165,7 +176,7 @@ Summary: Pure logic is pulled out of components into `src/lib` and per-module vi
 
 - `src/lib/api/httpClient.ts`：主业务 API 客户端基础能力，默认携带 `credentials`，本地开发优先走同源 `/api` 代理。
 - `src/lib/api/authApi.ts`：`register` / `login` / `fetchSession` / `logout`。
-- `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats` 等领域客户端，其中 `tripsApi.ts` 继续承接 checklist 子资源。
+- `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats` 等领域客户端，其中 `tripsApi.ts` 继续承接 checklist 与 planning 子资源。
 - `src/lib/repositories/remoteTravelStoreRepository.ts`：组合多个 API 调用，为页面层提供稳定边界。
 - `src/lib/repositories/*`：IndexedDB 仅保留攻略缓存与本地辅助状态，不再作为主数据持久化。
 
@@ -175,13 +186,13 @@ Summary: The frontend talks to the backend through typed API modules and a remot
 
 - `server/appApiServer.ts`：Fastify 入口。
 - `server/appApi/routes/*`：`auth` / `bootstrap` / `companions` / `markers` / `savedGuides` / `guideSearchHistories` / `trips` / `stats` / `admin` 等路由。
-- `server/appApi/services/tripChecklistService.ts` / `tripChecklistGenerationService.ts` / `guideDocumentService.ts`：行前清单查询、写操作、攻略正文提炼与回退策略。
+- `server/appApi/services/tripChecklistService.ts` / `tripPlanningService.ts` / `tripChecklistGenerationService.ts` / `guideDocumentService.ts`：行前清单查询、规划项写操作、转记录规则、攻略正文提炼与回退策略。
 - `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、成就解锁持久化、trip detail、admin overview 等）。
 - `server/appApi/auth/*`：`requestAuth`（恢复 / 鉴权）、`session`（token、cookie 序列化）、`password`（hash / verify）。
 - `server/appApi/repositories/*`：Prisma 查询封装。
 - `server/appApi/serializers/*`：DB 模型 → 前端模型。
 - `server/appApi/errors.ts`：统一业务错误。
-- `server/prisma/schema.prisma`：MySQL 数据模型，包括成就首次解锁记录 `AchievementUnlock`。
+- `server/prisma/schema.prisma`：MySQL 数据模型，包括成就首次解锁记录 `AchievementUnlock` 与行程规划项 `TripPlanningItem`。
 - `server/prisma/migrations/*`：正式 migration 历史。
 - `server/prisma/seed.ts`：默认演示账号与 demo 数据。
 

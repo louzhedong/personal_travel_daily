@@ -139,6 +139,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                       <span>同行人 {selectedAccount.stats.companionCount}</span>
                       <span>记录 {selectedAccount.stats.markerCount}</span>
                       <span>收藏 {selectedAccount.stats.savedGuideCount}</span>
+                      <span>规划 {selectedAccount.stats.planningItemCount ?? 0}</span>
                       <span>攻略搜索 {selectedAccount.stats.guideSearchHistoryCount}</span>
                       <span>记录搜索 {selectedAccount.stats.markerSearchEventCount}</span>
                     </div>
@@ -161,6 +162,14 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                       <article className="admin-kpi-card">
                         <span>收藏攻略</span>
                         <strong>{detailCollections.savedGuides.length}</strong>
+                      </article>
+                      <article className="admin-kpi-card">
+                        <span>行前规划</span>
+                        <strong>{selectedAccount.stats.planningItemCount ?? 0}</strong>
+                      </article>
+                      <article className="admin-kpi-card">
+                        <span>已转记录</span>
+                        <strong>{selectedAccount.stats.convertedPlanningItemCount ?? 0}</strong>
                       </article>
                       <article className="admin-kpi-card">
                         <span>攻略搜索</span>
@@ -232,7 +241,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                                     selectedAccount.markerSearchEvents.filter(
                                       (event) => event.companionId === companion.id,
                                     ).length
-                                  }
+                                  } · 规划 {companion.planningItems?.length ?? 0}
                                 </p>
                               </div>
                             </div>

@@ -1,7 +1,40 @@
 # Changelog / 更新日志
 
-本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。  
+本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
+
+## 2026-05-03
+
+### PR 待定 / TBD `feat: 行前规划工作台一期 / Add trip planning workspace phase one`
+
+### Added / 新增
+
+- 新增 `TripPlanningItem` Prisma 模型、正式 migration 与 trip-bound planning API，支持行程内规划项查询、新增、编辑、软删除和转旅行记录。
+  Added the `TripPlanningItem` Prisma model, a formal migration, and trip-bound planning APIs for listing, creating, editing, soft-deleting, and converting planning items into travel records.
+- 新增行程详情“规划”Tab 与 `TripPlanningBoard`，支持愿望地点、攻略来源、备注、优先级、预计日期、优先级筛选和转记录流程。
+  Added the trip-detail Planning tab and `TripPlanningBoard` for desired places, guide-source context, notes, priority, planned dates, priority filtering, and marker conversion.
+- 新增 `docs/technical/trip-planning-workspace.md`，并同步 README、项目总览、API 契约、路线图与故事导出文档。
+  Added `docs/technical/trip-planning-workspace.md` and refreshed the README, project overview, API contract, roadmap, and story-export documentation.
+
+### Changed / 变更
+
+- 攻略搜索结果新增“加入行程规划”，与“生成行前清单”并存，分别承接想去地点与准备事项。
+  Guide search results now support "Add to trip planning" alongside guide-to-checklist generation, separating desired-place planning from preparation tasks.
+- `GET /api/trips/:id/detail` 增加轻量 `planningSummary`，完整规划列表仍通过专用 planning API 拉取。
+  `GET /api/trips/:id/detail` now includes a lightweight `planningSummary`, while full planning items remain behind the dedicated planning API.
+- 管理后台 `GET /api/admin/overview` 增加规划项统计和只读明细，“行前规划”Tab 仅用于巡检，不开放后台写操作。
+  Admin overview now includes planning counters and read-only planning details; the Planning tab is inspection-only with no admin-side mutation.
+- 旅行故事 SVG 长图导出改为内容驱动高度，补充照片段落、真实 `<image href>`、更稳定的段落间距和重型图库测试覆盖。
+  Trip story SVG export now uses content-driven height, includes photo sections with real `<image href>` references, improves spacing, and adds heavy-gallery test coverage.
+
+### Verified / 已验证
+
+- `npx prisma generate --schema server/prisma/schema.prisma`
+- `npx tsc -p tsconfig.server.json --noEmit`
+- `npx tsc -p tsconfig.app.json --noEmit`
+- `npm run test`
+- `npm run test -- --run server/__tests__/appApiRoutes.spec.ts server/__tests__/tripDetailService.spec.ts src/modules/__tests__/TripDetailPage.spec.tsx src/components/__tests__/GuideSearchPanel.spec.tsx src/modules/__tests__/AdminPage.spec.tsx`
+- `npm run test -- --run src/modules/__tests__/TripStoryPage.spec.tsx src/modules/trips/__tests__/tripStoryPageModel.spec.ts`
 
 ## 2026-04-28
 

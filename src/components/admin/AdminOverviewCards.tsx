@@ -16,6 +16,7 @@ export default function AdminOverviewCards({ overview }: AdminOverviewCardsProps
     { label: '行程', value: summary.tripCount, tone: 'green' },
     { label: '同行人', value: summary.companionCount, tone: 'teal' },
     { label: '旅行记录', value: summary.markerCount, tone: 'orange' },
+    { label: '行前规划', value: summary.planningItemCount, tone: 'green' },
     { label: '收藏攻略', value: summary.savedGuideCount, tone: 'sky' },
     { label: '攻略搜索', value: summary.guideSearchHistoryCount, tone: 'slate' },
     { label: '记录搜索', value: summary.markerSearchEventCount, tone: 'blue' },

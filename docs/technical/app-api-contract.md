@@ -6,7 +6,7 @@
 
 - 提供旅行主数据聚合加载能力
 - 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史的服务端读写接口
-- 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史，以及 trip-bound 行前清单的服务端读写接口
+- 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史、trip-bound 行前清单，以及行前规划工作台的服务端读写接口
 - 作为前端 `remoteTravelStoreRepository` 的默认数据源
 
 ## 当前后端实现对照 / Current Backend Architecture References
@@ -28,6 +28,7 @@
 - `statsService` 仅保留 I/O 编排，纯聚合下沉到 `services/stats/aggregator.ts`
 - `bootstrapSerializer` 拆分为 `serializers/bootstrap/*` 子模块，并保留 barrel 兼容层
 - admin 账号级统计摘要下沉到 `services/admin/accountStats.ts`
+- 行前规划工作台使用 `routes/trips.ts` 下的 trip 子资源接口，并按 `schemas / services / repositories / serializers` 分层实现
 
 Summary: The API contract maps directly onto the current backend layering of routes, schemas, services, repositories, serializers, and shared modules.
 
@@ -188,9 +189,9 @@ Summary: The API contract maps directly onto the current backend layering of rou
 用途：
 
 - 仅供管理员查看全量系统账号总览
-- 按“账号 -> 同行人 -> 旅行记录 / 收藏攻略 / 攻略搜索历史”，以及“账号 -> 旅行记录搜索行为”返回只读树状数据
+- 按“账号 -> 同行人 -> 旅行记录 / 行前规划 / 收藏攻略 / 攻略搜索历史”，以及“账号 -> 旅行记录搜索行为”返回只读树状数据
 - Admin-only overview of all system accounts.
-- Returns a read-only tree for "account -> companions -> markers / saved guides / guide search history", plus account-level marker search behavior.
+- Returns a read-only tree for "account -> companions -> markers / planning items / saved guides / guide search history", plus account-level marker search behavior.
 
 权限：
 
@@ -215,6 +216,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
             "color": "#2563eb",
             "createdAt": "2026-04-22T00:00:00.000Z",
             "markers": [],
+            "planningItems": [],
             "savedGuides": [],
             "guideSearchHistory": []
           }
@@ -238,7 +240,9 @@ Summary: The API contract maps directly onto the current backend layering of rou
           "markerCount": 0,
           "savedGuideCount": 0,
           "guideSearchHistoryCount": 0,
-          "markerSearchEventCount": 1
+          "markerSearchEventCount": 1,
+          "planningItemCount": 0,
+          "convertedPlanningItemCount": 0
         }
       }
   ],
@@ -694,6 +698,12 @@ Summary: The API contract maps directly onto the current backend layering of rou
       }
     }
   ],
+  "planningSummary": {
+    "total": 2,
+    "plannedCount": 1,
+    "convertedCount": 1,
+    "highPriorityCount": 1
+  },
   "checklistSummary": {
     "total": 3,
     "preDepartureCount": 2,
@@ -721,6 +731,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - 行程不存在、已删除或不属于当前账号时统一返回 `404 NOT_FOUND`
 - `guides` 会去重同一攻略的重复关联，优先保留最新保存记录
 - `photos` 仅包含当前行程记录上的图片
+- `planningSummary` 只提供行前规划轻量摘要；完整规划列表由 `GET /api/trips/:id/planning` 获取
 - `checklistSummary` 与 `checklistGroups` 直接内嵌在详情响应中，供 `/trips/:id` 首屏展示行前清单面板
 - `/trips/:id/story` 复用本响应生成私有故事页和浏览器打印 / PDF 导出，不新增 story 专用 API
 
@@ -730,6 +741,138 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - `401 UNAUTHORIZED`
 - `404 NOT_FOUND`
 - `503 DATABASE_UNAVAILABLE`
+
+### `GET /api/trips/:id/planning`
+
+用途：
+
+- 返回某个行程当前的行前规划摘要与规划项列表
+- 供 `/trips/:id` 的“规划”Tab 局部加载和刷新使用
+
+成功响应示例：
+
+```json
+{
+  "summary": {
+    "total": 2,
+    "plannedCount": 1,
+    "convertedCount": 1,
+    "highPriorityCount": 1
+  },
+  "items": [
+    {
+      "id": "planning-1",
+      "tripId": "trip-2026-spring",
+      "companionId": "user-alice",
+      "companionName": "小悠",
+      "companionColor": "#2563eb",
+      "title": "岚山竹林",
+      "scope": "international",
+      "scopeId": "japan",
+      "scopeName": "日本",
+      "city": "京都",
+      "note": "清晨去，避开人流",
+      "priority": "high",
+      "plannedDate": "2026-05-02",
+      "status": "planned",
+      "sourceGuideTitle": "京都春日路线",
+      "sourceGuideSourceName": "示例来源",
+      "sourceGuideSourceUrl": "https://example.com/guides/kyoto",
+      "sortOrder": 0,
+      "createdAt": "2026-05-01T00:00:00.000Z",
+      "updatedAt": "2026-05-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+### `POST /api/trips/:id/planning/items`
+
+请求体：
+
+```json
+{
+  "companionId": "user-alice",
+  "title": "岚山竹林",
+  "scope": "international",
+  "scopeId": "japan",
+  "scopeName": "日本",
+  "city": "京都",
+  "note": "清晨去，避开人流",
+  "priority": "high",
+  "plannedDate": "2026-05-02",
+  "guide": {
+    "identity": "https://example.com/guides/kyoto",
+    "title": "京都春日路线",
+    "sourceName": "示例来源",
+    "sourceUrl": "https://example.com/guides/kyoto"
+  }
+}
+```
+
+规则：
+
+- `companionId` 必须属于当前账号下未删除的同行人
+- `priority` 可选，默认 `medium`，取值为 `low | medium | high`
+- `plannedDate` 可选，格式为 `YYYY-MM-DD`
+- `guide` 可选，仅作为来源元数据保存，不改变 `SavedGuide` 去重规则
+
+### `PATCH /api/trips/:id/planning/items/:itemId`
+
+请求体：
+
+```json
+{
+  "note": "改成下午去",
+  "priority": "medium",
+  "plannedDate": null
+}
+```
+
+规则：
+
+- 至少提交一个字段
+- 可更新 `title`、地点字段、`note`、`priority`、`plannedDate`、`sortOrder`
+- 已转换为旅行记录的规划项不能继续编辑，返回 `409 CONFLICT`
+
+### `DELETE /api/trips/:id/planning/items/:itemId`
+
+成功响应：
+
+```json
+{
+  "deletedId": "planning-1"
+}
+```
+
+规则：
+
+- 删除采用软删除
+- 当前账号不可访问的行程或条目统一返回 `404 NOT_FOUND`
+
+### `POST /api/trips/:id/planning/items/:itemId/convert-to-marker`
+
+请求体：
+
+```json
+{
+  "visitedStartAt": "2026-05-02",
+  "visitedEndAt": "2026-05-02",
+  "note": "清晨抵达，游客很少"
+}
+```
+
+成功响应：
+
+- 返回最新的整包 `TravelStore`
+
+规则：
+
+- 服务端使用规划项地点、同行人和当前 `tripId` 创建正式旅行记录
+- `visitedStartAt / visitedEndAt` 必填，格式为 `YYYY-MM-DD`
+- `visitedEndAt` 不能早于 `visitedStartAt`
+- 转换成功后写入 `convertedMarkerId` 并把规划项状态改为 `converted`
+- 已转换规划项再次转换会返回 `409 CONFLICT`
 
 ### `GET /api/trips/:id/checklist`
 

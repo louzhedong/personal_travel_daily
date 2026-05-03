@@ -19,12 +19,18 @@ export function buildAdminAccountStats(input: {
       savedGuideCount: summary.savedGuideCount + companion.savedGuides.length,
       guideSearchHistoryCount:
         summary.guideSearchHistoryCount + companion.guideSearchHistory.length,
+      planningItemCount: summary.planningItemCount + companion.planningItems.length,
+      convertedPlanningItemCount:
+        summary.convertedPlanningItemCount +
+        companion.planningItems.filter((item) => item.status === 'converted').length,
     }),
     {
       companionCount: 0,
       markerCount: 0,
       savedGuideCount: 0,
       guideSearchHistoryCount: 0,
+      planningItemCount: 0,
+      convertedPlanningItemCount: 0,
     },
   );
 
