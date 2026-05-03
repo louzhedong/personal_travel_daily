@@ -61,6 +61,7 @@ export interface TripStoryViewModel {
   coverImageUrl?: string;
   lead: string;
   summaryText: string;
+  smartNarrative: string;
   highlights: TripStoryHighlight[];
   timelineDays: TripStoryTimelineDay[];
   photoGroups: TripStoryPhotoGroup[];
@@ -230,6 +231,26 @@ export function buildTripStorySummaryText(data: TripDetailResponseDto) {
   return `${formatDateRange(data.trip.startsAt, data.trip.endsAt)}，${companionLabel} 留下了 ${data.summary.markerCount} 条记录，串起 ${cityLabel}。`;
 }
 
+export function buildTripStorySmartNarrative(data: TripDetailResponseDto) {
+  const sortedMarkers = sortMarkersByDate(data.markers);
+  const firstMarker = sortedMarkers[0];
+  const lastMarker = sortedMarkers[sortedMarkers.length - 1];
+  const companionLabel = data.companions.map((item) => item.name).join('、') || '独自出发';
+  const guideLabel = data.summary.guideCount > 0 ? `参考了 ${data.summary.guideCount} 篇攻略` : '没有额外攻略也照样出发';
+  const photoLabel = data.summary.photoCount > 0 ? `留下 ${data.summary.photoCount} 张照片` : '照片还可以日后慢慢补上';
+
+  if (!firstMarker) {
+    return `${data.trip.name} 还在等待第一条旅行记录。等路线、照片和游记补齐后，这里会自动生成一段可导出的旅行序言。`;
+  }
+
+  const routeLabel =
+    lastMarker && lastMarker.id !== firstMarker.id
+      ? `从 ${firstMarker.scopeName} · ${firstMarker.city} 到 ${lastMarker.scopeName} · ${lastMarker.city}`
+      : `在 ${firstMarker.scopeName} · ${firstMarker.city}`;
+
+  return `${routeLabel}，${companionLabel} 用 ${data.summary.travelDays} 天走过 ${data.summary.cityCount} 座城市，${photoLabel}，也${guideLabel}。这页故事把记录、路线和准备清单收在一起，方便以后再翻回这次出发。`;
+}
+
 export function buildTripStoryViewModel(data: TripDetailResponseDto): TripStoryViewModel {
   return {
     title: data.trip.name,
@@ -237,6 +258,7 @@ export function buildTripStoryViewModel(data: TripDetailResponseDto): TripStoryV
     coverImageUrl: data.trip.coverImageUrl ?? data.photos[0]?.imageUrl,
     lead: buildTripStoryLead(data),
     summaryText: buildTripStorySummaryText(data),
+    smartNarrative: buildTripStorySmartNarrative(data),
     highlights: buildTripStoryHighlights(data),
     timelineDays: buildTripStoryTimelineDays(data.markers),
     photoGroups: buildTripStoryPhotoGroups(data.photos),

@@ -397,7 +397,7 @@ describe('App auth and guide permissions', () => {
       },
     });
 
-    const { rerender } = render(<App />);
+    render(<App />);
 
     expect(await screen.findByText('搜索旅游攻略')).toBeInTheDocument();
     expect(window.location.pathname).toBe('/');

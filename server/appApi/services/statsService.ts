@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+import type { Prisma } from '@prisma/client';
 import { createNotFoundError } from '../errors.js';
 import { getPrismaClient } from '../prisma.js';
 import { getStatsOverviewSource } from '../repositories/statsRepository.js';
@@ -7,6 +9,8 @@ import type { AuthenticatedAccount } from '../auth/requestAuth.js';
 import type { AnnualReviewResponseDto } from '../types.js';
 import {
   buildAnnualGuides,
+  buildAchievements,
+  buildAnnualAchievements,
   buildAnnualTripHighlights,
   buildAvailableYears,
   buildCompanionRanking,
@@ -66,6 +70,75 @@ function assertTripExists(trips: RawTrip[], tripId?: string) {
   }
 }
 
+function isDefaultStatsOverviewQuery(query: StatsOverviewQuery) {
+  return (
+    !query.year &&
+    query.scope === 'all' &&
+    !query.companionId &&
+    !query.tripId &&
+    !query.tag &&
+    !query.mood &&
+    !query.weather &&
+    !query.transport &&
+    !query.budgetLevel
+  );
+}
+
+async function listAchievementUnlocks(prisma: Prisma.TransactionClient | ReturnType<typeof getPrismaClient>, accountId: string, periodKey: string) {
+  return prisma.achievementUnlock.findMany({
+    where: {
+      accountId,
+      periodKey,
+    },
+  });
+}
+
+async function persistAchievementUnlocks(
+  prisma: Prisma.TransactionClient | ReturnType<typeof getPrismaClient>,
+  accountId: string,
+  periodKey: string,
+  achievements: StatsOverviewModel['achievements'],
+) {
+  const unlocked = achievements.filter((achievement) => achievement.status === 'unlocked');
+  await Promise.all(
+    unlocked.map((achievement) =>
+      prisma.achievementUnlock.upsert({
+        where: {
+          accountId_achievementId_periodKey: {
+            accountId,
+            achievementId: achievement.id,
+            periodKey,
+          },
+        },
+        create: {
+          id: randomUUID(),
+          accountId,
+          achievementId: achievement.id,
+          periodKey,
+          evidenceJson: achievement.evidence as Prisma.InputJsonValue,
+        },
+        update: {},
+      }),
+    ),
+  );
+}
+
+function applyAchievementUnlocks(
+  achievements: StatsOverviewModel['achievements'],
+  unlocks: Array<{ achievementId: string; unlockedAt: Date }>,
+) {
+  const unlockByAchievementId = new Map(unlocks.map((unlock) => [unlock.achievementId, unlock]));
+  return achievements.map((achievement) => {
+    const unlock = unlockByAchievementId.get(achievement.id);
+    return unlock
+      ? {
+          ...achievement,
+          firstUnlockedAt: toIsoString(unlock.unlockedAt),
+        }
+      : achievement;
+  });
+}
+
 export async function getStatsOverview(account: AuthenticatedAccount, query: StatsOverviewQuery) {
   const prisma = getPrismaClient();
   const source = await getStatsOverviewSource(prisma, account.id);
@@ -100,6 +173,12 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
   const filteredMarkers = withYearFilter(yearAgnosticMarkers, query.year);
 
   const tripDetails = buildTripDetails(filteredMarkers, source.trips);
+
+  const achievements = buildAchievements(filteredMarkers, tripDetails);
+  if (isDefaultStatsOverviewQuery(query)) {
+    await persistAchievementUnlocks(prisma, account.id, 'global', achievements);
+  }
+  const achievementUnlocks = await listAchievementUnlocks(prisma, account.id, 'global');
 
   const model: StatsOverviewModel = {
     filters: {
@@ -139,6 +218,7 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
     topTransports: buildTopTransports(filteredMarkers),
     topBudgetLevels: buildTopBudgetLevels(filteredMarkers),
     tripHighlights: buildTripHighlights(tripDetails),
+    achievements: applyAchievementUnlocks(achievements, achievementUnlocks),
     heatmap: buildHeatmap(filteredMarkers),
     generatedAt: new Date(),
   };
@@ -170,6 +250,9 @@ export async function getAnnualReview(account: AuthenticatedAccount, query: Annu
     photoCount: filteredMarkers.reduce((total, marker) => total + marker.images.length, 0),
     guideCount: guides.length,
   };
+  const annualAchievements = buildAnnualAchievements(query.year, filteredMarkers);
+  await persistAchievementUnlocks(prisma, account.id, query.year, annualAchievements);
+  const annualAchievementUnlocks = await listAchievementUnlocks(prisma, account.id, query.year);
 
   return {
     year: query.year,
@@ -195,6 +278,7 @@ export async function getAnnualReview(account: AuthenticatedAccount, query: Annu
       startsAt: toDateOnlyString(trip.startsAt),
       endsAt: toDateOnlyString(trip.endsAt),
     })),
+    achievements: applyAchievementUnlocks(annualAchievements, annualAchievementUnlocks),
     firstMarker: chronologicalMarkers[0] ? serializeAnnualMarker(chronologicalMarkers[0]) : undefined,
     lastMarker:
       chronologicalMarkers.length > 0

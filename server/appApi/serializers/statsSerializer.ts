@@ -62,6 +62,7 @@ export interface StatsOverviewModel {
   topTransports: StatsOverviewResponseDto['topTransports'];
   topBudgetLevels: StatsOverviewResponseDto['topBudgetLevels'];
   tripHighlights: StatsOverviewResponseDto['tripHighlights'];
+  achievements: StatsOverviewResponseDto['achievements'];
   heatmap: StatsOverviewResponseDto['heatmap'];
   generatedAt: Date;
 }
@@ -107,6 +108,7 @@ export function serializeStatsOverview(model: StatsOverviewModel): StatsOverview
     topTransports: model.topTransports,
     topBudgetLevels: model.topBudgetLevels,
     tripHighlights: model.tripHighlights,
+    achievements: model.achievements,
     heatmap: model.heatmap,
     generatedAt: toIsoString(model.generatedAt),
   };

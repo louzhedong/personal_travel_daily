@@ -6,6 +6,12 @@
     var(--app-bg, #f8fafc);
 }
 
+.trip-story-template-memoir {
+  background:
+    linear-gradient(180deg, rgba(255, 247, 237, 0.9), rgba(248, 250, 252, 0.98)),
+    var(--app-bg, #f8fafc);
+}
+
 .trip-story-shell {
   width: min(1180px, calc(100vw - 48px));
   margin: 0 auto;
@@ -24,6 +30,10 @@
   color: #fff;
 }
 
+.trip-story-template-memoir .trip-story-hero {
+  background: #3b2f2f;
+}
+
 .trip-story-hero-image {
   position: absolute;
   inset: 0;
@@ -38,6 +48,12 @@
   background:
     linear-gradient(90deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.38)),
     linear-gradient(180deg, rgba(15, 23, 42, 0.18), rgba(15, 23, 42, 0.74));
+}
+
+.trip-story-template-memoir .trip-story-hero-shade {
+  background:
+    linear-gradient(90deg, rgba(58, 45, 37, 0.86), rgba(58, 45, 37, 0.42)),
+    linear-gradient(180deg, rgba(58, 45, 37, 0.12), rgba(58, 45, 37, 0.72));
 }
 
 .trip-story-hero-content {
@@ -78,6 +94,40 @@
   background: rgba(15, 23, 42, 0.24);
 }
 
+.trip-story-template-switch {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.24);
+}
+
+.trip-story-template-switch button {
+  min-width: 72px;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.trip-story-template-switch button.is-active {
+  background: #fff;
+  color: #0f172a;
+}
+
+.trip-story-print-button {
+  border-color: rgba(255, 255, 255, 0.9);
+  background: #fff;
+  color: #0f172a;
+}
+
+.trip-story-logout-button {
+  opacity: 0.72;
+}
+
 .trip-story-intro {
   display: flex;
   justify-content: space-between;
@@ -99,6 +149,22 @@
 .trip-story-checklist-card p {
   margin: 0;
   color: #64748b;
+}
+
+.trip-story-smart-copy {
+  margin-top: 12px !important;
+  color: #334155 !important;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.trip-story-template-memoir .card,
+.trip-story-template-memoir .trip-story-route-film li,
+.trip-story-template-memoir .trip-story-marker-card,
+.trip-story-template-memoir .trip-story-guide-card,
+.trip-story-template-memoir .trip-story-checklist-card {
+  border-color: #fed7aa;
+  background: #fffaf3;
 }
 
 .trip-story-highlight-grid {
@@ -367,5 +433,96 @@
   .trip-story-day {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  .trip-story-stage {
+    min-height: auto;
+    padding: 0;
+    background: #fff !important;
+  }
+
+  .trip-story-shell {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    gap: 14mm;
+  }
+
+  .trip-story-actions,
+  .trip-story-template-switch,
+  .trip-story-guide-card a {
+    display: none !important;
+  }
+
+  .trip-story-hero,
+  .trip-story-intro,
+  .trip-story-highlight-card,
+  .trip-story-panel,
+  .trip-story-marker-card,
+  .trip-story-guide-card,
+  .trip-story-checklist-card,
+  .trip-story-route-film li,
+  .trip-story-photo-grid figure {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  .trip-story-hero {
+    min-height: 180mm;
+    color: #0f172a;
+    background: #fff;
+    border: 1px solid #dbe4ef;
+  }
+
+  .trip-story-hero-image {
+    position: absolute;
+    opacity: 0.28;
+  }
+
+  .trip-story-hero-shade {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.94));
+  }
+
+  .trip-story-hero-content {
+    min-height: 180mm;
+    padding: 18mm;
+  }
+
+  .trip-story-hero h1 {
+    font-size: 34pt;
+  }
+
+  .trip-story-hero p,
+  .trip-story-hero-meta {
+    color: #334155;
+  }
+
+  .trip-story-highlight-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .trip-story-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .trip-story-photo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trip-story-panel,
+  .trip-story-intro {
+    border: 1px solid #dbe4ef;
   }
 }

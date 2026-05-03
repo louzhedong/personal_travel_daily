@@ -15,6 +15,7 @@
 
 - [App API Contract](file:///Users/bytedance/project/personal_travel_daily/docs/technical/app-api-contract.md)
 - [项目总览](file:///Users/bytedance/project/personal_travel_daily/docs/technical/project-overview.md)
+- [旅行成就系统](file:///Users/bytedance/project/personal_travel_daily/docs/technical/travel-achievements.md)
 - [登录注册 + 会话 + 管理员权限技术方案](file:///Users/bytedance/project/personal_travel_daily/docs/technical/auth-technical-design.md)
 
 ## 分层约定
@@ -51,6 +52,7 @@
    - `409`
    - `503`
 5. 如果行为变化会影响联调，请同步更新 README 或联调文档入口。
+6. 统计成就接口要区分实时筛选视图和可持久化解锁视图，不要把临时筛选结果写入解锁表。
 
 ## 禁止事项
 

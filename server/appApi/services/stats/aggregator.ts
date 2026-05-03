@@ -34,6 +34,8 @@ export type AggregatedRegion = {
   markerCount: number;
 };
 
+type AchievementEvidence = NonNullable<StatsOverviewModel['achievements'][number]['evidence']>;
+
 export function toDateOnlyString(value: Date) {
   return value.toISOString().slice(0, 10);
 }
@@ -335,6 +337,273 @@ export function buildSummary(markers: RawMarker[], tripDetails: StatsOverviewMod
         ? Math.max(...tripDetails.map((trip) => trip.travelDays))
         : undefined,
   };
+}
+
+function buildAchievement(
+  id: string,
+  title: string,
+  description: string,
+  category: StatsOverviewModel['achievements'][number]['category'],
+  progressValue: number,
+  progressTarget: number,
+  unit: string,
+  evidence: AchievementEvidence = [],
+): StatsOverviewModel['achievements'][number] {
+  const status =
+    progressValue >= progressTarget ? 'unlocked' : progressValue / progressTarget >= 0.6 ? 'close' : 'locked';
+
+  return {
+    id,
+    title,
+    description,
+    category,
+    status,
+    progressValue,
+    progressTarget,
+    remainingValue: Math.max(progressTarget - progressValue, 0),
+    unit,
+    evidence,
+  };
+}
+
+function limitEvidence(items: AchievementEvidence, limit = 5) {
+  return items.slice(0, limit);
+}
+
+function countConsecutiveActiveMonths(markers: RawMarker[]) {
+  const activeMonths = Array.from(
+    new Set(markers.map((marker) => marker.visitedStartAt.toISOString().slice(0, 7))),
+  ).sort();
+  let longestStreak = 0;
+  let currentStreak = 0;
+  let previousMonthIndex: number | undefined;
+
+  activeMonths.forEach((month) => {
+    const [year, monthValue] = month.split('-').map(Number);
+    const monthIndex = year * 12 + monthValue;
+    currentStreak = previousMonthIndex === undefined || monthIndex === previousMonthIndex + 1 ? currentStreak + 1 : 1;
+    longestStreak = Math.max(longestStreak, currentStreak);
+    previousMonthIndex = monthIndex;
+  });
+
+  return longestStreak;
+}
+
+function countUniqueGuides(markers: RawMarker[]) {
+  const guides = new Set<string>();
+  markers.forEach((marker) => {
+    marker.savedGuides?.forEach((guide) => {
+      guides.add(guide.id || guide.guideIdentity);
+    });
+  });
+  return guides.size;
+}
+
+function buildCityEvidence(markers: RawMarker[]) {
+  const cities = new Map<string, { label: string; value: string }>();
+  markers.forEach((marker) => {
+    const key = `${marker.scope}:${marker.scopeId}:${marker.city}`;
+    cities.set(key, { label: marker.city, value: marker.scopeName });
+  });
+  return limitEvidence(Array.from(cities.values()));
+}
+
+function buildCompanionEvidence(markers: RawMarker[]) {
+  const companions = new Map<string, { label: string; value: string }>();
+  markers.forEach((marker) => {
+    companions.set(marker.companionId, {
+      label: marker.companion?.name ?? marker.companionId,
+      value: marker.city,
+    });
+  });
+  return limitEvidence(Array.from(companions.values()));
+}
+
+function buildGuideEvidence(markers: RawMarker[]) {
+  const guides = new Map<string, { label: string; value: string }>();
+  markers.forEach((marker) => {
+    marker.savedGuides?.forEach((guide) => {
+      guides.set(guide.id || guide.guideIdentity, {
+        label: guide.guideTitle,
+        value: guide.guideSourceName,
+      });
+    });
+  });
+  return limitEvidence(Array.from(guides.values()));
+}
+
+function buildPhotoEvidence(markers: RawMarker[]) {
+  return limitEvidence(
+    markers
+      .filter((marker) => (marker.images?.length ?? 0) > 0)
+      .map((marker) => ({
+        label: `${marker.scopeName} · ${marker.city}`,
+        value: `${marker.images?.length ?? 0} 张照片`,
+      })),
+  );
+}
+
+function buildMonthEvidence(markers: RawMarker[]) {
+  const months = Array.from(new Set(markers.map((marker) => marker.visitedStartAt.toISOString().slice(0, 7)))).sort();
+  return limitEvidence(months.map((month) => ({ label: month, value: '有旅行记录' })), 6);
+}
+
+export function buildAchievements(
+  markers: RawMarker[],
+  tripDetails: StatsOverviewModel['tripDetails'],
+): StatsOverviewModel['achievements'] {
+  const totalCities = new Set(markers.map((marker) => `${marker.scope}:${marker.scopeId}:${marker.city}`)).size;
+  const totalCountries = buildAggregatedRegions(markers).filter((item) => item.scope === 'international').length;
+  const longestTripDays = tripDetails.length > 0 ? Math.max(...tripDetails.map((trip) => trip.travelDays)) : 0;
+  const totalTravelDays = countTravelDays(markers);
+  const activeCompanions = new Set(markers.map((marker) => marker.companionId)).size;
+  const guideCount = countUniqueGuides(markers);
+  const photoCount = markers.reduce((total, marker) => total + (marker.images?.length ?? 0), 0);
+  const citywalkCount = markers.filter((marker) => normalizeMarkerTags(marker.tags)?.includes('citywalk') ?? false).length;
+  const railOrFlightCount = markers.filter((marker) => {
+    const transport = normalizeMarkerTransport(marker.transport);
+    return transport === 'train' || transport === 'plane';
+  }).length;
+
+  return [
+    buildAchievement('city-explorer', '城市探索者', '覆盖 5 座不同城市。', 'footprint', totalCities, 5, '座城市', buildCityEvidence(markers)),
+    buildAchievement('cross-city-traveler', '跨城旅人', '覆盖 10 座不同城市。', 'footprint', totalCities, 10, '座城市', buildCityEvidence(markers)),
+    buildAchievement(
+      'first-international-trip',
+      '世界初体验',
+      '留下至少 1 条国际旅行记录。',
+      'footprint',
+      markers.some((marker) => marker.scope === 'international') ? 1 : 0,
+      1,
+      '条国际记录',
+      limitEvidence(
+        markers
+          .filter((marker) => marker.scope === 'international')
+          .map((marker) => ({ label: `${marker.scopeName} · ${marker.city}`, value: toDateOnlyString(marker.visitedStartAt) })),
+        3,
+      ),
+    ),
+    buildAchievement(
+      'country-collector',
+      '国家收藏家',
+      '覆盖 3 个国际国家或地区。',
+      'footprint',
+      totalCountries,
+      3,
+      '个国家/地区',
+      limitEvidence(
+        buildAggregatedRegions(markers)
+          .filter((item) => item.scope === 'international')
+          .map((item) => ({ label: item.scopeName, value: `${item.markerCount} 条记录` })),
+      ),
+    ),
+    buildAchievement(
+      'long-trip',
+      '长线旅行者',
+      '最长行程达到 5 天。',
+      'rhythm',
+      longestTripDays,
+      5,
+      '天',
+      limitEvidence(tripDetails.map((trip) => ({ label: trip.tripName, value: `${trip.travelDays} 天` }))),
+    ),
+    buildAchievement(
+      'frequent-departure',
+      '高频出发',
+      '累计旅行天数达到 30 天。',
+      'rhythm',
+      totalTravelDays,
+      30,
+      '天',
+      buildMonthEvidence(markers),
+    ),
+    buildAchievement(
+      'monthly-streak',
+      '连续脚步',
+      '连续 3 个月有旅行记录。',
+      'rhythm',
+      countConsecutiveActiveMonths(markers),
+      3,
+      '个月',
+      buildMonthEvidence(markers),
+    ),
+    buildAchievement('shared-memory', '同行记忆', '与 2 位以上旅伴留下记录。', 'companion', activeCompanions, 2, '位旅伴', buildCompanionEvidence(markers)),
+    buildAchievement('guide-planner', '攻略派', '关联或收藏攻略达到 5 篇。', 'content', guideCount, 5, '篇攻略', buildGuideEvidence(markers)),
+    buildAchievement('photo-keeper', '摄影记录者', '旅行照片达到 20 张。', 'content', photoCount, 20, '张照片', buildPhotoEvidence(markers)),
+    buildAchievement(
+      'citywalk-lover',
+      '城市漫游家',
+      '城市漫游标签达到 3 条。',
+      'style',
+      citywalkCount,
+      3,
+      '条记录',
+      limitEvidence(
+        markers
+          .filter((marker) => normalizeMarkerTags(marker.tags)?.includes('citywalk') ?? false)
+          .map((marker) => ({ label: `${marker.scopeName} · ${marker.city}`, value: toDateOnlyString(marker.visitedStartAt) })),
+      ),
+    ),
+    buildAchievement(
+      'rail-flight-traveler',
+      '铁道/飞行偏好',
+      '火车或飞机交通记录达到 3 条。',
+      'style',
+      railOrFlightCount,
+      3,
+      '条记录',
+      limitEvidence(
+        markers
+          .filter((marker) => {
+            const transport = normalizeMarkerTransport(marker.transport);
+            return transport === 'train' || transport === 'plane';
+          })
+          .map((marker) => ({ label: `${marker.scopeName} · ${marker.city}`, value: normalizeMarkerTransport(marker.transport) === 'train' ? '火车' : '飞机' })),
+      ),
+    ),
+  ];
+}
+
+export function buildAnnualAchievements(
+  year: string,
+  markers: RawMarker[],
+): StatsOverviewModel['achievements'] {
+  const travelDays = countTravelDays(markers);
+  const photoCount = markers.reduce((total, marker) => total + (marker.images?.length ?? 0), 0);
+  const activeCompanions = new Set(markers.map((marker) => marker.companionId)).size;
+
+  return [
+    buildAchievement(
+      `annual-${year}-travel-days`,
+      '年度出发王',
+      '这一年旅行天数达到 20 天。',
+      'rhythm',
+      travelDays,
+      20,
+      '天',
+      buildMonthEvidence(markers),
+    ),
+    buildAchievement(
+      `annual-${year}-photo-keeper`,
+      '年度摄影手',
+      '这一年旅行照片达到 30 张。',
+      'content',
+      photoCount,
+      30,
+      '张照片',
+      buildPhotoEvidence(markers),
+    ),
+    buildAchievement(
+      `annual-${year}-shared-memory`,
+      '年度同行记忆',
+      '这一年与 2 位以上旅伴同行。',
+      'companion',
+      activeCompanions,
+      2,
+      '位旅伴',
+      buildCompanionEvidence(markers),
+    ),
+  ];
 }
 
 export function buildYearlySeries(markers: RawMarker[]) {

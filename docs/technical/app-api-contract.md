@@ -262,7 +262,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 用途：
 
 - 返回当前登录账号在指定筛选条件下的统计中心聚合结果
-- 供首页第二屏“行程统计中心”使用
+- 供 `/stats` 统计中心页面使用
 
 权限：
 
@@ -396,6 +396,26 @@ Summary: The API contract maps directly onto the current backend layering of rou
     }
   ],
   "tripHighlights": {},
+  "achievements": [
+    {
+      "id": "city-explorer",
+      "title": "城市探索者",
+      "description": "覆盖 5 座不同城市。",
+      "category": "footprint",
+      "status": "unlocked",
+      "progressValue": 5,
+      "progressTarget": 5,
+      "remainingValue": 0,
+      "unit": "座城市",
+      "evidence": [
+        {
+          "label": "杭州",
+          "value": "浙江"
+        }
+      ],
+      "firstUnlockedAt": "2026-05-02T14:19:00.000Z"
+    }
+  ],
   "heatmap": [
     {
       "scopeId": "zj",
@@ -414,6 +434,90 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - `400 INVALID_REQUEST`
 - `401 UNAUTHORIZED`
 - `404 NOT_FOUND`
+- `503 DATABASE_UNAVAILABLE`
+
+成就说明：
+
+- `achievements` 固定返回统计中心旅行成就列表。
+- `status` 为 `unlocked | close | locked`，其中 `close` 表示进度达到目标 60% 及以上但尚未达成。
+- `evidence` 为成就详情弹窗使用的达成证据，最多返回少量代表项。
+- 默认全量统计视图会持久化并返回 `firstUnlockedAt`；带筛选条件的视图实时计算成就，但不写入首次解锁记录。
+
+### `GET /api/stats/annual-review`
+
+用途：
+
+- 返回当前登录账号在指定年份的年度回顾聚合结果
+- 供 `/yearbook/:year` 页面使用
+
+权限：
+
+- 需要登录
+
+查询参数：
+
+- `year`：必填，格式 `YYYY`
+
+成功响应核心字段：
+
+```json
+{
+  "year": "2026",
+  "availableYears": ["2026", "2025"],
+  "summary": {
+    "totalTrips": 3,
+    "totalMarkers": 12,
+    "totalTravelDays": 21,
+    "totalCities": 8,
+    "totalRegions": 6,
+    "totalCountries": 2,
+    "activeCompanions": 2,
+    "longestTripDays": 6,
+    "photoCount": 34,
+    "guideCount": 5
+  },
+  "monthlyDistribution": [],
+  "topRegions": [],
+  "topCities": [],
+  "companionRanking": [],
+  "tripHighlights": {},
+  "heatmap": [],
+  "photos": [],
+  "guides": [],
+  "trips": [],
+  "achievements": [
+    {
+      "id": "annual-2026-travel-days",
+      "title": "年度出发王",
+      "description": "这一年旅行天数达到 20 天。",
+      "category": "rhythm",
+      "status": "unlocked",
+      "progressValue": 21,
+      "progressTarget": 20,
+      "remainingValue": 0,
+      "unit": "天",
+      "evidence": [
+        {
+          "label": "2026-05",
+          "value": "有旅行记录"
+        }
+      ],
+      "firstUnlockedAt": "2026-05-02T14:19:00.000Z"
+    }
+  ],
+  "generatedAt": "2026-05-06T00:00:00.000Z"
+}
+```
+
+年度成就说明：
+
+- 年度回顾成就只基于该 `year` 内的旅行记录计算。
+- 年度成就首次解锁时间按 `annual:${year}` 维度持久化。
+
+错误：
+
+- `400 INVALID_REQUEST`
+- `401 UNAUTHORIZED`
 - `503 DATABASE_UNAVAILABLE`
 
 ## 旅伴接口
@@ -510,7 +614,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 用途：
 
 - 返回当前登录账号下某个行程的只读详情聚合数据
-- 供首页统计中心点击行程后进入详情页使用
+- 供行程详情页、行前清单页和旅行故事页复用
 
 权限：
 
@@ -618,6 +722,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - `guides` 会去重同一攻略的重复关联，优先保留最新保存记录
 - `photos` 仅包含当前行程记录上的图片
 - `checklistSummary` 与 `checklistGroups` 直接内嵌在详情响应中，供 `/trips/:id` 首屏展示行前清单面板
+- `/trips/:id/story` 复用本响应生成私有故事页和浏览器打印 / PDF 导出，不新增 story 专用 API
 
 错误：
 

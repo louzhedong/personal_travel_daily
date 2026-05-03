@@ -56,21 +56,30 @@ Summary: Trip Collection is a true content container with create / edit / delete
 
 Summary: Guide-to-checklist turns search results into trip-bound checklist items with automatic extraction, manual editing, and both embedded and expanded views.
 
+### 1.5C 旅行故事页 / Trip Story
+
+- `/trips/:id/story` 将单次行程整理为私有故事页，自动组合封面、故事摘要、智能序言、路线胶片、时间线、照片、攻略摘录和行前清单回顾。
+- 故事页复用 `GET /api/trips/:id/detail`，不新增后端接口或独立持久化。
+- 支持杂志风 / 纪念册模板切换、SVG 长图导出、浏览器原生打印 / PDF 导出，并提供 print 专用样式。
+
+Summary: `/trips/:id/story` turns one trip into a private printable story page by reusing the existing trip-detail aggregate.
+
 ### 1.6 统计中心 / Stats Center
 
-- 独立统计中心 `/stats`，覆盖总览 KPI、年度趋势、月度分布、地区 / 城市 / 旅伴 / 行程排行、区域热力图、标签 / 心情 / 交通 / 预算级别排行与行程明细。
+- 独立统计中心 `/stats`，覆盖总览 KPI、旅行成就、年度趋势、月度分布、地区 / 城市 / 旅伴 / 行程排行、区域热力图、标签 / 心情 / 交通 / 预算级别排行与行程明细。
 - 国内使用中国省级地图热力，国际使用世界地图热力。
 - 可从统计中心一键钻取到行程详情。
+- 成就按当前筛选实时计算状态、进度与证据；默认全量视图会持久化首次解锁时间。
 
-Summary: `/stats` centralizes filtered stats, rankings, trends, and heatmaps with drill-down into trip detail.
+Summary: `/stats` centralizes filtered stats, achievements, rankings, trends, and heatmaps with drill-down into trip detail.
 
 ### 1.7 年度回顾 / Annual Review
 
 - `/yearbook/:year` 独立年度回顾页，按年份生成私有年鉴式回看。
-- 汇总年度摘要、高光、月度节奏、热力分布、照片与关联攻略。
+- 汇总年度摘要、高光、年度成就、月度节奏、热力分布、照片与关联攻略，并支持浏览器原生打印 / PDF 导出。
 - 支持从年度回顾继续钻取到单次行程详情。
 
-Summary: `/yearbook/:year` provides a private yearbook-style retrospective per year, linking through to individual trip details.
+Summary: `/yearbook/:year` provides a private yearbook-style retrospective per year, including annual achievements and links through to individual trip details.
 
 ### 1.8 地图回放 / Map Replay (Phase 1)
 
@@ -117,13 +126,14 @@ Summary: `/admin` is an admin-only read-only overview page whose permissions are
 
 ### 2.1 前端应用壳 / Frontend App Shell
 
-- `src/modules/App.tsx`：应用顶层容器。会话恢复、路由分流（`/login`、`/register`、`/admin`、`/`、`/trips/:id`、`/trips/:id/checklist`、`/stats`、`/yearbook/:year` 等）、根据角色决定进入主应用或后台。
+- `src/modules/App.tsx`：应用顶层容器。会话恢复、路由分流（`/login`、`/register`、`/admin`、`/`、`/trips/:id`、`/trips/:id/story`、`/trips/:id/checklist`、`/stats`、`/yearbook/:year` 等）、根据角色决定进入主应用或后台。
 - `src/modules/app/AppHero.tsx` / `AppContent.tsx` / `AppOverlays.tsx`：页面组合层。
 - `src/modules/app/useMapContext.ts`：地图范围、区域列表、选区、当前范围 marker 派生。
 - `src/modules/app/useTravelStoreActions.ts`：TravelStore 写操作（远端写入 + 本地回填）。
 - `src/modules/app/travelStoreActionHelpers.ts`：store 写操作公共辅助逻辑（活跃用户保持、搜索历史去重等）。
 - `src/modules/app/markerNavigation.ts`：按记录 ID 聚焦地图并打开详情。
 - `src/modules/app/useLockedModal.ts`：弹窗的 body lock 与 `Escape` 关闭。
+- `src/components/ui/Dialog.tsx`：通用弹窗，负责打开期间锁定页面滚动并隔离弹窗内部滚动穿透。
 
 Summary: The frontend shell separates routing, page composition, map state, store actions, helpers, navigation, and modal locking.
 
@@ -146,6 +156,8 @@ Summary: Components follow module-scoped responsibilities; cross-feature flows u
 - `src/lib/mapReplay.ts`：地图回放序列生成与状态文案。
 - `src/lib/guides/guideDocumentView.tsx`：攻略正文视图、高亮、HTML 清洗。
 - `src/modules/admin/adminPageModel.ts`：后台管理页的展示模型与汇总统计。
+- `src/modules/stats/TripStatsCenter.tsx`：统计中心页面主体，包含筛选、摘要、成就、排行、热力图与成就详情弹窗。
+- `src/modules/yearbook/AnnualReviewPage.tsx`：年度回顾页面主体，包含年度成就板块。
 
 Summary: Pure logic is pulled out of components into `src/lib` and per-module view models so that rendering stays shallow.
 
@@ -164,12 +176,12 @@ Summary: The frontend talks to the backend through typed API modules and a remot
 - `server/appApiServer.ts`：Fastify 入口。
 - `server/appApi/routes/*`：`auth` / `bootstrap` / `companions` / `markers` / `savedGuides` / `guideSearchHistories` / `trips` / `stats` / `admin` 等路由。
 - `server/appApi/services/tripChecklistService.ts` / `tripChecklistGenerationService.ts` / `guideDocumentService.ts`：行前清单查询、写操作、攻略正文提炼与回退策略。
-- `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、trip detail、admin overview 等）。
+- `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、成就解锁持久化、trip detail、admin overview 等）。
 - `server/appApi/auth/*`：`requestAuth`（恢复 / 鉴权）、`session`（token、cookie 序列化）、`password`（hash / verify）。
 - `server/appApi/repositories/*`：Prisma 查询封装。
 - `server/appApi/serializers/*`：DB 模型 → 前端模型。
 - `server/appApi/errors.ts`：统一业务错误。
-- `server/prisma/schema.prisma`：MySQL 数据模型。
+- `server/prisma/schema.prisma`：MySQL 数据模型，包括成就首次解锁记录 `AchievementUnlock`。
 - `server/prisma/migrations/*`：正式 migration 历史。
 - `server/prisma/seed.ts`：默认演示账号与 demo 数据。
 

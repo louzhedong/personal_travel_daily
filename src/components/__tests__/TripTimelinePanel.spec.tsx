@@ -154,7 +154,6 @@ describe('TripTimelinePanel', () => {
 
     await user.type(within(dialog).getByPlaceholderText('新建行程，例如 2025 日本春游'), '2026 江南春游');
     await user.click(within(dialog).getByRole('button', { name: '行程开始日期' }));
-    await user.click(within(dialog).getByRole('button', { name: '下个月' }));
     await user.click(within(dialog).getByRole('button', { name: '2026-05-01' }));
 
     await user.click(within(dialog).getByRole('button', { name: '行程结束日期' }));

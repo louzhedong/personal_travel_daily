@@ -42,6 +42,8 @@ Summary: The architecture section now includes dedicated frontend and backend do
 - [认证与会话技术方案（含附录架构图与时序图）/ Auth Technical Design](./technical/auth-technical-design.md)
 - [登录注册交互手册 / Auth Quick Reference](./technical/auth-login-register.md)
 - [行程集合二期 / Trip Collection Phase Two](./technical/trip-collection-phase-two.md)
+- [旅行故事页与 PDF 导出 / Trip Story and PDF Export](./technical/trip-story-export.md)
+- [旅行成就系统 / Travel Achievements](./technical/travel-achievements.md)
 - [攻略搜索功能说明 / Guide Search Feature](./technical/guide-search-feature.md)
 - [攻略搜索 / 收藏 / 关联设计 / Travel Guide Search Design](./technical/travel-guide-search-design.md)
 - [地图渲染与 Hover 性能 / Map Rendering and Hover Performance](./technical/map-rendering-and-hover-performance.md)

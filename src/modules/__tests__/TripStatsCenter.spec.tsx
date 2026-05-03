@@ -99,6 +99,78 @@ describe('TripStatsCenter', () => {
         markerCount: 2,
       },
     },
+    achievements: [
+      {
+        id: 'city-explorer',
+        title: '城市探索者',
+        description: '覆盖 5 座不同城市。',
+        category: 'footprint' as const,
+        status: 'close' as const,
+        progressValue: 3,
+        progressTarget: 5,
+        unit: '座城市',
+      },
+      {
+        id: 'first-international-trip',
+        title: '世界初体验',
+        description: '留下至少 1 条国际旅行记录。',
+        category: 'footprint' as const,
+        status: 'unlocked' as const,
+        progressValue: 1,
+        progressTarget: 1,
+        unit: '条国际记录',
+      },
+      {
+        id: 'country-collector',
+        title: '国家收藏家',
+        description: '覆盖 3 个国际国家或地区。',
+        category: 'footprint' as const,
+        status: 'locked' as const,
+        progressValue: 0,
+        progressTarget: 3,
+        unit: '个国家/地区',
+      },
+      {
+        id: 'long-trip',
+        title: '长线旅行者',
+        description: '最长行程达到 5 天。',
+        category: 'rhythm' as const,
+        status: 'close' as const,
+        progressValue: 4,
+        progressTarget: 5,
+        unit: '天',
+      },
+      {
+        id: 'shared-memory',
+        title: '同行记忆',
+        description: '与 2 位以上旅伴留下记录。',
+        category: 'companion' as const,
+        status: 'locked' as const,
+        progressValue: 1,
+        progressTarget: 2,
+        unit: '位旅伴',
+      },
+      {
+        id: 'guide-planner',
+        title: '攻略派',
+        description: '关联或收藏攻略达到 5 篇。',
+        category: 'content' as const,
+        status: 'locked' as const,
+        progressValue: 0,
+        progressTarget: 5,
+        unit: '篇攻略',
+      },
+      {
+        id: 'photo-keeper',
+        title: '摄影记录者',
+        description: '旅行照片达到 20 张。',
+        category: 'content' as const,
+        status: 'locked' as const,
+        progressValue: 2,
+        progressTarget: 20,
+        unit: '张照片',
+      },
+    ],
     heatmap: [{ scopeId: 'zj', scopeName: '浙江', scope: 'domestic' as const, intensity: 5, markerCount: 2 }],
     generatedAt: '2026-05-06T00:00:00.000Z',
   };
@@ -166,5 +238,18 @@ describe('TripStatsCenter', () => {
     await userEvent.click(await screen.findByRole('button', { name: '查看 2026 年度回顾' }));
 
     expect(onOpenAnnualReview).toHaveBeenCalledWith('2026');
+  });
+
+  it('renders achievements and expands the full achievement list', async () => {
+    render(<TripStatsCenter />);
+
+    expect(await screen.findByText('旅行成就')).toBeInTheDocument();
+    expect(screen.getByText('城市探索者')).toBeInTheDocument();
+    expect(screen.queryByText('摄影记录者')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '展开全部成就' }));
+
+    expect(screen.getByText('摄影记录者')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '收起成就' })).toBeInTheDocument();
   });
 });

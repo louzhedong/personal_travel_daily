@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { focusMarkerById } from '../markerNavigation';
+import type { VisitMarker } from '../../../types';
 
 describe('focusMarkerById', () => {
   it('focuses the target marker and runs callbacks in order', () => {
@@ -10,7 +11,7 @@ describe('focusMarkerById', () => {
     const onBeforeFocus = vi.fn();
     const onFocused = vi.fn();
 
-    const marker = {
+    const marker: VisitMarker = {
       id: 'marker-1',
       userId: 'u1',
       scope: 'domestic' as const,

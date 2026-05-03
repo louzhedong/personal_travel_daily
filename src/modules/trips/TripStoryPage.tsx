@@ -6,6 +6,8 @@ import type { AuthAccount } from '../../types';
 import { isTripDetailNotFoundError } from './tripDetailPageModel';
 import { buildTripStoryViewModel } from './tripStoryPageModel';
 
+type TripStoryTemplate = 'magazine' | 'memoir';
+
 interface TripStoryPageProps {
   account: AuthAccount;
   tripId: string;
@@ -22,6 +24,7 @@ export default function TripStoryPage({
   const [data, setData] = useState<TripDetailResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [template, setTemplate] = useState<TripStoryTemplate>('magazine');
 
   useEffect(() => {
     let cancelled = false;
@@ -55,12 +58,87 @@ export default function TripStoryPage({
 
   const story = useMemo(() => (data ? buildTripStoryViewModel(data) : null), [data]);
 
+  useEffect(() => {
+    if (!story) {
+      return;
+    }
+
+    const previousTitle = document.title;
+    document.title = `${story.title} · 旅行故事`;
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [story]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleExportLongImage = () => {
+    if (!story) {
+      return;
+    }
+
+    const escapeText = (value: string) =>
+      value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    const highlights = story.highlights
+      .slice(0, 6)
+      .map(
+        (item, index) => `
+          <text x="96" y="${520 + index * 92}" fill="#64748b" font-size="24">${escapeText(item.label)}</text>
+          <text x="96" y="${558 + index * 92}" fill="#0f172a" font-size="42" font-weight="700">${escapeText(item.value)}</text>
+          <text x="240" y="${558 + index * 92}" fill="#475569" font-size="24">${escapeText(item.description.slice(0, 26))}</text>
+        `,
+      )
+      .join('');
+    const routeStops = story.routeStops
+      .slice(0, 8)
+      .map(
+        (stop, index) => `
+          <circle cx="108" cy="${1130 + index * 54}" r="8" fill="${escapeText(stop.companionColor)}" />
+          <text x="134" y="${1138 + index * 54}" fill="#334155" font-size="26">${escapeText(stop.date)} · ${escapeText(stop.label)}</text>
+        `,
+      )
+      .join('');
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1800" viewBox="0 0 1200 1800">
+        <rect width="1200" height="1800" fill="${template === 'magazine' ? '#f8fafc' : '#fff7ed'}" />
+        <rect x="56" y="56" width="1088" height="1688" rx="28" fill="#ffffff" stroke="#dbe4ef" />
+        <text x="96" y="154" fill="#2563eb" font-size="30" font-weight="700" letter-spacing="6">TRAVEL STORY</text>
+        <text x="96" y="260" fill="#0f172a" font-size="76" font-weight="800">${escapeText(story.title.slice(0, 16))}</text>
+        <text x="96" y="324" fill="#475569" font-size="30">${escapeText(story.dateRange)}</text>
+        <text x="96" y="410" fill="#334155" font-size="30">${escapeText(story.summaryText.slice(0, 35))}</text>
+        ${highlights}
+        <text x="96" y="1038" fill="#0f172a" font-size="42" font-weight="800">智能故事序言</text>
+        <foreignObject x="96" y="1060" width="1008" height="190">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font: 28px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #334155; line-height: 1.55;">
+            ${escapeText(story.smartNarrative)}
+          </div>
+        </foreignObject>
+        <text x="96" y="1098" fill="#0f172a" font-size="42" font-weight="800" transform="translate(0 270)">路线摘录</text>
+        <g transform="translate(0 300)">${routeStops || `<text x="96" y="1138" fill="#64748b" font-size="28">暂无路线停靠点</text>`}</g>
+        <text x="96" y="1660" fill="#94a3b8" font-size="24">Voyage Atlas · 私有旅行故事长图</text>
+      </svg>
+    `;
+    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${story.title}-旅行故事长图.svg`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return <RoutePageSkeleton variant="story" />;
   }
 
   return (
-    <main className="trip-story-stage">
+    <main className={`trip-story-stage trip-story-template-${template}`}>
       <div className="trip-story-shell">
         <section className="trip-story-hero">
           {story?.coverImageUrl ? (
@@ -76,10 +154,36 @@ export default function TripStoryPage({
               <span>当前账号 {account.name}</span>
             </div>
             <div className="trip-story-actions">
+              {story && !errorMessage ? (
+                <>
+                  <div className="trip-story-template-switch" aria-label="故事模板">
+                    <button
+                      type="button"
+                      className={template === 'magazine' ? 'is-active' : undefined}
+                      onClick={() => setTemplate('magazine')}
+                    >
+                      杂志风
+                    </button>
+                    <button
+                      type="button"
+                      className={template === 'memoir' ? 'is-active' : undefined}
+                      onClick={() => setTemplate('memoir')}
+                    >
+                      纪念册
+                    </button>
+                  </div>
+                  <button type="button" className="primary-button trip-story-print-button" onClick={handlePrint}>
+                    导出 PDF / 打印
+                  </button>
+                  <button type="button" className="ghost-button" onClick={handleExportLongImage}>
+                    导出长图
+                  </button>
+                </>
+              ) : null}
               <button type="button" className="ghost-button" onClick={onNavigateBack}>
                 返回行程详情
               </button>
-              <button type="button" className="ghost-button" onClick={() => void onLogout()}>
+              <button type="button" className="ghost-button trip-story-logout-button" onClick={() => void onLogout()}>
                 退出登录
               </button>
             </div>
@@ -103,6 +207,7 @@ export default function TripStoryPage({
                 <span className="hero-kicker">Story Brief</span>
                 <h2>这次旅行的故事骨架</h2>
                 <p>{story.summaryText}</p>
+                <p className="trip-story-smart-copy">{story.smartNarrative}</p>
               </div>
             </section>
 

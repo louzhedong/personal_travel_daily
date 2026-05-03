@@ -340,6 +340,7 @@
   .stats-editorial-stage,
   .stats-center-filters,
   .stats-summary-grid,
+  .stats-achievement-grid,
   .stats-two-column-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -366,6 +367,7 @@
   .stats-companion-card-top,
   .stats-trip-detail,
   .stats-section-heading,
+  .stats-achievement-heading,
   .stats-heatmap-card header {
     flex-direction: column;
     align-items: flex-start;
@@ -374,6 +376,7 @@
   .stats-editorial-stage,
   .stats-center-filters,
   .stats-summary-grid,
+  .stats-achievement-grid,
   .stats-two-column-grid {
     grid-template-columns: 1fr;
   }

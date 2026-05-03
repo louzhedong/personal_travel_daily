@@ -45,8 +45,24 @@ model Account {
   markerSearchEvents MarkerSearchEvent[]
   sessions     AuthSession[]
   tripChecklistItems TripChecklistItem[]
+  achievementUnlocks AchievementUnlock[]
 
   @@map("accounts")
+}
+
+model AchievementUnlock {
+  id            String   @id
+  accountId     String   @map("account_id")
+  achievementId String   @map("achievement_id")
+  periodKey     String   @map("period_key")
+  unlockedAt    DateTime @default(now()) @map("unlocked_at")
+  evidenceJson  Json?    @map("evidence_json")
+  account       Account  @relation(fields: [accountId], references: [id])
+
+  @@index([accountId], map: "idx_achievement_unlocks_account_id")
+  @@index([achievementId], map: "idx_achievement_unlocks_achievement_id")
+  @@unique([accountId, achievementId, periodKey], map: "uq_achievement_unlocks_account_achievement_period")
+  @@map("achievement_unlocks")
 }
 
 model MarkerSearchEvent {

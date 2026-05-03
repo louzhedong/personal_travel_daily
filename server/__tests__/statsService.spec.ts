@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getPrismaClientMock: vi.fn(),
   getStatsOverviewSourceMock: vi.fn(),
+  achievementUnlockFindManyMock: vi.fn(),
+  achievementUnlockUpsertMock: vi.fn(),
 }));
 
 vi.mock('../appApi/prisma.js', () => ({
@@ -20,7 +22,14 @@ import { getAnnualReview, getStatsOverview } from '../appApi/services/statsServi
 describe('statsService', () => {
   beforeEach(() => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
-    mocks.getPrismaClientMock.mockReturnValue({});
+    mocks.achievementUnlockFindManyMock.mockResolvedValue([]);
+    mocks.achievementUnlockUpsertMock.mockResolvedValue({});
+    mocks.getPrismaClientMock.mockReturnValue({
+      achievementUnlock: {
+        findMany: mocks.achievementUnlockFindManyMock,
+        upsert: mocks.achievementUnlockUpsertMock,
+      },
+    });
   });
 
   it('aggregates filtered stats for the current account', async () => {
@@ -138,7 +147,152 @@ describe('statsService', () => {
       label: '高预算',
       markerCount: 1,
     });
+    expect(result.achievements).toHaveLength(12);
+    expect(result.achievements[0]).toMatchObject({
+      id: 'city-explorer',
+      title: '城市探索者',
+      status: 'locked',
+      progressValue: 1,
+      progressTarget: 5,
+    });
     expect(result.heatmap[0]?.intensity).toBe(5);
+  });
+
+  it('calculates achievement progress from the filtered stats source', async () => {
+    const makeGuide = (id: string) => ({
+      id,
+      markerId: 'marker-1',
+      guideIdentity: id,
+      keyword: '旅行',
+      guideTitle: `攻略 ${id}`,
+      guideSummary: '摘要',
+      guideSourceName: '示例来源',
+      guideSourceUrl: `https://example.com/${id}`,
+      savedAt: new Date('2026-01-01T00:00:00.000Z'),
+    });
+    const makeImage = (index: number) => ({
+      id: `image-${index}`,
+      markerId: 'marker-1',
+      imageUrl: `https://example.com/${index}.jpg`,
+      sortOrder: index,
+    });
+    const baseMarker = {
+      accountId: 'acct-1',
+      tripId: 'trip-1',
+      note: '',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+      isDeleted: false,
+      mood: null,
+      weather: null,
+      budgetLevel: null,
+      images: [],
+      savedGuides: [],
+    };
+
+    mocks.getStatsOverviewSourceMock.mockResolvedValue({
+      id: 'acct-1',
+      companions: [
+        { id: 'user-alice', name: '小悠', color: '#2563eb', sortOrder: 0, createdAt: new Date('2026-01-01T00:00:00.000Z') },
+        { id: 'user-bob', name: '阿川', color: '#14b8a6', sortOrder: 1, createdAt: new Date('2026-01-01T00:00:00.000Z') },
+      ],
+      trips: [
+        {
+          id: 'trip-1',
+          accountId: 'acct-1',
+          name: '三月远行',
+          note: '',
+          coverImageUrl: null,
+          startsAt: new Date('2026-01-01T00:00:00.000Z'),
+          endsAt: new Date('2026-03-01T00:00:00.000Z'),
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+          isDeleted: false,
+        },
+      ],
+      markers: [
+        {
+          ...baseMarker,
+          id: 'marker-1',
+          companionId: 'user-alice',
+          scope: 'international',
+          scopeId: 'jp-tokyo',
+          scopeName: '东京',
+          city: '东京',
+          tags: ['citywalk'],
+          transport: 'train',
+          visitedStartAt: new Date('2026-01-01T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-01-05T00:00:00.000Z'),
+          images: Array.from({ length: 20 }, (_, index) => makeImage(index)),
+          savedGuides: ['guide-1', 'guide-2', 'guide-3', 'guide-4', 'guide-5'].map(makeGuide),
+        },
+        {
+          ...baseMarker,
+          id: 'marker-2',
+          companionId: 'user-bob',
+          scope: 'international',
+          scopeId: 'kr-seoul',
+          scopeName: '首尔',
+          city: '首尔',
+          tags: ['citywalk'],
+          transport: 'plane',
+          visitedStartAt: new Date('2026-02-01T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-02-01T00:00:00.000Z'),
+        },
+        {
+          ...baseMarker,
+          id: 'marker-3',
+          companionId: 'user-alice',
+          scope: 'international',
+          scopeId: 'fr-paris',
+          scopeName: '巴黎',
+          city: '巴黎',
+          tags: ['citywalk'],
+          transport: 'train',
+          visitedStartAt: new Date('2026-03-01T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-03-01T00:00:00.000Z'),
+        },
+        {
+          ...baseMarker,
+          id: 'marker-4',
+          companionId: 'user-alice',
+          scope: 'domestic',
+          scopeId: 'zj',
+          scopeName: '浙江',
+          city: '杭州',
+          tags: [],
+          transport: 'walk',
+          visitedStartAt: new Date('2026-03-02T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-03-02T00:00:00.000Z'),
+        },
+        {
+          ...baseMarker,
+          id: 'marker-5',
+          companionId: 'user-alice',
+          scope: 'domestic',
+          scopeId: 'js',
+          scopeName: '江苏',
+          city: '苏州',
+          tags: [],
+          transport: 'walk',
+          visitedStartAt: new Date('2026-03-03T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-03-03T00:00:00.000Z'),
+        },
+      ],
+    });
+
+    const result = await getStatsOverview(
+      { id: 'acct-1', name: 'Voyage Atlas', username: 'demo', role: 'member' },
+      { scope: 'all', year: '2026' },
+    );
+
+    const achievements = Object.fromEntries(result.achievements.map((item) => [item.id, item]));
+    expect(achievements['city-explorer']).toMatchObject({ status: 'unlocked', progressValue: 5 });
+    expect(achievements['country-collector']).toMatchObject({ status: 'unlocked', progressValue: 3 });
+    expect(achievements['monthly-streak']).toMatchObject({ status: 'unlocked', progressValue: 3 });
+    expect(achievements['guide-planner']).toMatchObject({ status: 'unlocked', progressValue: 5 });
+    expect(achievements['photo-keeper']).toMatchObject({ status: 'unlocked', progressValue: 20 });
+    expect(achievements['frequent-departure']).toMatchObject({ status: 'locked', progressValue: 9 });
   });
 
   it('applies metadata filters and keeps metadata rankings in sync', async () => {

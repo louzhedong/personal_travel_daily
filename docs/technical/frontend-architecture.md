@@ -27,8 +27,8 @@ After this refresh, the frontend can be understood as `routes -> modules -> comp
 `src/modules/App.tsx` 现在只保留“顶层页面切换 + 会话恢复 + 路由守卫”职责，不再直接读写 `window.history`。手写路由的单一事实源集中在 `src/modules/app/router.ts`。  
 `src/modules/App.tsx` now keeps only top-level page switching, session restoration, and route guarding responsibilities. It no longer reads or writes `window.history` directly, because the hand-written routing source of truth now lives in `src/modules/app/router.ts`.
 
-- `AppRoute` 联合类型枚举当前所有顶层路由：`/`、`/login`、`/register`、`/admin`、`/stats`、`/trips/:id`、`/yearbook/:year`。  
-  `AppRoute` enumerates all top-level routes: `/`, `/login`, `/register`, `/admin`, `/stats`, `/trips/:id`, and `/yearbook/:year`.
+- `AppRoute` 联合类型枚举当前所有顶层路由：`/`、`/login`、`/register`、`/admin`、`/stats`、`/trips/:id`、`/trips/:id/story`、`/trips/:id/checklist`、`/yearbook/:year`。
+  `AppRoute` enumerates all top-level routes: `/`, `/login`, `/register`, `/admin`, `/stats`, `/trips/:id`, `/trips/:id/story`, `/trips/:id/checklist`, and `/yearbook/:year`.
 - `createHomeRoute()`、`createTripDetailRoute()` 等工厂函数负责统一构造路由对象。  
   Factory helpers such as `createHomeRoute()` and `createTripDetailRoute()` create route objects consistently.
 - `parsePathname()` 负责把浏览器 URL 解析成内部路由状态。  
@@ -36,8 +36,8 @@ After this refresh, the frontend can be understood as `routes -> modules -> comp
 - `useAppRouter()` 负责把 `pushState`、`replaceState`、`popstate` 监听包装成 React 可消费的 API。  
   `useAppRouter()` wraps `pushState`, `replaceState`, and `popstate` handling into a React-friendly API.
 
-`App.tsx` 通过 `fetchSession()` 恢复登录态，然后根据 `route.kind` 和 `account.role` 分发到 `AuthPage`、`TravelApp`、`AdminPage`、`StatsPage`、`TripDetailPage`、`AnnualReviewPage`。  
-`App.tsx` restores the current session through `fetchSession()` and then dispatches to `AuthPage`, `TravelApp`, `AdminPage`, `StatsPage`, `TripDetailPage`, or `AnnualReviewPage` based on `route.kind` and `account.role`.
+`App.tsx` 通过 `fetchSession()` 恢复登录态，然后根据 `route.kind` 和 `account.role` 分发到 `AuthPage`、`TravelApp`、`AdminPage`、`StatsPage`、`TripDetailPage`、`TripStoryPage`、`TripChecklistPage`、`AnnualReviewPage`。
+`App.tsx` restores the current session through `fetchSession()` and then dispatches to `AuthPage`, `TravelApp`, `AdminPage`, `StatsPage`, `TripDetailPage`, `TripStoryPage`, `TripChecklistPage`, or `AnnualReviewPage` based on `route.kind` and `account.role`.
 
 这样做之后，新增页面时只需要先扩展 `router.ts`，再在 `App.tsx` 增加一个页面分支即可，顶层状态机不再散落在多个文件。  
 With this structure, adding a new page now means extending `router.ts` first and then adding one rendering branch in `App.tsx`, instead of scattering the top-level state machine across multiple files.
@@ -171,12 +171,14 @@ The frontend styling entry is `src/styles/index.css`, and it now follows a struc
 
 - 基础骨架：`base.css`、`layout.css`。  
   Base skeleton: `base.css` and `layout.css`.
-- 页面 barrel：`pages/index.css` 统一引入 `auth`、`admin`、`home`、`stats-center`、`trip-detail`、`annual-review`。  
-  Page barrel: `pages/index.css` imports `auth`, `admin`, `home`, `stats-center`, `trip-detail`, and `annual-review`.
+- 页面 barrel：`pages/index.css` 统一引入 `auth`、`admin`、`home`、`stats-center`、`trip-detail`、`trip-story`、`annual-review`。
+  Page barrel: `pages/index.css` imports `auth`, `admin`, `home`, `stats-center`, `trip-detail`, `trip-story`, and `annual-review`.
 - 功能域 barrel：`features/index.css` 统一引入 `timeline`、`guide-search`、`map`、`marker-list`、`marker-detail`、`data-sync`、`dialog`、`forms`、`sidebar-panels`。  
   Feature barrel: `features/index.css` imports `timeline`, `guide-search`, `map`, `marker-list`, `marker-detail`, `data-sync`, `dialog`, `forms`, and `sidebar-panels`.
 - 统计中心进一步拆到 `stats-center/{layout,filters,summary,heatmap}.css`，并通过 `stats-center/index.css` 收口。  
   The stats center is further split into `stats-center/{layout,filters,summary,heatmap}.css` and re-collected through `stats-center/index.css`.
+- 成就卡片、成就详情弹窗和年度成就样式分别归属 `stats-center/summary.css` 与 `annual-review.css`；通用弹窗滚动锁和滚动穿透控制归属 `components/dialog.css`。
+  Achievement cards, achievement-detail dialogs, and annual-achievement styling live in `stats-center/summary.css` and `annual-review.css`; shared dialog scroll locking and overscroll containment live in `components/dialog.css`.
 - 响应式规则统一收口在 `responsive.css`。  
   Responsive rules are centralized in `responsive.css`.
 
