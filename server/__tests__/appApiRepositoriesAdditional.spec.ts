@@ -146,6 +146,13 @@ describe('additional appApi repositories', () => {
               where: { isDeleted: false },
               orderBy: { createdAt: 'desc' },
             },
+            tripPlanningItems: {
+              where: { isDeleted: false },
+              orderBy: [{ createdAt: 'desc' }],
+              include: {
+                trip: true,
+              },
+            },
           },
         },
         markerSearchEvents: {

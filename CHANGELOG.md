@@ -32,6 +32,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npx prisma generate --schema server/prisma/schema.prisma`
 - `npx tsc -p tsconfig.server.json --noEmit`
 - `npx tsc -p tsconfig.app.json --noEmit`
+- `npm run test`
 - `npm run test -- --run server/__tests__/appApiRoutes.spec.ts server/__tests__/tripDetailService.spec.ts src/modules/__tests__/TripDetailPage.spec.tsx src/components/__tests__/GuideSearchPanel.spec.tsx src/modules/__tests__/AdminPage.spec.tsx`
 - `npm run test -- --run src/modules/__tests__/TripStoryPage.spec.tsx src/modules/trips/__tests__/tripStoryPageModel.spec.ts`
 
