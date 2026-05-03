@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { SetStateAction } from 'react';
 import type { TravelStore } from '../../../types';
 
 const { createSavedGuideMock } = vi.hoisted(() => ({
@@ -46,6 +47,12 @@ const baseStore: TravelStore = {
   guideSearchHistory: [],
 };
 
+function createStoreSetter(currentStore: TravelStore) {
+  return vi.fn((value: SetStateAction<TravelStore>) =>
+    typeof value === 'function' ? value(currentStore) : value,
+  );
+}
+
 describe('guideActions store helpers', () => {
   it('finds saved guides with normalized sourceUrl and marker identity', () => {
     const savedGuides = [
@@ -76,7 +83,7 @@ describe('guideActions store helpers', () => {
       savedAt: '2026-04-01T00:00:00.000Z',
     });
 
-    const setStore = vi.fn((updater: (current: TravelStore) => TravelStore) => updater(baseStore));
+    const setStore = createStoreSetter(baseStore);
     const result = saveGuideToStore(
       setStore,
       { ...guide, sourceUrl: 'https://example.com/guide/kyoto' },
@@ -103,7 +110,7 @@ describe('guideActions store helpers', () => {
       ...baseStore,
       savedGuides: [result.nextSavedGuide!],
     };
-    const duplicateSetStore = vi.fn((updater: (current: TravelStore) => TravelStore) => updater(duplicateStore));
+    const duplicateSetStore = createStoreSetter(duplicateStore);
     const duplicate = saveGuideToStore(
       duplicateSetStore,
       { ...guide, sourceUrl: 'https://example.com/guide/kyoto' },
@@ -125,7 +132,7 @@ describe('guideActions store helpers', () => {
       savedAt: '2026-04-01T00:00:00.000Z',
     });
 
-    const setStore = vi.fn((updater: (current: TravelStore) => TravelStore) => updater(baseStore));
+    const setStore = createStoreSetter(baseStore);
     const attached = attachGuideToMarkerInStore(
       baseStore,
       setStore,
@@ -155,7 +162,7 @@ describe('guideActions store helpers', () => {
       ...baseStore,
       savedGuides: [attached.nextSavedGuide!],
     };
-    const duplicateSetStore = vi.fn((updater: (current: TravelStore) => TravelStore) => updater(duplicateStore));
+    const duplicateSetStore = createStoreSetter(duplicateStore);
     const duplicate = attachGuideToMarkerInStore(
       duplicateStore,
       duplicateSetStore,
@@ -180,7 +187,7 @@ describe('guideActions store helpers', () => {
         },
       ],
     };
-    const setStore = vi.fn((updater: (current: TravelStore) => TravelStore) => updater(store));
+    const setStore = createStoreSetter(store);
 
     expect(removeSavedGuideFromStore(store, setStore, 'saved-1')).toEqual(store.savedGuides[0]);
     expect(removeSavedGuideFromStore(store, setStore, 'missing')).toBeNull();

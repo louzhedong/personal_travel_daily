@@ -265,7 +265,7 @@ describe('useTripActions', () => {
           setDetailMarkerId,
         }),
       {
-        initialProps: { currentStore: { ...store, trips: [] as TravelStore['trips'] } },
+        initialProps: { currentStore: { ...store, trips: [] } as TravelStore },
       },
     );
 

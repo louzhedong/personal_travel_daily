@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import TravelIcon from '../../components/ui/TravelIcon';
+import Dialog from '../../components/ui/Dialog';
 import StatsCenterFilters from '../../components/stats/StatsCenterFilters';
 import StatsHeatmapPanel from '../../components/stats/StatsHeatmapPanel';
 import StatsSummaryGrid from '../../components/stats/StatsSummaryGrid';
 import { fetchStatsOverview } from '../../lib/api/statsApi';
 import type {
+  StatsAchievementCategoryDto,
+  StatsAchievementDto,
   StatsCompanionRankingItemDto,
   StatsOverviewResponseDto,
   StatsRegionRankingItemDto,
@@ -20,6 +23,20 @@ import {
   mapUiFiltersToQuery,
   type StatsUiFilters,
 } from './statsCenterModel';
+
+const ACHIEVEMENT_CATEGORY_LABELS: Record<StatsAchievementCategoryDto, string> = {
+  footprint: '足迹',
+  rhythm: '节奏',
+  companion: '同行',
+  content: '内容',
+  style: '风格',
+};
+
+const ACHIEVEMENT_STATUS_LABELS: Record<StatsAchievementDto['status'], string> = {
+  unlocked: '已达成',
+  close: '接近达成',
+  locked: '未达成',
+};
 
 interface TripStatsCenterProps {
   onOpenTripDetail?: (tripId: string) => void;
@@ -208,6 +225,123 @@ function CompanionRankingPanel({ items }: { items: StatsCompanionRankingItemDto[
   );
 }
 
+function AchievementPanel({ items }: { items: StatsAchievementDto[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const [activeAchievementId, setActiveAchievementId] = useState<string | null>(null);
+  const visibleItems = expanded ? items : items.slice(0, 6);
+  const unlockedCount = items.filter((item) => item.status === 'unlocked').length;
+  const activeAchievement = items.find((item) => item.id === activeAchievementId);
+
+  return (
+    <section className="card stats-panel stats-achievement-panel">
+      <div className="stats-section-heading stats-achievement-heading">
+        <div>
+          <h3>旅行成就</h3>
+          <p>按当前筛选口径实时计算，把足迹、节奏、同行和旅行风格整理成可见的里程碑。</p>
+        </div>
+        <span className="stats-achievement-total">
+          {unlockedCount}/{items.length} 已达成
+        </span>
+      </div>
+
+      {items.length === 0 ? (
+        <div className="stats-empty">当前筛选条件下暂无成就数据。</div>
+      ) : (
+        <>
+          <div className="stats-achievement-grid">
+            {visibleItems.map((item) => {
+              const progress =
+                item.progressTarget <= 0 ? 0 : Math.min(100, Math.round((item.progressValue / item.progressTarget) * 100));
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`stats-achievement-card is-${item.status}`}
+                  onClick={() => setActiveAchievementId(item.id)}
+                >
+                  <div className="stats-achievement-card-top">
+                    <span className="stats-achievement-category">{ACHIEVEMENT_CATEGORY_LABELS[item.category]}</span>
+                    <span className="stats-achievement-status">{ACHIEVEMENT_STATUS_LABELS[item.status]}</span>
+                  </div>
+                  <strong>{item.title}</strong>
+                  <p>{item.description}</p>
+                  <div className="stats-achievement-progress-row">
+                    <span>
+                      {item.progressValue}/{item.progressTarget} {item.unit}
+                    </span>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="stats-achievement-track" aria-hidden="true">
+                    <div className="stats-achievement-fill" style={{ width: `${progress}%` }} />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          {items.length > 6 ? (
+            <button type="button" className="stats-achievement-toggle" onClick={() => setExpanded((current) => !current)}>
+              {expanded ? '收起成就' : '展开全部成就'}
+            </button>
+          ) : null}
+          <Dialog
+            open={!!activeAchievement}
+            title={activeAchievement?.title ?? '旅行成就'}
+            eyebrow="Achievement Detail"
+            description={
+              activeAchievement ? (
+                <span>
+                  {ACHIEVEMENT_STATUS_LABELS[activeAchievement.status]} · {activeAchievement.progressValue}/
+                  {activeAchievement.progressTarget} {activeAchievement.unit}
+                </span>
+              ) : undefined
+            }
+            onClose={() => setActiveAchievementId(null)}
+          >
+            {activeAchievement ? (
+              <div className="stats-achievement-detail">
+                <p>{activeAchievement.description}</p>
+                <div className="stats-achievement-detail-track">
+                  <div
+                    style={{
+                      width: `${Math.min(100, Math.round((activeAchievement.progressValue / activeAchievement.progressTarget) * 100))}%`,
+                    }}
+                  />
+                </div>
+                <strong>
+                  {activeAchievement.status === 'unlocked'
+                    ? '达成证据'
+                    : `还差 ${activeAchievement.remainingValue ?? Math.max(activeAchievement.progressTarget - activeAchievement.progressValue, 0)} ${
+                        activeAchievement.unit
+                      }`}
+                </strong>
+                {(activeAchievement.evidence?.length ?? 0) > 0 ? (
+                  <div className="stats-achievement-evidence-list">
+                    {activeAchievement.evidence?.map((item) => (
+                      <article key={`${item.label}-${item.value}`}>
+                        <span>{item.label}</span>
+                        <strong>{item.value}</strong>
+                        {item.description ? <p>{item.description}</p> : null}
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="stats-empty">当前筛选条件下还没有可展示的支撑记录。</div>
+                )}
+                {activeAchievement.firstUnlockedAt ? (
+                  <span className="stats-achievement-unlocked-at">
+                    首次解锁：{formatGeneratedAt(activeAchievement.firstUnlockedAt)}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+          </Dialog>
+        </>
+      )}
+    </section>
+  );
+}
+
 function StatsCenterSkeleton() {
   return (
     <section className="route-inline-skeleton" aria-label="统计中心加载中">
@@ -351,6 +485,8 @@ export default function TripStatsCenter({ onOpenTripDetail, onOpenAnnualReview }
           </section>
 
           <StatsSummaryGrid data={data} />
+
+          <AchievementPanel items={data.achievements} />
 
           <section className="stats-highlights-row">
             <article className="card stats-highlight-card stats-highlight-card-featured">

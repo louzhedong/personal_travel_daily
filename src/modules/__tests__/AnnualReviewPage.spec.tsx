@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchAnnualReview } from '../../lib/api/statsApi';
 import AnnualReviewPage from '../yearbook/AnnualReviewPage';
 
@@ -14,6 +14,8 @@ vi.mock('../../geo/loader', () => ({
 }));
 
 describe('AnnualReviewPage', () => {
+  const originalPrint = window.print;
+  const originalTitle = document.title;
   const account = {
     id: 'acct-1',
     name: 'Voyage Atlas',
@@ -107,6 +109,18 @@ describe('AnnualReviewPage', () => {
         note: '杭州和苏州',
       },
     ],
+    achievements: [
+      {
+        id: 'annual-2026-travel-days',
+        title: '年度出发王',
+        description: '这一年旅行天数达到 20 天。',
+        category: 'rhythm' as const,
+        status: 'locked' as const,
+        progressValue: 4,
+        progressTarget: 20,
+        unit: '天',
+      },
+    ],
     firstMarker: {
       id: 'marker-1',
       tripId: 'trip-1',
@@ -140,7 +154,14 @@ describe('AnnualReviewPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    window.print = vi.fn();
+    document.title = originalTitle;
     vi.mocked(fetchAnnualReview).mockResolvedValue(annualReviewResponse);
+  });
+
+  afterEach(() => {
+    window.print = originalPrint;
+    document.title = originalTitle;
   });
 
   it('renders the annual review and opens trip detail', async () => {
@@ -158,11 +179,30 @@ describe('AnnualReviewPage', () => {
     expect(await screen.findByRole('heading', { name: '2026 年度旅行回顾' })).toBeInTheDocument();
     expect(screen.getByText('年度亮点')).toBeInTheDocument();
     expect(screen.getByText('杭州周末攻略')).toBeInTheDocument();
+    expect(document.title).toBe('2026 年度旅行回顾');
 
     await userEvent.click(screen.getByRole('button', { name: /江南春游/ }));
 
     expect(fetchAnnualReview).toHaveBeenCalledWith('2026');
     expect(onOpenTripDetail).toHaveBeenCalledWith('trip-1');
+  });
+
+  it('prints the annual review', async () => {
+    const user = userEvent.setup();
+    render(
+      <AnnualReviewPage
+        account={account}
+        year="2026"
+        onNavigateBack={vi.fn()}
+        onOpenTripDetail={vi.fn()}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole('heading', { name: '2026 年度旅行回顾' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '导出 PDF / 打印' }));
+
+    expect(window.print).toHaveBeenCalledOnce();
   });
 
   it('renders an empty annual review', async () => {

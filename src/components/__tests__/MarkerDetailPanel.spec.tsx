@@ -80,7 +80,7 @@ describe('MarkerDetailPanel', () => {
   it('allows editing note and saving changes', async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
 
-    const { container } = render(
+    render(
       <MarkerDetailPanel
         marker={marker}
         user={user}
@@ -117,7 +117,7 @@ describe('MarkerDetailPanel', () => {
   it('allows assigning an existing marker to a trip', async () => {
     const onUpdate = vi.fn().mockResolvedValue(undefined);
 
-    const { container } = render(
+    render(
       <MarkerDetailPanel
         marker={marker}
         user={user}
@@ -146,7 +146,7 @@ describe('MarkerDetailPanel', () => {
   });
 
   it('shows marker tags and metadata in read mode', () => {
-    const { container } = render(
+    render(
       <MarkerDetailPanel
         marker={marker}
         user={user}
@@ -168,7 +168,7 @@ describe('MarkerDetailPanel', () => {
   });
 
   it('supports keyboard navigation and escape close in lightbox', async () => {
-    const { container } = render(
+    render(
       <MarkerDetailPanel
         marker={marker}
         user={user}
@@ -195,7 +195,7 @@ describe('MarkerDetailPanel', () => {
   it('opens guide search from the detail panel', async () => {
     const onOpenGuideSearch = vi.fn();
 
-    const { container } = render(
+    render(
       <MarkerDetailPanel
         marker={marker}
         user={user}
@@ -296,7 +296,16 @@ describe('MarkerDetailPanel', () => {
 
     const { container } = render(
       <MarkerDetailPanel
-        marker={{ ...marker, note: '', imageUrls: [], tags: [], mood: null, weather: null, transport: null, budgetLevel: null }}
+        marker={{
+          ...marker,
+          note: '',
+          imageUrls: [],
+          tags: [],
+          mood: undefined,
+          weather: undefined,
+          transport: undefined,
+          budgetLevel: undefined,
+        }}
         user={user}
         open
         canEdit={false}

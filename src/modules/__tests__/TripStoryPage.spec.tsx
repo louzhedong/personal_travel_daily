@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchTripDetail } from '../../lib/api/tripsApi';
 import TripStoryPage from '../trips/TripStoryPage';
 
@@ -9,6 +9,11 @@ vi.mock('../../lib/api/tripsApi', () => ({
 }));
 
 describe('TripStoryPage', () => {
+  const originalPrint = window.print;
+  const originalTitle = document.title;
+  const originalCreateObjectUrl = URL.createObjectURL;
+  const originalRevokeObjectUrl = URL.revokeObjectURL;
+  const originalClick = HTMLAnchorElement.prototype.click;
   const account = {
     id: 'acct-1',
     name: 'Voyage Atlas',
@@ -130,7 +135,20 @@ describe('TripStoryPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    window.print = vi.fn();
+    URL.createObjectURL = vi.fn(() => 'blob:story');
+    URL.revokeObjectURL = vi.fn();
+    HTMLAnchorElement.prototype.click = vi.fn();
+    document.title = originalTitle;
     vi.mocked(fetchTripDetail).mockResolvedValue(tripDetailResponse as never);
+  });
+
+  afterEach(() => {
+    window.print = originalPrint;
+    URL.createObjectURL = originalCreateObjectUrl;
+    URL.revokeObjectURL = originalRevokeObjectUrl;
+    HTMLAnchorElement.prototype.click = originalClick;
+    document.title = originalTitle;
   });
 
   it('renders the story page after loading', async () => {
@@ -153,6 +171,50 @@ describe('TripStoryPage', () => {
     expect(screen.getByText('西湖晚风很好。')).toBeInTheDocument();
     expect(screen.getByText('杭州周末攻略')).toBeInTheDocument();
     expect(screen.getAllByText('2 / 2 项已完成，完成度 100%')).toHaveLength(2);
+    expect(screen.getByText(/从 浙江 · 杭州 到 江苏 · 苏州/)).toBeInTheDocument();
+  });
+
+  it('prints the story page and uses the trip name as the document title', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TripStoryPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
+    expect(document.title).toBe('江南春游 · 旅行故事');
+
+    await user.click(screen.getByRole('button', { name: '导出 PDF / 打印' }));
+
+    expect(window.print).toHaveBeenCalledOnce();
+  });
+
+  it('switches story templates and exports a long image', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TripStoryPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '纪念册' }));
+    expect(screen.getByRole('main')).toHaveClass('trip-story-template-memoir');
+
+    await user.click(screen.getByRole('button', { name: '导出长图' }));
+
+    expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledOnce();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:story');
   });
 
   it('shows empty states when optional story materials are missing', async () => {
@@ -203,6 +265,7 @@ describe('TripStoryPage', () => {
     );
 
     expect(await screen.findByText('行程不存在或无权访问')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '导出 PDF / 打印' })).not.toBeInTheDocument();
     await user.click(screen.getAllByRole('button', { name: '返回行程详情' })[0]);
     await user.click(screen.getByRole('button', { name: '退出登录' }));
 

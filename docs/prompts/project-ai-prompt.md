@@ -8,8 +8,10 @@
 - 多旅伴旅行记录
 - 旅行图片上传与游记编辑
 - 攻略搜索、收藏、关联
-- 行程时间线与地图联动
-- 本地数据导出 / 导入
+- 行程集合、行前清单、行程时间线与地图联动
+- 统计中心、旅行成就、年度回顾与地图回放
+- 登录注册、管理员后台与 MySQL / Prisma 主数据层
+- 本地数据导出
 
 ## 功能 Prompt 选用建议
 
@@ -21,6 +23,7 @@
 - 行程集合与行程详情：`docs/prompts/trip-collection-prompt.md`
 - 时间线：`docs/prompts/timeline-prompt.md`
 - 统计中心：`docs/prompts/stats-center-prompt.md`
+- 旅行成就：`docs/technical/travel-achievements.md`，并继续遵循统计中心 Prompt
 - 地图回放：`docs/prompts/map-replay-prompt.md`
 - 数据备份 / 导入导出：`docs/prompts/data-sync-prompt.md`
 - 攻略搜索：`docs/prompts/guide-search-prompt.md` 与其前端 / adapter 子 Prompt
@@ -34,8 +37,9 @@
 - TypeScript 5
 - Vite 7
 - Vitest + Testing Library
-- IndexedDB
-- 本地 Node HTTP 攻略 API
+- MySQL + Prisma
+- Fastify app-api
+- 本地 Node HTTP 攻略 API / guide-api
 
 ## 关键目录
 
@@ -43,9 +47,13 @@
 - `src/components/ui`: 可复用基础 UI 组件，例如弹窗、确认框、标准下拉和图标
 - `src/modules/App.tsx`: 顶层容器
 - `src/modules/app`: 页面组合层、动作 hook、导航 helper
-- `src/lib`: 存储、仓库、攻略服务
+- `src/modules/stats`: 统计中心与旅行成就页面逻辑
+- `src/modules/yearbook`: 年度回顾页面逻辑
+- `src/lib`: API 客户端、纯逻辑、仓库与攻略服务
 - `src/styles`: 样式拆分后的入口与模块文件
-- `server`: 本地攻略 API 与抓取适配器
+- `server/appApi`: 主业务 API
+- `server/prisma`: MySQL 数据模型、迁移与 seed
+- `server`: app-api、guide-api 与抓取适配器
 
 ## 当前架构约束
 
@@ -55,6 +63,7 @@
 4. 攻略收藏与关联的去重语义，应复用 `guideRepository.ts` 与 `guideActions.ts`，不要在 UI 内重复实现。
 5. 样式新增时，优先写入对应的 `src/styles/components/*.css`，不要把 `src/styles/index.css` 重新变回大杂烩。
 6. 后续开发中，如果 UI 控件或交互模式能复用，优先抽离为 `src/components/ui/` 标准组件，提升一致性和可维护性。
+7. 统计成就跟随筛选实时计算；只有默认全量统计视图和年度回顾写入首次解锁时间。
 
 ## 输出偏好
 

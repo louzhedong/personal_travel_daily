@@ -129,6 +129,35 @@ Summary: Map Replay Phase 1 is shipped inside the homepage map card with unified
 
 Summary: Marker tags and lightweight metadata now ship as a first-phase closed loop across capture, edit, timeline/detail display, stats filtering, and backend search.
 
+### 旅行成就系统 / Travel Achievement System
+
+- 状态：二 / 三 / 四期合并完成。
+- 已落地范围：
+  - `/stats` 返回并展示 12 个固定旅行成就，覆盖足迹、节奏、旅伴、内容与风格分类。
+  - 成就状态按当前统计筛选实时计算，支持 `unlocked / close / locked`、进度、剩余量和达成证据。
+  - 默认全量统计视图会持久化首次解锁时间，筛选视图只做临时计算。
+  - `/yearbook/:year` 展示年度成就，并按年份持久化首次解锁时间。
+  - 成就卡片支持展开全部 / 收起和详情弹窗，弹窗内部滚动不会穿透到页面背景。
+- 后续增强：
+  - 成就分组页、稀有度、分享图和更强的故事化解释。
+
+Summary: Travel achievements now ship across stats and annual review, with live progress, evidence, first-unlock persistence, and detail dialogs.
+
+### 旅行故事页与导出增强 / Trip Story Export Enhancements
+
+- 状态：已完成产品化增强。
+- 已落地范围：
+  - `/trips/:id/story` 将单次行程自动整理为私有故事页。
+  - 复用行程详情聚合数据，展示封面、摘要、路线胶片、时间线、照片、攻略摘录和行前清单回顾。
+  - 支持浏览器原生打印 / 保存 PDF，并提供 print 专用样式。
+  - 支持杂志风 / 纪念册模板切换、智能故事序言和 SVG 长图导出。
+  - `/yearbook/:year` 支持浏览器原生打印 / 保存 PDF。
+  - 行程详情页保留“查看故事页”入口。
+- 后续增强：
+  - 公开分享链接、访问权限、图片精选优先级和地图回放截图占位。
+
+Summary: Trip stories and annual reviews now support private printable/exportable artifacts without new backend persistence.
+
 ## 当前产品基线 / Current Product Baseline
 
 截至当前版本，项目已经具备这些核心能力：
@@ -138,17 +167,19 @@ Summary: Marker tags and lightweight metadata now ship as a first-phase closed l
 - 旅行记录支持城市、起止日期、描述、多图上传、详情查看、编辑、删除和攻略关联。
 - 多旅伴切换、颜色区分以及"仅本人可编辑/删除本人记录"的权限边界已经落地。
 - 行程集合二期已完成，支持创建 / 编辑 / 删除行程、批量归属记录、封面管理与独立详情页回看。
-- Trip Collection Phase 2 is available with full CRUD, batch marker assignment, cover management, and a dedicated detail page.
+- Trip Collection Phase 2 is available with full CRUD, batch marker assignment, cover management, a dedicated detail page, and a private printable story page.
 - 旅行记录已支持标签、心情、天气、交通方式与预算级别等轻量元数据，并已接入时间线、行程详情、统计中心与服务端搜索。
 - Travel markers now support tags, mood, weather, transport, and budget metadata, and those fields are wired into the timeline, trip detail, stats center, and backend search.
 - 独立统计中心 `/stats` 已完成，支持筛选、排行、趋势、国内中国地图 / 国际世界地图热力图，以及从统计钻取到行程详情。
 - A standalone `/stats` center is available with filters, rankings, trends, China/world map heatmaps, and drill-down into trip details.
 - 年度回顾页 `/yearbook/:year` 已上线，支持按年份生成私有年鉴式回看，并继续钻取到单次行程详情。
 - The `/yearbook/:year` annual review page is live, offering a private yearbook-style retrospective with continued drill-down into trip details.
+- 旅行成就系统已接入统计中心与年度回顾，支持实时进度、达成证据和首次解锁时间。
+- Travel achievements are now wired into stats and annual review with live progress, evidence, and first-unlock moments.
 - 地图回放一期已上线，首页地图卡片内嵌回放控制条、移动圆点与国家级路径回放。
 - Map Replay Phase 1 is shipped inside the homepage map card with inline controls, moving dot labels, and country-level path replay.
 - 攻略搜索、正文阅读增强、搜索历史、收藏、关联到旅行记录与返回链路已经打通。
-- 攻略搜索结果已支持直接生成绑定到行程的行前清单，并在行程详情与独立清单页中持续管理。
+- 攻略搜索结果已支持直接生成绑定到行程的行前清单，并在行程详情、独立清单页与故事页回顾中持续复用。
 - 登录注册、Cookie Session、管理员只读后台、搜索行为日志和 MySQL / Prisma 持久化主链路已经可用。
 - Docker MySQL + Adminer、本地 seed、`db:prepare-demo`、迁移工作流与关键前后端测试已经具备。
 
@@ -158,16 +189,22 @@ This means the next roadmap should amplify the value of existing data assets ins
 
 ## 产品方向 / Product Direction
 
-下一阶段建议围绕 4 条主线推进：
+从最新状态看，项目已经不缺“记录入口”，真正值得继续投入的是把已有数据变成更完整的旅行生命周期：出发前能计划，旅途中能整理，回来后能回看、表达和沉淀。
+
+Given the current product baseline, the product no longer lacks capture surfaces. The next iteration should turn existing data into a fuller travel lifecycle: plan before departure, organize during the trip, and review, express, and preserve memories afterward.
+
+下一阶段建议围绕 5 条主线推进：
 
 1. **更强的旅行回看**
-   Turn raw records into memorable retrospectives, yearly reviews, and replayable stories.
-2. **更强的整理效率**
-   Help users organize records, trips, photos, guides, and future plans with less friction.
-3. **更强的表达与分享**
-   Make the product feel more like a personal travel journal and less like a private database.
-4. **更强的长期留存**
-   Add features that encourage repeat visits after a trip is over.
+   Turn trips, stats, achievements, photos, guides, and map replay into memorable retrospectives.
+2. **更强的行前规划**
+   Let wishlist, guides, checklists, and trips connect before the user creates actual travel records.
+3. **更强的整理效率**
+   Help users batch organize records, photos, guides, tags, companions, and trip-level assets with less friction.
+4. **更强的表达与分享**
+   Make selected memories exportable, shareable, and visually coherent without turning the private app into a social feed.
+5. **更强的长期治理**
+   Keep accounts, source quality, migrations, tests, and admin observability healthy as the product grows.
 
 ## 优先级说明 / Priority Legend
 
@@ -177,109 +214,156 @@ This means the next roadmap should amplify the value of existing data assets ins
 
 ## 下一阶段路线图 / Next-Phase Roadmap
 
-### 1. 旅行故事页 / Travel Story Page
+### 1. 行前规划工作台 / Trip Planning Workspace
+
+- 优先级：`P1`
+- 为什么值得做：
+  - 当前行程、攻略和清单已经能联动，但仍偏“旅行发生后整理”；规划工作台可以把产品前移到出发前。
+- 建议范围：
+  - 在行程详情中新增“规划”视图，整合愿望地点、攻略、行前清单、预计日期和备注。
+  - 支持从攻略搜索结果加入规划候选，而不仅是生成清单。
+  - 支持把规划项在旅行后转为正式旅行记录，保留来源攻略与清单关联。
+  - 保持一期轻量，不做复杂日程排班和多人实时协作。
+
+Summary: Planning workspace connects guides, checklists, wish items, and trips before records exist.
+
+### 2. 愿望地图 / Wishlist Map
+
+- 优先级：`P1`
+- 为什么值得做：
+  - 地图目前主要表达“去过哪里”，愿望地图能承接“想去哪里”，让首页地图从回顾工具升级为计划工具。
+- 建议范围：
+  - 增加“想去城市 / 想去国家 / 想去区域”清单。
+  - 地图上区分 `visited / wishlist / both` 三种状态。
+  - 可从攻略搜索结果、行程规划工作台和地图区域点击加入愿望清单。
+  - 愿望项可关联攻略、备注、优先级和目标年份。
+
+Summary: Wishlist map is the natural planning counterpart to the current visited-map experience.
+
+### 3. 旅行故事页进阶 / Trip Story Evolution
 
 - 优先级：`P2`
 - 为什么值得做：
-  - 当前产品更像个人数据工具，故事页会让它更像旅行内容产品。
+  - 故事页导出增强已经可用，下一步可以把它从“私有导出页面”升级为更有表达力的旅行作品。
 - 建议范围：
-  - 将单次行程渲染为可阅读故事页。
-  - 自动组合封面、时间线、照片、攻略摘录和地图路径。
-  - 支持"杂志风"和"纪念册风"两种模板。
-  - 第一阶段先做本地只读页。
+  - 增加更多模板和移动端分享卡。
+  - 引入精选照片优先级、成就片段和地图回放截图占位。
+  - 探索真正的 AI 故事文案润色，但必须保留本地生成 fallback。
+  - 后续再考虑公开分享链接和访问权限。
 
-### 2. 城市愿望清单 / Wishlist Map
+Summary: Trip story evolution should focus on stronger templates, share cards, and richer story composition.
+
+### 4. 成就系统进阶 / Achievement System Evolution
 
 - 优先级：`P2`
 - 为什么值得做：
-  - 当前地图只记录"去过哪里"，还没有承接"想去哪里"。
-  - 这会让地图从回顾工具变成计划工具。
+  - 成就一期已经打通统计中心、年度回顾、证据和首次解锁；下一步可以增强长期留存和表达，而不是继续堆固定 badge。
 - 建议范围：
-  - 增加"想去城市 / 想去国家"清单。
-  - 地图上区分"去过 / 想去"两种状态。
-  - 可从攻略搜索结果一键加入愿望清单。
-  - 后续可与行程规划联动。
+  - 成就分组页：按足迹、节奏、旅伴、内容、风格查看全部成就。
+  - 成就稀有度、年度限定成就、连续年度成就和“下一步建议”。
+  - 成就分享卡：生成单张可保存图片，复用成就证据和首次解锁时间。
+  - 后台配置暂缓；二期仍以代码内固定规则为主，避免引入复杂运营系统。
 
-### 3. 旅行成就系统 / Travel Achievement System
+Summary: Achievement evolution should deepen motivation and explainability without prematurely building a badge-management CMS.
+
+### 5. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
 
 - 优先级：`P2`
 - 为什么值得做：
-  - 这是最容易提升趣味性和长期留存的功能之一。
+  - 攻略搜索已经进入“能用”阶段，下一步瓶颈会从功能有无转向结果质量、可复查性和整理效率。
 - 建议范围：
-  - 勋章示例：首次出国、跨越 10 座城市、连续三个月有旅行记录、和 3 位不同旅伴同行。
-  - 在统计页或年度回顾页展示。
-  - 成就支持时间维度和里程碑解释。
+  - 搜索建议、历史关键词快捷入口、命中片段高亮、分页加载更多。
+  - 收藏攻略去重增强：同源 URL、标题相似度和目的地维度的合并提示。
+  - 来源优先级、结果质量评分、失效内容标记和抓取异常记录。
+  - 管理员后台增加关键词趋势、失败率和来源健康度只读报表。
 
-### 4. 搜索增强 / Search Enhancements
+Summary: Guide search should evolve from retrieval into a governed content pipeline.
+
+### 6. 照片与媒体整理 / Photo and Media Curation
 
 - 优先级：`P2`
 - 为什么值得做：
-  - 搜索主链路已经有了，现在适合补"更像产品"的细节。
+  - 照片已经进入记录、行程详情、年度回顾和成就，接下来需要更好的精选、排序和复用能力。
 - 建议范围：
-  - 搜索建议、历史关键词快捷入口。
-  - 命中片段高亮。
-  - 搜索结果分页加载更多。
-  - 后台按关键词和时间范围查看搜索趋势。
+  - 行程级照片墙，支持封面候选、精选标记和排序。
+  - 年度回顾和故事页优先使用精选照片。
+  - 图片缺失、坏链、重复图片的轻量检测。
+  - 后续再考虑相册导出和本地图片归档，不在一期引入重型媒体库。
 
-### 5. 旅伴协作与共同回忆 / Companion Collaboration
+Summary: Media curation improves every retrospective surface that already depends on photos.
+
+### 7. 旅伴共同回忆 / Companion Shared Memories
 
 - 优先级：`P2`
 - 为什么值得做：
-  - 当前"旅伴"更多是归属和颜色维度，还不是协作实体。
+  - 当前旅伴是归属、筛选和权限维度，还没有变成“共同经历”的表达对象。
 - 建议范围：
-  - 某次行程内的共同回忆摘要。
-  - 同一行程下不同旅伴的视角统计。
-  - 未来可扩展到真实邀请协作，但第一阶段可先做"共同回忆聚合"。
+  - 行程内共同回忆摘要：同行次数、共同城市、共同照片、共同攻略。
+  - 同一行程下不同旅伴视角统计。
+  - 旅伴详情页：与某位旅伴一起去过哪里、常见主题、年度同行记录。
+  - 第一阶段仍不做真实邀请协作，避免牵引权限模型大改。
 
-### 6. 账号设置与同步治理 / Account Settings and Sync Governance
+Summary: Shared memories make companions emotionally meaningful while preserving the current single-account model.
+
+### 8. 管理后台与质量巡检 / Admin Quality Operations
+
+- 优先级：`P2`
+- 为什么值得做：
+  - 主数据和聚合功能变多后，需要后台能看见数据健康、接口异常和内容质量，而不是只看账号树。
+- 建议范围：
+  - 后台增加数据健康面板：记录数量、缺失图片、无行程记录、坏攻略链接、搜索失败率。
+  - 增加迁移状态、最近错误、关键聚合接口响应概览。
+  - 保持只读优先；修复工具等写能力单独设计权限和审计。
+
+Summary: Admin operations should help detect data and integration problems before they become user-facing regressions.
+
+### 9. 账号设置与会话治理 / Account Settings and Session Governance
 
 - 优先级：`P3`
 - 为什么值得做：
-  - 长期使用后，设置、多设备登录与数据同步会成为稳定性重点。
+  - 当前认证链路已可用，但长期使用后，账户安全和多设备会话会成为基础体验。
 - 建议范围：
-  - 修改密码、账号设置。
-  - 最近登录设备、会话治理。
-  - 冲突策略和同步状态提示。
+  - 修改密码、账号资料、退出所有设备。
+  - 最近登录设备和会话列表。
+  - Cookie Session 过期提示与重新登录体验。
+  - 数据导出入口收敛到账号设置，而不是散落在首页能力区。
 
-### 7. 来源治理与内容质量评分 / Source Governance and Content Quality
+Summary: Account settings are not flashy, but they matter once the app becomes a long-term personal archive.
+
+### 10. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 - 优先级：`P3`
 - 为什么值得做：
-  - 攻略搜索越做越深，质量问题会越来越明显。
+  - 功能已经跨越地图、统计、行程、详情、攻略、成就、年度回顾和后台，后续继续上功能前需要持续防止容器层和聚合层变厚。
 - 建议范围：
-  - 去重与合并。
-  - 来源优先级。
-  - 结果质量评分。
-  - 失效内容与抓取异常监控。
+  - 继续抽离复杂状态 hook 和纯展示模型，特别是统计中心、年度回顾、行程详情和攻略面板。
+  - 为地图联动、统计筛选、年度回顾、成就解锁和行程详情回看补更细的集成测试。
+  - 为 Prisma migration、聚合 DTO 和错误码增加契约测试。
+  - 增加关键页面的浏览器级冒烟检查：登录、统计中心、成就弹窗、行程详情、年度回顾。
 
-### 8. 架构继续瘦身 / Continued Architecture Slimming
-
-- 优先级：`P3`
-- 为什么值得做：
-  - 现在功能已经跨越地图、统计、行程、详情、攻略多个模块，后续继续上功能前需要持续防止容器层膨胀。
-- 建议范围：
-  - 继续抽离复杂状态 hook。
-  - 为地图联动、统计筛选与详情回看补更细的集成测试。
-  - 为服务端聚合接口补更多契约测试。
+Summary: Architecture hardening keeps future feature work from becoming slower and riskier.
 
 ## 推荐执行顺序 / Recommended Execution Order
 
 建议按下面顺序推进（已完成项已挪到文档开头）：
 
-1. 旅行故事页 / Travel Story Page
-2. 城市愿望清单 / Wishlist Map
-3. 旅行成就系统 / Travel Achievement System
-4. 搜索增强 / Search Enhancements
-5. 旅伴协作与共同回忆 / Companion Collaboration
-6. 账号设置与同步治理 / Account Settings and Sync Governance
-7. 来源治理与内容质量评分 / Source Governance and Content Quality
-8. 架构继续瘦身 / Continued Architecture Slimming
+1. 行前规划工作台 / Trip Planning Workspace
+2. 愿望地图 / Wishlist Map
+3. 旅行故事页进阶 / Trip Story Evolution
+4. 成就系统进阶 / Achievement System Evolution
+5. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
+6. 照片与媒体整理 / Photo and Media Curation
+7. 旅伴共同回忆 / Companion Shared Memories
+8. 管理后台与质量巡检 / Admin Quality Operations
+9. 账号设置与会话治理 / Account Settings and Session Governance
+10. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 ## 选题原则 / Feature Selection Rules
 
-以后如果从这份清单里挑一个功能开做，优先满足这四个条件：
+以后如果从这份清单里挑一个功能开做，优先满足这五个条件：
 
-1. 能复用已有地图、行程、统计、攻略或 MySQL 主数据能力。
-2. 能显著提升"回看价值""表达能力"或"整理效率"。
+1. 能复用已有地图、行程、统计、成就、攻略、照片或 MySQL 主数据能力。
+2. 能显著提升"回看价值""行前规划""表达能力"或"整理效率"。
 3. 用户能在 10 秒内感知到价值，不是只有后台数据变多。
-4. 不把复杂业务规则重新塞回页面容器层。
+4. 能保持私密个人工具的气质，不把产品强行推向公开社交。
+5. 不把复杂业务规则重新塞回页面容器层或单个 service 文件。

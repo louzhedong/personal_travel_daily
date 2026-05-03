@@ -16,7 +16,7 @@
 - 地图相关状态集中在 `useMapContext.ts`
 - store 写操作集中在 `useTravelStoreActions.ts`
 - 记录定位跳转统一复用 `markerNavigation.ts`
-- 弹窗 body lock 和 Escape 行为复用 `useLockedModal.ts`
+- 首页浮层的 body lock 和 Escape 行为复用 `useLockedModal.ts`；通用弹窗优先复用 `src/components/ui/Dialog.tsx`
 
 ## 数据约束
 

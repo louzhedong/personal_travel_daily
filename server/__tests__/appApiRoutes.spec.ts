@@ -261,6 +261,18 @@ describe('app api routes', () => {
       topTransports: [{ value: 'walk', label: '步行', markerCount: 2 }],
       topBudgetLevels: [{ value: 'medium', label: '中预算', markerCount: 2 }],
       tripHighlights: {},
+      achievements: [
+        {
+          id: 'city-explorer',
+          title: '城市探索者',
+          description: '覆盖 5 座不同城市。',
+          category: 'footprint',
+          status: 'close',
+          progressValue: 3,
+          progressTarget: 5,
+          unit: '座城市',
+        },
+      ],
       heatmap: [{ scopeId: 'zj', scopeName: '浙江', scope: 'domestic', intensity: 5, markerCount: 2 }],
       generatedAt: '2026-04-22T00:00:00.000Z',
     });
@@ -287,6 +299,10 @@ describe('app api routes', () => {
         value: 'citywalk',
         label: '城市漫游',
         markerCount: 2,
+      });
+      expect(response.json().achievements[0]).toMatchObject({
+        id: 'city-explorer',
+        status: 'close',
       });
     } finally {
       await app.close();
@@ -318,6 +334,18 @@ describe('app api routes', () => {
       photos: [],
       guides: [],
       trips: [],
+      achievements: [
+        {
+          id: 'annual-2026-travel-days',
+          title: '年度出发王',
+          description: '这一年旅行天数达到 20 天。',
+          category: 'rhythm',
+          status: 'locked',
+          progressValue: 4,
+          progressTarget: 20,
+          unit: '天',
+        },
+      ],
       generatedAt: '2026-04-22T00:00:00.000Z',
     });
 

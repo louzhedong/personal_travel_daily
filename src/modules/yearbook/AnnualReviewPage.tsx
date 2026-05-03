@@ -69,6 +69,22 @@ export default function AnnualReviewPage({
   const coverPhotos = data?.photos.length ? data.photos.slice(0, 5) : data?.representativePhoto ? [data.representativePhoto] : [];
 
   useEffect(() => {
+    if (!data) {
+      return;
+    }
+
+    const previousTitle = document.title;
+    document.title = `${year} 年度旅行回顾`;
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [data, year]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  useEffect(() => {
     setActivePhotoIndex(0);
   }, [year, coverPhotos.length]);
 
@@ -114,6 +130,11 @@ export default function AnnualReviewPage({
                 : '把这一年的旅行记录、照片、攻略和同行记忆整理成一页私有年鉴。'}
             </p>
             <div className="annual-review-actions">
+              {data && !errorMessage ? (
+                <button type="button" className="primary-button annual-review-print-button" onClick={handlePrint}>
+                  导出 PDF / 打印
+                </button>
+              ) : null}
               <button type="button" className="ghost-button" onClick={onNavigateBack}>
                 返回统计中心
               </button>
@@ -229,7 +250,7 @@ export default function AnnualReviewPage({
                 </section>
               </section>
 
-              <section className="card annual-review-panel">
+              <section className="card annual-review-panel annual-review-panel-photos">
                 <div className="annual-review-heading">
                   <div>
                     <h2>月度节奏</h2>
@@ -245,6 +266,34 @@ export default function AnnualReviewPage({
                       <div className="annual-review-month-track">
                         <div style={{ height: `${Math.max(8, Math.min(100, item.travelDays * 12))}%` }} />
                       </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <section className="card annual-review-panel">
+                <div className="annual-review-heading">
+                  <div>
+                    <h2>年度成就</h2>
+                    <p>只按 {year} 年的旅行记录计算，和统计中心的总成就分开。</p>
+                  </div>
+                </div>
+                <div className="annual-review-achievement-grid">
+                  {data.achievements.map((achievement) => (
+                    <article key={achievement.id} className={`annual-review-achievement-card is-${achievement.status}`}>
+                      <span>{achievement.status === 'unlocked' ? '已达成' : achievement.status === 'close' ? '接近达成' : '未达成'}</span>
+                      <strong>{achievement.title}</strong>
+                      <p>{achievement.description}</p>
+                      <div className="annual-review-achievement-track">
+                        <div
+                          style={{
+                            width: `${Math.min(100, Math.round((achievement.progressValue / achievement.progressTarget) * 100))}%`,
+                          }}
+                        />
+                      </div>
+                      <small>
+                        {achievement.progressValue}/{achievement.progressTarget} {achievement.unit}
+                      </small>
                     </article>
                   ))}
                 </div>
@@ -273,7 +322,7 @@ export default function AnnualReviewPage({
               </section>
 
               <section className="annual-review-two-column">
-                <section className="card annual-review-panel annual-review-panel-fixed">
+                <section className="card annual-review-panel annual-review-panel-fixed annual-review-panel-trips">
                   <div className="annual-review-heading">
                     <div>
                       <h2>年度行程</h2>
@@ -293,7 +342,7 @@ export default function AnnualReviewPage({
                   </div>
                 </section>
 
-                <section className="card annual-review-panel annual-review-panel-fixed">
+                <section className="card annual-review-panel annual-review-panel-fixed annual-review-panel-guides">
                   <div className="annual-review-heading">
                     <div>
                       <h2>关联攻略</h2>

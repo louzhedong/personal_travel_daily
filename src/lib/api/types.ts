@@ -418,6 +418,28 @@ export interface StatsMetadataRankingItemDto {
   markerCount: number;
 }
 
+export type StatsAchievementCategoryDto = 'footprint' | 'rhythm' | 'companion' | 'content' | 'style';
+
+export type StatsAchievementStatusDto = 'unlocked' | 'close' | 'locked';
+
+export interface StatsAchievementDto {
+  id: string;
+  title: string;
+  description: string;
+  category: StatsAchievementCategoryDto;
+  status: StatsAchievementStatusDto;
+  progressValue: number;
+  progressTarget: number;
+  remainingValue?: number;
+  unit: string;
+  evidence?: Array<{
+    label: string;
+    value: string;
+    description?: string;
+  }>;
+  firstUnlockedAt?: string;
+}
+
 export interface StatsOverviewResponseDto {
   filters: StatsFiltersDto;
   availableYears: string[];
@@ -440,6 +462,7 @@ export interface StatsOverviewResponseDto {
     longestTrip?: { tripId: string; tripName: string; days: number };
     mostMarkersTrip?: { tripId: string; tripName: string; markerCount: number };
   };
+  achievements: StatsAchievementDto[];
   heatmap: StatsHeatmapItemDto[];
   generatedAt: string;
 }
@@ -519,6 +542,7 @@ export interface AnnualReviewResponseDto {
   photos: AnnualReviewPhotoDto[];
   guides: AnnualReviewGuideDto[];
   trips: AnnualReviewTripDto[];
+  achievements: StatsAchievementDto[];
   firstMarker?: AnnualReviewMarkerDto;
   lastMarker?: AnnualReviewMarkerDto;
   generatedAt: string;

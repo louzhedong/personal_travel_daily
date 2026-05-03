@@ -1,7 +1,7 @@
 # 后端架构 / Backend Architecture
 
-本文档记录当前 `server/appApi` 的真实分层方式，以及近一轮重构后几个最重要的拆分点：错误码常量共享、`visitMarkerRepository` 目录化、统计聚合分层、bootstrap serializer barrel 拆分、后台账号统计下沉。文档只描述已存在代码，不引入未来态设计。  
-This document records the actual backend layering in `server/appApi` and the most important refactors from the latest pass: shared error codes, `visitMarkerRepository` directory splitting, stats aggregation layering, bootstrap serializer barrel splitting, and admin account-stat extraction. It only describes code that already exists.
+本文档记录当前 `server/appApi` 的真实分层方式，以及近一轮重构后几个最重要的拆分点：错误码常量共享、`visitMarkerRepository` 目录化、统计聚合与成就解锁分层、bootstrap serializer barrel 拆分、后台账号统计下沉。文档只描述已存在代码，不引入未来态设计。
+This document records the actual backend layering in `server/appApi` and the most important refactors from the latest pass: shared error codes, `visitMarkerRepository` directory splitting, stats aggregation and achievement-unlock layering, bootstrap serializer barrel splitting, and admin account-stat extraction. It only describes code that already exists.
 
 ---
 
@@ -63,8 +63,8 @@ This turns the marker repository from a single all-purpose file into separate re
 
 ## 6. Stats Service 分层 / Stats Service Layering
 
-统计域已经从“单一 service 文件做完所有事”拆成了“service 编排 + 纯聚合函数 + 共享映射”的形态。  
-The stats domain has been split from a single all-in-one service file into service orchestration, pure aggregation helpers, and shared mappings.
+统计域已经从“单一 service 文件做完所有事”拆成了“service 编排 + 纯聚合函数 + 共享映射 + 解锁记录持久化”的形态。
+The stats domain has been split from a single all-in-one service file into service orchestration, pure aggregation helpers, shared mappings, and unlock persistence.
 
 - `services/statsService.ts`：I/O、筛选编排、调用聚合器与 serializer。  
   `services/statsService.ts`: I/O, filtering orchestration, and calls into aggregators and serializers.
@@ -77,8 +77,11 @@ The stats domain has been split from a single all-in-one service file into servi
 - `serializers/statsSerializer.ts`：DTO 输出。  
   `serializers/statsSerializer.ts`: DTO shaping.
 
-`aggregator.ts` 中承载年份、月份、旅行天数、地区归一、排行、heatmap、summary 和 trip highlights 等纯计算，因此 `statsService.ts` 现在只保留“拿数据 -> 过滤 -> 组装响应”的编排职责。  
-`aggregator.ts` now holds pure calculations for years, months, travel days, region normalization, rankings, heatmaps, summaries, and trip highlights, so `statsService.ts` can stay focused on the orchestration flow of fetch -> filter -> assemble response.
+`aggregator.ts` 中承载年份、月份、旅行天数、地区归一、排行、heatmap、summary、trip highlights、全局成就和年度成就等纯计算，因此 `statsService.ts` 现在只保留“拿数据 -> 过滤 -> 组装响应 -> 记录首次解锁”的编排职责。
+`aggregator.ts` now holds pure calculations for years, months, travel days, region normalization, rankings, heatmaps, summaries, trip highlights, global achievements, and annual achievements, so `statsService.ts` can stay focused on the orchestration flow of fetch -> filter -> assemble response -> persist first unlocks.
+
+成就状态仍按当前请求视图实时计算；只有默认全量统计视图和年度回顾视图会写入 `AchievementUnlock`，用于返回稳定的 `firstUnlockedAt`。筛选后的统计成就不写表，避免把临时视图误当成真实解锁历史。
+Achievement status is still computed live for the current request view. Only the default unfiltered stats view and annual-review view write `AchievementUnlock` rows so the API can return stable `firstUnlockedAt` values. Filtered stats views do not write unlock rows, which prevents temporary slices from becoming permanent unlock history.
 
 ## 7. Bootstrap Serializer Barrel 拆分 / Bootstrap Serializer Barrel Split
 

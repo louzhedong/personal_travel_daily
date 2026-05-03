@@ -59,6 +59,12 @@
   margin-top: 24px;
 }
 
+.annual-review-print-button {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
 .annual-review-cover {
   min-height: 360px;
   margin: 0;
@@ -70,14 +76,17 @@
 }
 
 .annual-review-carousel {
+  box-sizing: border-box;
   display: block;
   background: transparent;
   box-shadow: none;
   overflow: visible;
+  padding-bottom: 42px;
 }
 
 .annual-review-carousel-track {
-  height: 100%;
+  height: calc(100% - 42px);
+  min-height: 300px;
   position: relative;
   perspective: 1200px;
 }
@@ -163,12 +172,14 @@
 
 .annual-review-carousel-dots {
   position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 10px;
+  left: 50%;
+  bottom: 18px;
+  z-index: 6;
   display: flex;
-  justify-content: flex-end;
+  width: min(210px, calc(100% - 36px));
+  justify-content: center;
   gap: 6px;
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
@@ -344,6 +355,59 @@
   font-size: 18px;
 }
 
+.annual-review-achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.annual-review-achievement-card {
+  display: grid;
+  gap: 10px;
+  min-height: 150px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(248, 250, 252, 0.86);
+}
+
+.annual-review-achievement-card.is-unlocked {
+  border-color: rgba(20, 184, 166, 0.34);
+  background: linear-gradient(180deg, rgba(240, 253, 250, 0.92), rgba(255, 255, 255, 0.98));
+}
+
+.annual-review-achievement-card.is-close {
+  border-color: rgba(249, 115, 22, 0.3);
+  background: linear-gradient(180deg, rgba(255, 247, 237, 0.92), rgba(255, 255, 255, 0.98));
+}
+
+.annual-review-achievement-card span,
+.annual-review-achievement-card small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.annual-review-achievement-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.annual-review-achievement-track {
+  width: 100%;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.9);
+}
+
+.annual-review-achievement-track div {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, #14b8a6);
+}
+
 .annual-review-marker-pair {
   display: grid;
   gap: 12px;
@@ -483,8 +547,205 @@
 
   .annual-review-summary-grid,
   .annual-review-highlight-grid,
+  .annual-review-achievement-grid,
   .annual-review-month-grid,
   .annual-review-photo-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  .annual-review-stage {
+    min-height: auto;
+    padding: 0;
+    background: #fff !important;
+    color: #0f172a;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .annual-review-shell {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    gap: 12mm;
+  }
+
+  .annual-review-actions,
+  .annual-review-carousel-dots {
+    display: none !important;
+  }
+
+  .annual-review-hero,
+  .annual-review-summary-card,
+  .annual-review-highlight-card,
+  .annual-review-achievement-card,
+  .annual-review-month-card,
+  .annual-review-photo-card,
+  .annual-review-guide-card,
+  .annual-review-trip-list button {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  .annual-review-panel,
+  .annual-review-stage .stats-panel {
+    box-shadow: none !important;
+  }
+
+  .annual-review-heading,
+  .stats-section-heading,
+  .annual-review-stage .stats-heatmap-card header {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .annual-review-panel-fixed {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .annual-review-trip-list,
+  .annual-review-guide-list,
+  .annual-review-stage .stats-heatmap-legend-list {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .annual-review-hero {
+    grid-template-columns: 1fr;
+    border: 1px solid #dbe4ef;
+    background: #fff;
+  }
+
+  .annual-review-cover,
+  .annual-review-carousel-slide {
+    min-height: 90mm;
+  }
+
+  .annual-review-carousel-slide:not(.is-active) {
+    display: none;
+  }
+
+  .annual-review-two-column {
+    display: block;
+  }
+
+  .annual-review-summary-grid,
+  .annual-review-highlight-grid,
+  .annual-review-achievement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .annual-review-photo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .annual-review-photo-card figcaption {
+    padding: 8px;
+  }
+
+  .annual-review-trip-list,
+  .annual-review-guide-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .annual-review-trip-list button,
+  .annual-review-guide-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    padding: 10px 12px;
+  }
+
+  .annual-review-panel,
+  .annual-review-summary-card {
+    border: 1px solid #dbe4ef;
+  }
+
+  .annual-review-stage .stats-panel {
+    padding: 18px;
+    border: 1px solid #dbe4ef;
+    break-before: page;
+  }
+
+  .annual-review-panel-photos,
+  .annual-review-panel-trips,
+  .annual-review-panel-guides {
+    break-before: page;
+  }
+
+  .annual-review-stage .stats-heatmap-card {
+    break-inside: auto;
+    page-break-inside: auto;
+    break-before: page;
+  }
+
+  .annual-review-stage .stats-heatmap-card:first-child {
+    break-before: auto;
+  }
+
+  .annual-review-stage .stats-heatmap-card header {
+    break-after: avoid;
+  }
+
+  .annual-review-stage .stats-heatmap-map-layout {
+    display: block;
+  }
+
+  .annual-review-stage .stats-heatmap-svg-wrap {
+    min-height: 0;
+    padding: 8px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .annual-review-stage .stats-heatmap-svg {
+    width: 100%;
+    height: 92mm;
+    max-height: 92mm;
+  }
+
+  .annual-review-stage .stats-heatmap-svg-world {
+    height: 80mm;
+    max-height: 80mm;
+  }
+
+  .annual-review-stage .stats-heatmap-legend {
+    min-height: auto;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 8px;
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .annual-review-stage .stats-heatmap-hover-card {
+    display: none;
+  }
+
+  .annual-review-stage .stats-heatmap-legend-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .annual-review-stage .stats-heatmap-legend-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
