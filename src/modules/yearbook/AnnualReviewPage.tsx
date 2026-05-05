@@ -305,16 +305,17 @@ export default function AnnualReviewPage({
                 <div className="annual-review-heading">
                   <div>
                     <h2>年度照片墙</h2>
-                    <p>按时间选取最多 12 张代表照片。</p>
+                    <p>优先展示精选照片，再按时间选取最多 12 张代表照片。</p>
                   </div>
                 </div>
                 <div className="annual-review-photo-grid">
                   {data.photos.map((photo) => (
-                    <figure key={`${photo.markerId}-${photo.imageUrl}`} className="annual-review-photo-card">
+                    <figure key={photo.imageId} className="annual-review-photo-card">
                       <img src={photo.imageUrl} alt={photo.markerTitle} loading="lazy" />
                       <figcaption>
                         <strong>{photo.markerTitle}</strong>
-                        <span>{formatAnnualReviewDate(photo.visitedStartAt)}</span>
+                        <span>{photo.isFeatured ? '精选 · ' : ''}{formatAnnualReviewDate(photo.visitedStartAt)}</span>
+                        {photo.caption ? <span>{photo.caption}</span> : null}
                       </figcaption>
                     </figure>
                   ))}

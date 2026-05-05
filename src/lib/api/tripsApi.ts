@@ -12,6 +12,7 @@ import type {
   TripChecklistResponseDto,
   TripDetailResponseDto,
   TripPlanningResponseDto,
+  UpdateTripPhotoCurationInput,
   UpdateTripChecklistItemInput,
   UpdateTripInput,
   UpdateTripPlanningItemInput,
@@ -71,6 +72,10 @@ export async function deleteTripChecklistItem(id: string, itemId: string) {
 
 export async function updateTrip(id: string, input: UpdateTripInput) {
   return httpClient.patch<TravelStore>(getResourceBaseUrl(), `/trips/${id}`, input);
+}
+
+export async function updateTripPhotoCuration(id: string, input: UpdateTripPhotoCurationInput) {
+  return httpClient.patch<TripDetailResponseDto>(getResourceBaseUrl(), `/trips/${id}/photos/curation`, input);
 }
 
 export async function deleteTrip(id: string) {

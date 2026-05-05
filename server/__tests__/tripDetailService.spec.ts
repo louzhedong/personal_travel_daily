@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   getPrismaClientMock: vi.fn(),
   findTripDetailSourceMock: vi.fn(),
   listActiveTripChecklistItemsByTripIdMock: vi.fn(),
+  listActiveTripPlanningItemsByTripIdMock: vi.fn(),
 }));
 
 vi.mock('../appApi/prisma.js', () => ({
@@ -20,12 +21,17 @@ vi.mock('../appApi/repositories/tripChecklistRepository.js', () => ({
   listActiveTripChecklistItemsByTripId: mocks.listActiveTripChecklistItemsByTripIdMock,
 }));
 
+vi.mock('../appApi/repositories/tripPlanningRepository.js', () => ({
+  listActiveTripPlanningItemsByTripId: mocks.listActiveTripPlanningItemsByTripIdMock,
+}));
+
 import { getTripDetail } from '../appApi/services/tripDetailService.js';
 
 describe('tripDetailService', () => {
   beforeEach(() => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
     mocks.getPrismaClientMock.mockReturnValue({});
+    mocks.listActiveTripPlanningItemsByTripIdMock.mockResolvedValue([]);
     mocks.listActiveTripChecklistItemsByTripIdMock.mockResolvedValue([
       {
         id: 'item-1',
@@ -108,6 +114,9 @@ describe('tripDetailService', () => {
               markerId: 'marker-1',
               imageUrl: 'https://example.com/hangzhou-1.jpg',
               sortOrder: 0,
+              isFeatured: false,
+              caption: null,
+              curatedSortOrder: 1,
               createdAt: new Date('2026-05-02T00:00:00.000Z'),
             },
             {
@@ -115,6 +124,9 @@ describe('tripDetailService', () => {
               markerId: 'marker-1',
               imageUrl: 'https://example.com/hangzhou-2.jpg',
               sortOrder: 1,
+              isFeatured: true,
+              caption: '西湖晚风',
+              curatedSortOrder: 0,
               createdAt: new Date('2026-05-02T00:00:00.000Z'),
             },
           ],
@@ -223,9 +235,15 @@ describe('tripDetailService', () => {
     });
     expect(result.companions).toEqual([{ id: 'user-alice', name: '小悠', color: '#2563eb', markerCount: 2 }]);
     expect(result.photos.map((item) => item.imageUrl)).toEqual([
-      'https://example.com/hangzhou-1.jpg',
       'https://example.com/hangzhou-2.jpg',
+      'https://example.com/hangzhou-1.jpg',
     ]);
+    expect(result.photos[0]).toMatchObject({
+      imageId: 'img-2',
+      isFeatured: true,
+      caption: '西湖晚风',
+      curatedSortOrder: 0,
+    });
     expect(result.guides).toHaveLength(1);
     expect(result.guides[0]).toMatchObject({
       id: 'guide-2',

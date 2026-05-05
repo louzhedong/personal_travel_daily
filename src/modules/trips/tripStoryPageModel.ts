@@ -39,6 +39,13 @@ export interface TripStoryPhotoGroup {
   photos: TripDetailPhotoItemDto[];
 }
 
+export interface TripStoryPhotoSection {
+  key: string;
+  title: string;
+  description: string;
+  photos: TripDetailPhotoItemDto[];
+}
+
 export interface TripStoryRouteStop {
   key: string;
   date: string;
@@ -59,6 +66,8 @@ export interface TripStoryViewModel {
   title: string;
   dateRange: string;
   coverImageUrl?: string;
+  featuredPhotos: TripDetailPhotoItemDto[];
+  photoSections: TripStoryPhotoSection[];
   lead: string;
   summaryText: string;
   smartNarrative: string;
@@ -126,6 +135,40 @@ export function buildTripStoryPhotoGroups(photos: TripDetailPhotoItemDto[]): Tri
   return Array.from(groups.entries())
     .sort(([left], [right]) => compareDateText(left, right))
     .map(([date, items]) => ({ date, photos: items }));
+}
+
+export function buildTripStoryFeaturedPhotos(photos: TripDetailPhotoItemDto[], limit = 5) {
+  const featured = photos.filter((photo) => photo.isFeatured);
+  return (featured.length > 0 ? featured : photos).slice(0, limit);
+}
+
+export function buildTripStoryPhotoSections(photos: TripDetailPhotoItemDto[]): TripStoryPhotoSection[] {
+  const featuredPhotos = buildTripStoryFeaturedPhotos(photos);
+  const featuredIds = new Set(featuredPhotos.filter((photo) => photo.isFeatured).map((photo) => photo.imageId));
+  const regularGroups = buildTripStoryPhotoGroups(
+    featuredIds.size > 0 ? photos.filter((photo) => !featuredIds.has(photo.imageId)) : photos,
+  );
+
+  return [
+    ...(featuredPhotos.length > 0
+      ? [
+          {
+            key: 'featured',
+            title: featuredPhotos.some((photo) => photo.isFeatured) ? '精选瞬间' : '照片开场',
+            description: featuredPhotos.some((photo) => photo.isFeatured)
+              ? '来自行程照片墙中手动标记的精选照片。'
+              : '还没有手动精选照片，先用当前照片流生成故事开场。',
+            photos: featuredPhotos,
+          },
+        ]
+      : []),
+    ...regularGroups.map((group) => ({
+      key: group.date,
+      title: group.date,
+      description: '按旅行日期自动收拢的照片段落。',
+      photos: group.photos,
+    })),
+  ];
 }
 
 export function buildTripStoryRouteStops(markers: TripDetailMarkerItemDto[]): TripStoryRouteStop[] {
@@ -252,10 +295,13 @@ export function buildTripStorySmartNarrative(data: TripDetailResponseDto) {
 }
 
 export function buildTripStoryViewModel(data: TripDetailResponseDto): TripStoryViewModel {
+  const featuredPhotos = buildTripStoryFeaturedPhotos(data.photos);
   return {
     title: data.trip.name,
     dateRange: formatDateRange(data.trip.startsAt, data.trip.endsAt),
-    coverImageUrl: data.trip.coverImageUrl ?? data.photos[0]?.imageUrl,
+    coverImageUrl: data.trip.coverImageUrl ?? featuredPhotos[0]?.imageUrl ?? data.photos[0]?.imageUrl,
+    featuredPhotos,
+    photoSections: buildTripStoryPhotoSections(data.photos),
     lead: buildTripStoryLead(data),
     summaryText: buildTripStorySummaryText(data),
     smartNarrative: buildTripStorySmartNarrative(data),

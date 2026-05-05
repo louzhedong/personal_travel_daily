@@ -20,6 +20,7 @@ import {
   fetchTripPlanning,
   updateTrip,
   updateTripChecklistItem,
+  updateTripPhotoCuration,
   updateTripPlanningItem,
 } from '../../lib/api/tripsApi';
 import { fetchWishlistItems } from '../../lib/api/wishlistApi';
@@ -34,12 +35,15 @@ import type {
   CreateTripPlanningItemInput,
   ConvertTripPlanningItemInput,
   TripDetailResponseDto,
+  TripDetailPhotoItemDto,
   UpdateTripChecklistItemInput,
+  UpdateTripPhotoCurationInput,
   UpdateTripPlanningItemInput,
 } from '../../lib/api/types';
 import type { AuthAccount, TripPlanningItem, TripPlanningSummary, WishlistItem } from '../../types';
 import {
   buildTripCoverOptions,
+  buildTripCoverStory,
   buildTripDetailSummaryCards,
   buildTripGuideMeta,
   buildTripPhotoAlt,
@@ -81,6 +85,7 @@ export default function TripDetailPage({
   const [tripDeleteOpen, setTripDeleteOpen] = useState(false);
   const [checklistBusy, setChecklistBusy] = useState(false);
   const [planningBusy, setPlanningBusy] = useState(false);
+  const [photoCurationBusy, setPhotoCurationBusy] = useState(false);
   const [planningItems, setPlanningItems] = useState<TripPlanningItem[]>([]);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [planningSummary, setPlanningSummary] = useState<TripPlanningSummary>({
@@ -159,6 +164,7 @@ export default function TripDetailPage({
   const markerGroups = useMemo(() => (data ? groupTripDetailMarkers(data.markers) : []), [data]);
   const photoGroups = useMemo(() => (data ? groupTripDetailPhotos(data.photos) : []), [data]);
   const coverOptions = useMemo(() => buildTripCoverOptions(data?.photos ?? []), [data]);
+  const coverStory = useMemo(() => (data ? buildTripCoverStory(data) : null), [data]);
   const markerLabelById = useMemo(
     () =>
       new Map(
@@ -167,6 +173,77 @@ export default function TripDetailPage({
     [data],
   );
   const displayCoverUrl = data?.trip.coverImageUrl ?? data?.photos[0]?.imageUrl;
+
+  const applyPhotoCuration = async (input: UpdateTripPhotoCurationInput, successMessage: string) => {
+    setPhotoCurationBusy(true);
+    try {
+      const response = await updateTripPhotoCuration(tripId, input);
+      setData(response);
+      setFeedbackMessage(successMessage);
+    } catch (error) {
+      setFeedbackMessage(error instanceof Error ? error.message : '照片精选更新失败');
+    } finally {
+      setPhotoCurationBusy(false);
+    }
+  };
+
+  const handleToggleFeaturedPhoto = (photo: TripDetailPhotoItemDto) =>
+    applyPhotoCuration(
+      {
+        items: [
+          {
+            imageId: photo.imageId,
+            isFeatured: !photo.isFeatured,
+          },
+        ],
+      },
+      !photo.isFeatured ? '已标记为精选照片。' : '已取消精选照片。',
+    );
+
+  const handleUpdatePhotoCaption = (photo: TripDetailPhotoItemDto, caption: string) => {
+    const nextCaption = caption.trim();
+    if ((photo.caption ?? '') === nextCaption) {
+      return;
+    }
+
+    void applyPhotoCuration(
+      {
+        items: [
+          {
+            imageId: photo.imageId,
+            caption: nextCaption || null,
+          },
+        ],
+      },
+      nextCaption ? '已更新照片说明。' : '已清空照片说明。',
+    );
+  };
+
+  const handleMovePhoto = (photo: TripDetailPhotoItemDto, direction: -1 | 1) => {
+    if (!data) {
+      return;
+    }
+
+    const currentIndex = data.photos.findIndex((item) => item.imageId === photo.imageId);
+    const nextIndex = currentIndex + direction;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= data.photos.length) {
+      return;
+    }
+
+    const nextPhotos = [...data.photos];
+    const [currentPhoto] = nextPhotos.splice(currentIndex, 1);
+    nextPhotos.splice(nextIndex, 0, currentPhoto);
+
+    void applyPhotoCuration(
+      {
+        items: nextPhotos.map((item, index) => ({
+          imageId: item.imageId,
+          curatedSortOrder: index,
+        })),
+      },
+      '已更新照片展示顺序。',
+    );
+  };
 
   const reloadChecklist = async () => {
     const response = await fetchTripChecklist(tripId);
@@ -552,6 +629,46 @@ export default function TripDetailPage({
 
             {activeDetailTab === 'overview' ? (
             <section className="trip-detail-two-column">
+              <section className="card trip-detail-panel trip-detail-cover-story">
+                <div className="trip-detail-section-heading">
+                  <div>
+                    <h2>封面故事</h2>
+                    <p>用行程封面和精选照片生成这次旅行的回看入口。</p>
+                  </div>
+                  {onOpenTripStory ? (
+                    <button type="button" className="ghost-button" onClick={() => onOpenTripStory(tripId)}>
+                      打开故事页
+                    </button>
+                  ) : null}
+                </div>
+                <div className="trip-detail-cover-story-layout">
+                  <div className="trip-detail-cover-story-media">
+                    {coverStory?.coverImageUrl ? (
+                      <img src={coverStory.coverImageUrl} alt={`${coverStory.title} 封面故事`} loading="lazy" />
+                    ) : (
+                      <div className="trip-detail-cover-story-empty">暂无封面照片</div>
+                    )}
+                  </div>
+                  <div className="trip-detail-cover-story-copy">
+                    <span className="hero-kicker">Cover Story</span>
+                    <strong className="trip-detail-cover-story-title">{coverStory?.title}</strong>
+                    <p>{coverStory?.description}</p>
+                    {coverStory && coverStory.featuredPhotos.length > 0 ? (
+                      <div className="trip-detail-cover-story-strip" aria-label="精选照片预览">
+                        {coverStory.featuredPhotos.slice(0, 5).map((photo) => (
+                          <figure key={photo.imageId}>
+                            <img src={photo.imageUrl} alt={buildTripPhotoAlt(photo)} loading="lazy" />
+                            <figcaption>{photo.caption || photo.city}</figcaption>
+                          </figure>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="trip-detail-empty">在素材里标记精选照片后，这里会变成更完整的回忆开场。</div>
+                    )}
+                  </div>
+                </div>
+              </section>
+
               <section className="card trip-detail-panel">
                 <div className="trip-detail-section-heading">
                   <div>
@@ -734,14 +851,61 @@ export default function TripDetailPage({
                         </header>
                         <div className="trip-detail-photo-grid">
                           {group.items.map((photo) => (
-                            <figure key={`${photo.markerId}-${photo.imageUrl}`} className="trip-detail-photo-card">
+                            <figure
+                              key={photo.imageId}
+                              className={`trip-detail-photo-card${photo.isFeatured ? ' is-featured' : ''}`}
+                            >
                               <img src={photo.imageUrl} alt={buildTripPhotoAlt(photo)} loading="lazy" />
                               <figcaption>
-                                <strong>{photo.markerTitle}</strong>
+                                <strong>
+                                  {photo.markerTitle}
+                                  {photo.isFeatured ? <span className="trip-detail-photo-featured-badge">精选</span> : null}
+                                </strong>
                                 <span>
                                   {photo.scopeName} · {photo.city}
                                 </span>
+                                {photo.caption ? <p>{photo.caption}</p> : null}
                               </figcaption>
+                              <div className="trip-detail-photo-curation">
+                                <button
+                                  type="button"
+                                  className="ghost-button trip-detail-photo-curation-button"
+                                  disabled={photoCurationBusy}
+                                  onClick={() => void handleToggleFeaturedPhoto(photo)}
+                                >
+                                  {photo.isFeatured ? '取消精选' : '设为精选'}
+                                </button>
+                                <div className="trip-detail-photo-order-actions">
+                                  <button
+                                    type="button"
+                                    className="ghost-button trip-detail-photo-icon-button"
+                                    aria-label={`上移照片 ${photo.markerTitle}`}
+                                    disabled={photoCurationBusy || data.photos[0]?.imageId === photo.imageId}
+                                    onClick={() => handleMovePhoto(photo, -1)}
+                                  >
+                                    ↑
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="ghost-button trip-detail-photo-icon-button"
+                                    aria-label={`下移照片 ${photo.markerTitle}`}
+                                    disabled={photoCurationBusy || data.photos[data.photos.length - 1]?.imageId === photo.imageId}
+                                    onClick={() => handleMovePhoto(photo, 1)}
+                                  >
+                                    ↓
+                                  </button>
+                                </div>
+                              </div>
+                              <input
+                                type="text"
+                                className="field-control trip-detail-photo-caption-input"
+                                defaultValue={photo.caption ?? ''}
+                                maxLength={140}
+                                placeholder="添加照片说明"
+                                aria-label={`照片说明 ${photo.markerTitle}`}
+                                disabled={photoCurationBusy}
+                                onBlur={(event) => handleUpdatePhotoCaption(photo, event.target.value)}
+                              />
                             </figure>
                           ))}
                         </div>

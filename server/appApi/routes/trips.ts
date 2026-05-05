@@ -4,6 +4,7 @@ import { parseWithSchema } from '../schemas/utils.js';
 import {
   createTripBodySchema,
   tripParamsSchema,
+  updateTripPhotoCurationBodySchema,
   updateTripBodySchema,
 } from '../schemas/trips.js';
 import {
@@ -25,6 +26,7 @@ import {
   updateTripCollection,
 } from '../services/tripService.js';
 import { getTripDetail } from '../services/tripDetailService.js';
+import { updateTripPhotoCuration } from '../services/tripPhotoService.js';
 import {
   createTripChecklistItemResource,
   deleteTripChecklistItemResource,
@@ -46,6 +48,13 @@ export async function registerTripRoutes(app: FastifyInstance) {
     const account = await requireAuthenticatedAccount(request);
     const params = parseWithSchema(tripParamsSchema, request.params);
     return getTripDetail(account.id, params.id);
+  });
+
+  app.patch('/api/trips/:id/photos/curation', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripParamsSchema, request.params);
+    const body = parseWithSchema(updateTripPhotoCurationBodySchema, request.body);
+    return updateTripPhotoCuration(account.id, params.id, body);
   });
 
   app.get('/api/trips/:id/checklist', async (request) => {

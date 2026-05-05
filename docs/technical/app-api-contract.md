@@ -487,7 +487,20 @@ Summary: The API contract maps directly onto the current backend layering of rou
   "companionRanking": [],
   "tripHighlights": {},
   "heatmap": [],
-  "photos": [],
+  "photos": [
+    {
+      "imageId": "image-hangzhou-1",
+      "markerId": "marker-1",
+      "markerTitle": "浙江 · 杭州",
+      "imageUrl": "https://example.com/hangzhou-1.jpg",
+      "visitedStartAt": "2026-05-01",
+      "scopeName": "浙江",
+      "city": "杭州",
+      "isFeatured": true,
+      "caption": "西湖晚风",
+      "curatedSortOrder": 10
+    }
+  ],
   "guides": [],
   "trips": [],
   "achievements": [
@@ -518,6 +531,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 
 - 年度回顾成就只基于该 `year` 内的旅行记录计算。
 - 年度成就首次解锁时间按 `annual:${year}` 维度持久化。
+- `photos` 使用与行程详情一致的照片精选字段和排序语义；精选照片优先，没有精选时按日期照片流回退。
 
 错误：
 
@@ -676,12 +690,16 @@ Summary: The API contract maps directly onto the current backend layering of rou
   ],
   "photos": [
     {
+      "imageId": "image-hangzhou-1",
       "markerId": "marker-1",
       "markerTitle": "浙江 · 杭州",
       "imageUrl": "https://example.com/hangzhou-1.jpg",
       "visitedStartAt": "2026-05-01",
       "scopeName": "浙江",
-      "city": "杭州"
+      "city": "杭州",
+      "isFeatured": true,
+      "caption": "西湖晚风",
+      "curatedSortOrder": 10
     }
   ],
   "guides": [
@@ -732,9 +750,68 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - 行程不存在、已删除或不属于当前账号时统一返回 `404 NOT_FOUND`
 - `guides` 会去重同一攻略的重复关联，优先保留最新保存记录
 - `photos` 仅包含当前行程记录上的图片
+- `photos` 排序为精选优先、人工排序其次、访问日期和记录内原图顺序兜底
 - `planningSummary` 只提供行前规划轻量摘要；完整规划列表由 `GET /api/trips/:id/planning` 获取
 - `checklistSummary` 与 `checklistGroups` 直接内嵌在详情响应中，供 `/trips/:id` 首屏展示行前清单面板
-- `/trips/:id/story` 复用本响应生成私有故事页和浏览器打印 / PDF 导出，不新增 story 专用 API
+- `/trips/:id/story` 复用本响应生成私有故事页和浏览器打印 / PDF 导出；精选照片优先用于封面故事、故事页精选瞬间和长图导出，不新增 story 专用 API
+
+错误：
+
+- `400 INVALID_REQUEST`
+- `401 UNAUTHORIZED`
+- `404 NOT_FOUND`
+- `503 DATABASE_UNAVAILABLE`
+
+### `PATCH /api/trips/:id/photos/curation`
+
+用途：
+
+- 批量更新某个行程内图片的精选状态、说明文字和人工展示顺序
+- 供 `/trips/:id` 的“素材”Tab 照片墙使用
+
+权限：
+
+- 需要登录
+
+路径参数：
+
+- `id`：行程 ID
+
+请求体：
+
+```json
+{
+  "photos": [
+    {
+      "imageId": "image-hangzhou-1",
+      "isFeatured": true,
+      "caption": "西湖晚风",
+      "curatedSortOrder": 10
+    },
+    {
+      "imageId": "image-suzhou-1",
+      "isFeatured": false,
+      "caption": null,
+      "curatedSortOrder": null
+    }
+  ]
+}
+```
+
+成功响应：
+
+- 返回最新的 `GET /api/trips/:id/detail` 聚合结果
+
+规则：
+
+- `photos` 至少 1 项，最多 200 项
+- `imageId` 必填
+- `isFeatured` 可选，省略则保持当前值
+- `caption` 可选，最多 160 字符；`null` 表示清空说明
+- `curatedSortOrder` 可选，必须为非负整数；`null` 表示清空人工排序
+- 服务端必须校验每张图片都属于当前登录账号，且图片所在旅行记录属于当前行程
+- 行程不存在、已删除、不属于当前账号，或图片不属于该行程时返回 `404 NOT_FOUND`
+- 该接口只更新图片精选元数据，不改变旅行记录内原始图片顺序，也不处理上传、下载、代理或压缩
 
 错误：
 

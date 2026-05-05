@@ -136,6 +136,17 @@ export interface UpdateTripInput {
   endsAt?: string;
 }
 
+export interface UpdateTripPhotoCurationItemInput {
+  imageId: string;
+  isFeatured?: boolean;
+  caption?: string | null;
+  curatedSortOrder?: number | null;
+}
+
+export interface UpdateTripPhotoCurationInput {
+  items: UpdateTripPhotoCurationItemInput[];
+}
+
 export interface GuideSourceInput {
   identity?: string;
   title?: string;
@@ -571,12 +582,16 @@ export interface StatsOverviewResponseDto {
 }
 
 export interface AnnualReviewPhotoDto {
+  imageId: string;
   markerId: string;
   markerTitle: string;
   imageUrl: string;
   visitedStartAt: string;
   scopeName: string;
   city: string;
+  isFeatured: boolean;
+  caption?: string;
+  curatedSortOrder?: number;
 }
 
 export interface AnnualReviewGuideDto {
@@ -689,12 +704,16 @@ export interface TripDetailMarkerItemDto {
 }
 
 export interface TripDetailPhotoItemDto {
+  imageId: string;
   markerId: string;
   markerTitle: string;
   imageUrl: string;
   visitedStartAt: string;
   scopeName: string;
   city: string;
+  isFeatured: boolean;
+  caption?: string;
+  curatedSortOrder?: number;
 }
 
 export interface TripDetailGuideItemDto {

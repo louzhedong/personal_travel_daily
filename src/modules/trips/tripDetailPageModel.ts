@@ -21,6 +21,13 @@ export interface TripCoverOption {
   label: string;
 }
 
+export interface TripCoverStory {
+  coverImageUrl?: string;
+  title: string;
+  description: string;
+  featuredPhotos: TripDetailPhotoItemDto[];
+}
+
 export interface TripChecklistSummaryCard {
   label: string;
   value: number;
@@ -93,10 +100,40 @@ export function buildTripCoverOptions(photos: TripDetailPhotoItemDto[]): TripCov
     return [
       {
         value: photo.imageUrl,
-        label: `${photo.markerTitle} · ${photo.visitedStartAt}`,
+        label: `${photo.isFeatured ? '精选 · ' : ''}${photo.markerTitle} · ${photo.visitedStartAt}`,
       },
     ];
   });
+}
+
+export function buildFeaturedTripPhotos(photos: TripDetailPhotoItemDto[], limit = 5) {
+  const featured = photos.filter((photo) => photo.isFeatured);
+  return (featured.length > 0 ? featured : photos).slice(0, limit);
+}
+
+export function buildTripCoverStory(data: TripDetailResponseDto): TripCoverStory {
+  const featuredPhotos = buildFeaturedTripPhotos(data.photos);
+  const firstPhoto = featuredPhotos[0] ?? data.photos[0];
+  const firstMarker = data.markers[0];
+  const cityText =
+    data.summary.cityCount > 0
+      ? `${data.summary.cityCount} 座城市`
+      : firstMarker
+        ? `${firstMarker.scopeName} · ${firstMarker.city}`
+        : '等待第一条旅行记录';
+  const photoText =
+    featuredPhotos.filter((photo) => photo.isFeatured).length > 0
+      ? `${featuredPhotos.filter((photo) => photo.isFeatured).length} 张精选照片`
+      : data.summary.photoCount > 0
+        ? `${data.summary.photoCount} 张照片素材`
+        : '暂无照片素材';
+
+  return {
+    coverImageUrl: data.trip.coverImageUrl ?? firstPhoto?.imageUrl,
+    title: data.trip.name,
+    description: `${formatDateRange(data.trip.startsAt, data.trip.endsAt)}，${cityText} 和 ${photoText} 组成这次行程的封面故事。`,
+    featuredPhotos,
+  };
 }
 
 export function buildTripGuideMeta(guide: TripDetailGuideItemDto) {

@@ -202,14 +202,19 @@ model VisitMarker {
 }
 
 model VisitMarkerImage {
-  id        String      @id
-  markerId  String      @map("marker_id")
-  imageUrl  String      @map("image_url")
-  sortOrder Int         @map("sort_order")
-  createdAt DateTime    @default(now()) @map("created_at")
-  marker    VisitMarker @relation(fields: [markerId], references: [id])
+  id               String      @id
+  markerId         String      @map("marker_id")
+  imageUrl         String      @map("image_url")
+  sortOrder        Int         @map("sort_order")
+  isFeatured       Boolean     @default(false) @map("is_featured")
+  caption          String?     @map("caption")
+  curatedSortOrder Int?        @map("curated_sort_order")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  marker           VisitMarker @relation(fields: [markerId], references: [id])
 
   @@index([markerId], map: "idx_visit_marker_images_marker_id")
+  @@index([isFeatured], map: "idx_visit_marker_images_is_featured")
+  @@index([curatedSortOrder], map: "idx_visit_marker_images_curated_sort_order")
   @@unique([markerId, sortOrder], map: "uq_visit_marker_images_marker_sort_order")
   @@map("visit_marker_images")
 }

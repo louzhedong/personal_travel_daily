@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { TripDetailResponseDto } from '../../../lib/api/types';
 import {
   buildTripStoryChecklistReview,
+  buildTripStoryFeaturedPhotos,
+  buildTripStoryPhotoSections,
   buildTripStoryRouteStops,
   buildTripStoryTimelineDays,
   buildTripStoryViewModel,
@@ -85,20 +87,26 @@ const baseTripDetail: TripDetailResponseDto = {
   ],
   photos: [
     {
+      imageId: 'image-1',
       markerId: 'marker-1',
       markerTitle: '浙江 · 杭州',
       imageUrl: 'https://example.com/hangzhou.jpg',
       visitedStartAt: '2026-05-01',
       scopeName: '浙江',
       city: '杭州',
+      isFeatured: true,
+      caption: '西湖晚风',
+      curatedSortOrder: 0,
     },
     {
+      imageId: 'image-2',
       markerId: 'marker-3',
       markerTitle: '浙江 · 杭州',
       imageUrl: 'https://example.com/hangzhou-2.jpg',
       visitedStartAt: '2026-05-03',
       scopeName: '浙江',
       city: '杭州',
+      isFeatured: false,
     },
   ],
   guides: [
@@ -169,12 +177,24 @@ describe('tripStoryPageModel', () => {
 
     expect(model.title).toBe('江南春游');
     expect(model.coverImageUrl).toBe('https://example.com/hangzhou.jpg');
+    expect(model.featuredPhotos.map((photo) => photo.imageId)).toEqual(['image-1']);
+    expect(model.photoSections[0]).toMatchObject({ key: 'featured', title: '精选瞬间' });
     expect(model.lead).toBe('一次慢下来看的江南周末。');
     expect(model.highlights).toHaveLength(6);
     expect(model.timelineDays.map((day) => day.date)).toEqual(['2026-05-01', '2026-05-02', '2026-05-03']);
     expect(model.photoGroups).toHaveLength(2);
     expect(model.guides[0].result.title).toBe('杭州周末攻略');
     expect(model.checklistReview.completionText).toBe('2 / 4 项已完成，完成度 50%');
+  });
+
+  it('builds featured photo sections with caption-first story copy', () => {
+    const featured = buildTripStoryFeaturedPhotos(baseTripDetail.photos);
+    const sections = buildTripStoryPhotoSections(baseTripDetail.photos);
+
+    expect(featured).toHaveLength(1);
+    expect(featured[0]).toMatchObject({ imageId: 'image-1', caption: '西湖晚风' });
+    expect(sections.map((section) => section.key)).toEqual(['featured', '2026-05-03']);
+    expect(sections[0].photos[0].caption).toBe('西湖晚风');
   });
 
   it('sorts timeline days and route stops by visited date', () => {

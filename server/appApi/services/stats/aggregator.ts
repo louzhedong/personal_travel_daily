@@ -786,15 +786,35 @@ export function buildPhotos(markers: RawMarker[]): AnnualReviewResponseDto['phot
   return markers
     .flatMap((marker) =>
       marker.images.map((image) => ({
+        imageId: image.id,
         markerId: marker.id,
         markerTitle: `${marker.scopeName} 路 ${marker.city}`,
         imageUrl: image.imageUrl,
         visitedStartAt: toDateOnlyString(marker.visitedStartAt),
         scopeName: marker.scopeName,
         city: marker.city,
+        isFeatured: image.isFeatured,
+        caption: image.caption ?? undefined,
+        curatedSortOrder: image.curatedSortOrder ?? undefined,
+        originalSortOrder: image.sortOrder,
       })),
     )
-    .sort((left, right) => left.visitedStartAt.localeCompare(right.visitedStartAt));
+    .sort((left, right) => {
+      if (left.isFeatured !== right.isFeatured) {
+        return left.isFeatured ? -1 : 1;
+      }
+      const leftCurated = left.curatedSortOrder ?? Number.MAX_SAFE_INTEGER;
+      const rightCurated = right.curatedSortOrder ?? Number.MAX_SAFE_INTEGER;
+      if (leftCurated !== rightCurated) {
+        return leftCurated - rightCurated;
+      }
+      const dateCompare = left.visitedStartAt.localeCompare(right.visitedStartAt);
+      if (dateCompare !== 0) {
+        return dateCompare;
+      }
+      return left.originalSortOrder - right.originalSortOrder;
+    })
+    .map(({ originalSortOrder, ...photo }) => photo);
 }
 
 export function buildAnnualGuides(markers: RawMarker[]): AnnualReviewResponseDto['guides'] {
