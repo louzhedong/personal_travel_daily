@@ -78,16 +78,38 @@ function buildCompanionSummary(markers: TripDetailMarkerSource[]): TripDetailMod
 }
 
 function buildPhotos(markers: TripDetailMarkerSource[]): TripDetailModel['photos'] {
-  return markers.flatMap((marker) =>
-    marker.images.map((image) => ({
-      markerId: marker.id,
-      markerTitle: `${marker.scopeName} · ${marker.city}`,
-      imageUrl: image.imageUrl,
-      visitedStartAt: marker.visitedStartAt,
-      scopeName: marker.scopeName,
-      city: marker.city,
-    })),
-  );
+  return markers
+    .flatMap((marker) =>
+      marker.images.map((image) => ({
+        imageId: image.id,
+        markerId: marker.id,
+        markerTitle: `${marker.scopeName} · ${marker.city}`,
+        imageUrl: image.imageUrl,
+        visitedStartAt: marker.visitedStartAt,
+        scopeName: marker.scopeName,
+        city: marker.city,
+        isFeatured: image.isFeatured,
+        caption: image.caption ?? undefined,
+        curatedSortOrder: image.curatedSortOrder ?? undefined,
+        originalSortOrder: image.sortOrder,
+      })),
+    )
+    .sort((left, right) => {
+      if (left.isFeatured !== right.isFeatured) {
+        return left.isFeatured ? -1 : 1;
+      }
+      const leftCurated = left.curatedSortOrder ?? Number.MAX_SAFE_INTEGER;
+      const rightCurated = right.curatedSortOrder ?? Number.MAX_SAFE_INTEGER;
+      if (leftCurated !== rightCurated) {
+        return leftCurated - rightCurated;
+      }
+      const dateCompare = left.visitedStartAt.getTime() - right.visitedStartAt.getTime();
+      if (dateCompare !== 0) {
+        return dateCompare;
+      }
+      return left.originalSortOrder - right.originalSortOrder;
+    })
+    .map(({ originalSortOrder, ...photo }) => photo);
 }
 
 function buildGuides(markers: TripDetailMarkerSource[]): TripDetailModel['guides'] {

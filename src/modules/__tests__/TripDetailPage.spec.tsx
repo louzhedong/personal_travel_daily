@@ -8,6 +8,7 @@ import {
   fetchTripChecklist,
   fetchTripDetail,
   updateTrip,
+  updateTripPhotoCuration,
   updateTripChecklistItem,
 } from '../../lib/api/tripsApi';
 import TripDetailPage from '../trips/TripDetailPage';
@@ -15,11 +16,22 @@ import TripDetailPage from '../trips/TripDetailPage';
 vi.mock('../../lib/api/tripsApi', () => ({
   fetchTripDetail: vi.fn(),
   fetchTripChecklist: vi.fn(),
+  fetchTripPlanning: vi.fn(),
   updateTrip: vi.fn(),
+  updateTripPhotoCuration: vi.fn(),
   deleteTrip: vi.fn(),
   createTripChecklistItem: vi.fn(),
   updateTripChecklistItem: vi.fn(),
   deleteTripChecklistItem: vi.fn(),
+  createTripPlanningItem: vi.fn(),
+  createTripPlanningItemFromWishlist: vi.fn(),
+  updateTripPlanningItem: vi.fn(),
+  deleteTripPlanningItem: vi.fn(),
+  convertTripPlanningItemToMarker: vi.fn(),
+}));
+
+vi.mock('../../lib/api/wishlistApi', () => ({
+  fetchWishlistItems: vi.fn(),
 }));
 
 vi.mock('../../components/trips/TripChecklistBoard', () => ({
@@ -181,12 +193,16 @@ describe('TripDetailPage', () => {
     ],
     photos: [
       {
+        imageId: 'image-1',
         markerId: 'marker-1',
         markerTitle: '浙江 · 杭州',
         imageUrl: 'https://example.com/hangzhou.jpg',
         visitedStartAt: '2026-05-01',
         scopeName: '浙江',
         city: '杭州',
+        isFeatured: false,
+        caption: undefined,
+        curatedSortOrder: undefined,
       },
     ],
     guides: [
@@ -270,6 +286,17 @@ describe('TripDetailPage', () => {
       },
       groups: tripDetailResponse.checklistGroups,
     } as never);
+    vi.mocked(updateTripPhotoCuration).mockResolvedValue({
+      ...tripDetailResponse,
+      photos: [
+        {
+          ...tripDetailResponse.photos[0],
+          isFeatured: true,
+          caption: undefined,
+          curatedSortOrder: 0,
+        },
+      ],
+    } as never);
   });
 
   it('renders trip detail blocks after loading', async () => {
@@ -287,6 +314,7 @@ describe('TripDetailPage', () => {
     expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '行前规划 0' })).toBeInTheDocument();
     expect(screen.getByText('旅行记录')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '封面故事' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '行程记录' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '行程照片' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '关联攻略' })).toBeInTheDocument();
@@ -324,6 +352,34 @@ describe('TripDetailPage', () => {
     });
     expect(screen.getByText('已更新当前行程。')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '江南慢游' })).toBeInTheDocument();
+  });
+
+  it('curates trip photos from the assets panel', async () => {
+    const user = userEvent.setup();
+
+    render(<TripDetailPage account={account} tripId="trip-1" onNavigateBack={vi.fn()} onLogout={vi.fn()} />);
+
+    await screen.findByRole('heading', { name: '江南春游' });
+    await user.click(screen.getByRole('button', { name: '素材' }));
+    await user.click(screen.getByRole('button', { name: '设为精选' }));
+
+    await waitFor(() => {
+      expect(updateTripPhotoCuration).toHaveBeenCalledWith('trip-1', {
+        items: [{ imageId: 'image-1', isFeatured: true }],
+      });
+    });
+    expect(screen.getByText('已标记为精选照片。')).toBeInTheDocument();
+
+    vi.mocked(updateTripPhotoCuration).mockClear();
+    await user.clear(screen.getByLabelText('照片说明 浙江 · 杭州'));
+    await user.type(screen.getByLabelText('照片说明 浙江 · 杭州'), '西湖晚风');
+    await user.tab();
+
+    await waitFor(() => {
+      expect(updateTripPhotoCuration).toHaveBeenCalledWith('trip-1', {
+        items: [{ imageId: 'image-1', caption: '西湖晚风' }],
+      });
+    });
   });
 
   it('runs checklist mutations, reloads checklist, and opens expanded checklist view', async () => {

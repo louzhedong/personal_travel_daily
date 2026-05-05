@@ -47,6 +47,28 @@ export const updateTripBodySchema = z
     },
   );
 
+const tripPhotoCurationItemSchema = z
+  .object({
+    imageId: z.string().trim().min(1, 'imageId is required'),
+    isFeatured: z.boolean().optional(),
+    caption: z.string().trim().max(140, 'caption must be 140 characters or fewer').nullable().optional(),
+    curatedSortOrder: z.number().int().min(0).nullable().optional(),
+  })
+  .refine(
+    (value) =>
+      value.isFeatured !== undefined ||
+      value.caption !== undefined ||
+      value.curatedSortOrder !== undefined,
+    {
+      message: 'at least one curation field is required',
+    },
+  );
+
+export const updateTripPhotoCurationBodySchema = z.object({
+  items: z.array(tripPhotoCurationItemSchema).min(1, 'items are required').max(200),
+});
+
 export type CreateTripBody = z.infer<typeof createTripBodySchema>;
 export type TripParams = z.infer<typeof tripParamsSchema>;
 export type UpdateTripBody = z.infer<typeof updateTripBodySchema>;
+export type UpdateTripPhotoCurationBody = z.infer<typeof updateTripPhotoCurationBodySchema>;

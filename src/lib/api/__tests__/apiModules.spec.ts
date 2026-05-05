@@ -45,6 +45,7 @@ import {
   generateTripChecklist,
   updateTrip,
   updateTripChecklistItem,
+  updateTripPhotoCuration,
 } from '../tripsApi';
 import type { CreateMarkerInput } from '../types';
 
@@ -178,10 +179,16 @@ describe('app api modules', () => {
 
     await createTrip(createPayload);
     await updateTrip('trip-1', updatePayload);
+    await updateTripPhotoCuration('trip-1', {
+      items: [{ imageId: 'image-1', isFeatured: true, caption: '封面候选', curatedSortOrder: 0 }],
+    });
     await deleteTrip('trip-1');
 
     expect(mocks.postMock).toHaveBeenCalledWith('/api', '/trips', createPayload);
     expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/trips/trip-1', updatePayload);
+    expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/trips/trip-1/photos/curation', {
+      items: [{ imageId: 'image-1', isFeatured: true, caption: '封面候选', curatedSortOrder: 0 }],
+    });
     expect(mocks.deleteMock).toHaveBeenCalledWith('/api', '/trips/trip-1');
   });
 

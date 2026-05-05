@@ -79,11 +79,11 @@ Summary: Wishlist Map is the account-level long-range planning pool that connect
 
 ### 1.5E 旅行故事页 / Trip Story
 
-- `/trips/:id/story` 将单次行程整理为私有故事页，自动组合封面、故事摘要、智能序言、路线胶片、时间线、照片、攻略摘录和行前清单回顾。
-- 故事页复用 `GET /api/trips/:id/detail`，不新增后端接口或独立持久化。
+- `/trips/:id/story` 将单次行程整理为私有故事页，自动组合封面、精选瞬间、故事摘要、智能序言、路线胶片、时间线、照片、攻略摘录和行前清单回顾。
+- 故事页复用 `GET /api/trips/:id/detail`，不新增 story 专用接口或独立持久化；精选照片元数据由行程详情“素材”Tab 批量维护。
 - 支持杂志风 / 纪念册模板切换、动态 SVG 长图导出、浏览器原生打印 / PDF 导出，并提供 print 专用样式。
 
-Summary: `/trips/:id/story` turns one trip into a private printable story page by reusing the existing trip-detail aggregate.
+Summary: `/trips/:id/story` turns one trip into a private printable story page, with featured photos driving the cover-story block, featured moments, and export output.
 
 ### 1.6 统计中心 / Stats Center
 
@@ -97,7 +97,7 @@ Summary: `/stats` centralizes filtered stats, achievements, rankings, trends, an
 ### 1.7 年度回顾 / Annual Review
 
 - `/yearbook/:year` 独立年度回顾页，按年份生成私有年鉴式回看。
-- 汇总年度摘要、高光、年度成就、月度节奏、热力分布、照片与关联攻略，并支持浏览器原生打印 / PDF 导出。
+- 汇总年度摘要、高光、年度成就、月度节奏、热力分布、照片与关联攻略，并支持浏览器原生打印 / PDF 导出；照片列表优先使用精选照片，缺省时保持日期流回退。
 - 支持从年度回顾继续钻取到单次行程详情。
 
 Summary: `/yearbook/:year` provides a private yearbook-style retrospective per year, including annual achievements and links through to individual trip details.

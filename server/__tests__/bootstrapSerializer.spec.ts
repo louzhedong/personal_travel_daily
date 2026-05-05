@@ -56,6 +56,7 @@ describe('bootstrapSerializer', () => {
           ],
         },
       ],
+      wishlistItems: [],
       activeUserId: 'user-1',
       savedGuides: [
         {
@@ -125,6 +126,7 @@ describe('bootstrapSerializer', () => {
           createdAt: '2026-04-02T08:00:00.000Z',
         },
       ],
+      wishlistItems: [],
       activeUserId: 'user-1',
       savedGuides: [
         {
@@ -166,6 +168,7 @@ describe('bootstrapSerializer', () => {
         users: [],
         trips: [],
         markers: [],
+        wishlistItems: [],
         activeUserId: '',
         savedGuides: [],
         guideSearchHistory: [],
@@ -177,6 +180,7 @@ describe('bootstrapSerializer', () => {
         users: [],
         trips: [],
         markers: [],
+        wishlistItems: [],
         activeUserId: '',
         savedGuides: [],
         guideSearchHistory: [],

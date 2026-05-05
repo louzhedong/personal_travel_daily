@@ -86,6 +86,7 @@ describe('bootstrapService', () => {
       users,
       trips,
       markers,
+      wishlistItems: [],
       savedGuides,
       guideSearchHistory,
       activeUserId: 'user-1',

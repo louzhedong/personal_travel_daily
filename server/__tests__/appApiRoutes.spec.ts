@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   getStatsOverviewMock: vi.fn(),
   getAnnualReviewMock: vi.fn(),
   getTripDetailMock: vi.fn(),
+  updateTripPhotoCurationMock: vi.fn(),
   listTripChecklistMock: vi.fn(),
   listTripPlanningMock: vi.fn(),
   createTripPlanningItemResourceMock: vi.fn(),
@@ -60,6 +61,10 @@ vi.mock('../appApi/services/statsService.js', () => ({
 
 vi.mock('../appApi/services/tripDetailService.js', () => ({
   getTripDetail: mocks.getTripDetailMock,
+}));
+
+vi.mock('../appApi/services/tripPhotoService.js', () => ({
+  updateTripPhotoCuration: mocks.updateTripPhotoCurationMock,
 }));
 
 vi.mock('../appApi/services/tripChecklistService.js', () => ({
@@ -462,6 +467,84 @@ describe('app api routes', () => {
       expect(mocks.getTripDetailMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1');
       expect(response.json().trip.name).toBe('江南春游');
       expect(response.json().checklistSummary.total).toBe(2);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('updates trip photo curation for authenticated accounts', async () => {
+    mocks.updateTripPhotoCurationMock.mockResolvedValue({
+      trip: {
+        id: 'trip-1',
+        name: '江南春游',
+        note: '',
+        startsAt: '2026-05-01',
+        endsAt: '2026-05-03',
+        createdAt: '2026-04-22T00:00:00.000Z',
+      },
+      summary: {
+        markerCount: 1,
+        travelDays: 1,
+        cityCount: 1,
+        regionCount: 1,
+        companionCount: 1,
+        guideCount: 0,
+        photoCount: 1,
+      },
+      companions: [],
+      markers: [],
+      photos: [
+        {
+          imageId: 'image-1',
+          markerId: 'marker-1',
+          markerTitle: '浙江 · 杭州',
+          imageUrl: 'https://example.com/hangzhou.jpg',
+          visitedStartAt: '2026-05-01',
+          scopeName: '浙江',
+          city: '杭州',
+          isFeatured: true,
+          caption: '西湖晚风',
+          curatedSortOrder: 0,
+        },
+      ],
+      guides: [],
+      planningSummary: { total: 0, plannedCount: 0, convertedCount: 0, highPriorityCount: 0 },
+      checklistSummary: { total: 0, preDepartureCount: 0, inTransitCount: 0, doneCount: 0 },
+      checklistGroups: [],
+      meta: {
+        generatedAt: '2026-04-22T00:00:00.000Z',
+      },
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/trips/trip-1/photos/curation',
+        payload: {
+          items: [
+            {
+              imageId: 'image-1',
+              isFeatured: true,
+              caption: '西湖晚风',
+              curatedSortOrder: 0,
+            },
+          ],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mocks.updateTripPhotoCurationMock).toHaveBeenCalledWith(currentAccount.id, 'trip-1', {
+        items: [
+          {
+            imageId: 'image-1',
+            isFeatured: true,
+            caption: '西湖晚风',
+            curatedSortOrder: 0,
+          },
+        ],
+      });
+      expect(response.json().photos[0].isFeatured).toBe(true);
     } finally {
       await app.close();
     }

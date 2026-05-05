@@ -194,6 +194,30 @@ export default function TripStoryPage({
     addSectionTitle('智能故事序言', 'narrative');
     addWrappedText({ text: story.smartNarrative, y: cursorY, fill: '#334155', fontSize: 28, maxChars: 35, lineHeight: 42 });
 
+    if (story.featuredPhotos.length > 0) {
+      addSectionTitle('精选瞬间', 'featured');
+      const featuredStartY = cursorY;
+      story.featuredPhotos.forEach((photo, index) => {
+        const column = index % 2;
+        const row = Math.floor(index / 2);
+        const x = contentX + column * 504;
+        const y = featuredStartY + row * 252;
+        elements.push(`<rect x="${x}" y="${y}" width="456" height="220" rx="18" fill="#e0f2fe" stroke="#bae6fd" />`);
+        addClippedImage({
+          href: photo.imageUrl,
+          x,
+          y,
+          width: 456,
+          height: 220,
+          clipId: `trip-story-featured-${index}`,
+        });
+        elements.push(`<rect x="${x}" y="${y + 150}" width="456" height="70" rx="18" fill="rgba(15, 23, 42, 0.66)" />`);
+        addText({ text: photo.isFeatured ? '精选照片' : '照片开场', x: x + 20, y: y + 180, fill: '#ffffff', fontSize: 20, fontWeight: 800 });
+        addText({ text: truncateText(photo.caption || `${photo.visitedStartAt} · ${photo.markerTitle}`, 20), x: x + 20, y: y + 206, fill: '#e0f2fe', fontSize: 18, fontWeight: 700 });
+      });
+      cursorY = featuredStartY + Math.ceil(story.featuredPhotos.length / 2) * 252;
+    }
+
     addSectionTitle('路线摘录', 'route');
     if (story.routeStops.length === 0) {
       addWrappedText({ text: '暂无路线停靠点', y: cursorY, fill: '#64748b', fontSize: 28 });
@@ -229,11 +253,11 @@ export default function TripStoryPage({
     }
 
     addSectionTitle('照片段落', 'photos');
-    const photos = story.photoGroups.flatMap((group) =>
-      group.photos.map((photo, index) => ({
+    const photos = story.photoSections.flatMap((section) =>
+      section.photos.map((photo, index) => ({
         ...photo,
         displayIndex: index + 1,
-        date: group.date,
+        date: section.title,
       })),
     );
     if (photos.length === 0) {
@@ -255,8 +279,8 @@ export default function TripStoryPage({
           clipId: `trip-story-photo-${index}`,
         });
         elements.push(`<rect x="${x}" y="${y + 78}" width="304" height="50" rx="16" fill="rgba(15, 23, 42, 0.62)" />`);
-        addText({ text: `PHOTO ${String(index + 1).padStart(2, '0')}`, x: x + 18, y: y + 104, fill: '#ffffff', fontSize: 18, fontWeight: 800 });
-        addText({ text: truncateText(`${photo.date} · ${photo.markerTitle}`, 16), x: x + 120, y: y + 104, fill: '#e0f2fe', fontSize: 18, fontWeight: 700 });
+        addText({ text: photo.isFeatured ? 'FEATURED' : `PHOTO ${String(index + 1).padStart(2, '0')}`, x: x + 18, y: y + 104, fill: '#ffffff', fontSize: 18, fontWeight: 800 });
+        addText({ text: truncateText(photo.caption || `${photo.date} · ${photo.markerTitle}`, 16), x: x + 120, y: y + 104, fill: '#e0f2fe', fontSize: 18, fontWeight: 700 });
       });
       cursorY = photoStartY + Math.ceil(photos.length / 3) * 154;
     }
@@ -397,6 +421,32 @@ export default function TripStoryPage({
             <section className="card trip-story-panel">
               <div className="trip-story-section-heading">
                 <div>
+                  <span className="hero-kicker">Featured Memories</span>
+                  <h2>精选瞬间</h2>
+                </div>
+                <p>优先展示行程素材里手动精选的照片；还没有精选时，会用照片流生成故事开场。</p>
+              </div>
+              {story.featuredPhotos.length === 0 ? (
+                <div className="trip-story-empty">这次旅行还没有照片，精选瞬间会在补图后自动出现。</div>
+              ) : (
+                <div className="trip-story-featured-grid">
+                  {story.featuredPhotos.map((photo, index) => (
+                    <figure key={photo.imageId} className={index === 0 ? 'is-primary' : undefined}>
+                      <img src={photo.imageUrl} alt={`${photo.markerTitle} ${photo.visitedStartAt}`} loading="lazy" />
+                      <figcaption>
+                        <span>{photo.isFeatured ? '精选照片' : '照片开场'}</span>
+                        <strong>{photo.caption || photo.markerTitle}</strong>
+                        <small>{photo.visitedStartAt} · {photo.city}</small>
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="card trip-story-panel">
+              <div className="trip-story-section-heading">
+                <div>
                   <span className="hero-kicker">Route Film</span>
                   <h2>路线胶片</h2>
                 </div>
@@ -473,18 +523,22 @@ export default function TripStoryPage({
                     <h2>照片段落</h2>
                   </div>
                 </div>
-                {story.photoGroups.length === 0 ? (
+                {story.photoSections.length === 0 ? (
                   <div className="trip-story-empty">这次旅行还没有照片，后续补图后故事页会自动展示。</div>
                 ) : (
                   <div className="trip-story-photo-stack">
-                    {story.photoGroups.map((group) => (
-                      <section key={group.date}>
-                        <strong>{group.date}</strong>
+                    {story.photoSections.map((section) => (
+                      <section key={section.key}>
+                        <strong>{section.title}</strong>
+                        <p>{section.description}</p>
                         <div className="trip-story-photo-grid">
-                          {group.photos.map((photo) => (
-                            <figure key={`${photo.markerId}-${photo.imageUrl}`}>
+                          {section.photos.map((photo) => (
+                            <figure key={photo.imageId} className={photo.isFeatured ? 'is-featured' : undefined}>
                               <img src={photo.imageUrl} alt={`${photo.markerTitle} ${photo.visitedStartAt}`} loading="lazy" />
-                              <figcaption>{photo.markerTitle}</figcaption>
+                              <figcaption>
+                                <strong>{photo.caption || photo.markerTitle}</strong>
+                                <span>{photo.isFeatured ? '精选 · ' : ''}{photo.visitedStartAt}</span>
+                              </figcaption>
                             </figure>
                           ))}
                         </div>

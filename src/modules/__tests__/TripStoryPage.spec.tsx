@@ -86,12 +86,16 @@ describe('TripStoryPage', () => {
     ],
     photos: [
       {
+        imageId: 'image-1',
         markerId: 'marker-1',
         markerTitle: '浙江 · 杭州',
         imageUrl: 'https://example.com/hangzhou.jpg',
         visitedStartAt: '2026-05-01',
         scopeName: '浙江',
         city: '杭州',
+        isFeatured: true,
+        caption: '西湖晚风',
+        curatedSortOrder: 0,
       },
     ],
     guides: [
@@ -172,12 +176,14 @@ describe('TripStoryPage', () => {
 
     expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '这次旅行的故事骨架' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '精选瞬间' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '路线胶片' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '时间线叙事' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '照片段落' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '攻略摘录' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '行前清单回顾' })).toBeInTheDocument();
     expect(screen.getByText('西湖晚风很好。')).toBeInTheDocument();
+    expect(screen.getAllByText('西湖晚风').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('杭州周末攻略')).toBeInTheDocument();
     expect(screen.getAllByText('2 / 2 项已完成，完成度 100%')).toHaveLength(2);
     expect(screen.getByText(/从 浙江 · 杭州 到 江苏 · 苏州/)).toBeInTheDocument();
@@ -212,12 +218,16 @@ describe('TripStoryPage', () => {
         photoCount: 18,
       },
       photos: Array.from({ length: 18 }, (_, index) => ({
+        imageId: `image-${index + 1}`,
         markerId: 'marker-1',
         markerTitle: `浙江 · 杭州 ${index + 1}`,
         imageUrl: `https://example.com/hangzhou-${index + 1}.jpg`,
         visitedStartAt: '2026-05-01',
         scopeName: '浙江',
         city: '杭州',
+        isFeatured: index < 2,
+        caption: index === 0 ? '第一张精选' : undefined,
+        curatedSortOrder: index,
       })),
     } as never);
 
@@ -239,6 +249,8 @@ describe('TripStoryPage', () => {
     expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
     const exportedBlob = vi.mocked(URL.createObjectURL).mock.calls[0][0] as Blob;
     const exportedSvg = await readBlobAsText(exportedBlob);
+    expect(exportedSvg).toContain('精选瞬间');
+    expect(exportedSvg).toContain('第一张精选');
     expect(exportedSvg).toContain('照片段落');
     expect(exportedSvg).toContain('PHOTO 18');
     expect(exportedSvg).toContain('<image href="https://example.com/hangzhou-18.jpg"');
