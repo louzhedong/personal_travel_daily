@@ -4,7 +4,7 @@
 
 import type { CSSProperties } from 'react';
 import { memo } from 'react';
-import type { RegionOption, VisitMarker } from '../../types';
+import type { RegionOption, VisitMarker, WishlistItem } from '../../types';
 
 // 单一区域的一段路径 / Single polygon segment belonging to a region.
 export interface RenderSegment {
@@ -28,6 +28,7 @@ export interface StaticRenderItem {
 // 静态信息 + 运行时计算结果 / Static data plus runtime flags for a render cycle.
 export interface RenderItem extends StaticRenderItem {
   regionMarkers: VisitMarker[];
+  regionWishlistItems: WishlistItem[];
   uniqueUsers: string[];
   isActive: boolean;
   projectedArea: number;
@@ -46,9 +47,10 @@ export const MapPathLayer = memo(function MapPathLayer({
 }) {
   return (
     <>
-      {renderItems.map(({ item, region, regionMarkers, isActive, regionStyle }) => (
+      {renderItems.map(({ item, region, regionMarkers, regionWishlistItems, isActive, regionStyle }) => (
         <g key={item.name} className={region ? 'region-group' : 'region-group disabled'}>
           {item.segments.map((segment) => {
+            const hasMapSignal = regionMarkers.length > 0 || regionWishlistItems.length > 0;
             return (
               <path
                 key={segment.key}
@@ -59,11 +61,11 @@ export const MapPathLayer = memo(function MapPathLayer({
                 className={
                   isActive
                     ? 'map-region active'
-                    : regionMarkers.length > 0
+                    : hasMapSignal
                       ? 'map-region visited'
                       : 'map-region'
                 }
-                style={regionMarkers.length > 0 && !isActive ? regionStyle : undefined}
+                style={hasMapSignal && !isActive ? regionStyle : undefined}
               />
             );
           })}

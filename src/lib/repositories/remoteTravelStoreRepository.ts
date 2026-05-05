@@ -5,6 +5,13 @@ import { createGuideSearchHistory, fetchGuideSearchHistories } from '../api/guid
 import { batchUpdateMarkersTrip, createMarker, deleteMarker, updateMarker } from '../api/markersApi';
 import { createSavedGuide, deleteSavedGuide, fetchSavedGuides } from '../api/savedGuidesApi';
 import { createTrip, deleteTrip, updateTrip } from '../api/tripsApi';
+import {
+  convertWishlistToTrip,
+  createWishlistItem,
+  deleteWishlistItem,
+  fetchWishlistItems,
+  updateWishlistItem,
+} from '../api/wishlistApi';
 import type {
   CreateCompanionInput,
   CreateGuideSearchHistoryInput,
@@ -12,12 +19,17 @@ import type {
   CreateMarkerInput,
   CreateSavedGuideInput,
   CreateTripInput,
+  CreateWishlistItemInput,
+  ConvertWishlistToTripInput,
   ListGuideSearchHistoriesQuery,
   ListSavedGuidesQuery,
   UpdateCompanionInput,
   UpdateMarkerInput,
   UpdateTripInput,
+  UpdateWishlistItemInput,
 } from '../api/types';
+
+type WishlistItems = NonNullable<TravelStore['wishlistItems']>;
 
 export interface RemoteTravelStoreRepository {
   loadStore(): Promise<TravelStore>;
@@ -30,6 +42,11 @@ export interface RemoteTravelStoreRepository {
   updateMarker(id: string, input: UpdateMarkerInput): Promise<TravelStore>;
   batchUpdateMarkersTrip(input: BatchUpdateMarkersTripInput): Promise<TravelStore>;
   deleteMarker(id: string): Promise<TravelStore>;
+  listWishlistItems(): Promise<WishlistItems>;
+  createWishlistItem(input: CreateWishlistItemInput): Promise<WishlistItems[number]>;
+  updateWishlistItem(id: string, input: UpdateWishlistItemInput): Promise<WishlistItems[number]>;
+  convertWishlistToTrip(id: string, input?: ConvertWishlistToTripInput): Promise<{ tripId: string; store: TravelStore }>;
+  deleteWishlistItem(id: string): Promise<{ deletedId: string }>;
   listSavedGuides(query?: ListSavedGuidesQuery): Promise<TravelStore['savedGuides']>;
   createSavedGuide(input: CreateSavedGuideInput): Promise<{
     item: TravelStore['savedGuides'][number];
@@ -58,6 +75,14 @@ export function createRemoteTravelStoreRepository(): RemoteTravelStoreRepository
     updateMarker,
     batchUpdateMarkersTrip,
     deleteMarker,
+    async listWishlistItems() {
+      const response = await fetchWishlistItems();
+      return response.items;
+    },
+    createWishlistItem,
+    updateWishlistItem,
+    convertWishlistToTrip,
+    deleteWishlistItem,
     async listSavedGuides(query) {
       const response = await fetchSavedGuides(query);
       return response.items;

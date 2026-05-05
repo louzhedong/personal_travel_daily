@@ -1,10 +1,5 @@
 import { z } from 'zod';
 
-const dateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'date must use YYYY-MM-DD format');
-
-const optionalDateSchema = dateSchema.nullable().optional();
 const guideSourceSchema = z
   .object({
     identity: z.string().trim().min(1).max(300).optional(),
@@ -14,17 +9,17 @@ const guideSourceSchema = z
   })
   .optional();
 
-export const tripPlanningItemParamsSchema = z.object({
-  id: z.string().trim().min(1, 'trip id is required'),
-  itemId: z.string().trim().min(1, 'planning item id is required'),
+const targetYearSchema = z
+  .string()
+  .regex(/^\d{4}$/, 'targetYear must use YYYY format')
+  .nullable()
+  .optional();
+
+export const wishlistItemParamsSchema = z.object({
+  itemId: z.string().trim().min(1, 'wishlist item id is required'),
 });
 
-export const tripPlanningWishlistParamsSchema = z.object({
-  id: z.string().trim().min(1, 'trip id is required'),
-  wishlistId: z.string().trim().min(1, 'wishlist item id is required'),
-});
-
-export const createTripPlanningItemBodySchema = z.object({
+export const createWishlistItemBodySchema = z.object({
   companionId: z.string().trim().min(1, 'companionId is required'),
   title: z.string().trim().min(1, 'title is required').max(100),
   scope: z.enum(['domestic', 'international']),
@@ -33,11 +28,11 @@ export const createTripPlanningItemBodySchema = z.object({
   city: z.string().trim().min(1, 'city is required').max(80),
   note: z.string().trim().max(500).optional(),
   priority: z.enum(['low', 'medium', 'high']).optional().default('medium'),
-  plannedDate: optionalDateSchema,
+  targetYear: targetYearSchema,
   guide: guideSourceSchema,
 });
 
-export const updateTripPlanningItemBodySchema = z
+export const updateWishlistItemBodySchema = z
   .object({
     title: z.string().trim().min(1, 'title is required').max(100).optional(),
     scope: z.enum(['domestic', 'international']).optional(),
@@ -46,24 +41,24 @@ export const updateTripPlanningItemBodySchema = z
     city: z.string().trim().min(1, 'city is required').max(80).optional(),
     note: z.string().trim().max(500).nullable().optional(),
     priority: z.enum(['low', 'medium', 'high']).optional(),
-    plannedDate: optionalDateSchema,
-    sortOrder: z.number().int().min(0).optional(),
+    targetYear: targetYearSchema,
   })
   .refine((value) => Object.keys(value).length > 0, {
     message: 'at least one field is required',
   });
 
-export const convertTripPlanningItemBodySchema = z
+export const convertWishlistToTripBodySchema = z
   .object({
-    visitedStartAt: dateSchema,
-    visitedEndAt: dateSchema,
-    note: z.string().trim().max(500).optional(),
+    name: z.string().trim().min(1, 'name is required').max(80).optional(),
+    note: z.string().trim().max(500, 'note must be 500 characters or fewer').optional(),
+    startsAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'startsAt must use YYYY-MM-DD format').optional(),
+    endsAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'endsAt must use YYYY-MM-DD format').optional(),
   })
-  .refine((value) => value.visitedEndAt >= value.visitedStartAt, {
-    message: 'visitedEndAt must be later than or equal to visitedStartAt',
-    path: ['visitedEndAt'],
+  .refine((value) => !value.startsAt || !value.endsAt || value.endsAt >= value.startsAt, {
+    message: 'endsAt must be later than or equal to startsAt',
+    path: ['endsAt'],
   });
 
-export type CreateTripPlanningItemBody = z.infer<typeof createTripPlanningItemBodySchema>;
-export type UpdateTripPlanningItemBody = z.infer<typeof updateTripPlanningItemBodySchema>;
-export type ConvertTripPlanningItemBody = z.infer<typeof convertTripPlanningItemBodySchema>;
+export type CreateWishlistItemBody = z.infer<typeof createWishlistItemBodySchema>;
+export type UpdateWishlistItemBody = z.infer<typeof updateWishlistItemBodySchema>;
+export type ConvertWishlistToTripBody = z.infer<typeof convertWishlistToTripBodySchema>;

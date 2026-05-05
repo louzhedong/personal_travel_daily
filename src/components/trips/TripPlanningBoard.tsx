@@ -6,7 +6,7 @@ import type {
   CreateTripPlanningItemInput,
   UpdateTripPlanningItemInput,
 } from '../../lib/api/types';
-import type { Scope, TripPlanningItem, TripPlanningPriority, TripPlanningSummary } from '../../types';
+import type { Scope, TripPlanningItem, TripPlanningPriority, TripPlanningSummary, WishlistItem } from '../../types';
 
 const PRIORITY_OPTIONS: Array<{ value: TripPlanningPriority | 'all'; label: string }> = [
   { value: 'all', label: '全部优先级' },
@@ -30,12 +30,14 @@ interface TripPlanningBoardProps {
   activeCompanionId: string;
   summary: TripPlanningSummary;
   items: TripPlanningItem[];
+  wishlistItems?: WishlistItem[];
   busy?: boolean;
   feedbackMessage?: string;
   onCreateItem: (input: CreateTripPlanningItemInput) => Promise<void> | void;
   onUpdateItem: (itemId: string, input: UpdateTripPlanningItemInput) => Promise<void> | void;
   onDeleteItem: (itemId: string) => Promise<void> | void;
   onConvertItem: (itemId: string, input: ConvertTripPlanningItemInput) => Promise<void> | void;
+  onImportWishlistItem?: (wishlistId: string) => Promise<void> | void;
 }
 
 function buildEmptyDraft(activeCompanionId: string): CreateTripPlanningItemInput {
@@ -56,12 +58,14 @@ export default function TripPlanningBoard({
   activeCompanionId,
   summary,
   items,
+  wishlistItems = [],
   busy = false,
   feedbackMessage = '',
   onCreateItem,
   onUpdateItem,
   onDeleteItem,
   onConvertItem,
+  onImportWishlistItem,
 }: TripPlanningBoardProps) {
   const [draft, setDraft] = useState<CreateTripPlanningItemInput>(() => buildEmptyDraft(activeCompanionId));
   const [priorityFilter, setPriorityFilter] = useState<TripPlanningPriority | 'all'>('all');
@@ -70,6 +74,7 @@ export default function TripPlanningBoard({
   const [convertId, setConvertId] = useState<string | null>(null);
   const [convertStartAt, setConvertStartAt] = useState('');
   const [convertEndAt, setConvertEndAt] = useState('');
+  const [wishlistImportId, setWishlistImportId] = useState('');
 
   const filteredItems = useMemo(
     () => items.filter((item) => priorityFilter === 'all' || item.priority === priorityFilter),
@@ -127,6 +132,41 @@ export default function TripPlanningBoard({
         </button>
       </form>
 
+      {onImportWishlistItem ? (
+        <section className="trip-planning-wishlist-import" aria-label="愿望地图导入">
+          <div className="trip-planning-wishlist-copy">
+            <strong>愿望地图导入</strong>
+            <span>把已加入愿望地图的地点加入这次行前规划。</span>
+          </div>
+          <div className="trip-planning-wishlist-controls">
+            <FancySelect
+              value={wishlistImportId}
+              onChange={setWishlistImportId}
+              options={wishlistItems.map((item) => ({
+                value: item.id,
+                label: `${item.scopeName} · ${item.city}`,
+              }))}
+              placeholder={wishlistItems.length > 0 ? '选择愿望地点' : '愿望地图暂无地点'}
+              ariaLabel="选择愿望地图地点"
+              disabled={wishlistItems.length === 0 || busy}
+              triggerClassName="trip-planning-select"
+            />
+            <button
+              type="button"
+              className="ghost-button"
+              disabled={busy || wishlistItems.length === 0 || !wishlistImportId}
+              onClick={() => {
+                const targetId = wishlistImportId;
+                void Promise.resolve(onImportWishlistItem(targetId)).then(() => setWishlistImportId(''));
+              }}
+            >
+              导入到行前规划
+            </button>
+          </div>
+          {wishlistItems.length === 0 ? <span className="trip-planning-wishlist-empty">先在地图或攻略里加入愿望。</span> : null}
+        </section>
+      ) : null}
+
       <div className="trip-planning-toolbar">
         <FancySelect
           value={priorityFilter}
@@ -152,7 +192,9 @@ export default function TripPlanningBoard({
                     <strong>{item.title}</strong>
                     <p>{item.scopeName} · {item.city} · {item.scope === 'domestic' ? '国内' : '国际'}</p>
                   </div>
-                  <span>{item.status === 'converted' ? '已转记录' : `${PRIORITY_LABELS[item.priority]}优先级`}</span>
+                  <span className="trip-planning-priority-badge">
+                    {item.status === 'converted' ? '已转记录' : `${PRIORITY_LABELS[item.priority]}优先级`}
+                  </span>
                 </div>
                 <p className="trip-planning-card-note">{item.note || '暂无备注'}</p>
                 <div className="trip-planning-card-meta">

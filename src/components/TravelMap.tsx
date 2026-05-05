@@ -9,8 +9,8 @@ import { pathFor, projectionFor } from '../geo/projection';
 import { loadGeoForScope, type LoadedFeature } from '../geo/loader';
 import { buildJourneyArcs, type JourneyArc } from '../lib/mapJourneyArcs';
 import { buildMapReplayItems, getMapReplayStatusText } from '../lib/mapReplay';
-import { resolveMarkerMapRegionId } from '../lib/mapRegionResolver';
-import type { RegionOption, Scope, UserProfile, VisitMarker } from '../types';
+import { resolveMapRegionId, resolveMarkerMapRegionId } from '../lib/mapRegionResolver';
+import type { RegionOption, Scope, UserProfile, VisitMarker, WishlistItem } from '../types';
 import { buildRegionStyle } from './map/regionStyles';
 import ReplayControlBar from './map/ReplayControlBar';
 import {
@@ -40,12 +40,14 @@ interface TravelMapProps {
   regions: RegionOption[];
   markers: VisitMarker[];
   allMarkers?: VisitMarker[];
+  wishlistItems?: WishlistItem[];
   users: UserProfile[];
   activeUserId: string;
   selectedRegionId?: string;
   selectedRegionName?: string;
   onSelectRegion: (region: RegionOption) => void;
   onOpenSelectedRegionComposer: () => void;
+  onAddSelectedRegionToWishlist?: () => void;
   onClearSelectedRegion: () => void;
   onScopeChange: (scope: Scope) => void;
 }
@@ -55,12 +57,14 @@ export function TravelMap({
   regions,
   markers,
   allMarkers,
+  wishlistItems = [],
   users,
   activeUserId,
   selectedRegionId,
   selectedRegionName,
   onSelectRegion,
   onOpenSelectedRegionComposer,
+  onAddSelectedRegionToWishlist = () => {},
   onClearSelectedRegion,
   onScopeChange,
 }: TravelMapProps) {
@@ -134,6 +138,22 @@ export function TravelMap({
     return result;
   }, [allMarkers, markers, regions, scope]);
 
+  const wishlistByRegion = useMemo(() => {
+    const result = new Map<string, WishlistItem[]>();
+    const regionIdByName = new Map(regions.map((region) => [region.name, region.id]));
+
+    wishlistItems.forEach((item) => {
+      if (scope === 'domestic' && item.scope !== 'domestic') return;
+      if (scope === 'international' && item.scope !== 'international' && item.scope !== 'domestic') return;
+      const resolvedRegionId = resolveMapRegionId(item, scope);
+      const regionId = regionIdByName.get(resolvedRegionId) ?? item.scopeId;
+      const list = result.get(regionId) ?? [];
+      list.push(item);
+      result.set(regionId, list);
+    });
+    return result;
+  }, [regions, scope, wishlistItems]);
+
   const mapReplaySourceMarkers = useMemo(
     () => (scope === 'international' && allMarkers ? allMarkers : markers),
     [allMarkers, markers, scope],
@@ -179,6 +199,7 @@ export function TravelMap({
 
   const hoveredRegion = regions.find((item) => item.id === hoverRegionId);
   const hoveredMarkers = hoveredRegion ? markersByRegion.get(hoveredRegion.id) ?? [] : [];
+  const hoveredWishlistItems = hoveredRegion ? wishlistByRegion.get(hoveredRegion.id) ?? [] : [];
   const labelFontSize = Math.max(4.5, 11 / currentScale);
   const labelStrokeWidth = Math.max(0.8, 3 / currentScale);
   const markerDotRadius = Math.max(1.8, 4.5 / currentScale);
@@ -289,21 +310,23 @@ export function TravelMap({
     );
     return staticItems.map((item) => {
       const regionMarkers = item.region ? markersByRegion.get(item.region.id) ?? [] : [];
+      const regionWishlistItems = item.region ? wishlistByRegion.get(item.region.id) ?? [] : [];
       const uniqueUsers = Array.from(new Set(regionMarkers.map((marker) => marker.userId))).slice(0, 3);
       const isReplayActive = !!activeReplayItem && item.region?.id === activeReplayItem.regionId;
       const isActive = !!item.region && (item.region.id === selectedRegionId || isReplayActive);
       return {
         ...item,
         regionMarkers,
+        regionWishlistItems,
         uniqueUsers,
         isActive,
         projectedArea: item.baseArea * currentScale * currentScale,
         regionStyle: item.region
-          ? buildRegionStyle(scope, item.region.id, regionMarkers.length, maxMarkerCount)
+          ? buildRegionStyle(scope, item.region.id, regionMarkers.length, maxMarkerCount, regionWishlistItems.length)
           : {},
       };
     });
-  }, [activeReplayItem, currentScale, markersByRegion, scope, selectedRegionId, staticItems]);
+  }, [activeReplayItem, currentScale, markersByRegion, scope, selectedRegionId, staticItems, wishlistByRegion]);
 
   const cssVar = (vars: Record<string, string | number>) => vars as CSSProperties;
 
@@ -432,6 +455,7 @@ export function TravelMap({
           selectedRegionId={selectedRegionId}
           selectedRegionName={selectedRegionName}
           onOpenSelectedRegionComposer={onOpenSelectedRegionComposer}
+          onAddSelectedRegionToWishlist={onAddSelectedRegionToWishlist}
           onClearSelectedRegion={onClearSelectedRegion}
           onZoomIn={() => zoomFromCenter(1.25)}
           onZoomOut={() => zoomFromCenter(1 / 1.25)}
@@ -462,6 +486,7 @@ export function TravelMap({
       <MapTooltipPortal
         hoveredRegion={hoveredRegion}
         hoveredMarkers={hoveredMarkers}
+        hoveredWishlistItems={hoveredWishlistItems}
         tooltipPos={tooltipPos}
         users={users}
       />

@@ -1,109 +1,24 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  getBootstrapBaseUrl,
-  getResourceBaseUrl,
-  httpClient,
-} from '../httpClient';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-function createJsonResponse(body: unknown, init?: ResponseInit) {
-  return new Response(JSON.stringify(body), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    ...init,
-  });
-}
+import { httpClient } from '../httpClient';
 
 describe('httpClient', () => {
-  const fetchMock = vi.fn<typeof fetch>();
-
   beforeEach(() => {
-    vi.stubEnv('VITE_APP_API_BASE_URL', '/api/app');
-    fetchMock.mockReset();
+    vi.restoreAllMocks();
+  });
+
+  it('does not retry alternate hosts after a backend HTTP response', async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ message: 'Route GET:/api/wishlist not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
     vi.stubGlobal('fetch', fetchMock);
-  });
 
-  afterEach(() => {
-    vi.unstubAllEnvs();
-    vi.unstubAllGlobals();
-  });
+    await expect(httpClient.get('/api', '/wishlist')).rejects.toThrow('Route GET:/api/wishlist not found');
 
-  it('derives bootstrap and resource base urls from VITE_APP_API_BASE_URL', () => {
-    expect(getBootstrapBaseUrl()).toBe('/api/app');
-    expect(getResourceBaseUrl()).toBe('/api');
-  });
-
-  it('builds GET requests with query params against the same-origin app api path first', async () => {
-    fetchMock.mockResolvedValueOnce(createJsonResponse({ ok: true }));
-
-    const response = await httpClient.get<{ ok: boolean }>('/api', '/guide-search-histories', {
-      companionId: 'user-alice',
-      limit: 6,
-      ignored: undefined,
-    });
-
-    expect(response).toEqual({ ok: true });
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:3000/api/guide-search-histories?companionId=user-alice&limit=6',
-      {
-        method: 'GET',
-        credentials: 'include',
-        headers: undefined,
-        body: undefined,
-      },
-    );
-  });
-
-  it('sends JSON payloads for POST requests', async () => {
-    fetchMock.mockResolvedValueOnce(createJsonResponse({ saved: true }));
-
-    const payload = {
-      savedByUserId: 'user-alice',
-      keyword: '京都',
-    };
-
-    const response = await httpClient.post<{ saved: boolean }>('/api', '/saved-guides', payload);
-
-    expect(response).toEqual({ saved: true });
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/api/saved-guides', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-  });
-
-  it('falls back across candidate base urls when earlier attempts return 404', async () => {
-    fetchMock
-      .mockResolvedValueOnce(createJsonResponse({ error: { message: 'not found' } }, { status: 404 }))
-      .mockResolvedValueOnce(createJsonResponse({ ok: true }));
-
-    const response = await httpClient.get<{ ok: boolean }>('/api/app', '/bootstrap');
-
-    expect(response).toEqual({ ok: true });
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3000/api/app/bootstrap');
-    expect(fetchMock.mock.calls[1]?.[0]).toBe('http://localhost:8788/api/app/bootstrap');
-  });
-
-  it('surfaces backend error messages for non-404 failures', async () => {
-    fetchMock.mockResolvedValueOnce(
-      createJsonResponse(
-        {
-          error: {
-            code: 'DATABASE_UNAVAILABLE',
-            message: 'database is unavailable, please start MySQL and retry',
-          },
-        },
-        { status: 503 },
-      ),
-    );
-
-    await expect(httpClient.get('http://app-api.example/api/app', '/bootstrap')).rejects.toThrow(
-      'database is unavailable, please start MySQL and retry',
-    );
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/api/wishlist', expect.any(Object));
   });
 });

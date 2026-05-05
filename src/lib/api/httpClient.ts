@@ -1,4 +1,5 @@
 import type { AppApiErrorPayload } from './types';
+import { APP_API_ERROR_CODE } from './types';
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
@@ -10,6 +11,8 @@ interface AppApiConfig {
   bootstrapBaseUrl: string;
   resourceBaseUrl: string;
 }
+
+class HttpResponseError extends Error {}
 
 function assertBaseUrl(baseUrl?: string) {
   if (!baseUrl) {
@@ -69,8 +72,14 @@ function buildUrl(baseUrl: string, path: string, query?: object) {
 
 async function parseErrorMessage(response: Response) {
   try {
-    const payload = (await response.json()) as AppApiErrorPayload;
-    return payload.error?.message || `主业务 API 请求失败 (${response.status})`;
+    const payload = (await response.json()) as AppApiErrorPayload & { message?: string };
+    if (payload.error?.code === APP_API_ERROR_CODE.UNAUTHORIZED) {
+      return '登录状态已失效，请重新登录后再试。';
+    }
+    if (payload.error?.code === APP_API_ERROR_CODE.FORBIDDEN) {
+      return '当前账号没有权限执行这个操作。';
+    }
+    return payload.error?.message || payload.message || `主业务 API 请求失败 (${response.status})`;
   } catch {
     return `主业务 API 请求失败 (${response.status})`;
   }
@@ -78,7 +87,6 @@ async function parseErrorMessage(response: Response) {
 
 async function requestJson<T>(baseUrl: string, path: string, options: RequestOptions = {}): Promise<T> {
   const candidateBaseUrls = resolveCandidateBaseUrls(baseUrl);
-  let lastResponse: Response | null = null;
   let lastError: unknown = null;
 
   for (const candidateBaseUrl of candidateBaseUrls) {
@@ -102,18 +110,14 @@ async function requestJson<T>(baseUrl: string, path: string, options: RequestOpt
         return (await response.json()) as T;
       }
 
-      if (response.status !== 404 || candidateBaseUrl === candidateBaseUrls[candidateBaseUrls.length - 1]) {
-        throw new Error(await parseErrorMessage(response));
+      throw new HttpResponseError(await parseErrorMessage(response));
+    } catch (error) {
+      if (error instanceof HttpResponseError) {
+        throw error;
       }
 
-      lastResponse = response;
-    } catch (error) {
       lastError = error;
     }
-  }
-
-  if (lastResponse) {
-    throw new Error(await parseErrorMessage(lastResponse));
   }
 
   throw lastError instanceof Error ? lastError : new Error('主业务 API 暂时不可用');

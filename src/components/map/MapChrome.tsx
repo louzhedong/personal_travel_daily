@@ -68,6 +68,7 @@ interface MapSelectionAndZoomProps {
   selectedRegionId?: string;
   selectedRegionName?: string;
   onOpenSelectedRegionComposer: () => void;
+  onAddSelectedRegionToWishlist?: () => void;
   onClearSelectedRegion: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -83,6 +84,7 @@ export function MapSelectionAndZoom({
   selectedRegionId,
   selectedRegionName,
   onOpenSelectedRegionComposer,
+  onAddSelectedRegionToWishlist = () => {},
   onClearSelectedRegion,
   onZoomIn,
   onZoomOut,
@@ -96,6 +98,9 @@ export function MapSelectionAndZoom({
           <div className="map-selection-actions">
             <button type="button" className="map-selection-button" onClick={onOpenSelectedRegionComposer}>
               在此新增
+            </button>
+            <button type="button" className="map-selection-button is-secondary" onClick={onAddSelectedRegionToWishlist}>
+              加入愿望
             </button>
             <button type="button" className="map-selection-button is-secondary" onClick={onClearSelectedRegion}>
               清除筛选

@@ -42,6 +42,16 @@ interface GuideSearchPanelProps {
   onSaveSearchHistory: (keyword: string, scope: Scope | 'all') => Promise<GuideSearchHistoryItem[]>;
   trips?: TripCollection[];
   onGenerateTripChecklist?: (tripId: string, guide: GuideSearchResult) => Promise<{ createdCount: number } | void>;
+  onAddToWishlist?: (draft: {
+    title: string;
+    scope: Scope;
+    scopeId: string;
+    scopeName: string;
+    city: string;
+    note?: string;
+    priority?: 'low' | 'medium' | 'high';
+    targetYear?: string | null;
+  }, guide: GuideSearchResult) => Promise<unknown> | void;
   onOpenTripDetail?: (tripId: string) => void;
   onOpenTripChecklist?: (tripId: string) => void;
 }
@@ -67,6 +77,7 @@ export function GuideSearchPanel({
   onSaveSearchHistory,
   trips = [],
   onGenerateTripChecklist = async () => undefined,
+  onAddToWishlist = async () => undefined,
   onOpenTripDetail = () => {},
   onOpenTripChecklist = () => {},
 }: GuideSearchPanelProps) {
@@ -98,6 +109,7 @@ export function GuideSearchPanel({
   const [planningDialogOpen, setPlanningDialogOpen] = useState(false);
   const [planningSaving, setPlanningSaving] = useState(false);
   const [guidePendingPlanning, setGuidePendingPlanning] = useState<GuideSearchResult | null>(null);
+  const [wishlistSaving, setWishlistSaving] = useState(false);
   const [planningDraft, setPlanningDraft] = useState({
     tripId: '',
     scope: initialScope === 'international' ? 'international' : 'domestic',
@@ -310,6 +322,31 @@ export function GuideSearchPanel({
     setPlanningDialogOpen(true);
   };
 
+  const handleAddGuideToWishlist = async (guide: GuideSearchResult) => {
+    const destination = guide.destinationLabel || query.trim() || guide.title;
+    setWishlistSaving(true);
+    try {
+      await onAddToWishlist(
+        {
+          title: destination,
+          scope: scope === 'international' ? 'international' : 'domestic',
+          scopeId: destination.toLowerCase().replace(/\s+/g, '-').slice(0, 40) || 'wishlist',
+          scopeName: destination,
+          city: destination,
+          note: guide.summary,
+          priority: 'medium',
+          targetYear: null,
+        },
+        guide,
+      );
+      setChecklistGenerationFeedback(`已将《${guide.title}》加入愿望地图。`);
+    } catch (error) {
+      setChecklistGenerationFeedback(error instanceof Error ? error.message : '加入愿望地图失败');
+    } finally {
+      setWishlistSaving(false);
+    }
+  };
+
   const handleConfirmPlanning = async () => {
     if (!guidePendingPlanning || !planningDraft.tripId) {
       return;
@@ -430,6 +467,11 @@ export function GuideSearchPanel({
             onRemoveSavedGuide={onRemoveSavedGuide}
             onGenerateTripChecklist={handleOpenChecklistGeneration}
             onAddToTripPlanning={handleOpenPlanningDialog}
+            onAddToWishlist={(guide) => {
+              if (!wishlistSaving) {
+                void handleAddGuideToWishlist(guide);
+              }
+            }}
             canGenerateTripChecklist={trips.length > 0}
           />
 

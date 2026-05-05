@@ -5,8 +5,7 @@
 当前版本职责：
 
 - 提供旅行主数据聚合加载能力
-- 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史的服务端读写接口
-- 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史、trip-bound 行前清单，以及行前规划工作台的服务端读写接口
+- 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史、trip-bound 行前清单、行前规划工作台，以及愿望地图的服务端读写接口
 - 作为前端 `remoteTravelStoreRepository` 的默认数据源
 
 ## 当前后端实现对照 / Current Backend Architecture References
@@ -29,6 +28,7 @@
 - `bootstrapSerializer` 拆分为 `serializers/bootstrap/*` 子模块，并保留 barrel 兼容层
 - admin 账号级统计摘要下沉到 `services/admin/accountStats.ts`
 - 行前规划工作台使用 `routes/trips.ts` 下的 trip 子资源接口，并按 `schemas / services / repositories / serializers` 分层实现
+- 愿望地图使用 `routes/wishlist.ts` 独立资源接口，并通过 `TripPlanningItem.sourceWishlistId` 标记导入关系
 
 Summary: The API contract maps directly onto the current backend layering of routes, schemas, services, repositories, serializers, and shared modules.
 
@@ -166,6 +166,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
       }
     ],
     "markers": [],
+    "wishlistItems": [],
     "activeUserId": "user-alice",
     "savedGuides": [],
     "guideSearchHistory": []
@@ -747,7 +748,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 用途：
 
 - 返回某个行程当前的行前规划摘要与规划项列表
-- 供 `/trips/:id` 的“规划”Tab 局部加载和刷新使用
+- 供 `/trips/:id` 的“行前规划”Tab 局部加载和刷新使用
 
 成功响应示例：
 
@@ -816,6 +817,115 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - `priority` 可选，默认 `medium`，取值为 `low | medium | high`
 - `plannedDate` 可选，格式为 `YYYY-MM-DD`
 - `guide` 可选，仅作为来源元数据保存，不改变 `SavedGuide` 去重规则
+
+### `POST /api/trips/:id/planning/from-wishlist/:wishlistId`
+
+用途：
+
+- 从当前账号下的愿望地图条目复制生成一条行程规划项。
+- 原愿望项会保留，作为长期愿望池继续存在。
+
+成功响应：
+
+- 返回创建后的 `TripPlanningItem`
+
+规则：
+
+- `tripId` 必须属于当前账号且未删除。
+- `wishlistId` 必须属于当前账号且未删除。
+- 服务端复制愿望项的地点、优先级、备注、创建旅伴和来源攻略元数据。
+
+### `GET /api/wishlist`
+
+成功响应示例：
+
+```json
+{
+  "items": [
+    {
+      "id": "wishlist-1",
+      "companionId": "user-alice",
+      "companionName": "小悠",
+      "companionColor": "#2563eb",
+      "title": "京都",
+      "scope": "international",
+      "scopeId": "japan",
+      "scopeName": "日本",
+      "city": "京都",
+      "priority": "medium",
+      "targetYear": "2026",
+      "importedTrips": [
+        {
+          "id": "trip-2026-spring",
+          "name": "2026 江南春游"
+        }
+      ],
+      "createdAt": "2026-05-03T00:00:00.000Z",
+      "updatedAt": "2026-05-03T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+### `POST /api/wishlist`
+
+请求体字段与规划项相似，但不绑定行程：`companionId / title / scope / scopeId / scopeName / city / note / priority / targetYear / guide`。
+
+规则：
+
+- `companionId` 必须属于当前账号。
+- `priority` 可选，默认 `medium`。
+- `targetYear` 可选，格式为 `YYYY`，提交 `null` 可清空。
+- 同一账号、同一旅伴、同一 `scope / scopeId / city` 的未删除愿望项会被视为重复，返回 `409 CONFLICT`。
+
+### `PATCH /api/wishlist/:itemId`
+
+可更新 `title`、地点字段、`note`、`priority` 和 `targetYear`。
+
+### `POST /api/wishlist/:itemId/convert-to-trip`
+
+用途：
+
+- 从单个愿望项创建新行程，并自动写入一条来源为该愿望项的行前规划。
+
+请求体可选：
+
+```json
+{
+  "name": "京都赏樱",
+  "note": "从愿望地图创建",
+  "startsAt": "2026-04-01",
+  "endsAt": "2026-04-05"
+}
+```
+
+成功响应：
+
+```json
+{
+  "tripId": "trip-from-wishlist",
+  "store": {
+    "users": [],
+    "trips": [],
+    "markers": [],
+    "wishlistItems": [],
+    "activeUserId": "user-alice",
+    "savedGuides": [],
+    "guideSearchHistory": []
+  }
+}
+```
+
+规则：
+
+- `wishlistId` 必须属于当前账号且未删除。
+- 未传 `name` 时使用愿望标题作为行程名。
+- 未传日期时优先用 `targetYear-01-01`，否则使用服务端当天日期。
+- 自动创建的规划项会写入 `sourceWishlistId`，用于愿望项的“已导入”状态。
+
+### `DELETE /api/wishlist/:itemId`
+
+删除采用软删除，成功返回 `{ "deletedId": "wishlist-1" }`。
 
 ### `PATCH /api/trips/:id/planning/items/:itemId`
 

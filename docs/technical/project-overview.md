@@ -58,15 +58,26 @@ Summary: Guide-to-checklist turns search results into trip-bound checklist items
 
 ### 1.5C 行前规划工作台 / Trip Planning Workspace
 
-- `/trips/:id` 内新增“规划”Tab，管理 trip-bound 愿望地点、攻略来源、备注、优先级、预计日期和状态。
-- 规划项绑定 `accountId + tripId + createdByCompanionId`，只属于已存在行程，不引入全局 wishlist 或地图选点。
+- `/trips/:id` 内新增“行前规划”Tab，管理 trip-bound 愿望地点、攻略来源、备注、优先级、预计日期和状态。
+- 规划项绑定 `accountId + tripId + createdByCompanionId`，只属于已存在行程；可手动新增、从攻略搜索加入，也可从全局愿望地图导入。
 - 攻略搜索结果支持“加入行程规划”，与“生成行前清单”并存，分别承接“想去地点”和“准备事项”两种语义。
+- 从愿望地图导入规划项会写入 `sourceWishlistId`，用于在愿望项上展示“已导入”的行程标记。
 - 旅行结束后可把未转换规划项转为正式 `VisitMarker`，服务端写入 `convertedMarkerId` 并阻止重复转换。
 - 管理后台只读巡检规划项统计和明细，不提供新增、编辑、删除或代用户转记录。
 
 Summary: Trip Planning Workspace adds a trip-bound pre-travel planning loop for desired places, guide-source context, priorities, planned dates, and post-trip conversion into visit markers.
 
-### 1.5D 旅行故事页 / Trip Story
+### 1.5D 愿望地图 / Wishlist Map
+
+- 愿望地图是账号级长期目的地池，`WishlistItem` 绑定账号、创建旅伴、地点、备注、优先级、目标年份和可选攻略来源。
+- 首页地图区域和攻略搜索结果都可加入愿望地图；前端会先做同旅伴、同地点去重提示，服务端也会用 `409 CONFLICT` 兜底。
+- 愿望面板支持按优先级、国内 / 国际筛选，并可按最近加入、优先级和目标年份排序。
+- 愿望项可编辑标题、城市、备注、优先级和目标年份，也可一键转成新行程并自动创建首条行前规划。
+- 首页地图区分已访问、仅愿望和两者都有的区域；hover 提示会列出愿望城市，提供比区域高亮更细的城市级表达。
+
+Summary: Wishlist Map is the account-level long-range planning pool that connects map selection, guide search, trip planning import, and one-click trip creation.
+
+### 1.5E 旅行故事页 / Trip Story
 
 - `/trips/:id/story` 将单次行程整理为私有故事页，自动组合封面、故事摘要、智能序言、路线胶片、时间线、照片、攻略摘录和行前清单回顾。
 - 故事页复用 `GET /api/trips/:id/detail`，不新增后端接口或独立持久化。
@@ -153,7 +164,7 @@ Summary: The frontend shell separates routing, page composition, map state, stor
 - `src/components/MarkerList.tsx` / `MarkerDetailPanel.tsx`：旅行记录的列表与详情。
 - `src/components/TripTimelinePanel.tsx`：时间线面板，兼任"整理模式"与行程管理台。
 - `src/components/GuideSearchPanel.tsx`：攻略搜索、收藏、关联、“生成行前清单”与“加入行程规划”面板。
-- `src/components/trips/TripPlanningBoard.tsx`：行程详情规划 Tab 的共享工作台，承接新增、编辑、删除、优先级筛选和转旅行记录。
+- `src/components/trips/TripPlanningBoard.tsx`：行程详情“行前规划”Tab 的共享工作台，承接新增、编辑、删除、愿望导入、优先级筛选和转旅行记录。
 - `src/components/trips/TripChecklistBoard.tsx`：行前清单的共享展示与编辑组件，供行程详情页和放大页复用。
 - `src/components/DataSync.tsx`：数据备份（仅导出）。
 

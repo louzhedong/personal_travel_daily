@@ -54,6 +54,8 @@ interface GuideSearchResultListProps {
   onGenerateTripChecklist: (guide: GuideSearchResult) => void;
   /** Add a search result to trip planning. 将搜索结果加入行程规划。 */
   onAddToTripPlanning: (guide: GuideSearchResult) => void;
+  /** Add a search result to the wishlist map. 将搜索结果加入愿望地图。 */
+  onAddToWishlist: (guide: GuideSearchResult) => void;
   /** Whether checklist generation can be triggered now. 当前是否可生成行前清单。 */
   canGenerateTripChecklist: boolean;
 }
@@ -81,6 +83,7 @@ export const GuideSearchResultList = forwardRef<HTMLDivElement, GuideSearchResul
       onRemoveSavedGuide,
       onGenerateTripChecklist,
       onAddToTripPlanning,
+      onAddToWishlist,
       canGenerateTripChecklist,
     },
     resultsBodyRef,
@@ -161,6 +164,13 @@ export const GuideSearchResultList = forwardRef<HTMLDivElement, GuideSearchResul
                         disabled={!canGenerateTripChecklist}
                       >
                         加入行程规划
+                      </button>
+                      <button
+                        type="button"
+                        className="ghost-button guide-action-button"
+                        onClick={() => onAddToWishlist(item)}
+                      >
+                        加入愿望地图
                       </button>
                       {getSavedGuideBySourceUrl(item.sourceUrl) ? (
                         <button

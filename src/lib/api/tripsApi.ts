@@ -37,6 +37,10 @@ export async function createTripPlanningItem(id: string, input: CreateTripPlanni
   return httpClient.post<TripPlanningResponseDto['items'][number]>(getResourceBaseUrl(), `/trips/${id}/planning/items`, input);
 }
 
+export async function createTripPlanningItemFromWishlist(id: string, wishlistId: string) {
+  return httpClient.post<TripPlanningResponseDto['items'][number]>(getResourceBaseUrl(), `/trips/${id}/planning/from-wishlist/${wishlistId}`, {});
+}
+
 export async function updateTripPlanningItem(id: string, itemId: string, input: UpdateTripPlanningItemInput) {
   return httpClient.patch<TripPlanningResponseDto['items'][number]>(getResourceBaseUrl(), `/trips/${id}/planning/items/${itemId}`, input);
 }

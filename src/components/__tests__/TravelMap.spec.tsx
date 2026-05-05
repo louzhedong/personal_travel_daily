@@ -2,7 +2,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TravelMap from '../TravelMap';
-import type { RegionOption, UserProfile, VisitMarker } from '../../types';
+import type { RegionOption, UserProfile, VisitMarker, WishlistItem } from '../../types';
 import * as loader from '../../geo/loader';
 
 const users: UserProfile[] = [
@@ -78,6 +78,25 @@ const domesticMarkers: VisitMarker[] = [
     visitedStartAt: '2026-04-01',
     visitedEndAt: '2026-04-03',
     createdAt: '2026-04-04T00:00:00.000Z',
+  },
+];
+
+const wishlistItems: WishlistItem[] = [
+  {
+    id: 'wishlist-1',
+    companionId: 'u1',
+    companionName: 'A',
+    companionColor: '#2563eb',
+    title: 'Bigland',
+    scope: 'international',
+    scopeId: 'bigland',
+    scopeName: 'Bigland Dream',
+    city: 'City A',
+    note: 'wish',
+    priority: 'medium',
+    importedTrips: [],
+    createdAt: '2026-05-01T00:00:00.000Z',
+    updatedAt: '2026-05-01T00:00:00.000Z',
   },
 ];
 
@@ -348,5 +367,27 @@ describe('TravelMap', () => {
     const segment = await findByTestId('segment-\u4e2d\u56fd-0');
 
     expect(segment).toHaveClass('visited');
+  });
+
+  it('highlights wishlist-only regions on the map', async () => {
+    const { findByTestId } = render(
+      <TravelMap
+        scope="international"
+        regions={regions}
+        markers={[]}
+        wishlistItems={wishlistItems}
+        users={users}
+        activeUserId="u1"
+        onScopeChange={() => {}}
+        onSelectRegion={() => {}}
+        onOpenSelectedRegionComposer={() => {}}
+        onClearSelectedRegion={() => {}}
+      />,
+    );
+
+    const segment = await findByTestId('segment-Bigland-0');
+
+    expect(segment).toHaveClass('visited');
+    expect(segment).toHaveAttribute('style', expect.stringContaining('--region-fill'));
   });
 });

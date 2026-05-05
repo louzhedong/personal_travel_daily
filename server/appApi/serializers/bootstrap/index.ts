@@ -7,4 +7,5 @@ export * from './companions.js';
 export * from './trips.js';
 export * from './markers.js';
 export * from './guides.js';
+export * from './wishlist.js';
 export * from './store.js';

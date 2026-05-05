@@ -86,6 +86,7 @@ export async function createTripPlanningItem(
     sourceGuideTitle?: string;
     sourceGuideSourceName?: string;
     sourceGuideSourceUrl?: string;
+    sourceWishlistId?: string;
     sortOrder: number;
   },
 ) {
@@ -109,6 +110,7 @@ export async function updateTripPlanningItem(
     plannedDate?: Date | null;
     sortOrder?: number;
     convertedMarkerId?: string;
+    sourceWishlistId?: string | null;
   },
 ) {
   return prisma.tripPlanningItem.update({
@@ -126,6 +128,7 @@ export async function updateTripPlanningItem(
       ...(input.convertedMarkerId !== undefined
         ? { convertedMarkerId: input.convertedMarkerId, status: 'converted' }
         : {}),
+      ...(input.sourceWishlistId !== undefined ? { sourceWishlistId: input.sourceWishlistId } : {}),
     },
     include: planningInclude,
   });

@@ -5,7 +5,7 @@
 import { memo } from 'react';
 import { createPortal } from 'react-dom';
 import { sortMarkersDesc } from '../../lib/markerSorting';
-import type { RegionOption, UserProfile, VisitMarker } from '../../types';
+import type { RegionOption, UserProfile, VisitMarker, WishlistItem } from '../../types';
 
 /**
  * 区域悬停 tooltip / Region hover tooltip component.
@@ -15,11 +15,13 @@ import type { RegionOption, UserProfile, VisitMarker } from '../../types';
 export const MapTooltipPortal = memo(function MapTooltipPortal({
   hoveredRegion,
   hoveredMarkers,
+  hoveredWishlistItems,
   tooltipPos,
   users,
 }: {
   hoveredRegion: RegionOption | undefined;
   hoveredMarkers: VisitMarker[];
+  hoveredWishlistItems: WishlistItem[];
   tooltipPos: { left: number; top: number } | null;
   users: UserProfile[];
 }) {
@@ -41,7 +43,14 @@ export const MapTooltipPortal = memo(function MapTooltipPortal({
       }}
     >
       <strong>{hoveredRegion.name}</strong>
-      <span>{hoveredMarkers.length} 条旅行记录</span>
+      <span>{hoveredMarkers.length} 条旅行记录 · {hoveredWishlistItems.length} 个愿望城市</span>
+      {hoveredWishlistItems.length > 0 ? (
+        <div className="map-hover-wishlist-cities">
+          {Array.from(new Set(hoveredWishlistItems.map((item) => item.city))).slice(0, 4).map((city) => (
+            <span key={city}>{city}</span>
+          ))}
+        </div>
+      ) : null}
       {previewMarkers.length > 0 ? (
         <div className="map-hover-list">
           {previewMarkers.map((marker) => (

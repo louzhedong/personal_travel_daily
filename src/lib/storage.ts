@@ -65,6 +65,7 @@ export function createDefaultStore(): TravelStore {
     users: defaultUsers,
     trips: [],
     markers: [],
+    wishlistItems: [],
     activeUserId: defaultUsers[0].id,
     savedGuides: [],
     guideSearchHistory: [],
@@ -455,6 +456,8 @@ function normalizeStore(
           .filter((item): item is VisitMarker => item !== null)
       : [];
     const trips = normalizeTrips('trips' in parsed ? parsed.trips : undefined);
+    const wishlistItems =
+      'wishlistItems' in parsed && Array.isArray(parsed.wishlistItems) ? parsed.wishlistItems : [];
     const activeUserId =
       typeof parsed.activeUserId === 'string' && normalizedUsers.some((item) => item.id === parsed.activeUserId)
         ? parsed.activeUserId
@@ -462,7 +465,7 @@ function normalizeStore(
     const savedGuides = normalizeSavedGuides(parsed.savedGuides);
     const guideSearchHistory = normalizeGuideSearchHistory(parsed.guideSearchHistory);
 
-    return { users: normalizedUsers, trips, markers, activeUserId, savedGuides, guideSearchHistory };
+    return { users: normalizedUsers, trips, markers, wishlistItems, activeUserId, savedGuides, guideSearchHistory };
   } catch {
     return createDefaultStore();
   }

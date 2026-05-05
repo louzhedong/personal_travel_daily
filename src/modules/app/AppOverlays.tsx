@@ -58,6 +58,19 @@ interface AppOverlaysProps {
   guideSearchHistory: GuideSearchHistoryItem[];
   onSaveSearchHistory: (keyword: string, scope: Scope | 'all') => Promise<GuideSearchHistoryItem[]>;
   onGenerateTripChecklist: (tripId: string, guide: GuideSearchResult) => Promise<{ createdCount: number } | void>;
+  onAddToWishlist?: (
+    draft: {
+      title: string;
+      scope: Scope;
+      scopeId: string;
+      scopeName: string;
+      city: string;
+      note?: string;
+      priority?: 'low' | 'medium' | 'high';
+      targetYear?: string | null;
+    },
+    guide: GuideSearchResult,
+  ) => Promise<unknown> | void;
   onOpenTripDetail: (tripId: string) => void;
   onOpenTripChecklist: (tripId: string) => void;
 }
@@ -95,6 +108,7 @@ export default function AppOverlays({
   guideSearchHistory,
   onSaveSearchHistory,
   onGenerateTripChecklist,
+  onAddToWishlist = async () => undefined,
   onOpenTripDetail,
   onOpenTripChecklist,
 }: AppOverlaysProps) {
@@ -203,6 +217,7 @@ export default function AppOverlays({
         onSaveSearchHistory={onSaveSearchHistory}
         trips={store.trips ?? []}
         onGenerateTripChecklist={onGenerateTripChecklist}
+        onAddToWishlist={onAddToWishlist}
         onOpenTripDetail={onOpenTripDetail}
         onOpenTripChecklist={onOpenTripChecklist}
       />
