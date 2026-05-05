@@ -12,6 +12,7 @@ import { registerMarkerRoutes } from './routes/markers.js';
 import { registerSavedGuideRoutes } from './routes/savedGuides.js';
 import { registerStatsRoutes } from './routes/stats.js';
 import { registerTripRoutes } from './routes/trips.js';
+import { registerWishlistRoutes } from './routes/wishlist.js';
 
 export async function buildApp() {
   const env = getAppApiEnv();
@@ -31,6 +32,7 @@ export async function buildApp() {
   await registerBootstrapRoutes(app);
   await registerCompanionRoutes(app);
   await registerTripRoutes(app);
+  await registerWishlistRoutes(app);
   await registerStatsRoutes(app);
   await registerSavedGuideRoutes(app);
   await registerGuideSearchHistoryRoutes(app);

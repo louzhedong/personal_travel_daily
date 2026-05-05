@@ -243,7 +243,14 @@
 .trip-planning-card-head {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 12px;
+}
+
+.trip-planning-priority-badge {
+  flex: 0 0 auto;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .trip-planning-card-head p,
@@ -255,6 +262,57 @@
 
 .trip-planning-select {
   min-height: 40px;
+}
+
+.trip-planning-wishlist-import {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(260px, 1.2fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(245, 158, 11, 0.34);
+  border-radius: 8px;
+  background: rgba(255, 251, 235, 0.78);
+  padding: 14px;
+}
+
+.trip-planning-wishlist-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.trip-planning-wishlist-copy strong {
+  color: #92400e;
+  font-size: 15px;
+}
+
+.trip-planning-wishlist-copy span {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.trip-planning-wishlist-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.trip-planning-wishlist-empty {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .trip-planning-wishlist-import {
+    grid-template-columns: 1fr;
+  }
+
+  .trip-planning-wishlist-controls {
+    justify-content: flex-start;
+  }
 }
 
 .trip-detail-summary-card {

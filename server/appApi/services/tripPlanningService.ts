@@ -13,6 +13,7 @@ import {
 import { findActiveCompanionById } from '../repositories/travelCompanionRepository.js';
 import { findActiveTripById } from '../repositories/tripRepository.js';
 import { createMarker } from '../repositories/visitMarkerRepository.js';
+import { findActiveWishlistItemById } from '../repositories/wishlistRepository.js';
 import type {
   ConvertTripPlanningItemBody,
   CreateTripPlanningItemBody,
@@ -92,6 +93,54 @@ export async function createTripPlanningItemResource(
       sourceGuideTitle: input.guide?.title,
       sourceGuideSourceName: input.guide?.sourceName,
       sourceGuideSourceUrl: input.guide?.sourceUrl,
+      sourceWishlistId: undefined,
+      sortOrder,
+    });
+
+    return serializeTripPlanningItem(created);
+  });
+}
+
+export async function createTripPlanningItemFromWishlist(
+  accountId: string,
+  tripId: string,
+  wishlistId: string,
+) {
+  const prisma = getPrismaClient();
+
+  return prisma.$transaction(async (tx) => {
+    const [trip, wishlistItem] = await Promise.all([
+      findActiveTripById(tx, accountId, tripId),
+      findActiveWishlistItemById(tx, accountId, wishlistId),
+    ]);
+
+    if (!trip) {
+      throw createNotFoundError('trip not found');
+    }
+
+    if (!wishlistItem) {
+      throw createNotFoundError('wishlist item not found');
+    }
+
+    const sortOrder = await getNextTripPlanningSortOrder(tx, accountId, tripId);
+    const created = await createTripPlanningItem(tx, {
+      id: randomUUID(),
+      accountId,
+      tripId,
+      createdByCompanionId: wishlistItem.createdByCompanionId,
+      title: wishlistItem.title,
+      scope: wishlistItem.scope,
+      scopeId: wishlistItem.scopeId,
+      scopeName: wishlistItem.scopeName,
+      city: wishlistItem.city,
+      note: wishlistItem.note ?? undefined,
+      priority: wishlistItem.priority,
+      plannedDate: null,
+      sourceGuideIdentity: wishlistItem.sourceGuideIdentity ?? undefined,
+      sourceGuideTitle: wishlistItem.sourceGuideTitle ?? undefined,
+      sourceGuideSourceName: wishlistItem.sourceGuideSourceName ?? undefined,
+      sourceGuideSourceUrl: wishlistItem.sourceGuideSourceUrl ?? undefined,
+      sourceWishlistId: wishlistItem.id,
       sortOrder,
     });
 

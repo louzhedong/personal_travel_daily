@@ -29,6 +29,13 @@ import { createGuideSearchHistory, fetchGuideSearchHistories } from '../guideSea
 import { batchUpdateMarkersTrip, createMarker, deleteMarker, searchMarkers, updateMarker } from '../markersApi';
 import { createSavedGuide, deleteSavedGuide, fetchSavedGuides } from '../savedGuidesApi';
 import {
+  convertWishlistToTrip,
+  createWishlistItem,
+  deleteWishlistItem,
+  fetchWishlistItems,
+  updateWishlistItem,
+} from '../wishlistApi';
+import {
   createTrip,
   createTripChecklistItem,
   deleteTrip,
@@ -277,6 +284,31 @@ describe('app api modules', () => {
     });
     expect(mocks.postMock).toHaveBeenCalledWith('/api', '/saved-guides', savedGuidePayload);
     expect(mocks.deleteMock).toHaveBeenCalledWith('/api', '/saved-guides/saved-guide-1');
+  });
+
+  it('forwards wishlist resource requests and trip conversion', async () => {
+    const payload = {
+      companionId: 'user-alice',
+      title: '京都',
+      scope: 'international' as const,
+      scopeId: 'japan',
+      scopeName: '日本',
+      city: '京都',
+      priority: 'high' as const,
+      targetYear: '2026',
+    };
+
+    await fetchWishlistItems();
+    await createWishlistItem(payload);
+    await updateWishlistItem('wishlist-1', { priority: 'medium', note: '赏樱' });
+    await convertWishlistToTrip('wishlist-1', { name: '京都赏樱' });
+    await deleteWishlistItem('wishlist-1');
+
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/wishlist');
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/wishlist', payload);
+    expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/wishlist/wishlist-1', { priority: 'medium', note: '赏樱' });
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/wishlist/wishlist-1/convert-to-trip', { name: '京都赏樱' });
+    expect(mocks.deleteMock).toHaveBeenCalledWith('/api', '/wishlist/wishlist-1');
   });
 
   it('forwards guide search history requests with query and payload', async () => {

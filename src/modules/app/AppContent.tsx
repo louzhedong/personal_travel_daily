@@ -3,8 +3,10 @@ import SavedGuidesPanel from '../../components/SavedGuidesPanel';
 import TravelMap from '../../components/TravelMap';
 import TripTimelinePanel from '../../components/TripTimelinePanel';
 import UserManager from '../../components/UserManager';
+import WishlistPanel from '../../components/WishlistPanel';
 import type { MarkerSearchResponseDto, SearchMarkersQuery } from '../../lib/api/types';
-import type { RegionOption, SavedGuide, Scope, TripCollection, UserProfile, VisitMarker } from '../../types';
+import type { UpdateWishlistItemInput } from '../../lib/api/types';
+import type { RegionOption, SavedGuide, Scope, TripCollection, UserProfile, VisitMarker, WishlistItem } from '../../types';
 
 interface AppContentProps {
   scope: Scope;
@@ -12,6 +14,7 @@ interface AppContentProps {
   currentMarkers: VisitMarker[];
   mapMarkers: VisitMarker[];
   allMarkers: VisitMarker[];
+  wishlistItems: WishlistItem[];
   trips: TripCollection[];
   users: UserProfile[];
   activeUserId: string;
@@ -22,6 +25,7 @@ interface AppContentProps {
   onScopeChange: (scope: Scope) => void;
   onSelectRegion: (region: RegionOption) => void;
   onOpenSelectedRegionComposer: () => void;
+  onAddSelectedRegionToWishlist: () => void;
   onClearSelectedRegion: () => void;
   onRequestDeleteMarker: (markerId: string) => void;
   onViewMarkerDetail: (markerId: string) => void;
@@ -41,6 +45,9 @@ interface AppContentProps {
   onOpenTripDetail?: (tripId: string) => void;
   onOpenMarkerFromGuide: (markerId: string) => void;
   onRemoveSavedGuide: (savedGuideId: string) => void;
+  onUpdateWishlistItem: (wishlistId: string, input: UpdateWishlistItemInput) => Promise<WishlistItem> | void;
+  onConvertWishlistItemToTrip: (wishlistId: string) => Promise<void> | void;
+  onDeleteWishlistItem: (wishlistId: string) => void;
 }
 
 export default function AppContent({
@@ -49,6 +56,7 @@ export default function AppContent({
   currentMarkers,
   mapMarkers,
   allMarkers,
+  wishlistItems,
   trips,
   users,
   activeUserId,
@@ -59,6 +67,7 @@ export default function AppContent({
   onScopeChange,
   onSelectRegion,
   onOpenSelectedRegionComposer,
+  onAddSelectedRegionToWishlist,
   onClearSelectedRegion,
   onRequestDeleteMarker,
   onViewMarkerDetail,
@@ -75,6 +84,9 @@ export default function AppContent({
   onOpenTripDetail,
   onOpenMarkerFromGuide,
   onRemoveSavedGuide,
+  onUpdateWishlistItem,
+  onConvertWishlistItemToTrip,
+  onDeleteWishlistItem,
 }: AppContentProps) {
   return (
     <section className="content-grid">
@@ -84,6 +96,7 @@ export default function AppContent({
           regions={regions}
           markers={mapMarkers}
           allMarkers={allMarkers}
+          wishlistItems={wishlistItems}
           users={users}
           activeUserId={activeUserId}
           selectedRegionId={selectedRegionId}
@@ -91,6 +104,7 @@ export default function AppContent({
           onScopeChange={onScopeChange}
           onSelectRegion={onSelectRegion}
           onOpenSelectedRegionComposer={onOpenSelectedRegionComposer}
+          onAddSelectedRegionToWishlist={onAddSelectedRegionToWishlist}
           onClearSelectedRegion={onClearSelectedRegion}
         />
         <MarkerList
@@ -125,6 +139,14 @@ export default function AppContent({
           onUpdateTrip={onUpdateTrip}
           onDeleteTrip={onDeleteTrip}
           onBulkAssignMarkersToTrip={onBulkAssignMarkersToTrip}
+        />
+        <WishlistPanel
+          items={wishlistItems}
+          users={users}
+          activeUserId={activeUserId}
+          onUpdate={onUpdateWishlistItem}
+          onConvertToTrip={onConvertWishlistItemToTrip}
+          onDelete={onDeleteWishlistItem}
         />
         <SavedGuidesPanel
           savedGuides={savedGuides}

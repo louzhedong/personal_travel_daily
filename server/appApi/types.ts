@@ -109,6 +109,41 @@ export interface GuideSearchHistoryItemDto {
   createdAt: string;
 }
 
+export type WishlistPriorityDto = 'low' | 'medium' | 'high';
+
+export interface WishlistItemDto {
+  id: string;
+  companionId: string;
+  companionName: string;
+  companionColor: string;
+  title: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note?: string;
+  priority: WishlistPriorityDto;
+  targetYear?: string;
+  sourceGuideIdentity?: string;
+  sourceGuideTitle?: string;
+  sourceGuideSourceName?: string;
+  sourceGuideSourceUrl?: string;
+  importedTrips: Array<{
+    id: string;
+    name: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WishlistListResponseDto {
+  items: WishlistItemDto[];
+}
+
+export interface DeleteWishlistItemResponseDto {
+  deletedId: string;
+}
+
 export interface SavedGuideListResponseDto {
   items: SavedGuideDto[];
 }
@@ -135,6 +170,7 @@ export interface TravelStoreDto {
   users: UserProfileDto[];
   trips: TripDto[];
   markers: VisitMarkerDto[];
+  wishlistItems: WishlistItemDto[];
   activeUserId: string;
   savedGuides: SavedGuideDto[];
   guideSearchHistory: GuideSearchHistoryItemDto[];
@@ -232,6 +268,7 @@ export interface TripPlanningItemDto {
   sourceGuideTitle?: string;
   sourceGuideSourceName?: string;
   sourceGuideSourceUrl?: string;
+  sourceWishlistId?: string;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;

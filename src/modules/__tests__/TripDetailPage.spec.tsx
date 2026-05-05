@@ -285,6 +285,7 @@ describe('TripDetailPage', () => {
     );
 
     expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '行前规划 0' })).toBeInTheDocument();
     expect(screen.getByText('旅行记录')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '行程记录' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '行程照片' })).toBeInTheDocument();

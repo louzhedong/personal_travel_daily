@@ -10,6 +10,7 @@ import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
 import {
   createTripChecklistItem,
   createTripPlanningItem,
+  createTripPlanningItemFromWishlist,
   convertTripPlanningItemToMarker,
   deleteTrip,
   deleteTripChecklistItem,
@@ -21,6 +22,7 @@ import {
   updateTripChecklistItem,
   updateTripPlanningItem,
 } from '../../lib/api/tripsApi';
+import { fetchWishlistItems } from '../../lib/api/wishlistApi';
 import {
   MARKER_BUDGET_LEVEL_LABELS,
   MARKER_TAG_LABELS,
@@ -35,7 +37,7 @@ import type {
   UpdateTripChecklistItemInput,
   UpdateTripPlanningItemInput,
 } from '../../lib/api/types';
-import type { AuthAccount, TripPlanningItem, TripPlanningSummary } from '../../types';
+import type { AuthAccount, TripPlanningItem, TripPlanningSummary, WishlistItem } from '../../types';
 import {
   buildTripCoverOptions,
   buildTripDetailSummaryCards,
@@ -80,6 +82,7 @@ export default function TripDetailPage({
   const [checklistBusy, setChecklistBusy] = useState(false);
   const [planningBusy, setPlanningBusy] = useState(false);
   const [planningItems, setPlanningItems] = useState<TripPlanningItem[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [planningSummary, setPlanningSummary] = useState<TripPlanningSummary>({
     total: 0,
     plannedCount: 0,
@@ -133,11 +136,12 @@ export default function TripDetailPage({
       };
     }
 
-    fetchTripPlanning(tripId)
-      .then((response) => {
+    Promise.all([fetchTripPlanning(tripId), fetchWishlistItems()])
+      .then(([response, wishlistResponse]) => {
         if (!cancelled) {
           setPlanningItems(response.items);
           setPlanningSummary(response.summary);
+          setWishlistItems(wishlistResponse.items);
         }
       })
       .catch((error) => {
@@ -251,6 +255,11 @@ export default function TripDetailPage({
     wrapPlanningMutation(async () => {
       await convertTripPlanningItemToMarker(tripId, itemId, input);
     }, '已将规划项转为旅行记录。');
+
+  const handleImportWishlistItem = async (wishlistId: string) =>
+    wrapPlanningMutation(async () => {
+      await createTripPlanningItemFromWishlist(tripId, wishlistId);
+    }, '已从愿望地图加入行前规划。');
 
   const openTripEditor = () => {
     if (!data) {
@@ -502,7 +511,7 @@ export default function TripDetailPage({
             <section className="trip-detail-tabs" aria-label="行程详情视图">
               {[
                 { key: 'overview', label: '概览' },
-                { key: 'planning', label: `规划 ${planningSummary.plannedCount}` },
+                { key: 'planning', label: `行前规划 ${planningSummary.plannedCount}` },
                 { key: 'records', label: `记录 ${data.summary.markerCount}` },
                 { key: 'assets', label: '素材' },
               ].map((tab) => (
@@ -529,12 +538,14 @@ export default function TripDetailPage({
                   activeCompanionId={data.companions[0]?.id ?? account.id}
                   summary={planningSummary}
                   items={planningItems}
+                  wishlistItems={wishlistItems}
                   busy={planningBusy}
                   feedbackMessage=""
                   onCreateItem={handleCreatePlanningItem}
                   onUpdateItem={handleUpdatePlanningItem}
                   onDeleteItem={handleDeletePlanningItem}
                   onConvertItem={handleConvertPlanningItem}
+                  onImportWishlistItem={handleImportWishlistItem}
                 />
               </section>
             ) : null}

@@ -50,6 +50,7 @@ export function serializeTripPlanningItem(item: TripPlanningItemWithRelations): 
     sourceGuideTitle: item.sourceGuideTitle ?? undefined,
     sourceGuideSourceName: item.sourceGuideSourceName ?? undefined,
     sourceGuideSourceUrl: item.sourceGuideSourceUrl ?? undefined,
+    sourceWishlistId: item.sourceWishlistId ?? undefined,
     sortOrder: item.sortOrder,
     createdAt: toIsoString(item.createdAt),
     updatedAt: toIsoString(item.updatedAt),

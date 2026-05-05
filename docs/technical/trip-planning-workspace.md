@@ -1,18 +1,18 @@
 # 行前规划工作台 / Trip Planning Workspace
 
-这份文档记录 Trip-bound 行前规划工作台一期的产品范围、数据模型、接口、前端入口、后台只读巡检和测试边界。它的目标是把“旅行发生后整理”前移到“出发前规划”，但仍保持轻量，不引入复杂日程排班、多人协作或全局愿望地图。
+这份文档记录 Trip-bound 行前规划工作台的产品范围、数据模型、接口、前端入口、后台只读巡检和测试边界。它的目标是把“旅行发生后整理”前移到“出发前规划”，并和全局愿望地图形成“长期想去 -> 某次行程计划 -> 旅行记录”的轻量闭环。
 
 This document records phase one of the trip-bound planning workspace: product scope, data model, APIs, frontend entry points, admin read-only inspection, and test boundaries. The goal is to move part of the product from post-trip organization into pre-trip planning while keeping the first phase lightweight.
 
 ## 目标与范围 / Goals and Scope
 
 - 一期目标：在某个已存在行程内管理“想去地点 / 想做事项”，并在旅行后转成正式旅行记录。
-- 一期覆盖：规划项 CRUD、优先级、预计日期、攻略来源、转记录、行程详情内 Tab、攻略搜索加入规划、后台只读巡检。
-- 一期不做：独立规划页、全局 wishlist、地图选点、第三方地理编码、按天排班、多人协作、后台代用户编辑。
+- 已覆盖：规划项 CRUD、优先级、预计日期、攻略来源、从愿望地图导入、转记录、行程详情内 Tab、攻略搜索加入规划、后台只读巡检。
+- 暂不覆盖：独立规划页、第三方地理编码、按天排班、多人协作、后台代用户编辑。
 
 - Phase-one goal: manage desired places or planned actions inside an existing trip, then convert them into visit markers after the trip.
-- Phase-one scope: planning-item CRUD, priority, planned date, guide source metadata, conversion to marker, trip-detail tab, guide-search entry, and admin read-only inspection.
-- Out of scope: standalone planning page, global wishlist, map picking, third-party geocoding, day scheduling, collaboration, and admin-side mutation.
+- Current scope: planning-item CRUD, priority, planned date, guide source metadata, wishlist import, conversion to marker, trip-detail tab, guide-search entry, and admin read-only inspection.
+- Out of scope: standalone planning page, third-party geocoding, day scheduling, collaboration, and admin-side mutation.
 
 ## 数据模型 / Data Model
 
@@ -27,9 +27,10 @@ This document records phase one of the trip-bound planning workspace: product sc
 - 规划：`priority: low | medium | high`、`plannedDate`
 - 状态：`status: planned | converted`、`convertedMarkerId`
 - 来源攻略：`sourceGuideIdentity`、`sourceGuideTitle`、`sourceGuideSourceName`、`sourceGuideSourceUrl`
+- 来源愿望：`sourceWishlistId`
 - 排序与生命周期：`sortOrder`、`isDeleted`、`createdAt`、`updatedAt`、`deletedAt`
 
-The model stores destination identity, title/note, priority, planned date, conversion state, guide-source metadata, sort order, and soft-delete lifecycle fields.
+The model stores destination identity, title/note, priority, planned date, conversion state, guide-source metadata, optional wishlist source, sort order, and soft-delete lifecycle fields.
 
 ## 接口 / APIs
 
@@ -41,6 +42,7 @@ All planning APIs are trip subresources and inherit authenticated account owners
 - `POST /api/trips/:id/planning/items`：新增规划项。
 - `PATCH /api/trips/:id/planning/items/:itemId`：更新未转换规划项。
 - `DELETE /api/trips/:id/planning/items/:itemId`：软删除规划项。
+- `POST /api/trips/:id/planning/from-wishlist/:wishlistId`：从愿望地图复制生成规划项。
 - `POST /api/trips/:id/planning/items/:itemId/convert-to-marker`：把规划项转为正式旅行记录。
 
 `GET /api/trips/:id/detail` 只增加轻量 `planningSummary`，完整规划列表仍由专用 planning API 拉取，避免详情聚合继续变厚。
@@ -61,13 +63,14 @@ The conversion endpoint creates a `VisitMarker` from the planning item, requires
 
 ## 前端入口 / Frontend Entry Points
 
-- `/trips/:id` 行程详情页新增 `概览 / 规划 / 记录 / 素材` Tab。
+- `/trips/:id` 行程详情页新增 `概览 / 行前规划 / 记录 / 素材` Tab。
 - `规划` Tab 内使用 `TripPlanningBoard`，支持新增、编辑备注、删除、按优先级筛选和转记录。
+- `规划` Tab 顶部固定展示“愿望地图导入”，即使愿望池为空也显示空态，避免入口不可见。
 - 攻略搜索结果新增“加入行程规划”，用户选择目标行程并确认地区、编码、城市和预计日期后创建规划项。
 - “加入行程规划”和“生成行前清单”并存：前者沉淀想去地点，后者沉淀准备事项。
 
 - `/trips/:id` now has `Overview / Planning / Records / Assets` tabs.
-- The `Planning` tab uses `TripPlanningBoard` for create, note edit, delete, priority filtering, and conversion.
+- The `Planning` tab uses `TripPlanningBoard` for create, note edit, delete, priority filtering, wishlist import, and conversion.
 - Guide search results can be added to trip planning after choosing a trip and confirming destination fields.
 - Planning and guide-to-checklist remain separate: planning captures desired places, checklist captures preparation tasks.
 

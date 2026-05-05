@@ -5,6 +5,7 @@ import { useCompanionActions } from './useCompanionActions';
 import { useGuideActions } from './useGuideActions';
 import { useMarkerActions } from './useMarkerActions';
 import { useTripActions } from './useTripActions';
+import { useWishlistActions } from './useWishlistActions';
 
 export interface UseTravelStoreActionsArgs {
   store: TravelStore;
@@ -67,11 +68,22 @@ export function useTravelStoreActions({
     setMarkerModalOpen,
     setDetailMarkerId,
   });
+  const wishlistActions = useWishlistActions({
+    store,
+    setStore,
+    setMessage,
+    showToast,
+    setSaving,
+    setSelectedRegionId,
+    setMarkerModalOpen,
+    setDetailMarkerId,
+  });
 
   return {
     ...companionActions,
     ...tripActions,
     ...markerActions,
     ...guideActions,
+    ...wishlistActions,
   };
 }

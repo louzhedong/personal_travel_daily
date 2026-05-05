@@ -20,6 +20,8 @@ import type {
   TripCollection,
   TravelStore,
   VisitMarker,
+  WishlistItem,
+  WishlistPriority,
 } from '../../types';
 
 // Re-export shared error code constants/types so 前端调用方 / front-end callers
@@ -178,6 +180,50 @@ export interface TripPlanningResponseDto {
 }
 
 export interface DeleteTripPlanningItemResponseDto {
+  deletedId: string;
+}
+
+export interface CreateWishlistItemInput {
+  companionId: string;
+  title: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note?: string;
+  priority?: WishlistPriority;
+  targetYear?: string | null;
+  guide?: GuideSourceInput;
+}
+
+export interface UpdateWishlistItemInput {
+  title?: string;
+  scope?: Scope;
+  scopeId?: string;
+  scopeName?: string;
+  city?: string;
+  note?: string | null;
+  priority?: WishlistPriority;
+  targetYear?: string | null;
+}
+
+export interface ConvertWishlistToTripInput {
+  name?: string;
+  note?: string;
+  startsAt?: string;
+  endsAt?: string;
+}
+
+export interface WishlistListResponseDto {
+  items: WishlistItem[];
+}
+
+export interface ConvertWishlistToTripResponseDto {
+  tripId: string;
+  store: TravelStore;
+}
+
+export interface DeleteWishlistItemResponseDto {
   deletedId: string;
 }
 

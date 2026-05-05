@@ -169,6 +169,10 @@ function TravelApp({
     handleRemoveSavedGuide,
     handleSaveSearchHistory,
     handleGenerateTripChecklist,
+    handleCreateWishlistItem,
+    handleUpdateWishlistItem,
+    handleConvertWishlistItemToTrip,
+    handleDeleteWishlistItem,
   } = useTravelStoreActions({
     store,
     setStore,
@@ -242,6 +246,24 @@ function TravelApp({
     setPendingDeleteMarkerId(markerId);
   };
 
+  const handleAddSelectedRegionToWishlist = () => {
+    if (!selectedRegion) {
+      setMessage('请先在地图上选择一个区域，再加入愿望地图。');
+      return;
+    }
+
+    void handleCreateWishlistItem({
+      title: selectedRegion.name,
+      scope,
+      scopeId: selectedRegion.id,
+      scopeName: selectedRegion.name,
+      city: selectedRegion.cities[0] ?? selectedRegion.name,
+      note: `从${scope === 'domestic' ? '国内' : '世界'}地图加入的愿望地点。`,
+      priority: 'medium',
+      targetYear: null,
+    });
+  };
+
   const shouldShowMainBackToTop =
     showBackToTop && !guideSearchOpen && !markerModalOpen && !dataSyncOpen && detailMarker === null;
 
@@ -265,6 +287,7 @@ function TravelApp({
         currentMarkers={visibleMarkers}
         mapMarkers={currentMarkers}
         allMarkers={store.markers}
+        wishlistItems={store.wishlistItems ?? []}
         trips={store.trips ?? []}
         users={store.users}
         activeUserId={store.activeUserId}
@@ -275,6 +298,7 @@ function TravelApp({
         onScopeChange={handleScopeChange}
         onSelectRegion={handleSelectRegion}
         onOpenSelectedRegionComposer={handleOpenSelectedRegionComposer}
+        onAddSelectedRegionToWishlist={handleAddSelectedRegionToWishlist}
         onClearSelectedRegion={handleClearSelectedRegion}
         onRequestDeleteMarker={handleRequestDeleteMarker}
         onViewMarkerDetail={setDetailMarkerId}
@@ -291,6 +315,14 @@ function TravelApp({
         onOpenTripDetail={onOpenTripDetail}
         onOpenMarkerFromGuide={handleFocusMarkerFromGuide}
         onRemoveSavedGuide={handleRemoveSavedGuide}
+        onUpdateWishlistItem={handleUpdateWishlistItem}
+        onConvertWishlistItemToTrip={async (wishlistId) => {
+          const tripId = await handleConvertWishlistItemToTrip(wishlistId);
+          if (tripId) {
+            onOpenTripDetail?.(tripId);
+          }
+        }}
+        onDeleteWishlistItem={handleDeleteWishlistItem}
       />
 
       <AppOverlays
@@ -334,6 +366,7 @@ function TravelApp({
         onAttachGuideToMarker={handleAttachGuideToMarker}
         onSaveSearchHistory={handleSaveSearchHistory}
         onGenerateTripChecklist={handleGenerateTripChecklist}
+        onAddToWishlist={handleCreateWishlistItem}
         onOpenTripDetail={(tripId) => onOpenTripDetail?.(tripId)}
         onOpenTripChecklist={(tripId) => onOpenTripChecklist?.(tripId)}
       />

@@ -98,6 +98,7 @@ export interface TripPlanningItem {
   sourceGuideTitle?: string;
   sourceGuideSourceName?: string;
   sourceGuideSourceUrl?: string;
+  sourceWishlistId?: string;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -108,6 +109,33 @@ export interface TripPlanningSummary {
   plannedCount: number;
   convertedCount: number;
   highPriorityCount: number;
+}
+
+export type WishlistPriority = 'low' | 'medium' | 'high';
+
+export interface WishlistItem {
+  id: string;
+  companionId: string;
+  companionName: string;
+  companionColor: string;
+  title: string;
+  scope: Scope;
+  scopeId: string;
+  scopeName: string;
+  city: string;
+  note?: string;
+  priority: WishlistPriority;
+  targetYear?: string;
+  sourceGuideIdentity?: string;
+  sourceGuideTitle?: string;
+  sourceGuideSourceName?: string;
+  sourceGuideSourceUrl?: string;
+  importedTrips: Array<{
+    id: string;
+    name: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface VisitMarker {
@@ -249,6 +277,7 @@ export interface TravelStore {
   users: UserProfile[];
   trips?: TripCollection[];
   markers: VisitMarker[];
+  wishlistItems?: WishlistItem[];
   activeUserId: string;
   savedGuides: SavedGuide[];
   guideSearchHistory: GuideSearchHistoryItem[];

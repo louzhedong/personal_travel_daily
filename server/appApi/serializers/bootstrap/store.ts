@@ -10,12 +10,14 @@ import { serializeCompanion } from './companions.js';
 import { serializeGuideSearchHistory, serializeSavedGuideItem } from './guides.js';
 import { serializeMarker, type MarkerWithImages } from './markers.js';
 import { serializeTrip } from './trips.js';
+import { serializeWishlistItem, type WishlistItemWithRelations } from './wishlist.js';
 import { toIsoString } from './shared.js';
 
 export function serializeBootstrapStore(input: {
   users: TravelCompanion[];
   trips: Trip[];
   markers: MarkerWithImages[];
+  wishlistItems: WishlistItemWithRelations[];
   activeUserId: string;
   savedGuides: SavedGuide[];
   guideSearchHistory: GuideSearchHistory[];
@@ -24,6 +26,7 @@ export function serializeBootstrapStore(input: {
     users: input.users.map(serializeCompanion),
     trips: input.trips.map(serializeTrip),
     markers: input.markers.map(serializeMarker),
+    wishlistItems: input.wishlistItems.map(serializeWishlistItem),
     activeUserId: input.activeUserId,
     savedGuides: input.savedGuides.map(serializeSavedGuideItem),
     guideSearchHistory: input.guideSearchHistory.map(serializeGuideSearchHistory),

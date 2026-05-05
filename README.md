@@ -15,8 +15,9 @@
 - 攻略搜索：关键词搜索、范围筛选、搜索历史、正文摘要展示
 - 攻略阅读增强：正文目录、原文视图、站点级正文清洗与"回到顶部"
 - 攻略收藏与关联：同一用户在"收藏"与"关联到某条记录"两个语义下独立去重
+- 愿望地图：地图选区和攻略搜索结果可加入想去地点，支持编辑、筛选、排序、去重提示、已导入标记和一键转新行程；首页地图区分已访问、愿望和两者都有的区域，并显示愿望城市提示
 - 行程集合二期：创建、编辑、删除行程，封面管理，从时间线批量整理记录，并提供独立详情页 `/trips/:id`
-- 行前规划工作台：`/trips/:id` 内新增“规划”Tab，支持愿望地点、攻略来源、备注、优先级、预计日期管理，并可在旅行后转成正式旅行记录
+- 行前规划工作台：`/trips/:id` 内新增“行前规划”Tab，支持从愿望地图导入规划项、管理攻略来源、备注、优先级、预计日期，并可在旅行后转成正式旅行记录
 - 旅行故事 `/trips/:id/story`：将单次行程自动整理为私有故事页，支持模板切换、智能序言、动态 SVG 长图导出与浏览器打印 / PDF 导出
 - 攻略清单化：支持从攻略搜索结果直接生成绑定到行程的“行前清单”，自动产出 `出发前 / 旅途中 / 已完成` 三段事项，并提供行程详情内嵌面板与独立放大页 `/trips/:id/checklist`
 - 行程时间线：按当前用户聚合、按年份与国内 / 国际筛选，与地图、详情面板联动
@@ -27,7 +28,7 @@
 - 数据备份：应用内仅保留导出当前聚合快照为 JSON 的能力
 - 云端主数据：旅行记录、旅伴、攻略收藏 / 关联与搜索历史默认由主业务 API + MySQL 承载
 
-Summary: Every shipped capability above lives under the current bilingual design rules and a single MySQL-backed data layer, including trip-bound planning, printable trip stories, guide-to-checklist planning, and persistent travel-achievement unlock moments.
+Summary: Every shipped capability above lives under the current bilingual design rules and a single MySQL-backed data layer, including wishlist planning, trip-bound planning, printable trip stories, guide-to-checklist planning, and persistent travel-achievement unlock moments.
 
 ## 技术栈 / Tech Stack
 

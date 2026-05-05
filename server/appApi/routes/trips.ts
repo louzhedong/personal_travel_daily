@@ -16,6 +16,7 @@ import {
   convertTripPlanningItemBodySchema,
   createTripPlanningItemBodySchema,
   tripPlanningItemParamsSchema,
+  tripPlanningWishlistParamsSchema,
   updateTripPlanningItemBodySchema,
 } from '../schemas/tripPlanning.js';
 import {
@@ -33,6 +34,7 @@ import {
 } from '../services/tripChecklistService.js';
 import {
   convertTripPlanningItemToMarker,
+  createTripPlanningItemFromWishlist,
   createTripPlanningItemResource,
   deleteTripPlanningItemResource,
   listTripPlanning,
@@ -63,6 +65,12 @@ export async function registerTripRoutes(app: FastifyInstance) {
     const params = parseWithSchema(tripParamsSchema, request.params);
     const body = parseWithSchema(createTripPlanningItemBodySchema, request.body);
     return createTripPlanningItemResource(account.id, params.id, body);
+  });
+
+  app.post('/api/trips/:id/planning/from-wishlist/:wishlistId', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripPlanningWishlistParamsSchema, request.params);
+    return createTripPlanningItemFromWishlist(account.id, params.id, params.wishlistId);
   });
 
   app.patch('/api/trips/:id/planning/items/:itemId', async (request) => {
