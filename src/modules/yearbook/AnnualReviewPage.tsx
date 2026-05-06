@@ -4,6 +4,7 @@ import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
 import { fetchAnnualReview } from '../../lib/api/statsApi';
 import type { AnnualReviewResponseDto } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
+import { ACHIEVEMENT_RARITY_LABELS } from '../achievements/achievementsPageModel';
 import {
   buildAnnualHighlightItems,
   buildAnnualSummaryCards,
@@ -18,6 +19,7 @@ interface AnnualReviewPageProps {
   year: string;
   onNavigateBack: () => void;
   onOpenTripDetail: (tripId: string) => void;
+  onOpenAchievements?: () => void;
   onLogout: () => Promise<void> | void;
 }
 
@@ -26,6 +28,7 @@ export default function AnnualReviewPage({
   year,
   onNavigateBack,
   onOpenTripDetail,
+  onOpenAchievements,
   onLogout,
 }: AnnualReviewPageProps) {
   const [data, setData] = useState<AnnualReviewResponseDto | null>(null);
@@ -137,6 +140,9 @@ export default function AnnualReviewPage({
               ) : null}
               <button type="button" className="ghost-button" onClick={onNavigateBack}>
                 返回统计中心
+              </button>
+              <button type="button" className="ghost-button" onClick={onOpenAchievements} disabled={!onOpenAchievements}>
+                查看全部成就
               </button>
               <button type="button" className="ghost-button" onClick={() => void onLogout()}>
                 退出登录
@@ -277,13 +283,27 @@ export default function AnnualReviewPage({
                     <h2>年度成就</h2>
                     <p>只按 {year} 年的旅行记录计算，和统计中心的总成就分开。</p>
                   </div>
+                  <button type="button" className="ghost-button annual-review-achievement-link" onClick={onOpenAchievements} disabled={!onOpenAchievements}>
+                    查看全部成就
+                  </button>
                 </div>
                 <div className="annual-review-achievement-grid">
                   {data.achievements.map((achievement) => (
-                    <article key={achievement.id} className={`annual-review-achievement-card is-${achievement.status}`}>
-                      <span>{achievement.status === 'unlocked' ? '已达成' : achievement.status === 'close' ? '接近达成' : '未达成'}</span>
+                    <article
+                      key={achievement.id}
+                      className={`annual-review-achievement-card is-${achievement.status} is-${achievement.rarity}`}
+                    >
+                      <div className="annual-review-achievement-meta">
+                        <span>{achievement.status === 'unlocked' ? '已达成' : achievement.status === 'close' ? '接近达成' : '未达成'}</span>
+                        <span className={`stats-achievement-rarity is-${achievement.rarity}`}>
+                          {ACHIEVEMENT_RARITY_LABELS[achievement.rarity]}
+                        </span>
+                      </div>
                       <strong>{achievement.title}</strong>
                       <p>{achievement.description}</p>
+                      {achievement.nextHint && achievement.status !== 'unlocked' ? (
+                        <small className="annual-review-achievement-hint">{achievement.nextHint}</small>
+                      ) : null}
                       <div className="annual-review-achievement-track">
                         <div
                           style={{

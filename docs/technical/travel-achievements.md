@@ -1,24 +1,26 @@
 # 旅行成就系统 / Travel Achievements
 
-这份文档记录当前已落地的旅行成就系统。它描述的是仓库中的真实实现，不是未来态方案。
+这份文档记录当前仓库里已经落地的旅行成就系统，包含真实接口、前端入口、持久化语义和测试边界。
 
-This document records the travel-achievement system as it exists in the repository. It describes shipped behavior, not future design.
+This document records the shipped travel-achievement system in the repository, including the real API contract, frontend surfaces, persistence semantics, and test boundaries.
 
 ## 1. 产品定位 / Product Positioning
 
-旅行成就把统计中心从“看数据”推进到“看到自己的旅行里程碑”。它复用现有旅行记录、行程、照片、攻略、旅伴和轻量元数据聚合，不把成就进度拆成新的业务主数据。
+旅行成就把“统计”扩展成“旅行里程碑回看”。它不引入新的成就主数据，而是复用已有的记录、行程、照片、攻略、旅伴和轻量元数据做纯聚合。
 
-Travel achievements turn the stats center from raw analytics into personal travel milestones. They reuse existing markers, trips, photos, guides, companions, and lightweight metadata instead of creating a separate source of truth for progress.
+Travel achievements turn analytics into personal milestone review. They do not introduce a separate achievement source of truth; instead, they derive progress from markers, trips, photos, guides, companions, and lightweight metadata.
 
-当前成就展示在两个入口：
+当前成就有 3 个展示入口：
 
-- `/stats` 统计中心：展示全局旅行成就，跟随当前统计筛选实时变化。
-- `/yearbook/:year` 年度回顾：展示年度成就，固定在当前年份视图内计算。
+There are now 3 shipped surfaces for achievements:
 
-Current surfaces:
+- `/stats`：展示账号级成就和连续年度成就，跟随统计筛选实时变化。
+- `/yearbook/:year`：展示当前年份的年度限定成就。
+- `/achievements`：聚合账号级、连续年度和所有年份年度成就的独立总览页。
 
-- `/stats`: global travel achievements, recomputed live against the active stats filters.
-- `/yearbook/:year`: annual achievements, computed within the selected year.
+- `/stats`: shows account-level achievements plus consecutive-year streak achievements, recomputed live with the active stats filters.
+- `/yearbook/:year`: shows annual-limited achievements for the selected year.
+- `/achievements`: a standalone atlas page that combines account-level, streak, and all-year annual achievements.
 
 ## 2. 成就 DTO / Achievement DTO
 
@@ -27,12 +29,28 @@ Current surfaces:
 The frontend and backend share the same field semantics through `server/appApi/types.ts` and `src/lib/api/types.ts`.
 
 ```ts
+type StatsAchievementCategoryDto = 'footprint' | 'rhythm' | 'companion' | 'content' | 'style';
+type StatsAchievementStatusDto = 'unlocked' | 'close' | 'locked';
+type StatsAchievementRarityDto = 'common' | 'rare' | 'epic' | 'legendary';
+type StatsAchievementGroupDto =
+  | 'footprint'
+  | 'rhythm'
+  | 'companion'
+  | 'content'
+  | 'style'
+  | 'annual'
+  | 'streak';
+type StatsAchievementPeriodTypeDto = 'global' | 'annual' | 'streak';
+
 interface StatsAchievementDto {
   id: string;
   title: string;
   description: string;
-  category: 'footprint' | 'rhythm' | 'companion' | 'content' | 'style';
-  status: 'unlocked' | 'close' | 'locked';
+  category: StatsAchievementCategoryDto;
+  group: StatsAchievementGroupDto;
+  periodType: StatsAchievementPeriodTypeDto;
+  rarity: StatsAchievementRarityDto;
+  status: StatsAchievementStatusDto;
   progressValue: number;
   progressTarget: number;
   remainingValue?: number;
@@ -42,105 +60,213 @@ interface StatsAchievementDto {
     value: string;
     description?: string;
   }>;
+  streakYears?: string[];
+  nextHint?: string;
   firstUnlockedAt?: string;
 }
 ```
 
-`close` 的口径固定为：进度达到目标的 60% 及以上，但尚未达成。`remainingValue` 只表达距离目标还差多少；已达成时为 `0`。
+字段语义补充：
 
-`close` means progress is at least 60% of the target but not yet unlocked. `remainingValue` expresses the remaining gap and is `0` once unlocked.
+Field semantics:
 
-## 3. 全局成就 / Global Achievements
+- `close`：进度达到目标的 60% 及以上，但尚未解锁。
+- `group`：用于独立成就页分组，不改变原始 `category` 业务语义。
+- `periodType`：区分账号级成就、年度限定成就和连续年度成就。
+- `rarity`：当前用于 UI 徽标和视觉权重。
+- `streakYears`：仅连续年度成就使用，记录当前最长连续年份链路。
+- `nextHint`：当成就未达成时，给出下一步最接近的提示文案。
 
-`GET /api/stats/overview` 返回 12 个固定全局成就：
+- `close`: progress is at least 60% of the target but not yet unlocked.
+- `group`: supports atlas-page grouping without changing the original business `category`.
+- `periodType`: distinguishes account-level, annual, and streak achievements.
+- `rarity`: powers UI badges and visual emphasis.
+- `streakYears`: used only by streak achievements to expose the longest consecutive-year chain.
+- `nextHint`: gives the next closest action hint for non-unlocked achievements.
 
-| ID | 标题 | 分类 | 目标 |
+## 3. 成就目录 / Achievement Catalog
+
+`GET /api/stats/overview` 在默认全量视图下返回 14 个成就：12 个账号级成就 + 2 个连续年度成就。
+
+`GET /api/stats/overview` returns 14 achievements in the default all-data view: 12 account-level achievements plus 2 streak achievements.
+
+### 3.1 账号级成就 / Account-Level Achievements
+
+| ID | 标题 | `group` | 目标 |
 | --- | --- | --- | --- |
-| `city-explorer` | 城市探索者 | `footprint` | 覆盖 5 座城市 |
-| `cross-city-traveler` | 跨城旅人 | `footprint` | 覆盖 10 座城市 |
-| `first-international-trip` | 世界初体验 | `footprint` | 有 1 条国际记录 |
-| `country-collector` | 国家收藏家 | `footprint` | 覆盖 3 个国际国家 / 地区 |
+| `city-explorer` | 城市探索者 | `footprint` | 覆盖 5 座不同城市 |
+| `cross-city-traveler` | 跨城旅人 | `footprint` | 覆盖 10 座不同城市 |
+| `first-international-trip` | 世界初体验 | `footprint` | 留下 1 条国际旅行记录 |
+| `country-collector` | 国家收藏家 | `footprint` | 覆盖 3 个国际国家或地区 |
 | `long-trip` | 长线旅行者 | `rhythm` | 最长行程达到 5 天 |
 | `frequent-departure` | 高频出发 | `rhythm` | 累计旅行天数达到 30 天 |
 | `monthly-streak` | 连续脚步 | `rhythm` | 连续 3 个月有旅行记录 |
 | `shared-memory` | 同行记忆 | `companion` | 与 2 位以上旅伴留下记录 |
 | `guide-planner` | 攻略派 | `content` | 关联或收藏攻略达到 5 篇 |
-| `photo-keeper` | 摄影记录者 | `content` | 照片达到 20 张 |
+| `photo-keeper` | 摄影记录者 | `content` | 旅行照片达到 20 张 |
 | `citywalk-lover` | 城市漫游家 | `style` | `citywalk` 标签达到 3 条 |
-| `rail-flight-traveler` | 铁道/飞行偏好 | `style` | `train` 或 `plane` 交通记录达到 3 条 |
+| `rail-flight-traveler` | 铁道/飞行偏好 | `style` | 火车或飞机交通记录达到 3 条 |
 
-这些成就基于当前统计筛选后的 markers / trips / guides 计算，所以年份、范围、旅伴、行程、标签、心情、天气、交通和预算筛选都会影响成就状态。
+### 3.2 连续年度成就 / Streak Achievements
 
-These achievements are computed from the markers / trips / guides left after the active stats filters, so year, scope, companion, trip, tag, mood, weather, transport, and budget filters all affect status.
+- `streak-consecutive-years-2`：连续 2 年都有旅行记录，`group = streak`，`periodType = streak`，`rarity = epic`。
+- `streak-consecutive-years-3`：连续 3 年都有旅行记录，`group = streak`，`periodType = streak`，`rarity = legendary`。
 
-## 4. 年度成就 / Annual Achievements
+- `streak-consecutive-years-2`: 2 consecutive active travel years, with `group = streak`, `periodType = streak`, and `rarity = epic`.
+- `streak-consecutive-years-3`: 3 consecutive active travel years, with `group = streak`, `periodType = streak`, and `rarity = legendary`.
 
-`GET /api/stats/annual-review?year=YYYY` 返回年度成就，当前固定为：
+`GET /api/stats/annual-review?year=YYYY` 当前返回 6 个年度限定成就，全部使用 `group = annual`、`periodType = annual`、`rarity = rare`。
 
-- `annual-${year}-travel-days`：年度出发王，这一年旅行天数达到 20 天。
-- `annual-${year}-photo-keeper`：年度摄影手，这一年旅行照片达到 30 张。
-- `annual-${year}-shared-memory`：年度同行记忆，这一年与 2 位以上旅伴同行。
+`GET /api/stats/annual-review?year=YYYY` currently returns 6 annual-limited achievements, all with `group = annual`, `periodType = annual`, and `rarity = rare`.
 
-Annual review currently returns:
+- `annual-${year}-travel-days`：这一年旅行天数达到 20 天。
+- `annual-${year}-photo-keeper`：这一年旅行照片达到 30 张。
+- `annual-${year}-shared-memory`：这一年与 2 位以上旅伴同行。
+- `annual-${year}-country-collector`：这一年覆盖 2 个国际国家或地区。
+- `annual-${year}-long-trip`：这一年最长行程达到 5 天。
+- `annual-${year}-citywalk-lover`：这一年 `citywalk` 标签达到 3 条。
 
-- `annual-${year}-travel-days`: 20 travel days in the year.
-- `annual-${year}-photo-keeper`: 30 photos in the year.
-- `annual-${year}-shared-memory`: 2 or more companions in the year.
+- `annual-${year}-travel-days`: 20 travel days within the selected year.
+- `annual-${year}-photo-keeper`: 30 travel photos within the selected year.
+- `annual-${year}-shared-memory`: 2 or more companions within the selected year.
+- `annual-${year}-country-collector`: 2 international countries or regions within the selected year.
+- `annual-${year}-long-trip`: a 5-day longest trip within the selected year.
+- `annual-${year}-citywalk-lover`: 3 `citywalk` markers within the selected year.
 
-## 5. 计算与持久化 / Computation and Persistence
+## 4. 计算规则 / Computation Rules
 
-聚合逻辑集中在 `server/appApi/services/stats/aggregator.ts`，保持无 Prisma / I/O 副作用。`buildAchievements()` 负责全局成就，`buildAnnualAchievements()` 负责年度成就。
+聚合逻辑集中在 `server/appApi/services/stats/aggregator.ts`，保持无 Prisma / I/O 副作用。
 
-Aggregation lives in `server/appApi/services/stats/aggregator.ts` and remains Prisma / I/O free. `buildAchievements()` handles global achievements and `buildAnnualAchievements()` handles annual achievements.
+Aggregation lives in `server/appApi/services/stats/aggregator.ts` and remains Prisma / I/O free.
 
-首次解锁时间单独存入 `AchievementUnlock`，数据库表为 `achievement_unlocks`。唯一约束是：
+核心函数：
+
+Core functions:
+
+- `buildAchievements()`：生成 12 个账号级成就，并在末尾拼接 `buildStreakAchievements()` 的结果。
+- `buildStreakAchievements()`：基于最长连续年份链路生成 2 个 streak 成就，并附带 `streakYears`。
+- `buildAnnualAchievements()`：按年份生成 6 个年度限定成就。
+- `getAchievementRarity()`：根据周期和目标自动派生稀有度。
+- `getAchievementNextHint()`：为未达成成就生成下一步提示。
+
+- `buildAchievements()`: creates the 12 account-level achievements and appends the result of `buildStreakAchievements()`.
+- `buildStreakAchievements()`: builds the 2 streak achievements from the longest consecutive-year chain and attaches `streakYears`.
+- `buildAnnualAchievements()`: creates the 6 annual-limited achievements for a given year.
+- `getAchievementRarity()`: derives rarity from period type and target shape.
+- `getAchievementNextHint()`: generates the next-step hint for non-unlocked achievements.
+
+`/stats` 的成就是基于筛选后的 markers / trips / guides 实时计算，因此年份、范围、旅伴、行程、标签、心情、天气、交通和预算筛选都会影响账号级与 streak 成就状态。
+
+`/stats` achievements are recomputed from the filtered markers / trips / guides, so year, scope, companion, trip, tag, mood, weather, transport, and budget filters all affect account-level and streak status.
+
+## 5. 持久化语义 / Persistence Semantics
+
+首次解锁时间单独存入 `AchievementUnlock`，数据库表为 `achievement_unlocks`，唯一约束为：
+
+First-unlock timestamps are persisted in `AchievementUnlock` (`achievement_unlocks`) with the unique key:
 
 ```text
 account_id + achievement_id + period_key
 ```
 
-`period_key` 当前有两种形态：
+`period_key` 当前有 3 种语义：
 
-- `global`：默认全量统计视图的全局成就。
-- `annual:${year}`：年度回顾里的年度成就。
+`period_key` currently has 3 meanings:
 
-筛选后的 `/stats` 视图只实时计算，不写 `achievement_unlocks`。这样可以让筛选态成就跟随视图变化，同时避免把临时切片永久写成用户历史。
+- `global`：默认全量统计视图下的账号级成就。
+- `streak`：默认全量统计视图下的连续年度成就。
+- `annual:${year}`：年度回顾中的年度限定成就。
 
-Filtered `/stats` views are computed live and do not write `achievement_unlocks`. This keeps slice-specific achievements responsive without turning temporary filters into permanent user history.
+- `global`: account-level achievements from the default all-data overview.
+- `streak`: consecutive-year achievements from the default all-data overview.
+- `annual:${year}`: annual-limited achievements from a specific annual review.
+
+只有默认全量 `/stats` 视图会写入 `global` 和 `streak` 首次解锁时间；任意筛选态 `/stats` 只做实时计算，不写数据库。年度回顾始终写入对应的 `annual:${year}`。
+
+Only the default all-data `/stats` view writes first-unlock timestamps for `global` and `streak`; filtered `/stats` views are computed live and never persisted. Annual reviews always write the corresponding `annual:${year}` period.
 
 ## 6. 前端展示 / Frontend Display
 
-统计中心在摘要卡片之后展示成就区块，默认展示 6 个重点成就，并提供“展开全部 / 收起”。成就卡片展示分类、状态、进度条和进度文案；点击卡片打开成就详情弹窗。
+统计中心在摘要卡片后展示成就区块，默认展示 6 个重点卡片，并提供“查看成就总览”入口跳转到 `/achievements`。
 
-The stats center places achievements after the summary cards. It shows 6 key cards by default and supports expand / collapse. Cards display category, status, progress bar, and progress text; clicking a card opens the detail dialog.
+The stats center renders an achievement section after the summary cards, shows 6 spotlight cards by default, and provides a "view achievement atlas" entry that navigates to `/achievements`.
 
-详情弹窗展示：
+成就卡片与详情弹窗已抽为共享 UI，供 `/stats` 和 `/achievements` 复用。卡片可展示：
 
-- 标题、分类、状态和进度。
-- 达成证据列表。
-- 首次解锁时间。
+Achievement cards and the detail dialog are shared UI reused by both `/stats` and `/achievements`. Cards can show:
 
-年度回顾在高光区域之后展示年度成就，复用同一 DTO 和进度语义。
+- 稀有度徽标。
+- 周期标签。
+- 进度条与进度文案。
+- 未达成时的 `nextHint`。
 
-Annual review displays annual achievements after the highlights section and reuses the same DTO and progress semantics.
+- rarity badges.
+- period labels.
+- progress bars and progress copy.
+- `nextHint` for non-unlocked achievements.
 
-## 7. 滚动与弹窗约束 / Dialog and Scroll Rules
+`/yearbook/:year` 在高光区域后展示 6 个年度成就，也显示稀有度和 `nextHint`，并提供“查看全部成就”入口。
 
-成就详情使用通用 `Dialog`。弹窗打开期间会锁定 `document.body` 滚动，并通过 `overscroll-behavior: contain` 阻止弹窗内部滚动穿透到背景页面。
+`/yearbook/:year` renders 6 annual achievements after the highlight section, also shows rarity and `nextHint`, and includes a "view all achievements" entry.
 
-Achievement detail uses the shared `Dialog`. While open, it locks `document.body` scrolling and uses `overscroll-behavior: contain` to prevent inner dialog scrolling from leaking into the background page.
+`/achievements` 独立页会：
 
-后续任何可滚动弹窗都应复用 `src/components/ui/Dialog.tsx`，不要在业务组件内重复手写 body lock。
+The standalone `/achievements` page:
 
-Future scrollable dialogs should reuse `src/components/ui/Dialog.tsx` instead of reimplementing body locking inside business components.
+- 先请求 `fetchStatsOverview({ scope: 'all' })`。
+- 再按 `availableYears` 并发请求所有年度回顾。
+- 用 `FancySelect` 按分组、稀有度和状态筛选。
+- 以 summary + group panel 形式统一浏览账号级、streak 与年度成就。
 
-## 8. 验证范围 / Validation
+- first fetch `fetchStatsOverview({ scope: 'all' })`.
+- then fetch all annual reviews in parallel from `availableYears`.
+- use `FancySelect` to filter by group, rarity, and status.
+- present account-level, streak, and annual achievements through summary cards and group panels.
+
+## 7. 分享卡与交互反馈 / Share Cards and Feedback
+
+成就详情弹窗集成私有分享卡导出能力，核心实现位于 `src/modules/achievements/achievementShareCard.ts` 和 `src/modules/achievements/useAchievementShareCard.ts`。
+
+Achievement detail integrates private share-card export through `src/modules/achievements/achievementShareCard.ts` and `src/modules/achievements/useAchievementShareCard.ts`.
+
+当前规则：
+
+Current rules:
+
+- `locked` 成就不导出，只通过全局 `AppToast` 提示当前尚未解锁。
+- `close` 和 `unlocked` 成就都可导出 SVG 分享卡。
+- 导出文件名按成就 ID 派生，内容会带成就标题、状态、证据和账号名。
+- 所有即时反馈统一走 `AppToast`，不在卡片局部塞隐性文案。
+
+- `locked` achievements do not export and instead show a global `AppToast` hint.
+- both `close` and `unlocked` achievements can export SVG share cards.
+- filenames are derived from the achievement ID, and the card includes the title, status, evidence, and account name.
+- all immediate feedback goes through the global `AppToast` instead of subtle local copy.
+
+## 8. 弹窗与滚动约束 / Dialog and Scroll Rules
+
+成就详情使用通用 `Dialog`。弹窗打开期间会锁定 `document.body` 滚动，并通过 `overscroll-behavior: contain` 阻止内部滚动穿透到背景页面。
+
+Achievement detail uses the shared `Dialog`. While open, it locks `document.body` scrolling and uses `overscroll-behavior: contain` to prevent inner scrolling from leaking into the background page.
+
+后续任何可滚动成就扩展弹窗都应复用 `src/components/ui/Dialog.tsx`，不要在业务组件里重复实现 body lock。
+
+Any future scrollable achievement-related dialogs should reuse `src/components/ui/Dialog.tsx` instead of reimplementing body locking in business components.
+
+## 9. 验证范围 / Validation
 
 当前测试覆盖：
 
-- 服务端成就聚合：已解锁、接近达成、未达成、空数据、筛选后重新计算。
-- API 契约：`GET /api/stats/overview` 和 `GET /api/stats/annual-review` 返回 `achievements`。
-- 前端展示：统计中心成就卡片、展开收起、详情弹窗、空态和年度回顾成就。
-- 回归：统计筛选、排行、热力图、行程详情钻取和弹窗滚动隔离。
+Current automated coverage includes:
 
-Current tests cover backend aggregation, API contracts, stats-center UI, annual-review UI, and regressions around filters, rankings, heatmaps, trip drill-down, and dialog scroll containment.
+- 服务端聚合：账号级、streak、年度成就的进度、稀有度、`nextHint` 和持久化 period key。
+- API 契约：`GET /api/stats/overview` 和 `GET /api/stats/annual-review` 的 achievement 字段完整性。
+- 前端页面：`/stats`、`/yearbook/:year`、`/achievements` 的展示、筛选、导航和空态。
+- 分享能力：分享卡 SVG 生成、下载逻辑和 Toast 行为。
+- 路由与宿主：`/achievements` 路由接入和页面分发。
+
+- backend aggregation: account-level, streak, and annual progress, rarity, `nextHint`, and persistence period keys.
+- API contracts: achievement field completeness for `GET /api/stats/overview` and `GET /api/stats/annual-review`.
+- frontend pages: rendering, filtering, navigation, and empty states for `/stats`, `/yearbook/:year`, and `/achievements`.
+- share behavior: SVG generation, download flow, and Toast feedback.
+- routing and host integration: `/achievements` routing and top-level app dispatch.

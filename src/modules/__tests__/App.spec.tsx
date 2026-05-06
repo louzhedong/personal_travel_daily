@@ -127,6 +127,10 @@ vi.mock('../yearbook/AnnualReviewPage', () => ({
   default: ({ year }: { year: string }) => <div data-testid="annual-review-page">annual-review-{year}</div>,
 }));
 
+vi.mock('../achievements/AchievementsPage', () => ({
+  default: () => <div data-testid="achievements-page">achievements-page</div>,
+}));
+
 vi.mock('../../components/UserManager', () => ({
   default: () => <div data-testid="user-manager">user-manager</div>,
 }));
@@ -384,6 +388,15 @@ describe('App auth and guide permissions', () => {
 
     expect(await screen.findByTestId('annual-review-page')).toHaveTextContent('annual-review-2026');
     expect(window.location.pathname).toBe('/yearbook/2026');
+  });
+
+  it('allows authenticated users to access /achievements and renders the achievement page', async () => {
+    window.history.replaceState({}, '', '/achievements');
+
+    render(<App />);
+
+    expect(await screen.findByTestId('achievements-page')).toHaveTextContent('achievements-page');
+    expect(window.location.pathname).toBe('/achievements');
   });
 
   it('redirects members away from /admin back to the main app shell', async () => {

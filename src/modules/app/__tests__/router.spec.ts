@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  createAchievementsRoute,
   createAnnualReviewRoute,
   createHomeRoute,
   createTripChecklistRoute,
@@ -25,6 +26,7 @@ describe('router', () => {
     expect(parsePathname('/register')).toEqual({ kind: 'register', pathname: '/register' });
     expect(parsePathname('/admin')).toEqual({ kind: 'admin', pathname: '/admin' });
     expect(parsePathname('/stats')).toEqual({ kind: 'stats', pathname: '/stats' });
+    expect(parsePathname('/achievements')).toEqual({ kind: 'achievements', pathname: '/achievements' });
     expect(parsePathname('/trips/trip-1')).toEqual({
       kind: 'tripDetail',
       pathname: '/trips/trip-1',
@@ -68,6 +70,10 @@ describe('router', () => {
       kind: 'annualReview',
       pathname: '/yearbook/2026%2Fsummary',
       year: '2026/summary',
+    });
+    expect(createAchievementsRoute()).toEqual({
+      kind: 'achievements',
+      pathname: '/achievements',
     });
   });
 
@@ -125,6 +131,14 @@ describe('router', () => {
       kind: 'annualReview',
       pathname: '/yearbook/2025',
       year: '2025',
+    });
+
+    act(() => {
+      result.current.navigate(createAchievementsRoute());
+    });
+    expect(result.current.route).toEqual({
+      kind: 'achievements',
+      pathname: '/achievements',
     });
 
     act(() => {
