@@ -457,7 +457,7 @@ describe('App auth and guide permissions', () => {
     await userEvent.type(searchInput, 'Kyoto');
     await userEvent.click(screen.getByRole('button', { name: '搜索' }));
 
-    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Kyoto Spring Cherry Blossom Guide/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '关联到当前记录' })).not.toBeInTheDocument();
     expect(remoteTravelStoreRepositoryMock.loadStore).toHaveBeenCalledTimes(1);
   });
@@ -489,11 +489,12 @@ describe('App auth and guide permissions', () => {
     await userEvent.type(searchInput, 'Kyoto');
     await userEvent.click(screen.getByRole('button', { name: '搜索' }));
 
-    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Kyoto Spring Cherry Blossom Guide/i })).toBeInTheDocument();
     expect(remoteTravelStoreRepositoryMock.createGuideSearchHistory).toHaveBeenCalledWith({
       companionId: 'u1',
       keyword: 'Kyoto',
       scope: 'all',
+      lastResultCount: 1,
     });
   });
 

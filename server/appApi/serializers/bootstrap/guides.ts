@@ -1,12 +1,14 @@
 // bootstrap serializer - guides / 保存的攻略、搜索历史及其 mutation 响应序列化。
 // bootstrap serializer - saved guides, guide search history, and their mutation responses.
-import type { GuideSearchHistory, SavedGuide } from '@prisma/client';
+import type { GuideSearchHistory, GuideSearchLog, SavedGuide } from '@prisma/client';
 import type {
   DeleteSavedGuideResponseDto,
   GuideContentBlockDto,
   GuideDocumentDto,
   GuideSearchHistoryItemDto,
   GuideSearchHistoryListResponseDto,
+  GuideSearchLogDto,
+  GuideSearchLogMutationResponseDto,
   GuideSearchHistoryMutationResponseDto,
   GuideSearchResultDto,
   SavedGuideDto,
@@ -103,6 +105,7 @@ export function serializeGuideSearchHistory(history: GuideSearchHistory): GuideS
     id: history.id,
     keyword: history.keyword,
     scope: history.scope,
+    lastResultCount: history.lastResultCount ?? undefined,
     createdAt: toIsoString(history.createdAt),
   };
 }
@@ -144,5 +147,33 @@ export function serializeGuideSearchHistoryMutation(
   return {
     item: serializeGuideSearchHistory(history),
     ...(deduplicated ? { deduplicated: true } : {}),
+  };
+}
+
+export function serializeGuideSearchLog(log: GuideSearchLog): GuideSearchLogDto {
+  return {
+    id: log.id,
+    companionId: log.companionId,
+    keyword: log.keyword,
+    scope: log.scope,
+    provider: log.provider,
+    page: log.page,
+    pageSize: log.pageSize,
+    resultCount: log.resultCount,
+    hasMore: log.hasMore,
+    durationMs: log.durationMs,
+    status: log.status,
+    errorCode: log.errorCode ?? undefined,
+    sourceName: log.sourceName ?? undefined,
+    sourceDomain: log.sourceDomain ?? undefined,
+    createdAt: toIsoString(log.createdAt),
+  };
+}
+
+export function serializeGuideSearchLogMutation(
+  log: GuideSearchLog,
+): GuideSearchLogMutationResponseDto {
+  return {
+    item: serializeGuideSearchLog(log),
   };
 }

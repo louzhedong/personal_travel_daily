@@ -86,12 +86,17 @@ export function useGuideActions({ store, setStore, setMessage, showToast }: UseT
     }
   };
 
-  const handleSaveSearchHistory = async (keyword: string, scope: 'all' | 'domestic' | 'international') => {
+  const handleSaveSearchHistory = async (
+    keyword: string,
+    scope: 'all' | 'domestic' | 'international',
+    lastResultCount?: number,
+  ) => {
     try {
       const response = await remoteTravelStoreRepository.createGuideSearchHistory({
         companionId: store.activeUserId,
         keyword,
         scope,
+        lastResultCount,
       });
 
       setStore((current) => ({

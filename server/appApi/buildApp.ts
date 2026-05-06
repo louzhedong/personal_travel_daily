@@ -7,6 +7,8 @@ import { registerAuthRoutes } from './routes/auth.js';
 import { registerBootstrapRoutes } from './routes/bootstrap.js';
 import { registerCompanionRoutes } from './routes/companions.js';
 import { registerGuideSearchHistoryRoutes } from './routes/guideSearchHistories.js';
+import { registerGuideSearchLogRoutes } from './routes/guideSearchLogs.js';
+import { registerGuideSourceHealthRoutes } from './routes/guideSourceHealth.js';
 import { registerHealthRoutes } from './routes/health.js';
 import { registerMarkerRoutes } from './routes/markers.js';
 import { registerSavedGuideRoutes } from './routes/savedGuides.js';
@@ -36,6 +38,8 @@ export async function buildApp() {
   await registerStatsRoutes(app);
   await registerSavedGuideRoutes(app);
   await registerGuideSearchHistoryRoutes(app);
+  await registerGuideSearchLogRoutes(app);
+  await registerGuideSourceHealthRoutes(app);
   await registerMarkerRoutes(app);
 
   app.setErrorHandler((error, _request, reply) => {

@@ -5,6 +5,8 @@ import {
   serializeDeleteSavedGuide,
   serializeGuideSearchHistory,
   serializeGuideSearchHistoryList,
+  serializeGuideSearchLog,
+  serializeGuideSearchLogMutation,
   serializeGuideSearchHistoryMutation,
   serializeSavedGuide,
   serializeSavedGuideMutation,
@@ -138,6 +140,7 @@ describe('bootstrap guides serializer', () => {
       id: 'history-1',
       keyword: '京都',
       scope: 'international',
+      lastResultCount: undefined,
       createdAt: '2026-04-01T00:00:00.000Z',
     });
     expect(serializeGuideSearchHistoryList([history])).toEqual({
@@ -149,6 +152,45 @@ describe('bootstrap guides serializer', () => {
     expect(serializeGuideSearchHistoryMutation(history, true)).toEqual({
       item: serializeGuideSearchHistory(history),
       deduplicated: true,
+    });
+  });
+
+  it('serializes guide search logs and source metadata', () => {
+    const log = {
+      id: 'log-1',
+      companionId: 'user-1',
+      keyword: '京都',
+      scope: 'international',
+      provider: 'remote',
+      page: 1,
+      pageSize: 8,
+      resultCount: 6,
+      hasMore: true,
+      durationMs: 180,
+      status: 'success',
+      sourceName: 'Qyer',
+      sourceDomain: 'qyer.com',
+      createdAt: new Date('2026-04-01T00:00:00.000Z'),
+    } as never;
+
+    expect(serializeGuideSearchLog(log)).toEqual({
+      id: 'log-1',
+      companionId: 'user-1',
+      keyword: '京都',
+      scope: 'international',
+      provider: 'remote',
+      page: 1,
+      pageSize: 8,
+      resultCount: 6,
+      hasMore: true,
+      durationMs: 180,
+      status: 'success',
+      sourceName: 'Qyer',
+      sourceDomain: 'qyer.com',
+      createdAt: '2026-04-01T00:00:00.000Z',
+    });
+    expect(serializeGuideSearchLogMutation(log)).toEqual({
+      item: serializeGuideSearchLog(log),
     });
   });
 });

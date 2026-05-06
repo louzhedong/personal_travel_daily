@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import AdminFiltersBar from '../../components/admin/AdminFiltersBar';
+import AdminGuideSearchTrendsPanel from '../../components/admin/AdminGuideSearchTrendsPanel';
 import AdminOverviewCards from '../../components/admin/AdminOverviewCards';
+import AdminGuideSourceHealthPanel from '../../components/admin/AdminGuideSourceHealthPanel';
 import AdminRankingTable from '../../components/admin/AdminRankingTable';
 import TravelIcon from '../../components/ui/TravelIcon';
 import { fetchAdminOverview } from '../../lib/api/adminApi';
@@ -249,6 +251,9 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                         </div>
                       )}
                     </section>
+
+                    <AdminGuideSearchTrendsPanel items={overview.guideSearchTrends ?? []} />
+                    <AdminGuideSourceHealthPanel items={overview.guideSourceHealth ?? []} />
                   </section>
 
                   <section className="admin-detail-tabs">

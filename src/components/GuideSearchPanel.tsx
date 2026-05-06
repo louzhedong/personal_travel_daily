@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import AppToast, { type AppToastTone } from './ui/AppToast';
+import { fetchGuideSourceHealth } from '../lib/api/guideSourceHealthApi';
+import type { GuideSourceHealthDto } from '../lib/api/types';
 import { getGuideDocument } from '../lib/guides/guideContentService';
 import {
   buildHighlightTokens,
   buildOriginalDocumentView,
+  renderHighlightedText,
 } from '../lib/guides/guideDocumentView';
 import { searchGuides } from '../lib/guides/guideSearchService';
 import { findSavedGuideInCollection } from '../lib/repositories/guideRepository';
@@ -39,7 +44,11 @@ interface GuideSearchPanelProps {
   onAttachGuideToMarker: (guide: GuideSearchResult, keyword: string, markerId: string) => void;
   onRemoveSavedGuide: (savedGuideId: string) => void;
   searchHistory: GuideSearchHistoryItem[];
-  onSaveSearchHistory: (keyword: string, scope: Scope | 'all') => Promise<GuideSearchHistoryItem[]>;
+  onSaveSearchHistory: (
+    keyword: string,
+    scope: Scope | 'all',
+    lastResultCount?: number,
+  ) => Promise<GuideSearchHistoryItem[]>;
   trips?: TripCollection[];
   onGenerateTripChecklist?: (tripId: string, guide: GuideSearchResult) => Promise<{ createdCount: number } | void>;
   onAddToWishlist?: (draft: {
@@ -95,6 +104,11 @@ export function GuideSearchPanel({
   const [error, setError] = useState('');
   const [provider, setProvider] = useState('');
   const [searchedKeyword, setSearchedKeyword] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [toast, setToast] = useState<{ message: string; tone: AppToastTone } | null>(null);
+  const [sourceHealthItems, setSourceHealthItems] = useState<GuideSourceHealthDto[]>([]);
   // Document drawer. 正文抽屉。
   const [selectedGuide, setSelectedGuide] = useState<GuideSearchResult | null>(null);
   const [guideDocument, setGuideDocument] = useState<GuideDocument | null>(null);
@@ -138,6 +152,19 @@ export function GuideSearchPanel({
   // Derived values. 派生值：关键词、高亮分词与原文视图。
   const normalizedKeyword = searchedKeyword || query.trim();
   const highlightTokens = useMemo(() => buildHighlightTokens(normalizedKeyword), [normalizedKeyword]);
+  const searchSuggestions = useMemo(
+    () =>
+      query.trim().length < 2
+        ? []
+        : history
+            .filter((item) => item.keyword.toLowerCase().includes(query.trim().toLowerCase()))
+            .slice(0, 5),
+    [history, query],
+  );
+  const sourceHealthByDomain = useMemo(
+    () => new Map(sourceHealthItems.map((item) => [item.sourceDomain.toLowerCase(), item])),
+    [sourceHealthItems],
+  );
   const originalDocumentView = useMemo(
     () =>
       guideDocument?.contentHtml
@@ -160,6 +187,13 @@ export function GuideSearchPanel({
     () => trips.find((trip) => trip.id === selectedTripId) ?? null,
     [selectedTripId, trips],
   );
+
+  const showToast = (message: string, tone: AppToastTone = 'info') => {
+    setToast({ message, tone });
+  };
+
+  const renderInlineHighlight = (text: string): ReactNode =>
+    renderHighlightedText(text, highlightTokens);
 
   // Scroll the document drawer into view. 滚动定位正文抽屉。
   const scrollDocumentPanelIntoView = (behavior: ScrollBehavior = 'smooth') => {
@@ -214,6 +248,37 @@ export function GuideSearchPanel({
     if (open) setHistory(searchHistory);
   }, [open, searchHistory]);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    let cancelled = false;
+    fetchGuideSourceHealth(20)
+      .then((response) => {
+        if (!cancelled) {
+          setSourceHealthItems(response.items);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSourceHealthItems([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+    const timeoutId = window.setTimeout(() => {
+      setToast(null);
+    }, 2600);
+    return () => window.clearTimeout(timeoutId);
+  }, [toast]);
+
   /** Execute a search and update state. 发起搜索并同步状态。 */
   const runSearch = async (nextQuery = query, nextScope = scope) => {
     const trimmed = nextQuery.trim();
@@ -226,6 +291,8 @@ export function GuideSearchPanel({
     setGuideDocument(null);
     setDocumentError('');
     setDocumentView('snippet');
+    setCurrentPage(1);
+    setHasMore(false);
 
     try {
       const response = await searchGuides({
@@ -233,17 +300,55 @@ export function GuideSearchPanel({
         scope: nextScope,
         page: 1,
         pageSize: 8,
+        companionId: activeUserId,
         searchMode: smartSearchEnabled ? 'smart' : 'keyword',
       });
       setItems(response.items);
       setProvider(response.provider);
-      setHistory(await onSaveSearchHistory(trimmed, nextScope));
+      setCurrentPage(response.page);
+      setHasMore(response.hasMore);
+      setHistory(await onSaveSearchHistory(trimmed, nextScope, response.items.length));
+      if (response.items.length === 0) {
+        showToast(`已搜索“${trimmed}”，暂时还没找到相关攻略。`, 'info');
+      }
     } catch (searchError) {
       setItems([]);
       setProvider('');
       setError(searchError instanceof Error ? searchError.message : '攻略搜索失败');
+      showToast(searchError instanceof Error ? searchError.message : '攻略搜索失败', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (loading || loadingMore || !hasMore || !searchedKeyword) {
+      if (!hasMore && searchedKeyword) {
+        showToast('已经到底了，没有更多攻略了。', 'info');
+      }
+      return;
+    }
+
+    setLoadingMore(true);
+    try {
+      const nextPage = currentPage + 1;
+      const response = await searchGuides({
+        keyword: searchedKeyword,
+        scope,
+        page: nextPage,
+        pageSize: 8,
+        companionId: activeUserId,
+        searchMode: smartSearchEnabled ? 'smart' : 'keyword',
+      });
+      setItems((current) => [...current, ...response.items]);
+      setProvider(response.provider);
+      setCurrentPage(response.page);
+      setHasMore(response.hasMore);
+    } catch (searchError) {
+      setError(searchError instanceof Error ? searchError.message : '加载更多攻略失败');
+      showToast(searchError instanceof Error ? searchError.message : '加载更多攻略失败', 'error');
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -340,8 +445,10 @@ export function GuideSearchPanel({
         guide,
       );
       setChecklistGenerationFeedback(`已将《${guide.title}》加入愿望地图。`);
+      showToast(`已将《${guide.title}》加入愿望地图。`, 'success');
     } catch (error) {
       setChecklistGenerationFeedback(error instanceof Error ? error.message : '加入愿望地图失败');
+      showToast(error instanceof Error ? error.message : '加入愿望地图失败', 'error');
     } finally {
       setWishlistSaving(false);
     }
@@ -373,9 +480,11 @@ export function GuideSearchPanel({
       });
       setSelectedTripId(planningDraft.tripId);
       setChecklistGenerationFeedback(`已将《${guidePendingPlanning.title}》加入行程规划。`);
+      showToast(`已将《${guidePendingPlanning.title}》加入行程规划。`, 'success');
       setPlanningDialogOpen(false);
     } catch (error) {
       setChecklistGenerationFeedback(error instanceof Error ? error.message : '加入行程规划失败');
+      showToast(error instanceof Error ? error.message : '加入行程规划失败', 'error');
     } finally {
       setPlanningSaving(false);
     }
@@ -392,9 +501,11 @@ export function GuideSearchPanel({
       setChecklistGenerationFeedback(
         `已为《${guidePendingChecklist.title}》在行程《${selectedTrip?.name ?? '当前行程'}》中生成 ${result?.createdCount ?? 0} 条行前清单。`,
       );
+      showToast('行前清单已生成。', 'success');
       setChecklistGenerationOpen(false);
     } catch (error) {
       setChecklistGenerationFeedback(error instanceof Error ? error.message : '生成行前清单失败');
+      showToast(error instanceof Error ? error.message : '生成行前清单失败', 'error');
     } finally {
       setChecklistGenerating(false);
     }
@@ -438,6 +549,7 @@ export function GuideSearchPanel({
           loading={loading}
           canSearch={canSearch}
           history={history}
+          suggestions={searchSuggestions}
           onQueryChange={setQuery}
           onScopeChange={setScope}
           onSmartSearchChange={setSmartSearchEnabled}
@@ -460,9 +572,21 @@ export function GuideSearchPanel({
             searchedKeyword={searchedKeyword}
             linkedMarkerId={linkedMarkerId}
             normalizedKeyword={normalizedKeyword}
+            renderHighlightedText={renderInlineHighlight}
+            sourceHealthByDomain={sourceHealthByDomain}
             getSavedGuideBySourceUrl={getSavedGuideBySourceUrl}
             onOpenGuide={(guide) => void handleOpenGuide(guide)}
-            onSaveGuide={onSaveGuide}
+            onSaveGuide={(guide, keyword) => {
+              const isSimilarDuplicate = savedGuides.some((savedGuide) => {
+                const sameSource = savedGuide.result.sourceUrl.toLowerCase() === guide.sourceUrl.toLowerCase();
+                const sameTitle = savedGuide.result.title.trim().toLowerCase() === guide.title.trim().toLowerCase();
+                return sameSource || sameTitle;
+              });
+              if (isSimilarDuplicate) {
+                showToast('已存在相似收藏，建议先检查是否重复。', 'info');
+              }
+              onSaveGuide(guide, keyword);
+            }}
             onAttachGuideToMarker={onAttachGuideToMarker}
             onRemoveSavedGuide={onRemoveSavedGuide}
             onGenerateTripChecklist={handleOpenChecklistGeneration}
@@ -473,6 +597,9 @@ export function GuideSearchPanel({
               }
             }}
             canGenerateTripChecklist={trips.length > 0}
+            hasMore={hasMore}
+            loadingMore={loadingMore}
+            onLoadMore={() => void handleLoadMore()}
           />
 
           <GuideDocumentDrawer
@@ -509,6 +636,7 @@ export function GuideSearchPanel({
           </div>
         ) : null}
         <div aria-hidden="true" style={{ height: panelSpacerHeight }} />
+        <AppToast open={!!toast} message={toast?.message ?? ''} tone={toast?.tone} />
       </aside>
       <Dialog
         open={checklistGenerationOpen}

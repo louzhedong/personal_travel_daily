@@ -123,7 +123,12 @@ describe('guideSearchHistoryService', () => {
       scope: 'international',
     });
 
-    expect(mocks.refreshGuideSearchHistoryMock).toHaveBeenCalledWith(tx, 'history-existing', 'Kyoto');
+    expect(mocks.refreshGuideSearchHistoryMock).toHaveBeenCalledWith(
+      tx,
+      'history-existing',
+      'Kyoto',
+      undefined,
+    );
     expect(mocks.createGuideSearchHistoryMock).not.toHaveBeenCalled();
     expect(result).toEqual({
       item: { id: 'history-existing', keyword: 'Kyoto' },
