@@ -176,16 +176,19 @@ describe('TripStoryPage', () => {
 
     expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '这次旅行的故事骨架' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '故事徽章' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '精选瞬间' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '路线胶片' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '路线回放海报' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '时间线叙事' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '照片段落' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '攻略摘录' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '行前清单回顾' })).toBeInTheDocument();
     expect(screen.getByText('西湖晚风很好。')).toBeInTheDocument();
     expect(screen.getAllByText('西湖晚风').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('多城串联')).toBeInTheDocument();
+    expect(screen.getByText(/2 站路线回放/)).toBeInTheDocument();
     expect(screen.getByText('杭州周末攻略')).toBeInTheDocument();
-    expect(screen.getAllByText('2 / 2 项已完成，完成度 100%')).toHaveLength(2);
+    expect(screen.getAllByText('2 / 2 项已完成，完成度 100%').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText(/从 浙江 · 杭州 到 江苏 · 苏州/)).toBeInTheDocument();
   });
 
@@ -241,6 +244,8 @@ describe('TripStoryPage', () => {
     );
 
     expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '明信片' }));
+    expect(screen.getByRole('main')).toHaveClass('trip-story-template-postcard');
     await user.click(screen.getByRole('button', { name: '纪念册' }));
     expect(screen.getByRole('main')).toHaveClass('trip-story-template-memoir');
 
@@ -250,6 +255,8 @@ describe('TripStoryPage', () => {
     const exportedBlob = vi.mocked(URL.createObjectURL).mock.calls[0][0] as Blob;
     const exportedSvg = await readBlobAsText(exportedBlob);
     expect(exportedSvg).toContain('精选瞬间');
+    expect(exportedSvg).toContain('故事徽章');
+    expect(exportedSvg).toContain('路线回放海报');
     expect(exportedSvg).toContain('第一张精选');
     expect(exportedSvg).toContain('照片段落');
     expect(exportedSvg).toContain('PHOTO 18');
@@ -257,6 +264,36 @@ describe('TripStoryPage', () => {
     expect(Number(exportedSvg.match(/height="(\d+)"/)?.[1])).toBeGreaterThan(1800);
     expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledOnce();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:story');
+  });
+
+  it('exports square and vertical story share cards', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TripStoryPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '导出方形分享卡' }));
+    await user.click(screen.getByRole('button', { name: '导出竖版分享卡' }));
+
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(2);
+    const squareSvg = await readBlobAsText(vi.mocked(URL.createObjectURL).mock.calls[0][0] as Blob);
+    const verticalSvg = await readBlobAsText(vi.mocked(URL.createObjectURL).mock.calls[1][0] as Blob);
+
+    expect(squareSvg).toContain('width="1080" height="1080"');
+    expect(squareSvg).toContain('江南春游');
+    expect(squareSvg).toContain('旅行天数');
+    expect(squareSvg).toContain('<image href="https://example.com/hangzhou.jpg"');
+    expect(verticalSvg).toContain('width="1080" height="1920"');
+    expect(verticalSvg).toContain('私有旅行故事分享卡');
+    expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledTimes(2);
   });
 
   it('shows empty states when optional story materials are missing', async () => {

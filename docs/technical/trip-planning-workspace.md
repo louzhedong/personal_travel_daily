@@ -85,16 +85,18 @@ The conversion endpoint creates a `VisitMarker` from the planning item, requires
 
 The admin backoffice remains read-only. It aggregates planning items, exposes planning counters, and adds a planning tab without mutation capabilities.
 
-## 长图导出关联 / Story Export Relationship
+## Story Studio 导出关联 / Story Studio Export Relationship
 
-旅行故事长图导出已调整为内容驱动布局：
+旅行故事页已升级为 Story Studio，继续复用行程详情聚合数据，不新增 story 专用接口或持久化。导出能力保持前端 SVG 生成：
 
 - SVG 高度根据摘要、路线、时间线、照片、攻略和清单内容动态增长。
+- 长图会包含故事徽章与路线回放海报；路线回放海报是静态行程表达，不依赖地图截图。
+- 额外支持方形 / 竖版分享卡导出，使用同一份封面、指标和智能序言模型。
 - 照片段落会输出真实 `<image href="...">`，并用 `clipPath` 裁切为卡片。
 - 若图片源禁止外链、需要登录或本地 SVG 查看器不加载网络图片，图片可能仍无法显示；这是外链图片加载限制，不是导出内容缺失。
 - 不把图片转为 base64 内嵌，避免跨域污染和大文件膨胀。
 
-Trip story long-image export now uses a content-driven SVG layout. It includes real image references but does not inline images as base64, so external image loading still depends on the image host and SVG viewer.
+Trip Story has evolved into Story Studio. Long-image and share-card exports are still generated in the frontend as SVG with real image references and without base64 inlining, so external image loading still depends on the image host and SVG viewer.
 
 ## 验证 / Validation
 
@@ -103,6 +105,6 @@ Trip story long-image export now uses a content-driven SVG layout. It includes r
 - App API routes 覆盖 planning 列表、创建、更新、删除和转记录路由。
 - `tripDetailService` 覆盖详情聚合在缺少 planning mock 时仍稳定回退。
 - `TripDetailPage`、`GuideSearchPanel`、`AdminPage` 回归测试保持通过。
-- `TripStoryPage` 覆盖重型照片导出：SVG 包含照片段落、真实 `<image href>`、动态高度超过固定基线。
+- `TripStoryPage` 覆盖重型照片导出、故事徽章、路线回放海报、明信片模板与方形 / 竖版分享卡导出。
 
-Validated areas include planning API routes, trip-detail aggregation, TripDetail / GuideSearch / Admin UI regressions, and heavy-gallery story SVG export.
+Validated areas include planning API routes, trip-detail aggregation, TripDetail / GuideSearch / Admin UI regressions, and Story Studio SVG export coverage.

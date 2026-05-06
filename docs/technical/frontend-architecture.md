@@ -139,7 +139,22 @@ The container file itself still owns search requests, document loading, search-h
 当前实现保留普通时间线与行程分组时间线两个分支，但两条分支共享同一套 `selectionMode`、`selectedMarkerIds` 与 `batchTripTarget` 状态，因此整理模式不再只在某一个分支可用。  
 The implementation still keeps both the plain timeline and the trip-grouped timeline branches, but both branches share the same `selectionMode`, `selectedMarkerIds`, and `batchTripTarget` state so organization mode works consistently across them.
 
-## 8. AdminPage 拆分 / Admin Page Split
+## 8. TripStoryPage 与 Story Studio / TripStoryPage and Story Studio
+
+`src/modules/trips/TripStoryPage.tsx` 是登录态私有故事页容器，继续复用 `GET /api/trips/:id/detail`，不拥有独立持久化或公开分享状态。页面自身只处理加载、模板切换、打印和导出按钮。
+`src/modules/trips/TripStoryPage.tsx` is the private authenticated story-page container. It still reuses `GET /api/trips/:id/detail` and does not own standalone persistence or public sharing state. The page itself handles loading, template switching, printing, and export actions.
+
+- `tripStoryPageModel.ts`：从 `TripDetailResponseDto` 纯函数派生故事摘要、精选照片、时间线、路线停靠点、故事徽章、路线回放海报和分享卡模型。
+  `tripStoryPageModel.ts`: derives story summaries, featured photos, timeline sections, route stops, story badges, the route replay poster, and share-card models from `TripDetailResponseDto`.
+- `tripStoryExport.ts`：集中生成 SVG 长图、方形分享卡和竖版分享卡，并触发浏览器下载；不截图、不内联远程图片。
+  `tripStoryExport.ts`: builds the SVG long image, square share card, and vertical share card, then triggers browser downloads; it does not screenshot or inline remote images.
+- `trip-story.css`：承接杂志风、纪念册和明信片模板，以及故事徽章、路线回放海报、分享卡相关响应式布局。
+  `trip-story.css`: owns the magazine, memoir, and postcard templates plus responsive layout for story badges, the route replay poster, and share-card-oriented controls.
+
+这个拆分让 Story Studio 的表达逻辑留在模型和导出 helper 中，避免重新把大段 SVG 拼接和派生规则塞回 React 组件体。
+This split keeps Story Studio composition logic in the model and export helper, avoiding a return of large SVG-building and derivation rules inside the React component body.
+
+## 9. AdminPage 拆分 / Admin Page Split
 
 `src/modules/admin/AdminPage.tsx` 现在主要保留“加载数据 + 选择账号 + 切换 tab + 布局壳层”职责，数据整形与局部展示已经拆到 `adminPageModel.ts`、`components/admin/AdminFiltersBar.tsx`、`components/admin/AdminOverviewCards.tsx` 与 `components/admin/AdminRankingTable.tsx`。  
 `src/modules/admin/AdminPage.tsx` now mainly keeps loading, account selection, tab switching, and shell layout responsibilities, while data shaping and section rendering are split into `adminPageModel.ts`, `components/admin/AdminFiltersBar.tsx`, `components/admin/AdminOverviewCards.tsx`, and `components/admin/AdminRankingTable.tsx`.
@@ -147,7 +162,7 @@ The implementation still keeps both the plain timeline and the trip-grouped time
 这样做之后，后台页继续保持只读聚合页定位，未来扩展更多筛选或巡检能力时也不需要把逻辑重新塞回 `AdminPage.tsx`。  
 This keeps the admin page positioned as a read-only aggregation surface and avoids pushing future inspection or filtering logic back into `AdminPage.tsx`.
 
-## 9. Actions Hooks 分层 / Layered Action Hooks
+## 10. Actions Hooks 分层 / Layered Action Hooks
 
 `src/modules/app/useTravelStoreActions.ts` 不再直接承载所有写操作实现，而是改成一个领域聚合入口。  
 `src/modules/app/useTravelStoreActions.ts` no longer contains every write operation directly and now acts as a domain-level aggregation entry.
@@ -164,14 +179,14 @@ This keeps the admin page positioned as a read-only aggregation surface and avoi
 `useTravelStoreActions()` 只负责把四个 hook 的返回值汇总给 `TravelApp` 使用，这让旅伴、行程、记录、攻略四个能力域的写操作边界更清晰，也更容易单独排查副作用。  
 `useTravelStoreActions()` now only aggregates the return values of those four hooks for `TravelApp`, which makes companion, trip, marker, and guide write flows easier to isolate and reason about.
 
-## 10. 样式组织约定 / Styling Conventions
+## 11. 样式组织约定 / Styling Conventions
 
 前端样式入口是 `src/styles/index.css`，当前采用“基础骨架 + 页面 barrel + 功能域 barrel + 响应式收口”的组织方式。  
 The frontend styling entry is `src/styles/index.css`, and it now follows a structure of base skeleton styles, page barrels, feature barrels, and a responsive closing layer.
 
 - 基础骨架：`base.css`、`layout.css`。  
   Base skeleton: `base.css` and `layout.css`.
-- 页面 barrel：`pages/index.css` 统一引入 `auth`、`admin`、`home`、`stats-center`、`trip-detail`、`trip-story`、`annual-review`。
+- 页面 barrel：`pages/index.css` 统一引入 `auth`、`admin`、`home`、`stats-center`、`trip-detail`、`trip-story`、`annual-review`；`trip-story.css` 覆盖 Story Studio 的三模板、故事徽章和路线回放海报。
   Page barrel: `pages/index.css` imports `auth`, `admin`, `home`, `stats-center`, `trip-detail`, `trip-story`, and `annual-review`.
 - 功能域 barrel：`features/index.css` 统一引入 `timeline`、`guide-search`、`map`、`marker-list`、`marker-detail`、`data-sync`、`dialog`、`forms`、`sidebar-panels`。  
   Feature barrel: `features/index.css` imports `timeline`, `guide-search`, `map`, `marker-list`, `marker-detail`, `data-sync`, `dialog`, `forms`, and `sidebar-panels`.
@@ -185,7 +200,7 @@ The frontend styling entry is `src/styles/index.css`, and it now follows a struc
 这种结构让页面壳层和功能域样式的归属更稳定，同时保留旧文件作为兼容入口，避免一轮重构里大面积改 TS/TSX import。  
 This structure makes ownership clearer between page-shell and feature-domain styles while preserving old files as compatibility entry points so the refactor does not require broad TS/TSX import rewrites.
 
-## 11. 扩展规则 / Extension Rules
+## 12. 扩展规则 / Extension Rules
 
 按照当前结构，后续新增前端能力时建议遵循以下规则。  
 Under the current structure, future frontend work should follow these rules.

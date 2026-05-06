@@ -175,20 +175,21 @@ Summary: Marker tags and lightweight metadata now ship as a first-phase closed l
 
 Summary: Travel achievements now ship across stats and annual review, with live progress, evidence, first-unlock persistence, and detail dialogs.
 
-### 旅行故事页与导出增强 / Trip Story Export Enhancements
+### Story Studio 与旅行故事导出增强 / Story Studio and Trip Story Export Enhancements
 
-- 状态：已完成产品化增强。
+- 状态：已完成 Story Studio 阶段。
 - 已落地范围：
-  - `/trips/:id/story` 将单次行程自动整理为私有故事页。
-  - 复用行程详情聚合数据，展示封面、摘要、路线胶片、时间线、照片、攻略摘录和行前清单回顾。
+  - `/trips/:id/story` 将单次行程自动整理为私有 Story Studio。
+  - 复用行程详情聚合数据，展示封面、摘要、故事徽章、路线回放海报、时间线、照片、攻略摘录和行前清单回顾。
   - 支持浏览器原生打印 / 保存 PDF，并提供 print 专用样式。
-  - 支持杂志风 / 纪念册模板切换、智能故事序言和 SVG 长图导出。
+  - 支持杂志风 / 纪念册 / 明信片模板切换、智能故事序言、SVG 长图导出、方形分享卡和竖版分享卡导出。
+  - Story Studio 导出逻辑已拆到 `tripStoryExport.ts`，页面展示模型由 `tripStoryPageModel.ts` 纯函数派生。
   - `/yearbook/:year` 支持浏览器原生打印 / 保存 PDF。
   - 行程详情页保留“查看故事页”入口。
 - 后续增强：
-  - 公开分享链接、访问权限、图片精选优先级和地图回放截图占位。
+  - 公开分享链接、访问权限、图片离线归档和真实地图截图。
 
-Summary: Trip stories and annual reviews now support private printable/exportable artifacts without new backend persistence.
+Summary: Story Studio and annual reviews now support private printable/exportable artifacts without new backend persistence.
 
 ## 当前产品基线 / Current Product Baseline
 
@@ -199,7 +200,7 @@ Summary: Trip stories and annual reviews now support private printable/exportabl
 - 旅行记录支持城市、起止日期、描述、多图上传、详情查看、编辑、删除和攻略关联。
 - 多旅伴切换、颜色区分以及"仅本人可编辑/删除本人记录"的权限边界已经落地。
 - 行程集合二期已完成，支持创建 / 编辑 / 删除行程、批量归属记录、封面管理与独立详情页回看。
-- Trip Collection Phase 2 is available with full CRUD, batch marker assignment, cover management, a dedicated detail page, and a private printable story page.
+- Trip Collection Phase 2 is available with full CRUD, batch marker assignment, cover management, a dedicated detail page, and a private Story Studio page.
 - 行程详情页已提供 trip-bound 行前规划工作台，支持攻略搜索加入规划、规划项 CRUD、优先级筛选、预计日期和转旅行记录。
 - Trip detail now includes a trip-bound planning workspace with guide-search intake, planning-item CRUD, priority filtering, planned dates, and marker conversion.
 - 旅行记录已支持标签、心情、天气、交通方式与预算级别等轻量元数据，并已接入时间线、行程详情、统计中心与服务端搜索。
@@ -248,20 +249,7 @@ Given the current product baseline, the product no longer lacks capture surfaces
 
 ## 下一阶段路线图 / Next-Phase Roadmap
 
-### 1. 旅行故事页进阶 / Trip Story Evolution
-
-- 优先级：`P2`
-- 为什么值得做：
-  - 故事页导出增强已经可用，下一步可以把它从“私有导出页面”升级为更有表达力的旅行作品。
-- 建议范围：
-  - 增加更多模板和移动端分享卡。
-  - 引入精选照片优先级、成就片段和地图回放截图占位。
-  - 探索真正的 AI 故事文案润色，但必须保留本地生成 fallback。
-  - 后续再考虑公开分享链接和访问权限。
-
-Summary: Trip story evolution should focus on stronger templates, share cards, and richer story composition.
-
-### 2. 成就系统进阶 / Achievement System Evolution
+### 1. 成就系统进阶 / Achievement System Evolution
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -274,7 +262,7 @@ Summary: Trip story evolution should focus on stronger templates, share cards, a
 
 Summary: Achievement evolution should deepen motivation and explainability without prematurely building a badge-management CMS.
 
-### 3. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
+### 2. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -287,7 +275,7 @@ Summary: Achievement evolution should deepen motivation and explainability witho
 
 Summary: Guide search should evolve from retrieval into a governed content pipeline.
 
-### 4. 照片与媒体整理 / Photo and Media Curation
+### 3. 照片与媒体整理 / Photo and Media Curation
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -300,7 +288,7 @@ Summary: Guide search should evolve from retrieval into a governed content pipel
 
 Summary: Media curation improves every retrospective surface that already depends on photos.
 
-### 5. 旅伴共同回忆 / Companion Shared Memories
+### 4. 旅伴共同回忆 / Companion Shared Memories
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -313,7 +301,7 @@ Summary: Media curation improves every retrospective surface that already depend
 
 Summary: Shared memories make companions emotionally meaningful while preserving the current single-account model.
 
-### 6. 管理后台与质量巡检 / Admin Quality Operations
+### 5. 管理后台与质量巡检 / Admin Quality Operations
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -325,7 +313,7 @@ Summary: Shared memories make companions emotionally meaningful while preserving
 
 Summary: Admin operations should help detect data and integration problems before they become user-facing regressions.
 
-### 7. 账号设置与会话治理 / Account Settings and Session Governance
+### 6. 账号设置与会话治理 / Account Settings and Session Governance
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -338,7 +326,7 @@ Summary: Admin operations should help detect data and integration problems befor
 
 Summary: Account settings are not flashy, but they matter once the app becomes a long-term personal archive.
 
-### 8. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+### 7. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -355,14 +343,13 @@ Summary: Architecture hardening keeps future feature work from becoming slower a
 
 建议按下面顺序推进（已完成项已挪到文档开头）：
 
-1. 旅行故事页进阶 / Trip Story Evolution
-2. 成就系统进阶 / Achievement System Evolution
-3. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
-4. 照片与媒体整理 / Photo and Media Curation
-5. 旅伴共同回忆 / Companion Shared Memories
-6. 管理后台与质量巡检 / Admin Quality Operations
-7. 账号设置与会话治理 / Account Settings and Session Governance
-8. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+1. 成就系统进阶 / Achievement System Evolution
+2. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
+3. 照片与媒体整理 / Photo and Media Curation
+4. 旅伴共同回忆 / Companion Shared Memories
+5. 管理后台与质量巡检 / Admin Quality Operations
+6. 账号设置与会话治理 / Account Settings and Session Governance
+7. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 ## 选题原则 / Feature Selection Rules
 

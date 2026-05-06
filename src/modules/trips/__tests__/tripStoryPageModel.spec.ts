@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { TripDetailResponseDto } from '../../../lib/api/types';
 import {
+  buildTripStoryBadges,
   buildTripStoryChecklistReview,
   buildTripStoryFeaturedPhotos,
   buildTripStoryPhotoSections,
+  buildTripStoryRoutePoster,
   buildTripStoryRouteStops,
+  buildTripStoryShareCard,
   buildTripStoryTimelineDays,
   buildTripStoryViewModel,
 } from '../tripStoryPageModel';
@@ -181,6 +184,17 @@ describe('tripStoryPageModel', () => {
     expect(model.photoSections[0]).toMatchObject({ key: 'featured', title: '精选瞬间' });
     expect(model.lead).toBe('一次慢下来看的江南周末。');
     expect(model.highlights).toHaveLength(6);
+    expect(model.badges.map((badge) => badge.id)).toEqual([
+      'route-span',
+      'photo-curation',
+      'checklist-memory',
+      'guide-context',
+      'detail-density',
+      'shared-memory',
+    ]);
+    expect(model.routePoster.title).toBe('浙江 · 杭州 到 浙江 · 杭州');
+    expect(model.shareCard.coverImageUrl).toBe('https://example.com/hangzhou.jpg');
+    expect(model.shareCard.metrics.map((metric) => metric.label)).toEqual(['旅行天数', '覆盖城市', '同行旅伴']);
     expect(model.timelineDays.map((day) => day.date)).toEqual(['2026-05-01', '2026-05-02', '2026-05-03']);
     expect(model.photoGroups).toHaveLength(2);
     expect(model.guides[0].result.title).toBe('杭州周末攻略');
@@ -200,10 +214,13 @@ describe('tripStoryPageModel', () => {
   it('sorts timeline days and route stops by visited date', () => {
     const days = buildTripStoryTimelineDays(baseTripDetail.markers);
     const stops = buildTripStoryRouteStops(baseTripDetail.markers);
+    const poster = buildTripStoryRoutePoster(stops);
 
     expect(days[0].markers[0].city).toBe('杭州');
     expect(days[1].markers[0].city).toBe('苏州');
     expect(stops.map((stop) => stop.label)).toEqual(['浙江 · 杭州', '江苏 · 苏州', '浙江 · 杭州']);
+    expect(poster.stops.map((stop) => stop.shortLabel)).toEqual(['杭州', '苏州', '杭州']);
+    expect(poster.subtitle).toContain('3 站路线回放');
   });
 
   it('handles empty photos, guides, markers, and checklist gracefully', () => {
@@ -230,6 +247,8 @@ describe('tripStoryPageModel', () => {
     });
 
     expect(emptyModel.lead).toBe('这次行程还没有旅行记录，故事页会在补充记录后自动丰满起来。');
+    expect(emptyModel.badges.map((badge) => badge.id)).toEqual(['waiting-for-records', 'trip-dates-ready']);
+    expect(emptyModel.routePoster.emptyText).toBe('还没有可展示的路线停靠点。');
     expect(emptyModel.photoGroups).toEqual([]);
     expect(emptyModel.guides).toEqual([]);
     expect(emptyModel.checklistReview.completionText).toBe('这次行程还没有沉淀行前清单。');
@@ -242,5 +261,45 @@ describe('tripStoryPageModel', () => {
       completionPercent: 50,
       completionText: '2 / 4 项已完成，完成度 50%',
     });
+  });
+
+  it('builds story badges from route, photo, checklist, guide and metadata signals', () => {
+    const badges = buildTripStoryBadges(baseTripDetail);
+
+    expect(badges).toHaveLength(6);
+    expect(badges.find((badge) => badge.id === 'route-span')).toMatchObject({
+      label: '多城串联',
+      value: '2',
+      tone: 'route',
+    });
+    expect(badges.find((badge) => badge.id === 'photo-curation')).toMatchObject({
+      label: '精选照片',
+      value: '1',
+      tone: 'photo',
+    });
+    expect(badges.find((badge) => badge.id === 'checklist-memory')).toMatchObject({
+      value: '50%',
+      tone: 'checklist',
+    });
+  });
+
+  it('uses explicit cover, then featured photo, then regular photo for share cards', () => {
+    expect(buildTripStoryShareCard(baseTripDetail, 'https://example.com/cover.jpg').coverImageUrl).toBe(
+      'https://example.com/cover.jpg',
+    );
+
+    const modelWithFeaturedFallback = buildTripStoryViewModel(baseTripDetail);
+    expect(modelWithFeaturedFallback.shareCard.coverImageUrl).toBe('https://example.com/hangzhou.jpg');
+
+    const modelWithRegularFallback = buildTripStoryViewModel({
+      ...baseTripDetail,
+      photos: [
+        {
+          ...baseTripDetail.photos[1],
+          isFeatured: false,
+        },
+      ],
+    });
+    expect(modelWithRegularFallback.shareCard.coverImageUrl).toBe('https://example.com/hangzhou-2.jpg');
   });
 });
