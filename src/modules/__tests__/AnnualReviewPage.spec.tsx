@@ -123,10 +123,14 @@ describe('AnnualReviewPage', () => {
         title: '年度出发王',
         description: '这一年旅行天数达到 20 天。',
         category: 'rhythm' as const,
+        group: 'annual' as const,
+        periodType: 'annual' as const,
+        rarity: 'rare' as const,
         status: 'locked' as const,
         progressValue: 4,
         progressTarget: 20,
         unit: '天',
+        nextHint: '还差 16 天，继续累积更多出发日。',
       },
     ],
     firstMarker: {
@@ -180,6 +184,7 @@ describe('AnnualReviewPage', () => {
         year="2026"
         onNavigateBack={vi.fn()}
         onOpenTripDetail={onOpenTripDetail}
+        onOpenAchievements={vi.fn()}
         onLogout={vi.fn()}
       />,
     );
@@ -203,6 +208,7 @@ describe('AnnualReviewPage', () => {
         year="2026"
         onNavigateBack={vi.fn()}
         onOpenTripDetail={vi.fn()}
+        onOpenAchievements={vi.fn()}
         onLogout={vi.fn()}
       />,
     );
@@ -242,10 +248,29 @@ describe('AnnualReviewPage', () => {
         year="2024"
         onNavigateBack={vi.fn()}
         onOpenTripDetail={vi.fn()}
+        onOpenAchievements={vi.fn()}
         onLogout={vi.fn()}
       />,
     );
 
     expect(await screen.findByText('2024 年还没有旅行记录')).toBeInTheDocument();
+  });
+
+  it('opens the achievement hub entry from the annual review hero', async () => {
+    const onOpenAchievements = vi.fn();
+    render(
+      <AnnualReviewPage
+        account={account}
+        year="2026"
+        onNavigateBack={vi.fn()}
+        onOpenTripDetail={vi.fn()}
+        onOpenAchievements={onOpenAchievements}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    await userEvent.click((await screen.findAllByRole('button', { name: '查看全部成就' }))[0]!);
+
+    expect(onOpenAchievements).toHaveBeenCalled();
   });
 });

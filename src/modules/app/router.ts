@@ -31,6 +31,7 @@ export type AppRoute =
   | { kind: 'register'; pathname: '/register' }
   | { kind: 'admin'; pathname: '/admin' }
   | { kind: 'stats'; pathname: '/stats' }
+  | { kind: 'achievements'; pathname: '/achievements' }
   | { kind: 'tripDetail'; pathname: string; tripId: string }
   | { kind: 'tripStory'; pathname: string; tripId: string }
   | { kind: 'tripChecklist'; pathname: string; tripId: string }
@@ -56,6 +57,10 @@ export function createAdminRoute(): AppRoute {
 
 export function createStatsRoute(): AppRoute {
   return { kind: 'stats', pathname: '/stats' };
+}
+
+export function createAchievementsRoute(): AppRoute {
+  return { kind: 'achievements', pathname: '/achievements' };
 }
 
 export function createTripDetailRoute(tripId: string): AppRoute {
@@ -123,6 +128,10 @@ export function parsePathname(pathname: string): AppRoute {
 
   if (pathname === '/stats') {
     return createStatsRoute();
+  }
+
+  if (pathname === '/achievements') {
+    return createAchievementsRoute();
   }
 
   if (pathname === '/register') {

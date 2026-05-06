@@ -378,6 +378,18 @@
   gap: 10px;
 }
 
+.stats-achievement-chip-row,
+.stats-achievement-actions,
+.stats-achievement-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats-achievement-actions {
+  justify-content: space-between;
+}
+
 .stats-achievement-category,
 .stats-achievement-status {
   color: #64748b;
@@ -406,6 +418,53 @@
   color: #52627a;
   font-size: 13px;
   line-height: 1.6;
+}
+
+.stats-achievement-card.is-epic,
+.stats-achievement-card.is-legendary {
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+}
+
+.stats-achievement-rarity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: rgba(226, 232, 240, 0.9);
+  color: #475569;
+}
+
+.stats-achievement-rarity.is-rare {
+  background: rgba(13, 148, 136, 0.14);
+  color: #0f766e;
+}
+
+.stats-achievement-rarity.is-epic {
+  background: rgba(37, 99, 235, 0.14);
+  color: #1d4ed8;
+}
+
+.stats-achievement-rarity.is-legendary {
+  background: rgba(124, 58, 237, 0.14);
+  color: #7c3aed;
+}
+
+.stats-achievement-period,
+.stats-achievement-next-hint {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.stats-achievement-next-hint {
+  color: #475569;
 }
 
 .stats-achievement-progress-row {
@@ -456,6 +515,12 @@
   gap: 14px;
 }
 
+.stats-achievement-detail-hint {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(239, 246, 255, 0.82);
+}
+
 .stats-achievement-detail p {
   margin: 0;
   color: #52627a;
@@ -498,4 +563,9 @@
   color: #64748b;
   font-size: 12px;
   font-weight: 700;
+}
+
+.stats-achievement-link,
+.stats-achievement-share-button {
+  justify-self: start;
 }

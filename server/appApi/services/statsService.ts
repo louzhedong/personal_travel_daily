@@ -176,9 +176,25 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
 
   const achievements = buildAchievements(filteredMarkers, tripDetails);
   if (isDefaultStatsOverviewQuery(query)) {
-    await persistAchievementUnlocks(prisma, account.id, 'global', achievements);
+    await Promise.all([
+      persistAchievementUnlocks(
+        prisma,
+        account.id,
+        'global',
+        achievements.filter((achievement) => achievement.periodType === 'global'),
+      ),
+      persistAchievementUnlocks(
+        prisma,
+        account.id,
+        'streak',
+        achievements.filter((achievement) => achievement.periodType === 'streak'),
+      ),
+    ]);
   }
-  const achievementUnlocks = await listAchievementUnlocks(prisma, account.id, 'global');
+  const [globalAchievementUnlocks, streakAchievementUnlocks] = await Promise.all([
+    listAchievementUnlocks(prisma, account.id, 'global'),
+    listAchievementUnlocks(prisma, account.id, 'streak'),
+  ]);
 
   const model: StatsOverviewModel = {
     filters: {
@@ -218,7 +234,7 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
     topTransports: buildTopTransports(filteredMarkers),
     topBudgetLevels: buildTopBudgetLevels(filteredMarkers),
     tripHighlights: buildTripHighlights(tripDetails),
-    achievements: applyAchievementUnlocks(achievements, achievementUnlocks),
+    achievements: applyAchievementUnlocks(achievements, [...globalAchievementUnlocks, ...streakAchievementUnlocks]),
     heatmap: buildHeatmap(filteredMarkers),
     generatedAt: new Date(),
   };
@@ -251,8 +267,9 @@ export async function getAnnualReview(account: AuthenticatedAccount, query: Annu
     guideCount: guides.length,
   };
   const annualAchievements = buildAnnualAchievements(query.year, filteredMarkers);
-  await persistAchievementUnlocks(prisma, account.id, query.year, annualAchievements);
-  const annualAchievementUnlocks = await listAchievementUnlocks(prisma, account.id, query.year);
+  const annualPeriodKey = `annual:${query.year}`;
+  await persistAchievementUnlocks(prisma, account.id, annualPeriodKey, annualAchievements);
+  const annualAchievementUnlocks = await listAchievementUnlocks(prisma, account.id, annualPeriodKey);
 
   return {
     year: query.year,

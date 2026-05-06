@@ -147,13 +147,23 @@ describe('statsService', () => {
       label: '高预算',
       markerCount: 1,
     });
-    expect(result.achievements).toHaveLength(12);
+    expect(result.achievements).toHaveLength(14);
     expect(result.achievements[0]).toMatchObject({
       id: 'city-explorer',
       title: '城市探索者',
+      group: 'footprint',
+      periodType: 'global',
+      rarity: 'common',
       status: 'locked',
       progressValue: 1,
       progressTarget: 5,
+    });
+    expect(result.achievements.find((item) => item.id === 'streak-consecutive-years-2')).toMatchObject({
+      group: 'streak',
+      periodType: 'streak',
+      rarity: 'epic',
+      progressValue: 1,
+      streakYears: ['2026'],
     });
     expect(result.heatmap[0]?.intensity).toBe(5);
   });
@@ -293,6 +303,12 @@ describe('statsService', () => {
     expect(achievements['guide-planner']).toMatchObject({ status: 'unlocked', progressValue: 5 });
     expect(achievements['photo-keeper']).toMatchObject({ status: 'unlocked', progressValue: 20 });
     expect(achievements['frequent-departure']).toMatchObject({ status: 'locked', progressValue: 9 });
+    expect(achievements['streak-consecutive-years-2']).toMatchObject({
+      status: 'locked',
+      progressValue: 1,
+      periodType: 'streak',
+      group: 'streak',
+    });
   });
 
   it('applies metadata filters and keeps metadata rankings in sync', async () => {
@@ -313,6 +329,7 @@ describe('statsService', () => {
           id: 'marker-1',
           accountId: 'acct-1',
           companionId: 'user-alice',
+          companion: { id: 'user-alice', name: '小悠', color: '#2563eb' },
           tripId: null,
           scope: 'domestic',
           scopeId: 'zj',
@@ -335,6 +352,7 @@ describe('statsService', () => {
           id: 'marker-2',
           accountId: 'acct-1',
           companionId: 'user-alice',
+          companion: { id: 'user-alice', name: '小悠', color: '#2563eb' },
           tripId: null,
           scope: 'domestic',
           scopeId: 'js',
@@ -598,6 +616,12 @@ describe('statsService', () => {
     expect(result.guides[0]?.title).toBe('杭州周末攻略');
     expect(result.firstMarker?.city).toBe('杭州');
     expect(result.lastMarker?.city).toBe('苏州');
+    expect(result.achievements).toHaveLength(6);
+    expect(result.achievements[0]).toMatchObject({
+      group: 'annual',
+      periodType: 'annual',
+      rarity: 'rare',
+    });
   });
 
   it('returns an empty annual review payload when the year has no markers', async () => {
@@ -642,5 +666,132 @@ describe('statsService', () => {
     expect(result.availableYears).toEqual(['2025']);
     expect(result.photos).toEqual([]);
     expect(result.firstMarker).toBeUndefined();
+  });
+
+  it('persists unlocks with dedicated global, streak, and annual period keys', async () => {
+    mocks.getStatsOverviewSourceMock.mockResolvedValue({
+      id: 'acct-1',
+      companions: [
+        { id: 'user-alice', name: '小悠', color: '#2563eb', sortOrder: 0, createdAt: new Date('2025-01-01T00:00:00.000Z') },
+        { id: 'user-bob', name: '阿川', color: '#14b8a6', sortOrder: 1, createdAt: new Date('2025-01-01T00:00:00.000Z') },
+      ],
+      trips: [],
+      markers: [
+        {
+          id: 'marker-1',
+          accountId: 'acct-1',
+          companionId: 'user-alice',
+          companion: { id: 'user-alice', name: '小悠', color: '#2563eb' },
+          tripId: null,
+          scope: 'domestic',
+          scopeId: 'bj',
+          scopeName: '北京',
+          city: '北京',
+          note: '',
+          visitedStartAt: new Date('2025-04-01T00:00:00.000Z'),
+          visitedEndAt: new Date('2025-04-01T00:00:00.000Z'),
+          createdAt: new Date('2025-04-01T00:00:00.000Z'),
+          updatedAt: new Date('2025-04-01T00:00:00.000Z'),
+          isDeleted: false,
+          images: [],
+          savedGuides: [],
+          tags: [],
+        },
+        {
+          id: 'marker-2',
+          accountId: 'acct-1',
+          companionId: 'user-alice',
+          companion: { id: 'user-alice', name: '小悠', color: '#2563eb' },
+          tripId: null,
+          scope: 'domestic',
+          scopeId: 'sh',
+          scopeName: '上海',
+          city: '上海',
+          note: '',
+          visitedStartAt: new Date('2026-01-01T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-01-01T00:00:00.000Z'),
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+          isDeleted: false,
+          images: [],
+          savedGuides: [],
+          tags: [],
+        },
+        {
+          id: 'marker-3',
+          accountId: 'acct-1',
+          companionId: 'user-bob',
+          companion: { id: 'user-bob', name: '阿川', color: '#14b8a6' },
+          tripId: null,
+          scope: 'domestic',
+          scopeId: 'gd',
+          scopeName: '广东',
+          city: '广州',
+          note: '',
+          visitedStartAt: new Date('2026-02-01T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-02-01T00:00:00.000Z'),
+          createdAt: new Date('2026-02-01T00:00:00.000Z'),
+          updatedAt: new Date('2026-02-01T00:00:00.000Z'),
+          isDeleted: false,
+          images: [],
+          savedGuides: [],
+          tags: [],
+        },
+        {
+          id: 'marker-4',
+          accountId: 'acct-1',
+          companionId: 'user-alice',
+          companion: { id: 'user-alice', name: '小悠', color: '#2563eb' },
+          tripId: null,
+          scope: 'domestic',
+          scopeId: 'zj',
+          scopeName: '浙江',
+          city: '杭州',
+          note: '',
+          visitedStartAt: new Date('2026-03-01T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-03-01T00:00:00.000Z'),
+          createdAt: new Date('2026-03-01T00:00:00.000Z'),
+          updatedAt: new Date('2026-03-01T00:00:00.000Z'),
+          isDeleted: false,
+          images: [],
+          savedGuides: [],
+          tags: ['citywalk'],
+        },
+        {
+          id: 'marker-5',
+          accountId: 'acct-1',
+          companionId: 'user-bob',
+          companion: { id: 'user-bob', name: '阿川', color: '#14b8a6' },
+          tripId: null,
+          scope: 'domestic',
+          scopeId: 'sc',
+          scopeName: '四川',
+          city: '成都',
+          note: '',
+          visitedStartAt: new Date('2026-04-01T00:00:00.000Z'),
+          visitedEndAt: new Date('2026-04-01T00:00:00.000Z'),
+          createdAt: new Date('2026-04-01T00:00:00.000Z'),
+          updatedAt: new Date('2026-04-01T00:00:00.000Z'),
+          isDeleted: false,
+          images: [],
+          savedGuides: [],
+          tags: ['citywalk'],
+        },
+      ],
+    });
+
+    await getStatsOverview(
+      { id: 'acct-1', name: 'Voyage Atlas', username: 'demo', role: 'member' },
+      { scope: 'all' },
+    );
+    await getAnnualReview(
+      { id: 'acct-1', name: 'Voyage Atlas', username: 'demo', role: 'member' },
+      { year: '2026' },
+    );
+
+    const upsertCalls = mocks.achievementUnlockUpsertMock.mock.calls.map(([input]) => input);
+    expect(upsertCalls.some((call) => call.where.accountId_achievementId_periodKey.periodKey === 'global')).toBe(true);
+    expect(upsertCalls.some((call) => call.where.accountId_achievementId_periodKey.periodKey === 'streak')).toBe(true);
+    expect(upsertCalls.some((call) => call.where.accountId_achievementId_periodKey.periodKey === 'annual:2026')).toBe(true);
   });
 });

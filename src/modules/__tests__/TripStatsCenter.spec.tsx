@@ -105,16 +105,23 @@ describe('TripStatsCenter', () => {
         title: '城市探索者',
         description: '覆盖 5 座不同城市。',
         category: 'footprint' as const,
+        group: 'footprint' as const,
+        periodType: 'global' as const,
+        rarity: 'common' as const,
         status: 'close' as const,
         progressValue: 3,
         progressTarget: 5,
         unit: '座城市',
+        nextHint: '还差 2 座城市，再多解锁几座新城市。',
       },
       {
         id: 'first-international-trip',
         title: '世界初体验',
         description: '留下至少 1 条国际旅行记录。',
         category: 'footprint' as const,
+        group: 'footprint' as const,
+        periodType: 'global' as const,
+        rarity: 'common' as const,
         status: 'unlocked' as const,
         progressValue: 1,
         progressTarget: 1,
@@ -125,50 +132,70 @@ describe('TripStatsCenter', () => {
         title: '国家收藏家',
         description: '覆盖 3 个国际国家或地区。',
         category: 'footprint' as const,
+        group: 'footprint' as const,
+        periodType: 'global' as const,
+        rarity: 'epic' as const,
         status: 'locked' as const,
         progressValue: 0,
         progressTarget: 3,
         unit: '个国家/地区',
+        nextHint: '还差 3 个国家/地区，再补一些国际目的地。',
       },
       {
         id: 'long-trip',
         title: '长线旅行者',
         description: '最长行程达到 5 天。',
         category: 'rhythm' as const,
+        group: 'rhythm' as const,
+        periodType: 'global' as const,
+        rarity: 'epic' as const,
         status: 'close' as const,
         progressValue: 4,
         progressTarget: 5,
         unit: '天',
+        nextHint: '还差 1 天，把下一趟行程拉长一点。',
       },
       {
         id: 'shared-memory',
         title: '同行记忆',
         description: '与 2 位以上旅伴留下记录。',
         category: 'companion' as const,
+        group: 'companion' as const,
+        periodType: 'global' as const,
+        rarity: 'common' as const,
         status: 'locked' as const,
         progressValue: 1,
         progressTarget: 2,
         unit: '位旅伴',
+        nextHint: '还差 1 位旅伴，和更多旅伴留下共同记忆。',
       },
       {
         id: 'guide-planner',
         title: '攻略派',
         description: '关联或收藏攻略达到 5 篇。',
         category: 'content' as const,
+        group: 'content' as const,
+        periodType: 'global' as const,
+        rarity: 'common' as const,
         status: 'locked' as const,
         progressValue: 0,
         progressTarget: 5,
         unit: '篇攻略',
+        nextHint: '还差 5 篇攻略，再收藏或关联一些攻略灵感。',
       },
       {
         id: 'photo-keeper',
         title: '摄影记录者',
         description: '旅行照片达到 20 张。',
         category: 'content' as const,
+        group: 'content' as const,
+        periodType: 'global' as const,
+        rarity: 'common' as const,
         status: 'locked' as const,
         progressValue: 2,
         progressTarget: 20,
         unit: '张照片',
+        nextHint: '还差 18 张照片，补几张代表瞬间就更接近了。',
       },
     ],
     heatmap: [{ scopeId: 'zj', scopeName: '浙江', scope: 'domestic' as const, intensity: 5, markerCount: 2 }],
@@ -251,5 +278,14 @@ describe('TripStatsCenter', () => {
 
     expect(screen.getByText('摄影记录者')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '收起成就' })).toBeInTheDocument();
+  });
+
+  it('renders the achievement hub entry button', async () => {
+    const onOpenAchievements = vi.fn();
+    render(<TripStatsCenter onOpenAchievements={onOpenAchievements} />);
+
+    await userEvent.click(await screen.findByRole('button', { name: '查看成就总览' }));
+
+    expect(onOpenAchievements).toHaveBeenCalledTimes(1);
   });
 });

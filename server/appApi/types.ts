@@ -447,11 +447,20 @@ export type StatsAchievementCategoryDto = 'footprint' | 'rhythm' | 'companion' |
 
 export type StatsAchievementStatusDto = 'unlocked' | 'close' | 'locked';
 
+export type StatsAchievementRarityDto = 'common' | 'rare' | 'epic' | 'legendary';
+
+export type StatsAchievementGroupDto = 'footprint' | 'rhythm' | 'companion' | 'content' | 'style' | 'annual' | 'streak';
+
+export type StatsAchievementPeriodTypeDto = 'global' | 'annual' | 'streak';
+
 export interface StatsAchievementDto {
   id: string;
   title: string;
   description: string;
   category: StatsAchievementCategoryDto;
+  group: StatsAchievementGroupDto;
+  periodType: StatsAchievementPeriodTypeDto;
+  rarity: StatsAchievementRarityDto;
   status: StatsAchievementStatusDto;
   progressValue: number;
   progressTarget: number;
@@ -462,6 +471,8 @@ export interface StatsAchievementDto {
     value: string;
     description?: string;
   }>;
+  streakYears?: string[];
+  nextHint?: string;
   firstUnlockedAt?: string;
 }
 

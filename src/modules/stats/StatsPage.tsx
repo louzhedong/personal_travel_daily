@@ -5,6 +5,7 @@ interface StatsPageProps {
   account: AuthAccount;
   onOpenTripDetail?: (tripId: string) => void;
   onOpenAnnualReview?: (year: string) => void;
+  onOpenAchievements?: () => void;
   onNavigateHome: () => void;
   onLogout: () => Promise<void> | void;
 }
@@ -13,6 +14,7 @@ export default function StatsPage({
   account,
   onOpenTripDetail,
   onOpenAnnualReview,
+  onOpenAchievements,
   onNavigateHome,
   onLogout,
 }: StatsPageProps) {
@@ -49,7 +51,12 @@ export default function StatsPage({
           </div>
         </section>
 
-        <TripStatsCenter onOpenTripDetail={onOpenTripDetail} onOpenAnnualReview={onOpenAnnualReview} />
+        <TripStatsCenter
+          accountName={account.name}
+          onOpenTripDetail={onOpenTripDetail}
+          onOpenAnnualReview={onOpenAnnualReview}
+          onOpenAchievements={onOpenAchievements}
+        />
       </div>
     </main>
   );

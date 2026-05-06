@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchSession, login, logout, register } from '../lib/api/authApi';
 import type { AuthAccount } from '../types';
 import AdminPage from './admin/AdminPage';
+import AchievementsPage from './achievements/AchievementsPage';
 import AuthPage from './auth/AuthPage';
 import TravelApp from './TravelApp';
 import StatsPage from './stats/StatsPage';
@@ -12,6 +13,7 @@ import AnnualReviewPage from './yearbook/AnnualReviewPage';
 // English: consume the hand-rolled router (types / factories / hook) from app/router.
 import {
   createAdminRoute,
+  createAchievementsRoute,
   createAnnualReviewRoute,
   createHomeRoute,
   createLoginRoute,
@@ -69,6 +71,8 @@ function App() {
           nextRoute = createTripChecklistRoute(route.tripId);
         } else if (route.kind === 'annualReview') {
           nextRoute = createAnnualReviewRoute(route.year);
+        } else if (route.kind === 'achievements') {
+          nextRoute = createAchievementsRoute();
         } else if (route.kind === 'stats') {
           nextRoute = createStatsRoute();
         } else {
@@ -199,6 +203,17 @@ function App() {
         onLogout={handleLogout}
         onNavigateBack={() => goBackOrReplace(createStatsRoute())}
         onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
+        onOpenAchievements={() => navigate(createAchievementsRoute())}
+      />
+    );
+  }
+
+  if (route.kind === 'achievements') {
+    return (
+      <AchievementsPage
+        account={account}
+        onLogout={handleLogout}
+        onNavigateBack={() => goBackOrReplace(createStatsRoute())}
       />
     );
   }
@@ -214,6 +229,7 @@ function App() {
         }}
         onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
         onOpenAnnualReview={(year) => navigate(createAnnualReviewRoute(year))}
+        onOpenAchievements={() => navigate(createAchievementsRoute())}
       />
     );
   }

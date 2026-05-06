@@ -163,17 +163,20 @@ Summary: Marker tags and lightweight metadata now ship as a first-phase closed l
 
 ### 旅行成就系统 / Travel Achievement System
 
-- 状态：二 / 三 / 四期合并完成。
+- 状态：进阶版已完成。
 - 已落地范围：
-  - `/stats` 返回并展示 12 个固定旅行成就，覆盖足迹、节奏、旅伴、内容与风格分类。
-  - 成就状态按当前统计筛选实时计算，支持 `unlocked / close / locked`、进度、剩余量和达成证据。
-  - 默认全量统计视图会持久化首次解锁时间，筛选视图只做临时计算。
-  - `/yearbook/:year` 展示年度成就，并按年份持久化首次解锁时间。
-  - 成就卡片支持展开全部 / 收起和详情弹窗，弹窗内部滚动不会穿透到页面背景。
+  - `/stats` 返回并展示 14 个成就：12 个账号级成就 + 2 个连续年度成就，覆盖足迹、节奏、旅伴、内容、风格与 streak 分组。
+  - 成就 DTO 已扩展 `group`、`periodType`、`rarity`、`streakYears` 和 `nextHint`，并同步到前后端共享类型。
+  - 默认全量统计视图会分别持久化 `global` 与 `streak` 首次解锁时间；筛选态视图只做实时计算。
+  - `/yearbook/:year` 展示 6 个年度限定成就，并按 `annual:${year}` 持久化首次解锁时间。
+  - 已新增独立成就总览页 `/achievements`，支持按分组、稀有度和状态筛选浏览所有账号级、年度和 streak 成就。
+  - 成就详情已支持私有 SVG 分享卡导出，并统一通过全局 Toast 反馈结果。
+  - 统计中心、年度回顾和成就总览已复用共享卡片与详情弹窗，弹窗滚动不会穿透到页面背景。
 - 后续增强：
-  - 成就分组页、稀有度、分享图和更强的故事化解释。
+  - 更强的故事化解释与成就之间的叙事串联。
+  - 如果未来引入公开分享，再单独设计权限与可见性模型。
 
-Summary: Travel achievements now ship across stats and annual review, with live progress, evidence, first-unlock persistence, and detail dialogs.
+Summary: Travel achievements now ship across stats, annual review, and a standalone atlas page, with rarity, streaks, next hints, share-card export, and period-aware first-unlock persistence.
 
 ### Story Studio 与旅行故事导出增强 / Story Studio and Trip Story Export Enhancements
 
@@ -209,8 +212,8 @@ Summary: Story Studio and annual reviews now support private printable/exportabl
 - A standalone `/stats` center is available with filters, rankings, trends, China/world map heatmaps, and drill-down into trip details.
 - 年度回顾页 `/yearbook/:year` 已上线，支持按年份生成私有年鉴式回看，并继续钻取到单次行程详情。
 - The `/yearbook/:year` annual review page is live, offering a private yearbook-style retrospective with continued drill-down into trip details.
-- 旅行成就系统已接入统计中心与年度回顾，支持实时进度、达成证据和首次解锁时间。
-- Travel achievements are now wired into stats and annual review with live progress, evidence, and first-unlock moments.
+- 旅行成就系统已接入统计中心、年度回顾与独立总览页，支持稀有度、连续年度、下一步提示、分享卡和首次解锁时间。
+- Travel achievements now span stats, annual review, and a standalone atlas page with rarity, streaks, next hints, share cards, and first-unlock moments.
 - 地图回放一期已上线，首页地图卡片内嵌回放控制条、移动圆点与国家级路径回放。
 - Map Replay Phase 1 is shipped inside the homepage map card with inline controls, moving dot labels, and country-level path replay.
 - 攻略搜索、正文阅读增强、搜索历史、收藏、关联到旅行记录与返回链路已经打通。
@@ -249,20 +252,7 @@ Given the current product baseline, the product no longer lacks capture surfaces
 
 ## 下一阶段路线图 / Next-Phase Roadmap
 
-### 1. 成就系统进阶 / Achievement System Evolution
-
-- 优先级：`P2`
-- 为什么值得做：
-  - 成就一期已经打通统计中心、年度回顾、证据和首次解锁；下一步可以增强长期留存和表达，而不是继续堆固定 badge。
-- 建议范围：
-  - 成就分组页：按足迹、节奏、旅伴、内容、风格查看全部成就。
-  - 成就稀有度、年度限定成就、连续年度成就和“下一步建议”。
-  - 成就分享卡：生成单张可保存图片，复用成就证据和首次解锁时间。
-  - 后台配置暂缓；二期仍以代码内固定规则为主，避免引入复杂运营系统。
-
-Summary: Achievement evolution should deepen motivation and explainability without prematurely building a badge-management CMS.
-
-### 2. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
+### 1. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -275,7 +265,7 @@ Summary: Achievement evolution should deepen motivation and explainability witho
 
 Summary: Guide search should evolve from retrieval into a governed content pipeline.
 
-### 3. 照片与媒体整理 / Photo and Media Curation
+### 2. 照片与媒体整理 / Photo and Media Curation
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -288,7 +278,7 @@ Summary: Guide search should evolve from retrieval into a governed content pipel
 
 Summary: Media curation improves every retrospective surface that already depends on photos.
 
-### 4. 旅伴共同回忆 / Companion Shared Memories
+### 3. 旅伴共同回忆 / Companion Shared Memories
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -301,7 +291,7 @@ Summary: Media curation improves every retrospective surface that already depend
 
 Summary: Shared memories make companions emotionally meaningful while preserving the current single-account model.
 
-### 5. 管理后台与质量巡检 / Admin Quality Operations
+### 4. 管理后台与质量巡检 / Admin Quality Operations
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -313,7 +303,7 @@ Summary: Shared memories make companions emotionally meaningful while preserving
 
 Summary: Admin operations should help detect data and integration problems before they become user-facing regressions.
 
-### 6. 账号设置与会话治理 / Account Settings and Session Governance
+### 5. 账号设置与会话治理 / Account Settings and Session Governance
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -326,7 +316,7 @@ Summary: Admin operations should help detect data and integration problems befor
 
 Summary: Account settings are not flashy, but they matter once the app becomes a long-term personal archive.
 
-### 7. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+### 6. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -343,13 +333,12 @@ Summary: Architecture hardening keeps future feature work from becoming slower a
 
 建议按下面顺序推进（已完成项已挪到文档开头）：
 
-1. 成就系统进阶 / Achievement System Evolution
-2. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
-3. 照片与媒体整理 / Photo and Media Curation
-4. 旅伴共同回忆 / Companion Shared Memories
-5. 管理后台与质量巡检 / Admin Quality Operations
-6. 账号设置与会话治理 / Account Settings and Session Governance
-7. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+1. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
+2. 照片与媒体整理 / Photo and Media Curation
+3. 旅伴共同回忆 / Companion Shared Memories
+4. 管理后台与质量巡检 / Admin Quality Operations
+5. 账号设置与会话治理 / Account Settings and Session Governance
+6. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 ## 选题原则 / Feature Selection Rules
 

@@ -1,6 +1,11 @@
 import { getResourceBaseUrl, httpClient } from './httpClient';
 import type {
   AnnualReviewResponseDto,
+  StatsMarkerBudgetFilterDto,
+  StatsMarkerMoodFilterDto,
+  StatsMarkerTagFilterDto,
+  StatsMarkerTransportFilterDto,
+  StatsMarkerWeatherFilterDto,
   StatsOverviewResponseDto,
   StatsScopeDto,
   StatsTripFilterDto,
@@ -13,6 +18,11 @@ export interface FetchStatsOverviewQuery {
   scope?: StatsScopeDto;
   companionId?: string;
   tripId?: StatsTripFilterDto;
+  tag?: StatsMarkerTagFilterDto;
+  mood?: StatsMarkerMoodFilterDto;
+  weather?: StatsMarkerWeatherFilterDto;
+  transport?: StatsMarkerTransportFilterDto;
+  budgetLevel?: StatsMarkerBudgetFilterDto;
 }
 
 export function fetchStatsOverview(query: FetchStatsOverviewQuery = {}) {
@@ -28,6 +38,21 @@ export function fetchStatsOverview(query: FetchStatsOverviewQuery = {}) {
   }
   if (query.tripId) {
     params.set('tripId', query.tripId);
+  }
+  if (query.tag && query.tag !== 'all') {
+    params.set('tag', query.tag);
+  }
+  if (query.mood && query.mood !== 'all') {
+    params.set('mood', query.mood);
+  }
+  if (query.weather && query.weather !== 'all') {
+    params.set('weather', query.weather);
+  }
+  if (query.transport && query.transport !== 'all') {
+    params.set('transport', query.transport);
+  }
+  if (query.budgetLevel && query.budgetLevel !== 'all') {
+    params.set('budgetLevel', query.budgetLevel);
   }
 
   const suffix = params.toString();
