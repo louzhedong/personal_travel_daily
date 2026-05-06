@@ -3,10 +3,13 @@ import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
 import { fetchTripDetail } from '../../lib/api/tripsApi';
 import type { TripDetailResponseDto } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
+import { exportTripStoryLongImage, exportTripStoryShareCard } from './tripStoryExport';
 import { isTripDetailNotFoundError } from './tripDetailPageModel';
-import { buildTripStoryViewModel } from './tripStoryPageModel';
-
-type TripStoryTemplate = 'magazine' | 'memoir';
+import {
+  buildTripStoryViewModel,
+  type TripStoryShareCardVariant,
+  type TripStoryTemplate,
+} from './tripStoryPageModel';
 
 interface TripStoryPageProps {
   account: AuthAccount;
@@ -14,6 +17,12 @@ interface TripStoryPageProps {
   onNavigateBack: () => void;
   onLogout: () => Promise<void> | void;
 }
+
+const TEMPLATE_OPTIONS: Array<{ value: TripStoryTemplate; label: string }> = [
+  { value: 'magazine', label: '杂志风' },
+  { value: 'memoir', label: '纪念册' },
+  { value: 'postcard', label: '明信片' },
+];
 
 export default function TripStoryPage({
   account,
@@ -75,259 +84,15 @@ export default function TripStoryPage({
   };
 
   const handleExportLongImage = () => {
-    if (!story) {
-      return;
+    if (story) {
+      exportTripStoryLongImage(story, template);
     }
+  };
 
-    const width = 1200;
-    const contentX = 96;
-    const background = template === 'magazine' ? '#f8fafc' : '#fff7ed';
-    const elements: string[] = [];
-    let cursorY = 128;
-
-    const escapeText = (value: string) =>
-      value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-
-    const truncateText = (value: string, maxLength: number) =>
-      value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
-
-    const wrapText = (value: string, maxChars: number) => {
-      const text = value.trim();
-      if (!text) {
-        return [''];
-      }
-      const lines: string[] = [];
-      for (let index = 0; index < text.length; index += maxChars) {
-        lines.push(text.slice(index, index + maxChars));
-      }
-      return lines;
-    };
-
-    const addText = (input: {
-      text: string;
-      x?: number;
-      y?: number;
-      fill?: string;
-      fontSize?: number;
-      fontWeight?: number;
-      letterSpacing?: number;
-    }) => {
-      elements.push(
-        `<text x="${input.x ?? contentX}" y="${input.y ?? cursorY}" fill="${input.fill ?? '#334155'}" font-size="${input.fontSize ?? 26}"${input.fontWeight ? ` font-weight="${input.fontWeight}"` : ''}${input.letterSpacing ? ` letter-spacing="${input.letterSpacing}"` : ''}>${escapeText(input.text)}</text>`,
-      );
-    };
-
-    const addClippedImage = (input: {
-      href: string;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      clipId: string;
-    }) => {
-      elements.push(`
-        <clipPath id="${input.clipId}">
-          <rect x="${input.x}" y="${input.y}" width="${input.width}" height="${input.height}" rx="16" />
-        </clipPath>
-        <image href="${escapeText(input.href)}" x="${input.x}" y="${input.y}" width="${input.width}" height="${input.height}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${input.clipId})" />
-      `);
-    };
-
-    const addWrappedText = (input: {
-      text: string;
-      x?: number;
-      y?: number;
-      fill?: string;
-      fontSize?: number;
-      fontWeight?: number;
-      maxChars?: number;
-      lineHeight?: number;
-      advance?: boolean;
-    }) => {
-      const lines = wrapText(input.text, input.maxChars ?? 38);
-      const x = input.x ?? contentX;
-      const y = input.y ?? cursorY;
-      const lineHeight = input.lineHeight ?? Math.round((input.fontSize ?? 26) * 1.45);
-      elements.push(
-        `<text x="${x}" y="${y}" fill="${input.fill ?? '#334155'}" font-size="${input.fontSize ?? 26}"${input.fontWeight ? ` font-weight="${input.fontWeight}"` : ''}>${lines
-          .map((line, index) => `<tspan x="${x}" dy="${index === 0 ? 0 : lineHeight}">${escapeText(line)}</tspan>`)
-          .join('')}</text>`,
-      );
-      if (input.advance !== false) {
-        cursorY = Math.max(cursorY, y + Math.max(1, lines.length - 1) * lineHeight + lineHeight);
-      }
-    };
-
-    const addSectionTitle = (title: string, eyebrow: string) => {
-      cursorY += 56;
-      addText({ text: eyebrow.toUpperCase(), y: cursorY, fill: '#2563eb', fontSize: 22, fontWeight: 700, letterSpacing: 4 });
-      cursorY += 54;
-      addText({ text: title, y: cursorY, fill: '#0f172a', fontSize: 42, fontWeight: 800 });
-      cursorY += 72;
-    };
-
-    addText({ text: 'TRAVEL STORY', y: cursorY, fill: '#2563eb', fontSize: 30, fontWeight: 700, letterSpacing: 6 });
-    cursorY += 92;
-    addWrappedText({ text: story.title, y: cursorY, fill: '#0f172a', fontSize: 70, fontWeight: 800, maxChars: 12, lineHeight: 82 });
-    cursorY += 48;
-    addText({ text: story.dateRange, y: cursorY, fill: '#475569', fontSize: 30 });
-    cursorY += 64;
-    addWrappedText({ text: story.summaryText, y: cursorY, fill: '#334155', fontSize: 30, maxChars: 32, lineHeight: 46 });
-
-    addSectionTitle('故事摘要', 'brief');
-    story.highlights.forEach((item, index) => {
-      const column = index % 2;
-      const row = Math.floor(index / 2);
-      const x = contentX + column * 504;
-      const y = cursorY + row * 118;
-      elements.push(`<rect x="${x}" y="${y - 34}" width="456" height="92" rx="14" fill="#f8fafc" stroke="#e2e8f0" />`);
-      addText({ text: item.label, x: x + 22, y: y, fill: '#64748b', fontSize: 22, fontWeight: 700 });
-      addText({ text: item.value, x: x + 22, y: y + 40, fill: '#0f172a', fontSize: 34, fontWeight: 800 });
-      addText({ text: truncateText(item.description, 18), x: x + 130, y: y + 40, fill: '#475569', fontSize: 22 });
-    });
-    cursorY += Math.ceil(story.highlights.length / 2) * 118 + 10;
-
-    addSectionTitle('智能故事序言', 'narrative');
-    addWrappedText({ text: story.smartNarrative, y: cursorY, fill: '#334155', fontSize: 28, maxChars: 35, lineHeight: 42 });
-
-    if (story.featuredPhotos.length > 0) {
-      addSectionTitle('精选瞬间', 'featured');
-      const featuredStartY = cursorY;
-      story.featuredPhotos.forEach((photo, index) => {
-        const column = index % 2;
-        const row = Math.floor(index / 2);
-        const x = contentX + column * 504;
-        const y = featuredStartY + row * 252;
-        elements.push(`<rect x="${x}" y="${y}" width="456" height="220" rx="18" fill="#e0f2fe" stroke="#bae6fd" />`);
-        addClippedImage({
-          href: photo.imageUrl,
-          x,
-          y,
-          width: 456,
-          height: 220,
-          clipId: `trip-story-featured-${index}`,
-        });
-        elements.push(`<rect x="${x}" y="${y + 150}" width="456" height="70" rx="18" fill="rgba(15, 23, 42, 0.66)" />`);
-        addText({ text: photo.isFeatured ? '精选照片' : '照片开场', x: x + 20, y: y + 180, fill: '#ffffff', fontSize: 20, fontWeight: 800 });
-        addText({ text: truncateText(photo.caption || `${photo.visitedStartAt} · ${photo.markerTitle}`, 20), x: x + 20, y: y + 206, fill: '#e0f2fe', fontSize: 18, fontWeight: 700 });
-      });
-      cursorY = featuredStartY + Math.ceil(story.featuredPhotos.length / 2) * 252;
+  const handleExportShareCard = (variant: TripStoryShareCardVariant) => {
+    if (story) {
+      exportTripStoryShareCard(story, template, variant);
     }
-
-    addSectionTitle('路线摘录', 'route');
-    if (story.routeStops.length === 0) {
-      addWrappedText({ text: '暂无路线停靠点', y: cursorY, fill: '#64748b', fontSize: 28 });
-    } else {
-      story.routeStops.forEach((stop, index) => {
-        const y = cursorY + index * 54;
-        elements.push(`<circle cx="${contentX + 12}" cy="${y - 8}" r="8" fill="${escapeText(stop.companionColor)}" />`);
-        addText({ text: `${stop.date} · ${stop.label} · ${stop.companionName}`, x: contentX + 38, y, fill: '#334155', fontSize: 26 });
-      });
-      cursorY += story.routeStops.length * 54 + 4;
-    }
-
-    addSectionTitle('时间线叙事', 'timeline');
-    if (story.timelineDays.length === 0) {
-      addWrappedText({ text: '这次行程还没有旅行记录。', y: cursorY, fill: '#64748b', fontSize: 28 });
-    } else {
-      story.timelineDays.forEach((day) => {
-        addText({ text: `${day.date} · ${day.title}`, y: cursorY, fill: '#0f172a', fontSize: 30, fontWeight: 800 });
-        cursorY += 42;
-        day.markers.forEach((marker) => {
-          addWrappedText({
-            text: `${marker.scopeName} · ${marker.city}｜${marker.displayRange}｜${marker.note || '暂无游记'}${marker.metadataLabels.length ? `｜${marker.metadataLabels.join(' / ')}` : ''}`,
-            y: cursorY,
-            fill: '#475569',
-            fontSize: 24,
-            maxChars: 44,
-            lineHeight: 34,
-          });
-          cursorY += 10;
-        });
-        cursorY += 18;
-      });
-    }
-
-    addSectionTitle('照片段落', 'photos');
-    const photos = story.photoSections.flatMap((section) =>
-      section.photos.map((photo, index) => ({
-        ...photo,
-        displayIndex: index + 1,
-        date: section.title,
-      })),
-    );
-    if (photos.length === 0) {
-      addWrappedText({ text: '这次旅行还没有照片，后续补图后故事页会自动展示。', y: cursorY, fill: '#64748b', fontSize: 28 });
-    } else {
-      const photoStartY = cursorY;
-      photos.forEach((photo, index) => {
-        const column = index % 3;
-        const row = Math.floor(index / 3);
-        const x = contentX + column * 336;
-        const y = photoStartY + row * 154;
-        elements.push(`<rect x="${x}" y="${y}" width="304" height="128" rx="16" fill="#e0f2fe" stroke="#bae6fd" />`);
-        addClippedImage({
-          href: photo.imageUrl,
-          x,
-          y,
-          width: 304,
-          height: 128,
-          clipId: `trip-story-photo-${index}`,
-        });
-        elements.push(`<rect x="${x}" y="${y + 78}" width="304" height="50" rx="16" fill="rgba(15, 23, 42, 0.62)" />`);
-        addText({ text: photo.isFeatured ? 'FEATURED' : `PHOTO ${String(index + 1).padStart(2, '0')}`, x: x + 18, y: y + 104, fill: '#ffffff', fontSize: 18, fontWeight: 800 });
-        addText({ text: truncateText(photo.caption || `${photo.date} · ${photo.markerTitle}`, 16), x: x + 120, y: y + 104, fill: '#e0f2fe', fontSize: 18, fontWeight: 700 });
-      });
-      cursorY = photoStartY + Math.ceil(photos.length / 3) * 154;
-    }
-
-    addSectionTitle('攻略摘录', 'guides');
-    if (story.guides.length === 0) {
-      addWrappedText({ text: '这次行程还没有关联攻略。', y: cursorY, fill: '#64748b', fontSize: 28 });
-    } else {
-      story.guides.forEach((guide) => {
-        addText({ text: guide.result.sourceName, y: cursorY, fill: '#2563eb', fontSize: 22, fontWeight: 700 });
-        cursorY += 38;
-        addWrappedText({ text: guide.result.title, y: cursorY, fill: '#0f172a', fontSize: 30, fontWeight: 800, maxChars: 30, lineHeight: 40 });
-        addWrappedText({ text: guide.result.summary, y: cursorY, fill: '#475569', fontSize: 24, maxChars: 42, lineHeight: 34 });
-        cursorY += 20;
-      });
-    }
-
-    addSectionTitle('行前清单回顾', 'checklist');
-    addWrappedText({ text: story.checklistReview.completionText, y: cursorY, fill: '#334155', fontSize: 28, maxChars: 36, lineHeight: 40 });
-    if (story.checklistReview.total > 0) {
-      story.checklistReview.groups.forEach((group) => {
-        addText({ text: `${group.readableStage} · ${group.itemCount} 项 · ${group.title}`, y: cursorY, fill: '#0f172a', fontSize: 28, fontWeight: 800 });
-        cursorY += 40;
-        group.items.forEach((item) => {
-          addWrappedText({ text: `• ${item.title}`, y: cursorY, fill: '#475569', fontSize: 23, maxChars: 44, lineHeight: 32 });
-        });
-        cursorY += 14;
-      });
-    }
-
-    cursorY += 58;
-    addText({ text: 'Voyage Atlas · 私有旅行故事长图', y: cursorY, fill: '#94a3b8', fontSize: 24 });
-    const height = Math.max(1800, cursorY + 84);
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-        <rect width="${width}" height="${height}" fill="${background}" />
-        <rect x="56" y="56" width="1088" height="${height - 112}" rx="28" fill="#ffffff" stroke="#dbe4ef" />
-        ${elements.join('\n')}
-      </svg>
-    `;
-    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${story.title}-旅行故事长图.svg`;
-    link.click();
-    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -343,7 +108,7 @@ export default function TripStoryPage({
           ) : null}
           <div className="trip-story-hero-shade" />
           <div className="trip-story-hero-content">
-            <span className="hero-kicker">Travel Story</span>
+            <span className="hero-kicker">Story Studio</span>
             <h1>{story?.title ?? '正在载入旅行故事...'}</h1>
             <p>{story ? story.lead : '正在把行程记录、照片、攻略和清单整理成一页可回看的旅行故事。'}</p>
             <div className="trip-story-hero-meta">
@@ -354,26 +119,28 @@ export default function TripStoryPage({
               {story && !errorMessage ? (
                 <>
                   <div className="trip-story-template-switch" aria-label="故事模板">
-                    <button
-                      type="button"
-                      className={template === 'magazine' ? 'is-active' : undefined}
-                      onClick={() => setTemplate('magazine')}
-                    >
-                      杂志风
-                    </button>
-                    <button
-                      type="button"
-                      className={template === 'memoir' ? 'is-active' : undefined}
-                      onClick={() => setTemplate('memoir')}
-                    >
-                      纪念册
-                    </button>
+                    {TEMPLATE_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={template === option.value ? 'is-active' : undefined}
+                        onClick={() => setTemplate(option.value)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
                   </div>
                   <button type="button" className="primary-button trip-story-print-button" onClick={handlePrint}>
                     导出 PDF / 打印
                   </button>
                   <button type="button" className="ghost-button" onClick={handleExportLongImage}>
                     导出长图
+                  </button>
+                  <button type="button" className="ghost-button" onClick={() => handleExportShareCard('square')}>
+                    导出方形分享卡
+                  </button>
+                  <button type="button" className="ghost-button" onClick={() => handleExportShareCard('story')}>
+                    导出竖版分享卡
                   </button>
                 </>
               ) : null}
@@ -405,6 +172,25 @@ export default function TripStoryPage({
                 <h2>这次旅行的故事骨架</h2>
                 <p>{story.summaryText}</p>
                 <p className="trip-story-smart-copy">{story.smartNarrative}</p>
+              </div>
+            </section>
+
+            <section className="card trip-story-panel">
+              <div className="trip-story-section-heading">
+                <div>
+                  <span className="hero-kicker">Story Badges</span>
+                  <h2>故事徽章</h2>
+                </div>
+                <p>从路线、照片、清单、攻略和记录细节里自动挑出这次旅行的记忆片段。</p>
+              </div>
+              <div className="trip-story-badge-grid" aria-label="故事徽章">
+                {story.badges.map((badge) => (
+                  <article key={badge.id} className={`trip-story-badge trip-story-badge-${badge.tone}`}>
+                    <span>{badge.label}</span>
+                    <strong>{badge.value}</strong>
+                    <p>{badge.description}</p>
+                  </article>
+                ))}
               </div>
             </section>
 
@@ -444,29 +230,37 @@ export default function TripStoryPage({
               )}
             </section>
 
-            <section className="card trip-story-panel">
+            <section className="card trip-story-panel trip-story-route-poster-panel">
               <div className="trip-story-section-heading">
                 <div>
-                  <span className="hero-kicker">Route Film</span>
-                  <h2>路线胶片</h2>
+                  <span className="hero-kicker">Route Replay Poster</span>
+                  <h2>路线回放海报</h2>
                 </div>
-                <p>按时间串起这次行程经过的地点，先用轻量只读方式呈现路线节奏。</p>
+                <p>用静态海报表达这次路线的回放感，不依赖地图截图或额外服务。</p>
               </div>
-              {story.routeStops.length === 0 ? (
-                <div className="trip-story-empty">还没有可展示的路线停靠点。</div>
+              {story.routePoster.stops.length === 0 ? (
+                <div className="trip-story-empty">{story.routePoster.emptyText}</div>
               ) : (
-                <ol className="trip-story-route-film">
-                  {story.routeStops.map((stop, index) => (
-                    <li key={stop.key}>
-                      <span className="trip-story-route-index">{String(index + 1).padStart(2, '0')}</span>
-                      <div>
-                        <strong>{stop.label}</strong>
-                        <p>{stop.date} · {stop.companionName}</p>
-                      </div>
-                      <span className="trip-story-route-dot" style={{ backgroundColor: stop.companionColor }} />
-                    </li>
-                  ))}
-                </ol>
+                <div className="trip-story-route-poster">
+                  <div className="trip-story-route-poster-copy">
+                    <span>{story.routePoster.stops.length} 站</span>
+                    <strong>{story.routePoster.title}</strong>
+                    <p>{story.routePoster.subtitle}</p>
+                  </div>
+                  <ol className="trip-story-route-track" aria-label="路线回放站点">
+                    {story.routePoster.stops.map((stop, index) => (
+                      <li key={stop.key}>
+                        <span className="trip-story-route-track-dot" style={{ backgroundColor: stop.companionColor }}>
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <div>
+                          <strong>{stop.shortLabel}</strong>
+                          <p>{stop.date} · {stop.label}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
               )}
             </section>
 

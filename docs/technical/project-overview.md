@@ -77,13 +77,13 @@ Summary: Trip Planning Workspace adds a trip-bound pre-travel planning loop for 
 
 Summary: Wishlist Map is the account-level long-range planning pool that connects map selection, guide search, trip planning import, and one-click trip creation.
 
-### 1.5E 旅行故事页 / Trip Story
+### 1.5E Story Studio / Trip Story
 
-- `/trips/:id/story` 将单次行程整理为私有故事页，自动组合封面、精选瞬间、故事摘要、智能序言、路线胶片、时间线、照片、攻略摘录和行前清单回顾。
+- `/trips/:id/story` 将单次行程整理为私有 Story Studio，自动组合封面、精选瞬间、故事摘要、故事徽章、智能序言、路线回放海报、时间线、照片、攻略摘录和行前清单回顾。
 - 故事页复用 `GET /api/trips/:id/detail`，不新增 story 专用接口或独立持久化；精选照片元数据由行程详情“素材”Tab 批量维护。
-- 支持杂志风 / 纪念册模板切换、动态 SVG 长图导出、浏览器原生打印 / PDF 导出，并提供 print 专用样式。
+- 支持杂志风 / 纪念册 / 明信片模板切换、动态 SVG 长图导出、方形 / 竖版分享卡导出、浏览器原生打印 / PDF 导出，并提供 print 专用样式。
 
-Summary: `/trips/:id/story` turns one trip into a private printable story page, with featured photos driving the cover-story block, featured moments, and export output.
+Summary: `/trips/:id/story` turns one trip into a private Story Studio with story badges, a route replay poster, featured-photo composition, share-card SVG export, long-image export, and print/PDF output.
 
 ### 1.6 统计中心 / Stats Center
 
@@ -179,6 +179,7 @@ Summary: Components follow module-scoped responsibilities; cross-feature flows u
 - `src/lib/guides/guideDocumentView.tsx`：攻略正文视图、高亮、HTML 清洗。
 - `src/modules/admin/adminPageModel.ts`：后台管理页的展示模型与汇总统计。
 - `src/modules/stats/TripStatsCenter.tsx`：统计中心页面主体，包含筛选、摘要、成就、排行、热力图与成就详情弹窗。
+- `src/modules/trips/tripStoryPageModel.ts` / `tripStoryExport.ts`：旅行故事页展示模型与 SVG 导出 helper，从 `TripDetailResponseDto` 派生故事徽章、路线回放海报、分享卡模型、长图和分享卡导出内容。
 - `src/modules/yearbook/AnnualReviewPage.tsx`：年度回顾页面主体，包含年度成就板块。
 
 Summary: Pure logic is pulled out of components into `src/lib` and per-module view models so that rendering stays shallow.

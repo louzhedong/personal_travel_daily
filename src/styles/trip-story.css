@@ -12,6 +12,12 @@
     var(--app-bg, #f8fafc);
 }
 
+.trip-story-template-postcard {
+  background:
+    linear-gradient(180deg, rgba(236, 254, 255, 0.88), rgba(248, 250, 252, 0.98)),
+    var(--app-bg, #f8fafc);
+}
+
 .trip-story-shell {
   width: min(1180px, calc(100vw - 48px));
   margin: 0 auto;
@@ -34,6 +40,10 @@
   background: #3b2f2f;
 }
 
+.trip-story-template-postcard .trip-story-hero {
+  background: #12323a;
+}
+
 .trip-story-hero-image {
   position: absolute;
   inset: 0;
@@ -54,6 +64,12 @@
   background:
     linear-gradient(90deg, rgba(58, 45, 37, 0.86), rgba(58, 45, 37, 0.42)),
     linear-gradient(180deg, rgba(58, 45, 37, 0.12), rgba(58, 45, 37, 0.72));
+}
+
+.trip-story-template-postcard .trip-story-hero-shade {
+  background:
+    linear-gradient(90deg, rgba(18, 50, 58, 0.86), rgba(18, 50, 58, 0.36)),
+    linear-gradient(180deg, rgba(18, 50, 58, 0.12), rgba(18, 50, 58, 0.72));
 }
 
 .trip-story-hero-content {
@@ -167,6 +183,78 @@
   background: #fffaf3;
 }
 
+.trip-story-template-postcard .card,
+.trip-story-template-postcard .trip-story-marker-card,
+.trip-story-template-postcard .trip-story-guide-card,
+.trip-story-template-postcard .trip-story-checklist-card,
+.trip-story-template-postcard .trip-story-badge {
+  border-color: #99f6e4;
+  background: #f8fffd;
+}
+
+.trip-story-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.trip-story-badge {
+  min-height: 148px;
+  padding: 18px;
+  border: 1px solid #dbe4ef;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.trip-story-badge span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.trip-story-badge strong {
+  display: block;
+  margin: 12px 0 6px;
+  color: #0f172a;
+  font-size: 28px;
+}
+
+.trip-story-badge p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.trip-story-badge-route {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.trip-story-badge-photo {
+  border-color: #bae6fd;
+  background: #f0f9ff;
+}
+
+.trip-story-badge-checklist {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.trip-story-badge-guide {
+  border-color: #ddd6fe;
+  background: #f5f3ff;
+}
+
+.trip-story-badge-metadata {
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.trip-story-badge-empty {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
 .trip-story-highlight-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -251,6 +339,92 @@
   width: 10px;
   height: 10px;
   border-radius: 999px;
+}
+
+.trip-story-route-poster {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.75fr) minmax(0, 1.25fr);
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #dbe4ef;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(219, 234, 254, 0.82), rgba(240, 253, 250, 0.78)),
+    #fff;
+}
+
+.trip-story-route-poster-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.trip-story-route-poster-copy span {
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.trip-story-route-poster-copy strong {
+  color: #0f172a;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.trip-story-route-poster-copy p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.trip-story-route-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.trip-story-route-track li {
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.trip-story-route-track-dot {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.trip-story-route-track strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.trip-story-route-track p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
 }
 
 .trip-story-timeline {
@@ -495,9 +669,11 @@
   }
 
   .trip-story-highlight-grid,
+  .trip-story-badge-grid,
   .trip-story-featured-grid,
   .trip-story-two-column,
-  .trip-story-checklist-grid {
+  .trip-story-checklist-grid,
+  .trip-story-route-poster {
     grid-template-columns: 1fr;
   }
 
@@ -510,6 +686,41 @@
   .trip-story-day {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .trip-story-template-switch,
+  .trip-story-actions {
+    width: 100%;
+  }
+
+  .trip-story-actions > button,
+  .trip-story-template-switch {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .trip-story-stage {
+    padding: 0 max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left));
+  }
+
+  .trip-story-shell {
+    width: min(100%, calc(100vw - 32px));
+  }
+
+  .trip-story-hero-content {
+    padding: 22px;
+  }
+
+  .trip-story-template-switch {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-radius: 8px;
+  }
+
+  .trip-story-template-switch button {
+    min-width: 0;
+    padding: 8px;
   }
 }
 
@@ -589,6 +800,10 @@
 
   .trip-story-highlight-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .trip-story-badge-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .trip-story-two-column {

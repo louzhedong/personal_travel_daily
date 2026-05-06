@@ -633,7 +633,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 用途：
 
 - 返回当前登录账号下某个行程的只读详情聚合数据
-- 供行程详情页、行前清单页和旅行故事页复用
+- 供行程详情页、行前清单页和 Story Studio 旅行故事页复用
 
 权限：
 
@@ -753,7 +753,7 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - `photos` 排序为精选优先、人工排序其次、访问日期和记录内原图顺序兜底
 - `planningSummary` 只提供行前规划轻量摘要；完整规划列表由 `GET /api/trips/:id/planning` 获取
 - `checklistSummary` 与 `checklistGroups` 直接内嵌在详情响应中，供 `/trips/:id` 首屏展示行前清单面板
-- `/trips/:id/story` 复用本响应生成私有故事页和浏览器打印 / PDF 导出；精选照片优先用于封面故事、故事页精选瞬间和长图导出，不新增 story 专用 API
+- `/trips/:id/story` 复用本响应生成私有 Story Studio、浏览器打印 / PDF、动态 SVG 长图、方形 / 竖版分享卡；故事徽章、路线回放海报和分享卡模型均由前端纯函数派生，不新增 story 专用 API
 
 错误：
 

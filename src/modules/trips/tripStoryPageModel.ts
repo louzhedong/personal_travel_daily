@@ -54,6 +54,52 @@ export interface TripStoryRouteStop {
   companionColor: string;
 }
 
+export type TripStoryBadgeTone = 'route' | 'photo' | 'checklist' | 'guide' | 'metadata' | 'empty';
+
+export interface TripStoryBadge {
+  id: string;
+  label: string;
+  value: string;
+  description: string;
+  tone: TripStoryBadgeTone;
+}
+
+export interface TripStoryRoutePosterStop {
+  key: string;
+  label: string;
+  date: string;
+  shortLabel: string;
+  companionColor: string;
+}
+
+export interface TripStoryRoutePoster {
+  title: string;
+  subtitle: string;
+  stops: TripStoryRoutePosterStop[];
+  emptyText: string;
+}
+
+export type TripStoryShareCardVariant = 'square' | 'story';
+
+export type TripStoryTemplate = 'magazine' | 'memoir' | 'postcard';
+
+export interface TripStoryTemplatePalette {
+  background: string;
+  surface: string;
+  accent: string;
+  text: string;
+  muted: string;
+}
+
+export interface TripStoryShareCard {
+  title: string;
+  dateRange: string;
+  coverImageUrl?: string;
+  mainCopy: string;
+  metrics: TripStoryHighlight[];
+  palettes: Record<TripStoryTemplate, TripStoryTemplatePalette>;
+}
+
 export interface TripStoryChecklistReview {
   total: number;
   doneCount: number;
@@ -75,6 +121,9 @@ export interface TripStoryViewModel {
   timelineDays: TripStoryTimelineDay[];
   photoGroups: TripStoryPhotoGroup[];
   routeStops: TripStoryRouteStop[];
+  badges: TripStoryBadge[];
+  routePoster: TripStoryRoutePoster;
+  shareCard: TripStoryShareCard;
   guides: TripDetailGuideItemDto[];
   checklistReview: TripStoryChecklistReview;
 }
@@ -192,6 +241,143 @@ export function buildTripStoryRouteStops(markers: TripDetailMarkerItemDto[]): Tr
   return stops;
 }
 
+function getShortRouteLabel(label: string) {
+  const parts = label.split(' · ');
+  return parts[parts.length - 1] || label;
+}
+
+function countMarkersWithMetadata(markers: TripDetailMarkerItemDto[]) {
+  return markers.filter((marker) =>
+    Boolean((marker.tags?.length ?? 0) > 0 || marker.mood || marker.weather || marker.transport || marker.budgetLevel),
+  ).length;
+}
+
+export function buildTripStoryBadges(data: TripDetailResponseDto): TripStoryBadge[] {
+  const checklistReview = buildTripStoryChecklistReview(data);
+  const featuredCount = data.photos.filter((photo) => photo.isFeatured).length;
+  const metadataCount = countMarkersWithMetadata(data.markers);
+  const badges: TripStoryBadge[] = [];
+
+  if (data.summary.markerCount === 0) {
+    return [
+      {
+        id: 'waiting-for-records',
+        label: '故事待启程',
+        value: '0',
+        description: '补充旅行记录后会自动生成路线、照片和回忆片段。',
+        tone: 'empty',
+      },
+      {
+        id: 'trip-dates-ready',
+        label: '行程已创建',
+        value: data.summary.travelDays > 0 ? `${data.summary.travelDays} 天` : '待记录',
+        description: '故事页会先保留行程名称和日期，等待素材长出来。',
+        tone: 'route',
+      },
+    ];
+  }
+
+  badges.push({
+    id: 'route-span',
+    label: data.summary.cityCount >= 2 ? '多城串联' : '单城深游',
+    value: `${data.summary.cityCount}`,
+    description:
+      data.summary.cityCount >= 2
+        ? `${data.summary.regionCount} 个地区连成这次路线。`
+        : '路线更集中，适合沉淀一座城市的细节。',
+    tone: 'route',
+  });
+
+  badges.push({
+    id: 'photo-curation',
+    label: featuredCount > 0 ? '精选照片' : '照片素材',
+    value: featuredCount > 0 ? `${featuredCount}` : `${data.summary.photoCount}`,
+    description:
+      featuredCount > 0
+        ? '已手动挑出故事优先展示的照片。'
+        : data.summary.photoCount > 0
+          ? '可继续在素材页标记精选照片。'
+          : '补图后可生成更完整的视觉故事。',
+    tone: 'photo',
+  });
+
+  badges.push({
+    id: 'checklist-memory',
+    label: checklistReview.total > 0 ? '清单完成' : '清单留白',
+    value: checklistReview.total > 0 ? `${checklistReview.completionPercent}%` : '0',
+    description:
+      checklistReview.total > 0
+        ? checklistReview.completionText
+        : '行前清单会在故事末尾变成准备回顾。',
+    tone: 'checklist',
+  });
+
+  badges.push({
+    id: 'guide-context',
+    label: data.summary.guideCount > 0 ? '攻略线索' : '自由探索',
+    value: `${data.summary.guideCount}`,
+    description:
+      data.summary.guideCount > 0
+        ? '关联攻略会作为这次出发的参考材料保留下来。'
+        : '没有关联攻略，也可以保留纯记录型故事。',
+    tone: 'guide',
+  });
+
+  badges.push({
+    id: 'detail-density',
+    label: metadataCount > 0 ? '细节标记' : '细节待补',
+    value: `${metadataCount}`,
+    description:
+      metadataCount > 0
+        ? '标签、天气、交通或预算已进入时间线叙事。'
+        : '给记录补充标签和心情后，故事会更有层次。',
+    tone: 'metadata',
+  });
+
+  if (data.summary.companionCount > 1) {
+    badges.push({
+      id: 'shared-memory',
+      label: '共同回忆',
+      value: `${data.summary.companionCount}`,
+      description: `${data.companions.map((companion) => companion.name).join('、')} 一起出现在这次故事里。`,
+      tone: 'metadata',
+    });
+  }
+
+  return badges.slice(0, 6);
+}
+
+export function buildTripStoryRoutePoster(routeStops: TripStoryRouteStop[]): TripStoryRoutePoster {
+  if (routeStops.length === 0) {
+    return {
+      title: '路线等待第一站',
+      subtitle: '补充旅行记录后，会在这里生成静态路线回放海报。',
+      stops: [],
+      emptyText: '还没有可展示的路线停靠点。',
+    };
+  }
+
+  const first = routeStops[0];
+  const last = routeStops[routeStops.length - 1];
+  const cityLine = routeStops.map((stop) => getShortRouteLabel(stop.label)).join(' / ');
+
+  return {
+    title: routeStops.length > 1 ? `${first.label} 到 ${last.label}` : `${first.label} 深游`,
+    subtitle:
+      routeStops.length > 1
+        ? `${routeStops.length} 站路线回放 · ${cityLine}`
+        : `${first.date} · ${first.companionName} 留下的单站记忆`,
+    stops: routeStops.map((stop) => ({
+      key: stop.key,
+      label: stop.label,
+      date: stop.date,
+      shortLabel: getShortRouteLabel(stop.label),
+      companionColor: stop.companionColor,
+    })),
+    emptyText: '',
+  };
+}
+
 function readableChecklistStage(stage: TripChecklistStage) {
   switch (stage) {
     case 'pre_departure':
@@ -294,12 +480,48 @@ export function buildTripStorySmartNarrative(data: TripDetailResponseDto) {
   return `${routeLabel}，${companionLabel} 用 ${data.summary.travelDays} 天走过 ${data.summary.cityCount} 座城市，${photoLabel}，也${guideLabel}。这页故事把记录、路线和准备清单收在一起，方便以后再翻回这次出发。`;
 }
 
-export function buildTripStoryViewModel(data: TripDetailResponseDto): TripStoryViewModel {
-  const featuredPhotos = buildTripStoryFeaturedPhotos(data.photos);
+export function buildTripStoryShareCard(data: TripDetailResponseDto, coverImageUrl?: string): TripStoryShareCard {
+  const highlights = buildTripStoryHighlights(data);
   return {
     title: data.trip.name,
     dateRange: formatDateRange(data.trip.startsAt, data.trip.endsAt),
-    coverImageUrl: data.trip.coverImageUrl ?? featuredPhotos[0]?.imageUrl ?? data.photos[0]?.imageUrl,
+    coverImageUrl,
+    mainCopy: buildTripStorySmartNarrative(data),
+    metrics: highlights.slice(0, 3),
+    palettes: {
+      magazine: {
+        background: '#f8fafc',
+        surface: '#ffffff',
+        accent: '#2563eb',
+        text: '#0f172a',
+        muted: '#64748b',
+      },
+      memoir: {
+        background: '#fff7ed',
+        surface: '#fffaf3',
+        accent: '#c2410c',
+        text: '#2f241c',
+        muted: '#7c5f48',
+      },
+      postcard: {
+        background: '#ecfeff',
+        surface: '#ffffff',
+        accent: '#0f766e',
+        text: '#12323a',
+        muted: '#4b6670',
+      },
+    },
+  };
+}
+
+export function buildTripStoryViewModel(data: TripDetailResponseDto): TripStoryViewModel {
+  const featuredPhotos = buildTripStoryFeaturedPhotos(data.photos);
+  const coverImageUrl = data.trip.coverImageUrl ?? featuredPhotos[0]?.imageUrl ?? data.photos[0]?.imageUrl;
+  const routeStops = buildTripStoryRouteStops(data.markers);
+  return {
+    title: data.trip.name,
+    dateRange: formatDateRange(data.trip.startsAt, data.trip.endsAt),
+    coverImageUrl,
     featuredPhotos,
     photoSections: buildTripStoryPhotoSections(data.photos),
     lead: buildTripStoryLead(data),
@@ -308,7 +530,10 @@ export function buildTripStoryViewModel(data: TripDetailResponseDto): TripStoryV
     highlights: buildTripStoryHighlights(data),
     timelineDays: buildTripStoryTimelineDays(data.markers),
     photoGroups: buildTripStoryPhotoGroups(data.photos),
-    routeStops: buildTripStoryRouteStops(data.markers),
+    routeStops,
+    badges: buildTripStoryBadges(data),
+    routePoster: buildTripStoryRoutePoster(routeStops),
+    shareCard: buildTripStoryShareCard(data, coverImageUrl),
     guides: data.guides,
     checklistReview: buildTripStoryChecklistReview(data),
   };

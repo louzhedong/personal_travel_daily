@@ -3,6 +3,30 @@
 本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
+## 2026-05-06
+
+### PR 待定 / TBD `feat: Story Studio 旅行故事进阶 / Add Story Studio trip story evolution`
+
+### Added / 新增
+
+- `/trips/:id/story` 升级为私有 Story Studio，新增故事徽章、路线回放海报和明信片模板，继续复用行程详情聚合数据且不新增后端 story API。
+  Upgraded `/trips/:id/story` into a private Story Studio with story badges, a route replay poster, and a postcard template while continuing to reuse trip-detail aggregate data without adding a story-specific backend API.
+- 新增 `tripStoryExport.ts`，集中生成动态 SVG 长图、方形分享卡与竖版分享卡。
+  Added `tripStoryExport.ts` to centralize dynamic SVG long-image, square share-card, and vertical share-card generation.
+
+### Changed / 变更
+
+- `tripStoryPageModel` 现在从 `TripDetailResponseDto` 纯函数派生故事徽章、路线回放海报和分享卡模型，React 页面只负责加载、模板切换和导出触发。
+  `tripStoryPageModel` now derives story badges, the route replay poster, and share-card models from `TripDetailResponseDto`, leaving the React page focused on loading, template switching, and export actions.
+- 刷新 README、项目总览、前端架构、App API 契约、Story Studio 文档、路线图和行前规划关联说明，将旅行故事进阶从 active roadmap 迁移到已完成能力。
+  Refreshed the README, project overview, frontend architecture, App API contract, Story Studio documentation, roadmap, and planning-export relationship notes to move trip story evolution from the active roadmap into shipped capability.
+
+### Verified / 已验证
+
+- `npm run test -- --run src/modules/trips/__tests__/tripStoryPageModel.spec.ts src/modules/__tests__/TripStoryPage.spec.tsx`
+- `npm run test -- --run src/modules/app/__tests__/router.spec.ts`
+- `npm run build`
+
 ## 2026-05-03
 
 ### PR 待定 / TBD `feat: 行前规划工作台一期 / Add trip planning workspace phase one`
