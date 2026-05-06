@@ -33,6 +33,8 @@ const mocks = vi.hoisted(() => ({
   deleteSavedGuideResourceMock: vi.fn(),
   listGuideSearchHistoriesResourceMock: vi.fn(),
   createGuideSearchHistoryResourceMock: vi.fn(),
+  createGuideSearchLogResourceMock: vi.fn(),
+  listGuideSourceHealthResourceMock: vi.fn(),
   listWishlistItemsMock: vi.fn(),
   createWishlistItemResourceMock: vi.fn(),
   updateWishlistItemResourceMock: vi.fn(),
@@ -106,6 +108,14 @@ vi.mock('../appApi/services/savedGuideService.js', () => ({
 vi.mock('../appApi/services/guideSearchHistoryService.js', () => ({
   listGuideSearchHistoriesResource: mocks.listGuideSearchHistoriesResourceMock,
   createGuideSearchHistoryResource: mocks.createGuideSearchHistoryResourceMock,
+}));
+
+vi.mock('../appApi/services/guideSearchLogService.js', () => ({
+  createGuideSearchLogResource: mocks.createGuideSearchLogResourceMock,
+}));
+
+vi.mock('../appApi/services/guideSourceHealthService.js', () => ({
+  listGuideSourceHealthResource: mocks.listGuideSourceHealthResourceMock,
 }));
 
 vi.mock('../appApi/services/wishlistService.js', () => ({
@@ -228,6 +238,26 @@ describe('app api routes', () => {
           },
         },
       ],
+      guideSearchTrends: [
+        {
+          date: '2026-04-22',
+          totalCount: 3,
+          successCount: 2,
+          emptyCount: 1,
+          errorCount: 0,
+          topKeywords: [],
+        },
+      ],
+      guideSearchStatusBreakdown: [{ status: 'success', count: 2 }],
+      guideSourceHealth: [
+        {
+          id: 'health-1',
+          sourceName: 'Qyer',
+          sourceDomain: 'qyer.com',
+          recentSuccess: 2,
+          recentFailure: 0,
+        },
+      ],
       meta: {
         fetchedAt: '2026-04-22T00:00:00.000Z',
         accountCount: 1,
@@ -243,6 +273,7 @@ describe('app api routes', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json().accounts[0].role).toBe('admin');
+      expect(response.json().guideSourceHealth[0].sourceDomain).toBe('qyer.com');
       expect(mocks.getAdminOverviewMock).toHaveBeenCalledTimes(1);
     } finally {
       await app.close();
@@ -1284,6 +1315,95 @@ describe('app api routes', () => {
         keyword: '京都',
         scope: 'international',
       });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('forwards guide search log creation with account context', async () => {
+    mocks.createGuideSearchLogResourceMock.mockResolvedValue({
+      item: {
+        id: 'log-1',
+        companionId: 'user-alice',
+        keyword: '京都',
+        scope: 'international',
+        provider: 'remote',
+        page: 1,
+        pageSize: 8,
+        resultCount: 3,
+        hasMore: false,
+        durationMs: 120,
+        status: 'success',
+        sourceName: 'Qyer',
+        sourceDomain: 'qyer.com',
+        createdAt: '2026-04-22T00:00:00.000Z',
+      },
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/guide-search-logs',
+        payload: {
+          companionId: 'user-alice',
+          keyword: '京都',
+          scope: 'international',
+          provider: 'remote',
+          page: 1,
+          pageSize: 8,
+          resultCount: 3,
+          hasMore: false,
+          durationMs: 120,
+          status: 'success',
+          sourceName: 'Qyer',
+          sourceDomain: 'qyer.com',
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mocks.createGuideSearchLogResourceMock).toHaveBeenCalledWith('acct-1', {
+        companionId: 'user-alice',
+        keyword: '京都',
+        scope: 'international',
+        provider: 'remote',
+        page: 1,
+        pageSize: 8,
+        resultCount: 3,
+        hasMore: false,
+        durationMs: 120,
+        status: 'success',
+        sourceName: 'Qyer',
+        sourceDomain: 'qyer.com',
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('forwards guide source health snapshot requests', async () => {
+    mocks.listGuideSourceHealthResourceMock.mockResolvedValue({
+      items: [
+        {
+          id: 'health-1',
+          sourceName: 'Qyer',
+          sourceDomain: 'qyer.com',
+          recentSuccess: 4,
+          recentFailure: 1,
+        },
+      ],
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/guide-source-health?limit=10',
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mocks.listGuideSourceHealthResourceMock).toHaveBeenCalledWith({ limit: 10 });
+      expect(response.json().items[0].sourceName).toBe('Qyer');
     } finally {
       await app.close();
     }

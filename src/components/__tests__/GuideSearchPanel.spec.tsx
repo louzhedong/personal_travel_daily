@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   searchGuidesMock: vi.fn(),
   getGuideDocumentMock: vi.fn(),
   useGuideSearchLayoutLockMock: vi.fn(),
+  fetchGuideSourceHealthMock: vi.fn(),
 }));
 
 vi.mock('../../lib/guides/guideSearchService', () => ({
@@ -16,6 +17,10 @@ vi.mock('../../lib/guides/guideSearchService', () => ({
 
 vi.mock('../../lib/guides/guideContentService', () => ({
   getGuideDocument: mocks.getGuideDocumentMock,
+}));
+
+vi.mock('../../lib/api/guideSourceHealthApi', () => ({
+  fetchGuideSourceHealth: mocks.fetchGuideSourceHealthMock,
 }));
 
 vi.mock('../useGuideSearchLayoutLock', () => ({
@@ -74,8 +79,11 @@ describe('GuideSearchPanel', () => {
     mocks.searchGuidesMock.mockResolvedValue({
       items: [searchResult],
       provider: 'mock',
+      page: 1,
+      hasMore: false,
     });
     mocks.getGuideDocumentMock.mockResolvedValue(document);
+    mocks.fetchGuideSourceHealthMock.mockResolvedValue({ items: [] });
     mocks.useGuideSearchLayoutLockMock.mockReturnValue({
       layoutLocked: false,
       panelSpacerHeight: 0,
@@ -139,7 +147,7 @@ describe('GuideSearchPanel', () => {
 
     await userEvent.click(screen.getByRole('button', { name: '搜索' }));
 
-    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Kyoto Spring Cherry Blossom Guide/i })).toBeInTheDocument();
     expect(screen.getByText('Cherry blossom timing, popular viewpoints and quiet morning walking route.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '收藏攻略' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '关联到当前记录' })).not.toBeInTheDocument();
@@ -190,7 +198,7 @@ describe('GuideSearchPanel', () => {
     await userEvent.click(screen.getByLabelText('智能搜索'));
     await userEvent.click(screen.getByRole('button', { name: '搜索' }));
 
-    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Kyoto Spring Cherry Blossom Guide/i })).toBeInTheDocument();
     expect(screen.queryByText('Semantic match for a relaxed spring route')).not.toBeInTheDocument();
   });
 
@@ -217,7 +225,7 @@ describe('GuideSearchPanel', () => {
       />,
     );
 
-    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Kyoto Spring Cherry Blossom Guide/i })).toBeInTheDocument();
     expect(screen.getByText('来源: mock')).toBeInTheDocument();
   });
 
@@ -278,7 +286,7 @@ describe('GuideSearchPanel', () => {
     );
 
     await userEvent.click(screen.getByRole('button', { name: '搜索' }));
-    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Kyoto Spring Cherry Blossom Guide/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '取消收藏' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '解除关联' })).toBeInTheDocument();
     expect(screen.getByText('已收藏')).toBeInTheDocument();
@@ -313,7 +321,7 @@ describe('GuideSearchPanel', () => {
     );
 
     await userEvent.click(screen.getByRole('button', { name: '搜索' }));
-    expect(await screen.findByText('Kyoto Spring Cherry Blossom Guide')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Kyoto Spring Cherry Blossom Guide/i })).toBeInTheDocument();
 
     await userEvent.click(screen.getAllByRole('button', { name: '生成行前清单' })[0]);
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
@@ -390,7 +398,9 @@ describe('GuideSearchPanel', () => {
     await userEvent.click(screen.getByRole('button', { name: '搜索' }));
     await userEvent.click(screen.getAllByRole('button', { name: '生成行前清单' })[0]);
     await userEvent.click(screen.getAllByRole('button', { name: '生成行前清单' })[1]);
-    expect(await screen.findByText('生成失败')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getAllByText('生成失败').length).toBeGreaterThan(0);
+    });
   });
 
   it('opens generated checklist feedback actions and supports closing from backdrop and escape', async () => {
@@ -420,7 +430,7 @@ describe('GuideSearchPanel', () => {
       />,
     );
 
-    await screen.findByText('Kyoto Spring Cherry Blossom Guide');
+    await screen.findByRole('heading', { name: /Kyoto Spring Cherry Blossom Guide/i });
     await userEvent.click(screen.getByRole('button', { name: '生成行前清单' }));
     await userEvent.click(screen.getAllByRole('button', { name: '生成行前清单' })[1]);
     await screen.findByRole('button', { name: '查看行程详情' });

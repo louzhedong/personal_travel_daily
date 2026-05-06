@@ -106,7 +106,64 @@ export interface GuideSearchHistoryItemDto {
   id: string;
   keyword: string;
   scope: Scope | 'all';
+  lastResultCount?: number;
   createdAt: string;
+}
+
+export type GuideSearchLogStatusDto = 'success' | 'empty' | 'error';
+
+export interface GuideSearchLogDto {
+  id: string;
+  companionId: string;
+  keyword: string;
+  scope: Scope | 'all';
+  provider: string;
+  page: number;
+  pageSize: number;
+  resultCount: number;
+  hasMore: boolean;
+  durationMs: number;
+  status: GuideSearchLogStatusDto;
+  errorCode?: string;
+  sourceName?: string;
+  sourceDomain?: string;
+  createdAt: string;
+}
+
+export interface GuideSearchTrendPointDto {
+  date: string;
+  totalCount: number;
+  successCount: number;
+  emptyCount: number;
+  errorCount: number;
+  topKeywords: Array<{
+    keyword: string;
+    count: number;
+  }>;
+}
+
+export interface GuideSearchStatusBreakdownDto {
+  status: GuideSearchLogStatusDto;
+  count: number;
+}
+
+export interface GuideSourceHealthDto {
+  id: string;
+  sourceName: string;
+  sourceDomain: string;
+  recentSuccess: number;
+  recentFailure: number;
+  lastSuccessAt?: string;
+  lastFailureAt?: string;
+  lastFailureReason?: string;
+}
+
+export interface GuideSearchLogMutationResponseDto {
+  item: GuideSearchLogDto;
+}
+
+export interface GuideSourceHealthListResponseDto {
+  items: GuideSourceHealthDto[];
 }
 
 export type WishlistPriorityDto = 'low' | 'medium' | 'high';
@@ -324,6 +381,9 @@ export interface AdminAccountNodeDto {
 
 export interface AdminOverviewResponseDto {
   accounts: AdminAccountNodeDto[];
+  guideSearchTrends?: GuideSearchTrendPointDto[];
+  guideSearchStatusBreakdown?: GuideSearchStatusBreakdownDto[];
+  guideSourceHealth?: GuideSourceHealthDto[];
   meta: {
     fetchedAt: string;
     accountCount: number;

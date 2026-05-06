@@ -1,4 +1,6 @@
 import { forwardRef } from 'react';
+import type { ReactNode } from 'react';
+import type { GuideSourceHealthDto } from '../lib/api/types';
 import type { GuideSearchResult, SavedGuide } from '../types';
 
 /**
@@ -42,6 +44,10 @@ interface GuideSearchResultListProps {
   normalizedKeyword: string;
   /** Lookup helper for determining existing saved guide entry. 查询已收藏攻略的辅助函数。 */
   getSavedGuideBySourceUrl: (sourceUrl: string, markerId?: string) => SavedGuide | null;
+  /** Render highlighted text nodes for matched keywords. 渲染命中高亮文本。 */
+  renderHighlightedText: (text: string) => ReactNode;
+  /** Source health lookup by domain. 按域名索引的来源健康度。 */
+  sourceHealthByDomain: Map<string, GuideSourceHealthDto>;
   /** Open a guide document for preview. 打开攻略正文片段。 */
   onOpenGuide: (guide: GuideSearchResult) => void;
   /** Save a guide to favorites. 收藏攻略。 */
@@ -58,6 +64,12 @@ interface GuideSearchResultListProps {
   onAddToWishlist: (guide: GuideSearchResult) => void;
   /** Whether checklist generation can be triggered now. 当前是否可生成行前清单。 */
   canGenerateTripChecklist: boolean;
+  /** Whether more pages can be loaded. 是否还有更多分页结果。 */
+  hasMore: boolean;
+  /** Whether the next page is loading. 下一页是否正在加载。 */
+  loadingMore: boolean;
+  /** Load the next page. 加载下一页。 */
+  onLoadMore: () => void;
 }
 
 /**
@@ -77,6 +89,8 @@ export const GuideSearchResultList = forwardRef<HTMLDivElement, GuideSearchResul
       linkedMarkerId,
       normalizedKeyword,
       getSavedGuideBySourceUrl,
+      renderHighlightedText,
+      sourceHealthByDomain,
       onOpenGuide,
       onSaveGuide,
       onAttachGuideToMarker,
@@ -85,6 +99,9 @@ export const GuideSearchResultList = forwardRef<HTMLDivElement, GuideSearchResul
       onAddToTripPlanning,
       onAddToWishlist,
       canGenerateTripChecklist,
+      hasMore,
+      loadingMore,
+      onLoadMore,
     },
     resultsBodyRef,
   ) {
@@ -125,12 +142,28 @@ export const GuideSearchResultList = forwardRef<HTMLDivElement, GuideSearchResul
                   <div className="guide-result-body">
                     <div className="guide-result-meta">
                       <span className="marker-scope-tag guide-result-source">{item.sourceName}</span>
+                      {(() => {
+                        let hostname = '';
+                        try {
+                          hostname = new URL(item.sourceUrl).hostname.toLowerCase();
+                        } catch {
+                          hostname = '';
+                        }
+                        const sourceHealth = hostname ? sourceHealthByDomain.get(hostname) : undefined;
+                        const sourceWarning =
+                          sourceHealth && sourceHealth.recentFailure > sourceHealth.recentSuccess;
+                        return sourceWarning ? (
+                          <span className="guide-result-health guide-result-health-warning">
+                            来源波动
+                          </span>
+                        ) : null;
+                      })()}
                       {item.publishedAt ? <span className="guide-result-date">{item.publishedAt}</span> : null}
                     </div>
-                    <h4 className="guide-result-title">{item.title}</h4>
-                    <p className="guide-result-summary">{item.summary}</p>
+                    <h4 className="guide-result-title">{renderHighlightedText(item.title)}</h4>
+                    <p className="guide-result-summary">{renderHighlightedText(item.summary)}</p>
                     {item.matchReason ? (
-                      <p className="guide-result-match-reason">{item.matchReason}</p>
+                      <p className="guide-result-match-reason">{renderHighlightedText(item.matchReason)}</p>
                     ) : null}
                     {item.tags?.length ? (
                       <div className="guide-result-tags">
@@ -240,6 +273,18 @@ export const GuideSearchResultList = forwardRef<HTMLDivElement, GuideSearchResul
                   </div>
                 </article>
               ))}
+              {hasMore ? (
+                <div className="guide-result-load-more">
+                  <button
+                    type="button"
+                    className="ghost-button guide-action-button"
+                    onClick={onLoadMore}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? '正在加载更多...' : '加载更多'}
+                  </button>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>

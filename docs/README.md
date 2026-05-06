@@ -48,6 +48,7 @@ Summary: The architecture section now includes dedicated frontend and backend do
 - [旅行成就系统 / Travel Achievements](./technical/travel-achievements.md)
 - [攻略搜索功能说明 / Guide Search Feature](./technical/guide-search-feature.md)
 - [攻略搜索 / 收藏 / 关联设计 / Travel Guide Search Design](./technical/travel-guide-search-design.md)
+- [攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance](./technical/guide-search-governance.md)
 - [地图渲染与 Hover 性能 / Map Rendering and Hover Performance](./technical/map-rendering-and-hover-performance.md)
 - [地图回放模式 / Map Replay Mode](./technical/map-replay-mode.md)
 - [设计 Token / Design Tokens](./design/design-tokens.md)

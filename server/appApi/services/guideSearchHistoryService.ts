@@ -56,7 +56,12 @@ export async function createGuideSearchHistoryResource(
     });
 
     if (duplicate) {
-      const refreshed = await refreshGuideSearchHistory(tx, duplicate.id, input.keyword.trim());
+      const refreshed = await refreshGuideSearchHistory(
+        tx,
+        duplicate.id,
+        input.keyword.trim(),
+        input.lastResultCount,
+      );
       return {
         history: refreshed,
         deduplicated: true,
@@ -70,6 +75,7 @@ export async function createGuideSearchHistoryResource(
       keyword: input.keyword.trim(),
       keywordNormalized,
       scope: input.scope,
+      lastResultCount: input.lastResultCount,
     });
 
     return {

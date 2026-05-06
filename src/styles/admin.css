@@ -489,6 +489,31 @@
   border: 1px solid rgba(226, 232, 240, 0.9);
 }
 
+.admin-stacked-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-list-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.admin-list-row strong,
+.admin-list-row p {
+  margin: 0;
+}
+
+.admin-list-row p {
+  color: #64748b;
+  font-size: 13px;
+}
+
 .admin-section-title {
   display: flex;
   align-items: center;

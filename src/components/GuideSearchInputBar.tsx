@@ -20,6 +20,8 @@ interface GuideSearchInputBarProps {
   canSearch: boolean;
   /** Recent search history shortcuts. 最近搜索历史快捷项。 */
   history: GuideSearchHistoryItem[];
+  /** Suggested keywords based on current input. 基于当前输入的建议词。 */
+  suggestions: GuideSearchHistoryItem[];
   /** Update the search keyword. 更新搜索关键词。 */
   onQueryChange: (nextQuery: string) => void;
   /** Update the search scope. 更新搜索范围。 */
@@ -44,6 +46,7 @@ export function GuideSearchInputBar({
   loading,
   canSearch,
   history,
+  suggestions,
   onQueryChange,
   onScopeChange,
   onSmartSearchChange,
@@ -145,6 +148,29 @@ export function GuideSearchInputBar({
                   }}
                 >
                   {item.keyword}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {suggestions.length > 0 ? (
+          <div className="guide-search-history">
+            <span className="guide-search-history-label">猜你想搜</span>
+            <div className="guide-search-history-list">
+              {suggestions.map((item) => (
+                <button
+                  key={`suggestion-${item.id}`}
+                  type="button"
+                  className="guide-history-chip"
+                  onClick={() => {
+                    onQueryChange(item.keyword);
+                    onScopeChange(item.scope);
+                    onSubmit(item.keyword, item.scope);
+                  }}
+                >
+                  {item.keyword}
+                  {typeof item.lastResultCount === 'number' ? ` · ${item.lastResultCount} 条` : ''}
                 </button>
               ))}
             </div>

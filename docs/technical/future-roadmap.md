@@ -38,15 +38,19 @@ Summary: The stats center and trip detail loop ships with drill-through and map 
 
 ### 攻略搜索与阅读 / Guide Search and Reading
 
-- 状态：已完成可用版。
+- 状态：增强版已完成。
 - 已落地范围：
   - 多来源攻略搜索、正文摘要、正文阅读增强与缓存。
   - 收藏、搜索历史、关联到记录与回跳链路。
+  - 搜索结果支持分页加载更多、命中高亮和基于历史的“猜你想搜”建议。
+  - 搜索历史会记录最近一次结果数量，便于前端建议与快捷入口复用。
+  - 前端每次搜索都会写入 `guide-search-logs`，后台可查看关键词趋势、状态分布和来源健康度。
+  - 搜索结果会按来源健康度展示轻提示徽章，后台新增搜索趋势与来源健康度面板。
 - 后续增强：
-  - 攻略质量治理。
-  - 攻略质量治理后的来源治理与质量评分。
+  - 更强的结果质量评分与来源优先级。
+  - 后续如要加入后台修复能力，再单独设计权限与审计。
 
-Summary: Guide search, reading, save, and linking are all production-ready.
+Summary: Guide search, reading, save, and linking are now production-ready with pagination, highlighting, suggestion chips, search logging, and source-governance visibility.
 
 ### 攻略提炼为行前清单 / Guide-to-Checklist Workflow
 
@@ -252,20 +256,7 @@ Given the current product baseline, the product no longer lacks capture surfaces
 
 ## 下一阶段路线图 / Next-Phase Roadmap
 
-### 1. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
-
-- 优先级：`P2`
-- 为什么值得做：
-  - 攻略搜索已经进入“能用”阶段，下一步瓶颈会从功能有无转向结果质量、可复查性和整理效率。
-- 建议范围：
-  - 搜索建议、历史关键词快捷入口、命中片段高亮、分页加载更多。
-  - 收藏攻略去重增强：同源 URL、标题相似度和目的地维度的合并提示。
-  - 来源优先级、结果质量评分、失效内容标记和抓取异常记录。
-  - 管理员后台增加关键词趋势、失败率和来源健康度只读报表。
-
-Summary: Guide search should evolve from retrieval into a governed content pipeline.
-
-### 2. 照片与媒体整理 / Photo and Media Curation
+### 1. 照片与媒体整理 / Photo and Media Curation
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -278,7 +269,7 @@ Summary: Guide search should evolve from retrieval into a governed content pipel
 
 Summary: Media curation improves every retrospective surface that already depends on photos.
 
-### 3. 旅伴共同回忆 / Companion Shared Memories
+### 2. 旅伴共同回忆 / Companion Shared Memories
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -291,7 +282,7 @@ Summary: Media curation improves every retrospective surface that already depend
 
 Summary: Shared memories make companions emotionally meaningful while preserving the current single-account model.
 
-### 4. 管理后台与质量巡检 / Admin Quality Operations
+### 3. 管理后台与质量巡检 / Admin Quality Operations
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -303,7 +294,7 @@ Summary: Shared memories make companions emotionally meaningful while preserving
 
 Summary: Admin operations should help detect data and integration problems before they become user-facing regressions.
 
-### 5. 账号设置与会话治理 / Account Settings and Session Governance
+### 4. 账号设置与会话治理 / Account Settings and Session Governance
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -316,7 +307,7 @@ Summary: Admin operations should help detect data and integration problems befor
 
 Summary: Account settings are not flashy, but they matter once the app becomes a long-term personal archive.
 
-### 6. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+### 5. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -333,12 +324,11 @@ Summary: Architecture hardening keeps future feature work from becoming slower a
 
 建议按下面顺序推进（已完成项已挪到文档开头）：
 
-1. 攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance
-2. 照片与媒体整理 / Photo and Media Curation
-3. 旅伴共同回忆 / Companion Shared Memories
-4. 管理后台与质量巡检 / Admin Quality Operations
-5. 账号设置与会话治理 / Account Settings and Session Governance
-6. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+1. 照片与媒体整理 / Photo and Media Curation
+2. 旅伴共同回忆 / Companion Shared Memories
+3. 管理后台与质量巡检 / Admin Quality Operations
+4. 账号设置与会话治理 / Account Settings and Session Governance
+5. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 ## 选题原则 / Feature Selection Rules
 

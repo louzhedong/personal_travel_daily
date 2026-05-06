@@ -1,6 +1,8 @@
 import type {
   Account,
+  GuideSearchLog,
   GuideSearchHistory,
+  GuideSourceHealth,
   MarkerSearchEvent,
   SavedGuide,
   TravelCompanion,
@@ -21,7 +23,11 @@ import type {
   AdminTripNodeDto,
   GuideContentBlockDto,
   GuideDocumentDto,
+  GuideSearchStatusBreakdownDto,
+  GuideSearchTrendPointDto,
   GuideSearchResultDto,
+  GuideSourceHealthDto,
+  GuideSourceHealthListResponseDto,
 } from '../types.js';
 import { buildAdminAccountStats } from '../services/admin/accountStats.js';
 import { serializeTripPlanningItem } from './tripPlanningSerializer.js';
@@ -232,9 +238,97 @@ function serializeAccount(account: AccountWithRelations): AdminAccountNodeDto {
 export function serializeAdminOverview(accounts: AccountWithRelations[]): AdminOverviewResponseDto {
   return {
     accounts: accounts.map(serializeAccount),
+    guideSearchTrends: [],
+    guideSearchStatusBreakdown: [],
+    guideSourceHealth: [],
     meta: {
       fetchedAt: toIsoString(new Date()),
       accountCount: accounts.length,
     },
+  };
+}
+
+export function serializeGuideSearchTrends(logs: GuideSearchLog[]): GuideSearchTrendPointDto[] {
+  const trendMap = new Map<
+    string,
+    {
+      totalCount: number;
+      successCount: number;
+      emptyCount: number;
+      errorCount: number;
+      keywordCounts: Map<string, number>;
+    }
+  >();
+
+  for (const log of logs) {
+    const date = toDateOnlyString(log.createdAt);
+    const current =
+      trendMap.get(date) ??
+      {
+        totalCount: 0,
+        successCount: 0,
+        emptyCount: 0,
+        errorCount: 0,
+        keywordCounts: new Map<string, number>(),
+      };
+
+    current.totalCount += 1;
+    current.keywordCounts.set(log.keyword, (current.keywordCounts.get(log.keyword) ?? 0) + 1);
+
+    if (log.status === 'success') {
+      current.successCount += 1;
+    } else if (log.status === 'empty') {
+      current.emptyCount += 1;
+    } else {
+      current.errorCount += 1;
+    }
+
+    trendMap.set(date, current);
+  }
+
+  return Array.from(trendMap.entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([date, value]) => ({
+      date,
+      totalCount: value.totalCount,
+      successCount: value.successCount,
+      emptyCount: value.emptyCount,
+      errorCount: value.errorCount,
+      topKeywords: Array.from(value.keywordCounts.entries())
+        .sort((left, right) => right[1] - left[1])
+        .slice(0, 3)
+        .map(([keyword, count]) => ({ keyword, count })),
+    }));
+}
+
+export function serializeGuideSearchStatusBreakdown(
+  breakdown: Array<{ status: 'success' | 'empty' | 'error'; _count: { _all: number } }>,
+): GuideSearchStatusBreakdownDto[] {
+  return breakdown.map((item) => ({
+    status: item.status,
+    count: item._count._all,
+  }));
+}
+
+export function serializeGuideSourceHealthSnapshot(
+  items: GuideSourceHealth[],
+): GuideSourceHealthDto[] {
+  return items.map((item) => ({
+    id: item.id,
+    sourceName: item.sourceName,
+    sourceDomain: item.sourceDomain,
+    recentSuccess: item.recentSuccess,
+    recentFailure: item.recentFailure,
+    lastSuccessAt: item.lastSuccessAt ? toIsoString(item.lastSuccessAt) : undefined,
+    lastFailureAt: item.lastFailureAt ? toIsoString(item.lastFailureAt) : undefined,
+    lastFailureReason: item.lastFailureReason ?? undefined,
+  }));
+}
+
+export function serializeGuideSourceHealthList(
+  items: GuideSourceHealth[],
+): GuideSourceHealthListResponseDto {
+  return {
+    items: serializeGuideSourceHealthSnapshot(items),
   };
 }

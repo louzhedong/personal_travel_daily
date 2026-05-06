@@ -336,6 +336,9 @@ describe('adminSerializer', () => {
   it('serializes an empty overview list', () => {
     expect(serializeAdminOverview([])).toEqual({
       accounts: [],
+      guideSearchTrends: [],
+      guideSearchStatusBreakdown: [],
+      guideSourceHealth: [],
       meta: {
         fetchedAt: '2026-04-06T10:00:00.000Z',
         accountCount: 0,

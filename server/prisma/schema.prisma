@@ -18,6 +18,12 @@ enum GuideSearchScope {
   all
 }
 
+enum GuideSearchLogStatus {
+  success
+  empty
+  error
+}
+
 enum AccountRole {
   admin
   member
@@ -59,6 +65,7 @@ model Account {
   markers      VisitMarker[]
   savedGuides  SavedGuide[]
   histories    GuideSearchHistory[]
+  guideSearchLogs GuideSearchLog[]
   markerSearchEvents MarkerSearchEvent[]
   sessions     AuthSession[]
   tripChecklistItems TripChecklistItem[]
@@ -155,6 +162,7 @@ model TravelCompanion {
   markers    VisitMarker[]
   guides     SavedGuide[]
   histories  GuideSearchHistory[]
+  guideSearchLogs GuideSearchLog[]
   markerSearchEvents MarkerSearchEvent[]
   tripChecklistItems TripChecklistItem[] @relation("TripChecklistItemCreatedByCompanion")
   tripPlanningItems TripPlanningItem[] @relation("TripPlanningItemCreatedByCompanion")
@@ -257,6 +265,7 @@ model GuideSearchHistory {
   keyword           String
   keywordNormalized String           @map("keyword_normalized")
   scope             GuideSearchScope
+  lastResultCount   Int?             @map("last_result_count")
   isDeleted         Boolean          @default(false) @map("is_deleted")
   createdAt         DateTime         @default(now()) @map("created_at")
   deletedAt         DateTime?        @map("deleted_at")
@@ -267,6 +276,48 @@ model GuideSearchHistory {
   @@index([companionId], map: "idx_guide_search_histories_companion_id")
   @@unique([companionId, keywordNormalized, scope, isDeleted], map: "uq_guide_search_histories_scope_keyword_active")
   @@map("guide_search_histories")
+}
+
+model GuideSearchLog {
+  id                String               @id
+  accountId         String               @map("account_id")
+  companionId       String               @map("companion_id")
+  keyword           String
+  keywordNormalized String               @map("keyword_normalized")
+  scope             GuideSearchScope
+  provider          String
+  page              Int
+  pageSize          Int                  @map("page_size")
+  resultCount       Int                  @map("result_count")
+  hasMore           Boolean              @map("has_more")
+  durationMs        Int                  @map("duration_ms")
+  status            GuideSearchLogStatus
+  errorCode         String?              @map("error_code")
+  sourceName        String?              @map("source_name")
+  sourceDomain      String?              @map("source_domain")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  account           Account              @relation(fields: [accountId], references: [id])
+  companion         TravelCompanion      @relation(fields: [companionId], references: [id])
+
+  @@index([accountId, createdAt], map: "idx_guide_search_logs_account_created")
+  @@index([keywordNormalized, createdAt], map: "idx_guide_search_logs_keyword_created")
+  @@index([sourceDomain, createdAt], map: "idx_guide_search_logs_source_domain_created")
+  @@map("guide_search_logs")
+}
+
+model GuideSourceHealth {
+  id                String    @id
+  sourceName        String    @map("source_name")
+  sourceDomain      String    @map("source_domain")
+  recentSuccess     Int       @default(0) @map("recent_success")
+  recentFailure     Int       @default(0) @map("recent_failure")
+  lastSuccessAt     DateTime? @map("last_success_at")
+  lastFailureAt     DateTime? @map("last_failure_at")
+  lastFailureReason String?   @map("last_failure_reason") @db.Text
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@unique([sourceName, sourceDomain], map: "uq_guide_source_health_name_domain")
+  @@map("guide_source_health")
 }
 
 model TripChecklistItem {

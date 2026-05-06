@@ -171,6 +171,7 @@ export interface GuideSearchParams {
   scope?: Scope | 'all';
   page?: number;
   pageSize?: number;
+  companionId?: string;
   markerId?: string;
   searchMode?: 'keyword' | 'smart';
 }
@@ -243,6 +244,7 @@ export interface GuideSearchHistoryItem {
   id: string;
   keyword: string;
   scope: Scope | 'all';
+  lastResultCount?: number;
   createdAt: string;
 }
 

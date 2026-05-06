@@ -5,6 +5,31 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-05-06
 
+### PR 待定 / TBD `feat: 攻略搜索增强与来源治理 / Add guide search governance and admin observability`
+
+### Added / 新增
+
+- 新增 `GuideSearchLog`、`GuideSourceHealth` 与对应 migration、服务端路由、管理后台趋势面板和来源健康度面板。  
+  Added `GuideSearchLog`, `GuideSourceHealth`, the related migration, backend routes, an admin trend panel, and a source-health panel.
+- 新增 `docs/technical/guide-search-governance.md`，系统记录分页、高亮、搜索日志、来源健康度和后台观察面的闭环。  
+  Added `docs/technical/guide-search-governance.md` to document the closed loop around pagination, highlighting, search logs, source health, and admin observability.
+
+### Changed / 变更
+
+- `GuideSearchPanel` 现在支持加载更多、历史建议、命中高亮、来源波动徽章和 `AppToast` 反馈；搜索历史会记录最近一次结果数。  
+  `GuideSearchPanel` now supports load-more pagination, history-based suggestions, keyword highlighting, source-instability badges, and `AppToast` feedback; search history now stores the latest result count.
+- `GET /api/admin/overview` 增加 `guideSearchTrends`、`guideSearchStatusBreakdown` 与 `guideSourceHealth` 聚合。  
+  `GET /api/admin/overview` now includes `guideSearchTrends`, `guideSearchStatusBreakdown`, and `guideSourceHealth` aggregates.
+- 更新文档导航、攻略搜索契约和路线图，将“攻略搜索增强与来源治理”从待办迁移为已完成能力。  
+  Updated the docs index, guide-search contract, and roadmap to move guide-search governance from planned work into shipped capability.
+
+### Verified / 已验证
+
+- `npx tsc -p tsconfig.server.json --noEmit`
+- `npx tsc -p tsconfig.app.json --noEmit`
+- `npm run test -- --run src/components/__tests__/GuideSearchPanel.spec.tsx`
+- `npm run test -- --run server/__tests__/guideSearchLogService.spec.ts server/__tests__/bootstrapGuidesSerializer.spec.ts server/__tests__/adminService.spec.ts server/__tests__/appApiRoutes.spec.ts`
+
 ### PR 待定 / TBD `feat: Story Studio 旅行故事进阶 / Add Story Studio trip story evolution`
 
 ### Added / 新增

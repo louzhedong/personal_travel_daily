@@ -56,7 +56,11 @@ interface AppOverlaysProps {
   onSaveGuide: (guide: GuideSearchResult, keyword: string) => void;
   onAttachGuideToMarker: (guide: GuideSearchResult, keyword: string, markerId: string) => void;
   guideSearchHistory: GuideSearchHistoryItem[];
-  onSaveSearchHistory: (keyword: string, scope: Scope | 'all') => Promise<GuideSearchHistoryItem[]>;
+  onSaveSearchHistory: (
+    keyword: string,
+    scope: Scope | 'all',
+    lastResultCount?: number,
+  ) => Promise<GuideSearchHistoryItem[]>;
   onGenerateTripChecklist: (tripId: string, guide: GuideSearchResult) => Promise<{ createdCount: number } | void>;
   onAddToWishlist?: (
     draft: {

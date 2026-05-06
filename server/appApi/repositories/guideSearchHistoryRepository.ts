@@ -46,6 +46,7 @@ export async function createGuideSearchHistory(
     keyword: string;
     keywordNormalized: string;
     scope: 'domestic' | 'international' | 'all';
+    lastResultCount?: number;
   },
 ) {
   return prisma.guideSearchHistory.create({
@@ -56,6 +57,7 @@ export async function createGuideSearchHistory(
       keyword: input.keyword,
       keywordNormalized: input.keywordNormalized,
       scope: input.scope,
+      lastResultCount: input.lastResultCount,
     },
   });
 }
@@ -64,6 +66,7 @@ export async function refreshGuideSearchHistory(
   prisma: PrismaExecutor,
   historyId: string,
   keyword: string,
+  lastResultCount?: number,
 ) {
   return prisma.guideSearchHistory.update({
     where: {
@@ -71,6 +74,7 @@ export async function refreshGuideSearchHistory(
     },
     data: {
       keyword,
+      lastResultCount,
       createdAt: new Date(),
     },
   });
