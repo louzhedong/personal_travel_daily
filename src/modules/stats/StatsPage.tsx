@@ -6,6 +6,7 @@ interface StatsPageProps {
   onOpenTripDetail?: (tripId: string) => void;
   onOpenAnnualReview?: (year: string) => void;
   onOpenAchievements?: () => void;
+  onOpenCompanionMemories?: (companionId: string) => void;
   onNavigateHome: () => void;
   onLogout: () => Promise<void> | void;
 }
@@ -15,6 +16,7 @@ export default function StatsPage({
   onOpenTripDetail,
   onOpenAnnualReview,
   onOpenAchievements,
+  onOpenCompanionMemories,
   onNavigateHome,
   onLogout,
 }: StatsPageProps) {
@@ -56,6 +58,7 @@ export default function StatsPage({
           onOpenTripDetail={onOpenTripDetail}
           onOpenAnnualReview={onOpenAnnualReview}
           onOpenAchievements={onOpenAchievements}
+          onOpenCompanionMemories={onOpenCompanionMemories}
         />
       </div>
     </main>

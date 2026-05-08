@@ -5,6 +5,7 @@ import { normalizeAppApiError } from './errors.js';
 import { registerAdminRoutes } from './routes/admin.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerBootstrapRoutes } from './routes/bootstrap.js';
+import { registerCompanionMemoryRoutes } from './routes/companionMemories.js';
 import { registerCompanionRoutes } from './routes/companions.js';
 import { registerGuideSearchHistoryRoutes } from './routes/guideSearchHistories.js';
 import { registerGuideSearchLogRoutes } from './routes/guideSearchLogs.js';
@@ -33,6 +34,7 @@ export async function buildApp() {
   await registerHealthRoutes(app);
   await registerBootstrapRoutes(app);
   await registerCompanionRoutes(app);
+  await registerCompanionMemoryRoutes(app);
   await registerTripRoutes(app);
   await registerWishlistRoutes(app);
   await registerStatsRoutes(app);

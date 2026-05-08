@@ -4,6 +4,7 @@ import type { AuthAccount } from '../types';
 import AdminPage from './admin/AdminPage';
 import AchievementsPage from './achievements/AchievementsPage';
 import AuthPage from './auth/AuthPage';
+import CompanionMemoriesPage from './companions/CompanionMemoriesPage';
 import TravelApp from './TravelApp';
 import StatsPage from './stats/StatsPage';
 import TripDetailPage from './trips/TripDetailPage';
@@ -15,6 +16,7 @@ import {
   createAdminRoute,
   createAchievementsRoute,
   createAnnualReviewRoute,
+  createCompanionMemoriesRoute,
   createHomeRoute,
   createLoginRoute,
   createRegisterRoute,
@@ -73,6 +75,8 @@ function App() {
           nextRoute = createAnnualReviewRoute(route.year);
         } else if (route.kind === 'achievements') {
           nextRoute = createAchievementsRoute();
+        } else if (route.kind === 'companionMemories') {
+          nextRoute = createCompanionMemoriesRoute(route.companionId);
         } else if (route.kind === 'stats') {
           nextRoute = createStatsRoute();
         } else {
@@ -169,6 +173,7 @@ function App() {
         onNavigateBack={() => goBackOrReplace(createStatsRoute())}
         onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
         onOpenTripStory={(tripId) => navigate(createTripStoryRoute(tripId))}
+        onOpenCompanionMemories={(companionId) => navigate(createCompanionMemoriesRoute(companionId))}
       />
     );
   }
@@ -218,6 +223,17 @@ function App() {
     );
   }
 
+  if (route.kind === 'companionMemories') {
+    return (
+      <CompanionMemoriesPage
+        account={account}
+        companionId={route.companionId}
+        onLogout={handleLogout}
+        onNavigateBack={() => goBackOrReplace(createStatsRoute())}
+      />
+    );
+  }
+
   if (route.kind === 'stats') {
     return (
       <StatsPage
@@ -230,6 +246,7 @@ function App() {
         onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
         onOpenAnnualReview={(year) => navigate(createAnnualReviewRoute(year))}
         onOpenAchievements={() => navigate(createAchievementsRoute())}
+        onOpenCompanionMemories={(companionId) => navigate(createCompanionMemoriesRoute(companionId))}
       />
     );
   }

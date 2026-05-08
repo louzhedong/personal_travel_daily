@@ -324,6 +324,23 @@ describe('TripDetailPage', () => {
     expect(onOpenTripStory).toHaveBeenCalledWith('trip-1');
   });
 
+  it('opens companion memories from the companion participation card', async () => {
+    const onOpenCompanionMemories = vi.fn();
+    render(
+      <TripDetailPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+        onOpenCompanionMemories={onOpenCompanionMemories}
+      />,
+    );
+
+    await userEvent.click(await screen.findByRole('button', { name: '查看共同回忆' }));
+
+    expect(onOpenCompanionMemories).toHaveBeenCalledWith('user-alice');
+  });
+
   it('edits the trip and updates local state after save', async () => {
     const user = userEvent.setup();
     vi.mocked(updateTrip).mockResolvedValue({} as never);

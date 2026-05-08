@@ -28,8 +28,9 @@ Summary: Marker list and detail panel provide per-scope browsing, permission-awa
 
 - 新增旅伴、切换当前记录用户、以颜色区分不同旅伴。
 - 当前版本只开放新增与更新，删除能力留到后续归档策略完善后再开放。
+- `/companions/:id/memories` 已提供旅伴共同回忆页，把某位旅伴相关的记录、年度节奏、共同地点、主题、行程、照片、攻略和里程碑整理成私密纪念册。
 
-Summary: Companions are first-class entities that control coloring and ownership, with create / update but no delete for now.
+Summary: Companions are first-class entities that control coloring and ownership, with create / update but no delete for now; companion memories now provide a private retrospective page for one companion.
 
 ### 1.4 时间线 / Timeline
 
@@ -179,6 +180,7 @@ Summary: Components follow module-scoped responsibilities; cross-feature flows u
 - `src/lib/guides/guideDocumentView.tsx`：攻略正文视图、高亮、HTML 清洗。
 - `src/modules/admin/adminPageModel.ts`：后台管理页的展示模型与汇总统计。
 - `src/modules/stats/TripStatsCenter.tsx`：统计中心页面主体，包含筛选、摘要、成就、排行、热力图与成就详情弹窗。
+- `src/modules/companions/CompanionMemoriesPage.tsx` / `companionMemoriesPageModel.ts`：旅伴共同回忆页与展示模型，从 companion memory DTO 派生页面文案、KPI、年度轨迹和照片 alt。
 - `src/modules/trips/tripStoryPageModel.ts` / `tripStoryExport.ts`：旅行故事页展示模型与 SVG 导出 helper，从 `TripDetailResponseDto` 派生故事徽章、路线回放海报、分享卡模型、长图和分享卡导出内容。
 - `src/modules/yearbook/AnnualReviewPage.tsx`：年度回顾页面主体，包含年度成就板块。
 
@@ -198,6 +200,7 @@ Summary: The frontend talks to the backend through typed API modules and a remot
 
 - `server/appApiServer.ts`：Fastify 入口。
 - `server/appApi/routes/*`：`auth` / `bootstrap` / `companions` / `markers` / `savedGuides` / `guideSearchHistories` / `trips` / `stats` / `admin` 等路由。
+- `server/appApi/services/companionMemoryService.ts`：旅伴共同回忆聚合、24 小时快照命中、过期重建和强制刷新。
 - `server/appApi/services/tripChecklistService.ts` / `tripPlanningService.ts` / `tripChecklistGenerationService.ts` / `guideDocumentService.ts`：行前清单查询、规划项写操作、转记录规则、攻略正文提炼与回退策略。
 - `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、成就解锁持久化、trip detail、admin overview 等）。
 - `server/appApi/auth/*`：`requestAuth`（恢复 / 鉴权）、`session`（token、cookie 序列化）、`password`（hash / verify）。

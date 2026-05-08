@@ -198,6 +198,20 @@ Summary: Travel achievements now ship across stats, annual review, and a standal
 
 Summary: Story Studio and annual reviews now support private printable/exportable artifacts without new backend persistence.
 
+### 旅伴共同回忆 / Companion Shared Memories
+
+- 状态：一期已完成。
+- 已落地范围：
+  - 新增 `/companions/:id/memories` 旅伴共同回忆页，把某位旅伴相关的记录、年度节奏、共同城市、主题、行程、精选照片、攻略和里程碑整理成私密纪念册。
+  - 从 `/stats` 的“旅伴排行”和 `/trips/:id` 的“旅伴参与”双入口进入同一页面。
+  - 新增 `CompanionMemorySnapshot`，按 `accountId + companionId` 保存最新展示快照，并使用 24 小时按需重建窗口。
+  - 提供 `GET /api/companions/:id/memories` 与 `POST /api/companions/:id/memories/refresh`，刷新结果统一通过全局 `AppToast` 反馈。
+- 后续增强：
+  - 可继续补旅伴回忆分享卡、后台快照健康巡检和更强的叙事模板。
+  - 如果未来引入真实协作邀请，需要单独设计跨账号权限模型。
+
+Summary: Companion Shared Memories now ships as a private companion retrospective page with stats/trip-detail entry points, a 24-hour on-demand snapshot cache, and explicit refresh feedback.
+
 ## 当前产品基线 / Current Product Baseline
 
 截至当前版本，项目已经具备这些核心能力：
@@ -269,20 +283,7 @@ Given the current product baseline, the product no longer lacks capture surfaces
 
 Summary: Media curation improves every retrospective surface that already depends on photos.
 
-### 2. 旅伴共同回忆 / Companion Shared Memories
-
-- 优先级：`P2`
-- 为什么值得做：
-  - 当前旅伴是归属、筛选和权限维度，还没有变成“共同经历”的表达对象。
-- 建议范围：
-  - 行程内共同回忆摘要：同行次数、共同城市、共同照片、共同攻略。
-  - 同一行程下不同旅伴视角统计。
-  - 旅伴详情页：与某位旅伴一起去过哪里、常见主题、年度同行记录。
-  - 第一阶段仍不做真实邀请协作，避免牵引权限模型大改。
-
-Summary: Shared memories make companions emotionally meaningful while preserving the current single-account model.
-
-### 3. 管理后台与质量巡检 / Admin Quality Operations
+### 2. 管理后台与质量巡检 / Admin Quality Operations
 
 - 优先级：`P2`
 - 为什么值得做：
@@ -294,7 +295,7 @@ Summary: Shared memories make companions emotionally meaningful while preserving
 
 Summary: Admin operations should help detect data and integration problems before they become user-facing regressions.
 
-### 4. 账号设置与会话治理 / Account Settings and Session Governance
+### 3. 账号设置与会话治理 / Account Settings and Session Governance
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -307,7 +308,7 @@ Summary: Admin operations should help detect data and integration problems befor
 
 Summary: Account settings are not flashy, but they matter once the app becomes a long-term personal archive.
 
-### 5. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+### 4. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -325,10 +326,9 @@ Summary: Architecture hardening keeps future feature work from becoming slower a
 建议按下面顺序推进（已完成项已挪到文档开头）：
 
 1. 照片与媒体整理 / Photo and Media Curation
-2. 旅伴共同回忆 / Companion Shared Memories
-3. 管理后台与质量巡检 / Admin Quality Operations
-4. 账号设置与会话治理 / Account Settings and Session Governance
-5. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+2. 管理后台与质量巡检 / Admin Quality Operations
+3. 账号设置与会话治理 / Account Settings and Session Governance
+4. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 ## 选题原则 / Feature Selection Rules
 

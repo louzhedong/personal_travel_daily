@@ -5,7 +5,7 @@
 当前版本职责：
 
 - 提供旅行主数据聚合加载能力
-- 提供旅伴、行程集合、旅行记录、攻略收藏/关联、搜索历史、trip-bound 行前清单、行前规划工作台，以及愿望地图的服务端读写接口
+- 提供旅伴、旅伴共同回忆、行程集合、旅行记录、攻略收藏/关联、搜索历史、trip-bound 行前清单、行前规划工作台，以及愿望地图的服务端读写接口
 - 作为前端 `remoteTravelStoreRepository` 的默认数据源
 
 ## 当前后端实现对照 / Current Backend Architecture References
@@ -29,6 +29,7 @@
 - admin 账号级统计摘要下沉到 `services/admin/accountStats.ts`
 - 行前规划工作台使用 `routes/trips.ts` 下的 trip 子资源接口，并按 `schemas / services / repositories / serializers` 分层实现
 - 愿望地图使用 `routes/wishlist.ts` 独立资源接口，并通过 `TripPlanningItem.sourceWishlistId` 标记导入关系
+- 旅伴共同回忆使用 `routes/companionMemories.ts`，通过 `CompanionMemorySnapshot` 做 24 小时按需重建缓存
 
 Summary: The API contract maps directly onto the current backend layering of routes, schemas, services, repositories, serializers, and shared modules.
 
@@ -565,6 +566,88 @@ Summary: The API contract maps directly onto the current backend layering of rou
 
 - `400 INVALID_REQUEST`
 - `409 CONFLICT`：同一账户下旅伴名重复
+
+### `GET /api/companions/:id/memories`
+
+用途：
+
+- 返回当前登录账号下某位旅伴的共同回忆页聚合数据。
+- 如果 `CompanionMemorySnapshot` 缺失、过期或版本不匹配，服务端会同步重建后返回。
+
+Purpose:
+
+- Returns the shared-memory aggregate for one companion under the current account.
+- If the `CompanionMemorySnapshot` is missing, expired, or version-mismatched, the server rebuilds it synchronously before returning.
+
+路径参数 / Path params：
+
+- `id`：旅伴 ID / Companion ID
+
+成功响应示例 / Success response example：
+
+```json
+{
+  "companion": {
+    "id": "user-alice",
+    "name": "小悠",
+    "color": "#2563eb"
+  },
+  "summary": {
+    "markerCount": 12,
+    "travelDays": 18,
+    "tripCount": 3,
+    "cityCount": 6,
+    "regionCount": 4,
+    "photoCount": 24,
+    "guideCount": 5,
+    "firstSharedAt": "2025-04-01",
+    "latestSharedAt": "2026-05-03",
+    "headline": "你们一起留下了 12 段旅行记忆，最常出现的地方是京都。"
+  },
+  "yearlySeries": [],
+  "topRegions": [],
+  "topCities": [],
+  "themes": [],
+  "trips": [],
+  "photos": [],
+  "guides": [],
+  "milestones": [],
+  "snapshot": {
+    "generatedAt": "2026-05-08T00:00:00.000Z",
+    "expiresAt": "2026-05-09T00:00:00.000Z",
+    "stale": false,
+    "sourceMarkerCount": 12,
+    "sourcePhotoCount": 24,
+    "sourceGuideCount": 5
+  }
+}
+```
+
+错误 / Errors：
+
+- `400 INVALID_REQUEST`
+- `401 UNAUTHORIZED`
+- `404 NOT_FOUND`：旅伴不存在、不属于当前账号或已删除
+
+### `POST /api/companions/:id/memories/refresh`
+
+用途：
+
+- 强制重建某位旅伴的共同回忆快照，无视当前 24 小时过期窗口。
+- 前端“刷新回忆”按钮调用该接口，并使用全局 `AppToast` 展示结果。
+
+Purpose:
+
+- Forces a rebuild for one companion memory snapshot regardless of the current 24-hour expiration window.
+- The frontend “Refresh memories” action calls this endpoint and reports the result with the global `AppToast`.
+
+成功响应：
+
+- 与 `GET /api/companions/:id/memories` 相同。
+
+Success response:
+
+- Same as `GET /api/companions/:id/memories`.
 
 ## 行程集合接口
 

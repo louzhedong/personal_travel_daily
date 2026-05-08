@@ -32,6 +32,7 @@ export type AppRoute =
   | { kind: 'admin'; pathname: '/admin' }
   | { kind: 'stats'; pathname: '/stats' }
   | { kind: 'achievements'; pathname: '/achievements' }
+  | { kind: 'companionMemories'; pathname: string; companionId: string }
   | { kind: 'tripDetail'; pathname: string; tripId: string }
   | { kind: 'tripStory'; pathname: string; tripId: string }
   | { kind: 'tripChecklist'; pathname: string; tripId: string }
@@ -61,6 +62,14 @@ export function createStatsRoute(): AppRoute {
 
 export function createAchievementsRoute(): AppRoute {
   return { kind: 'achievements', pathname: '/achievements' };
+}
+
+export function createCompanionMemoriesRoute(companionId: string): AppRoute {
+  return {
+    kind: 'companionMemories',
+    pathname: `/companions/${encodeURIComponent(companionId)}/memories`,
+    companionId,
+  };
 }
 
 export function createTripDetailRoute(tripId: string): AppRoute {
@@ -102,6 +111,11 @@ export function createAnnualReviewRoute(year: string): AppRoute {
  * Parse a pathname into an AppRoute (equivalent to the former normalizePathname).
  */
 export function parsePathname(pathname: string): AppRoute {
+  const companionMemoriesMatch = pathname.match(/^\/companions\/([^/]+)\/memories$/);
+  if (companionMemoriesMatch) {
+    return createCompanionMemoriesRoute(decodeURIComponent(companionMemoriesMatch[1]));
+  }
+
   const annualReviewMatch = pathname.match(/^\/yearbook\/(\d{4})$/);
   if (annualReviewMatch) {
     return createAnnualReviewRoute(decodeURIComponent(annualReviewMatch[1]));
