@@ -3,6 +3,34 @@
 本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
+## 2026-05-08
+
+### PR 待定 / TBD `feat: 旅伴共同回忆一期 / Add companion shared memories phase one`
+
+### Added / 新增
+
+- 新增 `CompanionMemorySnapshot` Prisma 模型、正式 migration、旅伴共同回忆 repository/service/serializer/route，并提供 24 小时按需重建快照。  
+  Added the `CompanionMemorySnapshot` Prisma model, formal migration, companion memory repository/service/serializer/route, and a 24-hour on-demand snapshot rebuild flow.
+- 新增 `/companions/:id/memories` 私密旅伴回忆页，展示共同摘要、年度节奏、共同地点、主题、代表行程、精选照片、攻略和里程碑。  
+  Added the private `/companions/:id/memories` page with shared summary KPIs, yearly rhythm, shared places, themes, representative trips, featured photos, guides, and milestones.
+- 新增 `docs/technical/companion-shared-memories.md`，并同步 App API 契约、文档导航、项目总览和 roadmap。  
+  Added `docs/technical/companion-shared-memories.md` and refreshed the App API contract, docs index, project overview, and roadmap.
+
+### Changed / 变更
+
+- `/stats` 的“旅伴排行”和 `/trips/:id` 的“旅伴参与”现在都提供“查看共同回忆”入口。  
+  The stats companion ranking and trip-detail companion participation cards now both expose a “View shared memories” entry point.
+- “刷新回忆”会强制重建快照，并通过全局 `AppToast` 展示成功或失败反馈。  
+  “Refresh memories” now forces a snapshot rebuild and reports success or failure through the global `AppToast`.
+
+### Verified / 已验证
+
+- `npm run db:generate`
+- `npm run test -- --run server/__tests__/companionMemoryService.spec.ts server/__tests__/companionMemorySerializer.spec.ts server/__tests__/appApiRoutes.spec.ts src/modules/__tests__/CompanionMemoriesPage.spec.tsx src/modules/__tests__/TripStatsCenter.spec.tsx src/modules/__tests__/TripDetailPage.spec.tsx src/modules/__tests__/App.spec.tsx`
+- `npm run build`
+- `npm run test`
+- `npm run test:coverage`
+
 ## 2026-05-06
 
 ### PR 待定 / TBD `feat: 攻略搜索增强与来源治理 / Add guide search governance and admin observability`

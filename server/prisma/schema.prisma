@@ -66,6 +66,7 @@ model Account {
   savedGuides  SavedGuide[]
   histories    GuideSearchHistory[]
   guideSearchLogs GuideSearchLog[]
+  companionMemorySnapshots CompanionMemorySnapshot[]
   markerSearchEvents MarkerSearchEvent[]
   sessions     AuthSession[]
   tripChecklistItems TripChecklistItem[]
@@ -163,6 +164,7 @@ model TravelCompanion {
   guides     SavedGuide[]
   histories  GuideSearchHistory[]
   guideSearchLogs GuideSearchLog[]
+  memorySnapshots CompanionMemorySnapshot[]
   markerSearchEvents MarkerSearchEvent[]
   tripChecklistItems TripChecklistItem[] @relation("TripChecklistItemCreatedByCompanion")
   tripPlanningItems TripPlanningItem[] @relation("TripPlanningItemCreatedByCompanion")
@@ -225,6 +227,27 @@ model VisitMarkerImage {
   @@index([curatedSortOrder], map: "idx_visit_marker_images_curated_sort_order")
   @@unique([markerId, sortOrder], map: "uq_visit_marker_images_marker_sort_order")
   @@map("visit_marker_images")
+}
+
+model CompanionMemorySnapshot {
+  id                String          @id
+  accountId         String          @map("account_id")
+  companionId       String          @map("companion_id")
+  snapshotVersion   Int             @default(1) @map("snapshot_version")
+  payloadJson       Json            @map("payload_json")
+  sourceMarkerCount Int             @default(0) @map("source_marker_count")
+  sourcePhotoCount  Int             @default(0) @map("source_photo_count")
+  sourceGuideCount  Int             @default(0) @map("source_guide_count")
+  generatedAt       DateTime        @map("generated_at")
+  expiresAt         DateTime        @map("expires_at")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+  account           Account         @relation(fields: [accountId], references: [id])
+  companion         TravelCompanion @relation(fields: [companionId], references: [id])
+
+  @@unique([accountId, companionId], map: "uq_companion_memory_snapshots_account_companion")
+  @@index([expiresAt], map: "idx_companion_memory_snapshots_expires_at")
+  @@map("companion_memory_snapshots")
 }
 
 model SavedGuide {

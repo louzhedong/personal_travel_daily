@@ -131,6 +131,12 @@ vi.mock('../achievements/AchievementsPage', () => ({
   default: () => <div data-testid="achievements-page">achievements-page</div>,
 }));
 
+vi.mock('../companions/CompanionMemoriesPage', () => ({
+  default: ({ companionId }: { companionId: string }) => (
+    <div data-testid="companion-memories-page">companion-memories-{companionId}</div>
+  ),
+}));
+
 vi.mock('../../components/UserManager', () => ({
   default: () => <div data-testid="user-manager">user-manager</div>,
 }));
@@ -397,6 +403,15 @@ describe('App auth and guide permissions', () => {
 
     expect(await screen.findByTestId('achievements-page')).toHaveTextContent('achievements-page');
     expect(window.location.pathname).toBe('/achievements');
+  });
+
+  it('allows authenticated users to access /companions/:id/memories and renders the companion memories page', async () => {
+    window.history.replaceState({}, '', '/companions/u2/memories');
+
+    render(<App />);
+
+    expect(await screen.findByTestId('companion-memories-page')).toHaveTextContent('companion-memories-u2');
+    expect(window.location.pathname).toBe('/companions/u2/memories');
   });
 
   it('redirects members away from /admin back to the main app shell', async () => {

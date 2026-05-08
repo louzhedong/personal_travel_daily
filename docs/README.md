@@ -45,6 +45,7 @@ Summary: The architecture section now includes dedicated frontend and backend do
 - [行前规划工作台 / Trip Planning Workspace](./technical/trip-planning-workspace.md)
 - [愿望地图 / Wishlist Map](./technical/wishlist-map.md)
 - [Story Studio 与旅行故事导出 / Story Studio and Trip Story Export](./technical/trip-story-export.md)
+- [旅伴共同回忆 / Companion Shared Memories](./technical/companion-shared-memories.md)
 - [旅行成就系统 / Travel Achievements](./technical/travel-achievements.md)
 - [攻略搜索功能说明 / Guide Search Feature](./technical/guide-search-feature.md)
 - [攻略搜索 / 收藏 / 关联设计 / Travel Guide Search Design](./technical/travel-guide-search-design.md)

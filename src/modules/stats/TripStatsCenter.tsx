@@ -29,6 +29,7 @@ interface TripStatsCenterProps {
   onOpenTripDetail?: (tripId: string) => void;
   onOpenAnnualReview?: (year: string) => void;
   onOpenAchievements?: () => void;
+  onOpenCompanionMemories?: (companionId: string) => void;
 }
 
 function SectionBars<T extends { markerCount: number }>({
@@ -162,7 +163,13 @@ function TripDetailsPanel({
   );
 }
 
-function CompanionRankingPanel({ items }: { items: StatsCompanionRankingItemDto[] }) {
+function CompanionRankingPanel({
+  items,
+  onOpenCompanionMemories,
+}: {
+  items: StatsCompanionRankingItemDto[];
+  onOpenCompanionMemories?: (companionId: string) => void;
+}) {
   const maxValue = getTopMetricValue(items, 'markerCount');
 
   return (
@@ -204,6 +211,14 @@ function CompanionRankingPanel({ items }: { items: StatsCompanionRankingItemDto[
                   <span>{item.markerCount} 条记录</span>
                   <span>覆盖天数 {item.travelDays}</span>
                 </div>
+                <button
+                  type="button"
+                  className="stats-companion-memory-link"
+                  onClick={() => onOpenCompanionMemories?.(item.companionId)}
+                  disabled={!onOpenCompanionMemories}
+                >
+                  查看共同回忆
+                </button>
               </div>
             </article>
           ))}
@@ -311,6 +326,7 @@ export default function TripStatsCenter({
   onOpenTripDetail,
   onOpenAnnualReview,
   onOpenAchievements,
+  onOpenCompanionMemories,
 }: TripStatsCenterProps) {
   const [filters, setFilters] = useState<StatsUiFilters>(() => createDefaultStatsUiFilters());
   const [data, setData] = useState<StatsOverviewResponseDto | null>(null);
@@ -482,7 +498,7 @@ export default function TripStatsCenter({
           </div>
 
           <div className="stats-two-column-grid stats-two-column-grid-equal">
-            <CompanionRankingPanel items={data.companionRanking} />
+            <CompanionRankingPanel items={data.companionRanking} onOpenCompanionMemories={onOpenCompanionMemories} />
             <SectionBars<StatsTripRankingItemDto>
               title="行程排行"
               description="按记录数查看最活跃的行程。"

@@ -288,4 +288,13 @@ describe('TripStatsCenter', () => {
 
     expect(onOpenAchievements).toHaveBeenCalledTimes(1);
   });
+
+  it('opens companion memories from the companion ranking card', async () => {
+    const onOpenCompanionMemories = vi.fn();
+    render(<TripStatsCenter onOpenCompanionMemories={onOpenCompanionMemories} />);
+
+    await userEvent.click(await screen.findByRole('button', { name: '查看共同回忆' }));
+
+    expect(onOpenCompanionMemories).toHaveBeenCalledWith('user-alice');
+  });
 });

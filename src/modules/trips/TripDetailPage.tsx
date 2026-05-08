@@ -61,6 +61,7 @@ interface TripDetailPageProps {
   onLogout: () => Promise<void> | void;
   onOpenTripChecklist?: (tripId: string) => void;
   onOpenTripStory?: (tripId: string) => void;
+  onOpenCompanionMemories?: (companionId: string) => void;
 }
 
 export default function TripDetailPage({
@@ -70,6 +71,7 @@ export default function TripDetailPage({
   onLogout,
   onOpenTripChecklist,
   onOpenTripStory,
+  onOpenCompanionMemories,
 }: TripDetailPageProps) {
   const [data, setData] = useState<TripDetailResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -705,6 +707,14 @@ export default function TripDetailPage({
                           {companion.markerCount >= 2 ? '高频出现' : '轻量参与'}
                         </span>
                       </div>
+                      <button
+                        type="button"
+                        className="trip-detail-companion-memory-link"
+                        onClick={() => onOpenCompanionMemories?.(companion.id)}
+                        disabled={!onOpenCompanionMemories}
+                      >
+                        查看共同回忆
+                      </button>
                     </article>
                   ))}
                 </div>
