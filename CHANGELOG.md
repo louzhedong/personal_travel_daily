@@ -5,7 +5,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-05-09
 
-### PR 待定 / TBD `feat: 后台管理二期 / Add admin management phase two`
+### PR #37 `feat: 后台管理二期 / Add admin management phase two`
 
 ### Added / 新增
 
