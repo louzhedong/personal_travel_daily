@@ -1,16 +1,26 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchAdminOverview } from '../../lib/api/adminApi';
+import { fetchAdminAuditLogs, fetchAdminOverview, recordAdminAuditLog } from '../../lib/api/adminApi';
 import AdminPage from '../admin/AdminPage';
 
 vi.mock('../../lib/api/adminApi', () => ({
   fetchAdminOverview: vi.fn(),
+  fetchAdminAuditLogs: vi.fn(),
+  recordAdminAuditLog: vi.fn(),
 }));
 
 describe('AdminPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(fetchAdminAuditLogs).mockResolvedValue({ logs: [] });
+    vi.mocked(recordAdminAuditLog).mockResolvedValue({
+      id: 'audit-new',
+      adminAccountId: 'acct-1',
+      adminAccountName: 'Voyage Atlas',
+      action: 'quality_issue_viewed',
+      createdAt: '2026-04-22T00:00:00.000Z',
+    });
   });
 
   it('renders the admin overview payload', async () => {
@@ -172,6 +182,8 @@ describe('AdminPage', () => {
             targetLabel: '示例来源',
             detectedAt: '2026-04-22T00:00:00.000Z',
             suggestedAction: '检查来源适配器或降级该来源权重。',
+            navigationKind: 'adminOnly',
+            canNavigate: false,
           },
           {
             id: 'marker_missing_photo:marker-1',
@@ -186,6 +198,12 @@ describe('AdminPage', () => {
             targetLabel: '浙江 · 杭州',
             detectedAt: '2026-04-22T00:00:00.000Z',
             suggestedAction: '在记录详情中补充照片。',
+            navigationKind: 'tripDetail',
+            navigationPayload: {
+              tripId: 'trip-1',
+              markerId: 'marker-1',
+            },
+            canNavigate: true,
           },
           {
             id: 'trip_missing_cover:trip-1',
@@ -200,6 +218,11 @@ describe('AdminPage', () => {
             targetLabel: '2026 江南春游',
             detectedAt: '2026-04-22T00:00:00.000Z',
             suggestedAction: '在行程详情中设置封面。',
+            navigationKind: 'tripDetail',
+            navigationPayload: {
+              tripId: 'trip-1',
+            },
+            canNavigate: true,
           },
         ],
       },
@@ -209,18 +232,23 @@ describe('AdminPage', () => {
       },
     });
 
+    const onNavigateToPath = vi.fn();
+
     render(
       <AdminPage
         account={{ id: 'acct-1', name: 'Voyage Atlas', username: 'demo', role: 'admin' }}
         onLogout={vi.fn()}
         onNavigateHome={vi.fn()}
+        onNavigateToPath={onNavigateToPath}
       />,
     );
 
     expect(await screen.findByText('系统用户总览')).toBeInTheDocument();
     expect(await screen.findByText('用户列表')).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: '质量巡检' })).toBeInTheDocument();
-    expect(await screen.findByText('攻略来源异常')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '问题筛选' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '审计日志' })).toBeInTheDocument();
+    expect((await screen.findAllByText('攻略来源异常')).length).toBeGreaterThanOrEqual(1);
     expect(await screen.findByText('账号质量')).toBeInTheDocument();
     expect((await screen.findAllByText('Voyage Atlas')).length).toBeGreaterThanOrEqual(2);
     expect(await screen.findByRole('tab', { name: '行程' })).toBeInTheDocument();
@@ -245,6 +273,18 @@ describe('AdminPage', () => {
     expect(await screen.findByText('@other-user')).toBeInTheDocument();
     expect(await screen.findByText('暂无质量问题')).toBeInTheDocument();
     expect(await screen.findByText('暂无行程。')).toBeInTheDocument();
+
+    await userEvent.click(screen.getAllByRole('button', { name: /记录缺少照片/ })[1]);
+    expect(await screen.findByRole('dialog', { name: '质量问题详情' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '打开行程' }));
+    expect(onNavigateToPath).toHaveBeenCalledWith('/trips/trip-1');
+    expect(recordAdminAuditLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'quality_issue_navigated',
+        targetKind: 'marker',
+        targetId: 'marker-1',
+      }),
+    );
   });
 
   it('calls navigation and logout actions', async () => {
@@ -263,6 +303,7 @@ describe('AdminPage', () => {
         account={{ id: 'acct-1', name: 'Voyage Atlas', username: 'demo', role: 'admin' }}
         onLogout={onLogout}
         onNavigateHome={onNavigateHome}
+        onNavigateToPath={vi.fn()}
       />,
     );
 

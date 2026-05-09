@@ -1,5 +1,7 @@
 import type {
   AdminAccountNodeDto,
+  AdminAuditActionDto,
+  AdminAuditLogDto,
   AdminGuideSearchHistoryNodeDto,
   AdminMarkerNodeDto,
   AdminMarkerSearchEventNodeDto,
@@ -32,6 +34,21 @@ export type AdminMarkerSearchEventDetailRow = AdminMarkerSearchEventNodeDto & {
   companionName: string;
 };
 export type AdminPlanningItemDetailRow = AdminPlanningItemNodeDto & { companionName: string };
+
+export type AdminQualitySeverityFilter = AdminQualitySeverityDto | 'all';
+export type AdminQualityTypeFilter = AdminQualityIssueTypeDto | 'all';
+
+export interface AdminQualityFilters {
+  severity: AdminQualitySeverityFilter;
+  type: AdminQualityTypeFilter;
+  accountId: string;
+  keyword: string;
+}
+
+export interface AdminQualityNavigationTarget {
+  label: string;
+  path: string;
+}
 
 export interface AdminDetailCollections {
   trips: AdminTripDetailRow[];
@@ -69,6 +86,21 @@ export const ADMIN_QUALITY_TYPE_LABELS: Record<AdminQualityIssueTypeDto, string>
   guide_source_degraded: '来源异常',
   guide_search_error_spike: '搜索失败升高',
   companion_memory_snapshot_stale: '回忆快照过期',
+};
+
+export const ADMIN_AUDIT_ACTION_LABELS: Record<AdminAuditActionDto, string> = {
+  quality_issue_viewed: '查看问题',
+  quality_issue_context_copied: '复制上下文',
+  quality_issue_navigated: '定位问题',
+  quality_issue_list_filtered: '筛选问题',
+  audit_trail_viewed: '查看审计',
+};
+
+export const DEFAULT_ADMIN_QUALITY_FILTERS: AdminQualityFilters = {
+  severity: 'all',
+  type: 'all',
+  accountId: 'all',
+  keyword: '',
 };
 
 export function formatAdminDate(value: string) {
@@ -146,6 +178,172 @@ export function getAccountQualityIssues(
   return (overview.quality?.issues ?? [])
     .filter((issue) => issue.accountId === accountId)
     .slice(0, limit);
+}
+
+export function filterAdminQualityIssues(
+  issues: AdminQualityIssueDto[],
+  filters: AdminQualityFilters,
+): AdminQualityIssueDto[] {
+  const keyword = filters.keyword.trim().toLowerCase();
+
+  return issues.filter((issue) => {
+    if (filters.severity !== 'all' && issue.severity !== filters.severity) {
+      return false;
+    }
+    if (filters.type !== 'all' && issue.type !== filters.type) {
+      return false;
+    }
+    if (filters.accountId !== 'all' && issue.accountId !== filters.accountId) {
+      return false;
+    }
+    if (!keyword) {
+      return true;
+    }
+
+    const haystack = [
+      issue.title,
+      issue.description,
+      issue.accountName,
+      issue.targetLabel,
+      issue.suggestedAction,
+      ADMIN_QUALITY_TYPE_LABELS[issue.type],
+      ADMIN_QUALITY_SEVERITY_LABELS[issue.severity],
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    return haystack.includes(keyword);
+  });
+}
+
+export function getAdminQualityFilterSummary(totalCount: number, filteredCount: number) {
+  if (totalCount === filteredCount) {
+    return `全部 ${totalCount} 个问题`;
+  }
+
+  return `筛选出 ${filteredCount} / ${totalCount} 个问题`;
+}
+
+export function buildAdminQualityNavigationTarget(
+  issue: AdminQualityIssueDto,
+): AdminQualityNavigationTarget | undefined {
+  const payload = issue.navigationPayload ?? {};
+
+  if (!issue.canNavigate) {
+    return undefined;
+  }
+
+  if (issue.navigationKind === 'tripDetail' && payload.tripId) {
+    return {
+      label: '打开行程',
+      path: `/trips/${encodeURIComponent(payload.tripId)}`,
+    };
+  }
+
+  if (issue.navigationKind === 'tripChecklist' && payload.tripId) {
+    return {
+      label: '打开规划',
+      path: `/trips/${encodeURIComponent(payload.tripId)}/checklist`,
+    };
+  }
+
+  if (issue.navigationKind === 'photoCuration') {
+    const params = new URLSearchParams();
+    if (payload.tripId) {
+      params.set('tripId', payload.tripId);
+    }
+    if (payload.companionId) {
+      params.set('companionId', payload.companionId);
+    }
+    if (payload.year) {
+      params.set('year', String(payload.year));
+    }
+    const query = params.toString();
+    return {
+      label: '打开影像',
+      path: query ? `/photos?${query}` : '/photos',
+    };
+  }
+
+  if (issue.navigationKind === 'companionMemories' && payload.companionId) {
+    return {
+      label: '打开回忆',
+      path: `/companions/${encodeURIComponent(payload.companionId)}/memories`,
+    };
+  }
+
+  return undefined;
+}
+
+export function serializeQualityIssueContext(issue: AdminQualityIssueDto) {
+  return [
+    `问题：${issue.title}`,
+    `类型：${ADMIN_QUALITY_TYPE_LABELS[issue.type]}`,
+    `严重程度：${ADMIN_QUALITY_SEVERITY_LABELS[issue.severity]}`,
+    issue.accountName ? `账号：${issue.accountName}` : undefined,
+    `目标：${issue.targetLabel}`,
+    `检测时间：${formatAdminDate(issue.detectedAt)}`,
+    `建议：${issue.suggestedAction}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+export function getAdminQualityReminder(overview: AdminOverviewResponseDto) {
+  const summary = overview.quality?.summary;
+  if (!summary) {
+    return {
+      tone: 'neutral' as const,
+      title: '暂无质量提醒',
+      description: '等待下一次后台巡检结果。',
+    };
+  }
+
+  const checkedAt = new Date(summary.checkedAt);
+  const stale = Number.isFinite(checkedAt.getTime()) && Date.now() - checkedAt.getTime() > 24 * 60 * 60 * 1000;
+
+  if (stale) {
+    return {
+      tone: 'warning' as const,
+      title: '巡检结果可能过期',
+      description: '建议刷新后台页面获取最新质量状态。',
+    };
+  }
+
+  if (summary.criticalCount > 0) {
+    return {
+      tone: 'critical' as const,
+      title: '存在严重问题',
+      description: `${summary.criticalCount} 个严重问题需要优先定位。`,
+    };
+  }
+
+  if (summary.warningCount > 0) {
+    return {
+      tone: 'warning' as const,
+      title: '存在待处理问题',
+      description: `${summary.warningCount} 个注意项建议持续跟进。`,
+    };
+  }
+
+  return {
+    tone: 'neutral' as const,
+    title: '暂无质量提醒',
+    description: '当前没有严重或注意级质量问题。',
+  };
+}
+
+export function formatAdminAuditAction(action: AdminAuditActionDto) {
+  return ADMIN_AUDIT_ACTION_LABELS[action] ?? action;
+}
+
+export function filterAdminAuditLogs(logs: AdminAuditLogDto[], action: AdminAuditActionDto | 'all') {
+  if (action === 'all') {
+    return logs;
+  }
+
+  return logs.filter((log) => log.action === action);
 }
 
 export function getAccountDetailCollections(account: AdminAccountNodeDto): AdminDetailCollections {

@@ -1,45 +1,71 @@
 import { useEffect, useMemo, useState } from 'react';
+import AdminAuditTrailPanel from '../../components/admin/AdminAuditTrailPanel';
 import AdminFiltersBar from '../../components/admin/AdminFiltersBar';
 import AdminAccountQualityPanel from '../../components/admin/AdminAccountQualityPanel';
 import AdminGuideSearchTrendsPanel from '../../components/admin/AdminGuideSearchTrendsPanel';
 import AdminOverviewCards from '../../components/admin/AdminOverviewCards';
 import AdminGuideSourceHealthPanel from '../../components/admin/AdminGuideSourceHealthPanel';
+import AdminQualityFiltersPanel from '../../components/admin/AdminQualityFiltersPanel';
+import AdminQualityIssueDrawer from '../../components/admin/AdminQualityIssueDrawer';
+import AdminQualityIssueList from '../../components/admin/AdminQualityIssueList';
+import AdminQualityReminderPanel from '../../components/admin/AdminQualityReminderPanel';
 import AdminQualitySummaryPanel from '../../components/admin/AdminQualitySummaryPanel';
 import AdminRankingTable from '../../components/admin/AdminRankingTable';
+import AppToast, { type AppToastTone } from '../../components/ui/AppToast';
 import TravelIcon from '../../components/ui/TravelIcon';
-import { fetchAdminOverview } from '../../lib/api/adminApi';
-import type { AdminOverviewResponseDto } from '../../lib/api/types';
+import { fetchAdminAuditLogs, fetchAdminOverview, recordAdminAuditLog } from '../../lib/api/adminApi';
+import type {
+  AdminAuditActionDto,
+  AdminAuditLogDto,
+  AdminOverviewResponseDto,
+  AdminQualityIssueDto,
+} from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
 import {
   ADMIN_DETAIL_TABS,
+  DEFAULT_ADMIN_QUALITY_FILTERS,
+  buildAdminQualityNavigationTarget,
+  filterAdminQualityIssues,
   formatAdminDate,
   formatAdminDateOnly,
   getAccountDetailCollections,
+  getAdminQualityFilterSummary,
+  serializeQualityIssueContext,
   type AdminDetailTab,
+  type AdminQualityFilters,
 } from './adminPageModel';
 
 interface AdminPageProps {
   account: AuthAccount;
   onLogout: () => Promise<void> | void;
   onNavigateHome: () => void;
+  onNavigateToPath: (path: string) => void;
 }
 
-export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPageProps) {
+export default function AdminPage({ account, onLogout, onNavigateHome, onNavigateToPath }: AdminPageProps) {
   const [overview, setOverview] = useState<AdminOverviewResponseDto | null>(null);
+  const [auditLogs, setAuditLogs] = useState<AdminAuditLogDto[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [auditLoading, setAuditLoading] = useState(true);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AdminDetailTab>('trips');
+  const [qualityFilters, setQualityFilters] = useState<AdminQualityFilters>(DEFAULT_ADMIN_QUALITY_FILTERS);
+  const [selectedQualityIssueId, setSelectedQualityIssueId] = useState<string | null>(null);
+  const [auditActionFilter, setAuditActionFilter] = useState<AdminAuditActionDto | 'all'>('all');
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastTone, setToastTone] = useState<AppToastTone>('info');
 
   useEffect(() => {
     let cancelled = false;
 
     // Preserve the original fetch flow and cancellation guard.
     // 保持原有数据拉取流程与取消标记，避免拆分后改变时序行为。
-    fetchAdminOverview()
-      .then((response) => {
+    Promise.all([fetchAdminOverview(), fetchAdminAuditLogs({ limit: 50 })])
+      .then(([response, auditResponse]) => {
         if (!cancelled) {
           setOverview(response);
+          setAuditLogs(auditResponse.logs);
           setSelectedAccountId((current) => current ?? response.accounts[0]?.id ?? null);
           setErrorMessage('');
         }
@@ -52,6 +78,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
       .finally(() => {
         if (!cancelled) {
           setLoading(false);
+          setAuditLoading(false);
         }
       });
 
@@ -69,6 +96,101 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
     () => (selectedAccount ? getAccountDetailCollections(selectedAccount) : null),
     [selectedAccount],
   );
+
+  const qualityIssues = overview?.quality?.issues ?? [];
+  const filteredQualityIssues = useMemo(
+    () => filterAdminQualityIssues(qualityIssues, qualityFilters),
+    [qualityIssues, qualityFilters],
+  );
+  const selectedQualityIssue = useMemo(
+    () => filteredQualityIssues.find((issue) => issue.id === selectedQualityIssueId) ?? null,
+    [filteredQualityIssues, selectedQualityIssueId],
+  );
+  const qualityFilterSummary = getAdminQualityFilterSummary(qualityIssues.length, filteredQualityIssues.length);
+
+  const showToast = (message: string, tone: AppToastTone = 'info') => {
+    setToastMessage(message);
+    setToastTone(tone);
+  };
+
+  const appendAuditLog = async (input: Parameters<typeof recordAdminAuditLog>[0]) => {
+    try {
+      const log = await recordAdminAuditLog(input);
+      setAuditLogs((current) => [log, ...current.filter((item) => item.id !== log.id)].slice(0, 50));
+    } catch {
+      showToast('审计记录失败', 'error');
+    }
+  };
+
+  const handleSelectQualityIssue = (issue: AdminQualityIssueDto) => {
+    setSelectedQualityIssueId(issue.id);
+    void appendAuditLog({
+      action: 'quality_issue_viewed',
+      targetKind: issue.targetKind,
+      targetId: issue.targetId,
+      metadata: {
+        issueId: issue.id,
+        issueType: issue.type,
+        severity: issue.severity,
+      },
+    });
+  };
+
+  const handleNavigateQualityIssue = (issue: AdminQualityIssueDto) => {
+    const target = buildAdminQualityNavigationTarget(issue);
+    if (!target) {
+      showToast('该问题暂无可跳转位置');
+      return;
+    }
+
+    void appendAuditLog({
+      action: 'quality_issue_navigated',
+      targetKind: issue.targetKind,
+      targetId: issue.targetId,
+      metadata: {
+        issueId: issue.id,
+        path: target.path,
+      },
+    });
+    onNavigateToPath(target.path);
+  };
+
+  const handleCopyQualityIssueContext = async (issue: AdminQualityIssueDto) => {
+    try {
+      await navigator.clipboard.writeText(serializeQualityIssueContext(issue));
+      showToast('已复制问题上下文', 'success');
+      void appendAuditLog({
+        action: 'quality_issue_context_copied',
+        targetKind: issue.targetKind,
+        targetId: issue.targetId,
+        metadata: {
+          issueId: issue.id,
+          issueType: issue.type,
+        },
+      });
+    } catch {
+      showToast('复制失败', 'error');
+    }
+  };
+
+  const handleMarkQualityIssueViewed = (issue: AdminQualityIssueDto) => {
+    void appendAuditLog({
+      action: 'quality_issue_viewed',
+      targetKind: issue.targetKind,
+      targetId: issue.targetId,
+      metadata: {
+        issueId: issue.id,
+        issueType: issue.type,
+        acknowledged: true,
+      },
+    });
+    showToast('已记录查看', 'success');
+  };
+
+  const handleQualityFiltersChange = (filters: AdminQualityFilters) => {
+    setQualityFilters(filters);
+    setSelectedQualityIssueId(null);
+  };
 
   return (
     <main className="admin-shell">
@@ -109,7 +231,23 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
       {!loading && overview ? (
         <>
           <AdminOverviewCards overview={overview} />
+          <AdminQualityReminderPanel overview={overview} />
           <AdminQualitySummaryPanel overview={overview} />
+          <section className="card admin-quality-workbench">
+            <AdminQualityFiltersPanel
+              accounts={overview.accounts}
+              filters={qualityFilters}
+              summary={qualityFilterSummary}
+              onChange={handleQualityFiltersChange}
+              onReset={() => handleQualityFiltersChange(DEFAULT_ADMIN_QUALITY_FILTERS)}
+            />
+            <AdminQualityIssueList
+              issues={filteredQualityIssues}
+              emptyMessage="暂无匹配问题"
+              onSelectIssue={handleSelectQualityIssue}
+              onNavigateIssue={handleNavigateQualityIssue}
+            />
+          </section>
 
           <section className="admin-workspace">
             <AdminFiltersBar
@@ -274,8 +412,31 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
               )}
             </section>
           </section>
+          <AdminAuditTrailPanel
+            logs={auditLogs}
+            loading={auditLoading}
+            actionFilter={auditActionFilter}
+            onActionFilterChange={(value) => {
+              setAuditActionFilter(value);
+              if (value !== 'all') {
+                void appendAuditLog({
+                  action: 'audit_trail_viewed',
+                  targetKind: 'auditLog',
+                  metadata: { actionFilter: value },
+                });
+              }
+            }}
+          />
+          <AdminQualityIssueDrawer
+            issue={selectedQualityIssue}
+            onClose={() => setSelectedQualityIssueId(null)}
+            onCopyContext={handleCopyQualityIssueContext}
+            onMarkViewed={handleMarkQualityIssueViewed}
+            onNavigate={handleNavigateQualityIssue}
+          />
         </>
       ) : null}
+      <AppToast open={!!toastMessage} message={toastMessage} tone={toastTone} />
     </main>
   );
 }

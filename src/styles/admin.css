@@ -141,6 +141,86 @@
   padding: 22px;
 }
 
+.admin-quality-reminder {
+  display: grid;
+  gap: 6px;
+  padding: 18px 22px;
+  border-radius: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.admin-quality-reminder span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-quality-reminder strong {
+  font-size: 18px;
+}
+
+.admin-quality-reminder p {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+}
+
+.admin-quality-reminder-critical {
+  border-color: rgba(248, 113, 113, 0.34);
+}
+
+.admin-quality-reminder-warning {
+  border-color: rgba(251, 191, 36, 0.36);
+}
+
+.admin-quality-workbench {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.admin-quality-filters {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-quality-filters-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.admin-quality-filters-heading h3,
+.admin-quality-filters-heading p {
+  margin: 0;
+}
+
+.admin-quality-filters-heading p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-quality-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-quality-search {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-quality-search span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .admin-quality-heading {
   justify-content: space-between;
   align-items: flex-start;
@@ -232,6 +312,17 @@
 .admin-quality-issue-main {
   display: grid;
   gap: 6px;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-quality-issue-main:disabled {
+  cursor: default;
 }
 
 .admin-quality-issue-title {
@@ -254,6 +345,9 @@
 }
 
 .admin-quality-action {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
   color: #334155;
   font-weight: 700;
 }
@@ -299,6 +393,141 @@
   color: #64748b;
   font-size: 12px;
   font-weight: 700;
+}
+
+.admin-quality-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+.admin-quality-drawer {
+  width: min(460px, calc(100vw - 28px));
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.98);
+  border-left: 1px solid rgba(226, 232, 240, 0.92);
+  box-shadow: -24px 0 44px rgba(15, 23, 42, 0.14);
+}
+
+.admin-quality-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.admin-quality-drawer-header h2,
+.admin-quality-drawer-header p {
+  margin: 8px 0 0;
+}
+
+.admin-quality-drawer-header p {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.admin-quality-drawer-meta {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.admin-quality-drawer-meta div {
+  display: grid;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.admin-quality-drawer-meta dt {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-quality-drawer-meta dd {
+  margin: 0;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.admin-quality-drawer-section {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-quality-drawer-section h3,
+.admin-quality-drawer-section p {
+  margin: 0;
+}
+
+.admin-quality-drawer-section p {
+  color: #475569;
+  line-height: 1.7;
+}
+
+.admin-quality-drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-audit-panel {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.admin-audit-heading {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.admin-audit-heading h2,
+.admin-audit-heading p {
+  margin: 0;
+}
+
+.admin-audit-heading p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-audit-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-audit-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.admin-audit-row strong,
+.admin-audit-row p {
+  margin: 0;
+}
+
+.admin-audit-row p,
+.admin-audit-row time {
+  color: #64748b;
+  font-size: 13px;
 }
 
 .admin-workspace {
@@ -766,6 +995,7 @@
 @media (max-width: 1180px) {
   .admin-summary-grid,
   .admin-quality-summary,
+  .admin-quality-filter-grid,
   .admin-kpi-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -790,6 +1020,7 @@
 
   .admin-dual-grid,
   .admin-quality-summary,
+  .admin-quality-filter-grid,
   .admin-summary-grid,
   .admin-kpi-grid {
     grid-template-columns: 1fr;

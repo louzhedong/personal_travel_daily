@@ -150,8 +150,9 @@ Summary: Auth uses Cookie Session with hash-only storage, and `/settings` now pr
 - 独立 `/admin` 后台页，仅 `admin` 可进入；后端 `GET /api/admin/overview` 做最终权限裁决。
 - 后台只读展示账户、旅伴、旅行记录、行前规划、收藏攻略与搜索历史的系统级概览。
 - 后台已新增质量巡检摘要，覆盖记录缺图、未归行程、行程缺封面、照片缺说明、过期规划、攻略未关联、来源异常、搜索失败升高和旅伴回忆快照过期。
+- 后台二期新增质量问题筛选、详情抽屉、只读定位跳转、应用内提醒和管理员审计日志，仍不在后台直接修复业务数据。
 
-Summary: `/admin` is an admin-only read-only operations page for accounts, companions, markers, planning items, saved guides, search history, and quality issues; permissions are ultimately enforced by the backend.
+Summary: `/admin` is an admin-only read-only operations page for accounts, companions, markers, planning items, saved guides, search history, quality issues, in-app reminders, and audit logs; permissions are ultimately enforced by the backend.
 
 ---
 
@@ -190,8 +191,8 @@ Summary: Components follow module-scoped responsibilities; cross-feature flows u
 - `src/lib/mapJourneyArcs.ts`：地图旅程弧线的纯计算。
 - `src/lib/mapReplay.ts`：地图回放序列生成与状态文案。
 - `src/lib/guides/guideDocumentView.tsx`：攻略正文视图、高亮、HTML 清洗。
-- `src/modules/admin/adminPageModel.ts`：后台管理页的展示模型与汇总统计。
-- `src/components/admin/AdminQualitySummaryPanel.tsx` / `AdminQualityIssueList.tsx` / `AdminAccountQualityPanel.tsx`：后台质量巡检摘要、问题列表和账号级质量面板。
+- `src/modules/admin/adminPageModel.ts`：后台管理页的展示模型、汇总统计、质量筛选、定位目标和审计标签。
+- `src/components/admin/AdminQualitySummaryPanel.tsx` / `AdminQualityIssueList.tsx` / `AdminAccountQualityPanel.tsx` / `AdminQualityFiltersPanel.tsx` / `AdminQualityIssueDrawer.tsx` / `AdminQualityReminderPanel.tsx` / `AdminAuditTrailPanel.tsx`：后台质量巡检、筛选钻取、提醒和审计展示。
 - `src/modules/stats/TripStatsCenter.tsx`：统计中心页面主体，包含筛选、摘要、成就、排行、热力图与成就详情弹窗。
 - `src/modules/companions/CompanionMemoriesPage.tsx` / `companionMemoriesPageModel.ts`：旅伴共同回忆页与展示模型，从 companion memory DTO 派生页面文案、KPI、年度轨迹和照片 alt。
 - `src/modules/photos/PhotoCurationPage.tsx` / `photoCurationPageModel.ts`：影像编辑台页面与展示模型，从全局照片整理 DTO 派生筛选、预览、待整理清单和照片 alt。
@@ -218,6 +219,7 @@ Summary: The frontend talks to the backend through typed API modules and a remot
 - `server/appApi/routes/accountSettings.ts`：账号设置、密码修改和会话治理路由。
 - `server/appApi/services/companionMemoryService.ts`：旅伴共同回忆聚合、24 小时快照命中、过期重建和强制刷新。
 - `server/appApi/services/admin/qualityReport.ts`：后台质量巡检规则，按严重程度生成只读问题清单。
+- `server/appApi/services/adminAuditService.ts`：后台治理动作审计日志的写入、查询和 DTO 序列化。
 - `server/appApi/services/tripChecklistService.ts` / `tripPlanningService.ts` / `tripChecklistGenerationService.ts` / `guideDocumentService.ts`：行前清单查询、规划项写操作、转记录规则、攻略正文提炼与回退策略。
 - `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、成就解锁持久化、trip detail、photo curation、admin overview 等）。
 - `server/appApi/auth/*`：`requestAuth`（恢复 / 鉴权）、`session`（token、cookie 序列化）、`password`（hash / verify）。

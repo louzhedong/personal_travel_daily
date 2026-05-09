@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AdminOverviewResponseDto, AuthResponseDto, SessionResponseDto } from '../../lib/api/types';
-import { fetchAdminOverview } from '../../lib/api/adminApi';
+import { fetchAdminAuditLogs, fetchAdminOverview, recordAdminAuditLog } from '../../lib/api/adminApi';
 import App from '../App';
 import type { TravelStore } from '../../types';
 
@@ -169,7 +169,9 @@ vi.mock('../../lib/repositories/remoteTravelStoreRepository', () => ({
 
 vi.mock('../../lib/api/authApi', () => authApiMock);
 vi.mock('../../lib/api/adminApi', () => ({
+  fetchAdminAuditLogs: vi.fn(),
   fetchAdminOverview: vi.fn(),
+  recordAdminAuditLog: vi.fn(),
 }));
 
 describe('App auth and guide permissions', () => {
@@ -294,7 +296,15 @@ describe('App auth and guide permissions', () => {
     authApiMock.fetchSession.mockResolvedValue(authenticatedSession);
     authApiMock.login.mockResolvedValue(loginResponse);
     authApiMock.register.mockResolvedValue(registerResponse);
+    vi.mocked(fetchAdminAuditLogs).mockResolvedValue({ logs: [] });
     vi.mocked(fetchAdminOverview).mockResolvedValue(adminOverviewResponse);
+    vi.mocked(recordAdminAuditLog).mockResolvedValue({
+      id: 'audit-1',
+      adminAccountId: 'acct-1',
+      adminAccountName: 'Voyage Atlas',
+      action: 'quality_issue_viewed',
+      createdAt: '2026-05-09T00:00:00.000Z',
+    });
     remoteTravelStoreRepositoryMock.loadStore.mockResolvedValue(defaultStore);
     remoteTravelStoreRepositoryMock.deleteMarker.mockImplementation(async (markerId: string) => ({
       ...defaultStore,

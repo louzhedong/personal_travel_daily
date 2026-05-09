@@ -3,6 +3,35 @@
 本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
+## 2026-05-09
+
+### PR #37 `feat: 后台管理二期 / Add admin management phase two`
+
+### Added / 新增
+
+- 新增 `AdminAuditLog` Prisma 模型与正式 migration，用于记录后台治理动作。  
+  Added the `AdminAuditLog` Prisma model and formal migration for recording backoffice governance actions.
+- 新增 `GET /api/admin/audit-logs` 与 `POST /api/admin/audit-logs`，支持审计日志查询和白名单动作写入。  
+  Added `GET /api/admin/audit-logs` and `POST /api/admin/audit-logs` for audit-log listing and allowlisted action recording.
+- 新增后台质量问题筛选、详情抽屉、应用内提醒和审计日志面板。  
+  Added quality issue filters, an issue detail drawer, in-app reminders, and an audit trail panel to the admin page.
+- 新增 `docs/technical/admin-management-phase-two.md`，并同步文档导航、项目总览和路线图。  
+  Added `docs/technical/admin-management-phase-two.md` and refreshed the docs index, project overview, and roadmap.
+
+### Changed / 变更
+
+- `AdminQualityIssueDto` 新增结构化定位字段，支持从后台只读跳转到行程、清单、影像编辑台或旅伴回忆页。  
+  `AdminQualityIssueDto` now includes structured navigation fields for read-only jumps from admin into trip detail, checklist, photo curation, or companion memories.
+- 后台二期继续保持只读原则，不在后台直接修复业务数据。  
+  Admin phase two keeps the backoffice read-only and does not directly repair business data from the admin page.
+
+### Verified / 已验证
+
+- `npm run db:generate`
+- `npm run test -- server/__tests__/adminAuditService.spec.ts server/__tests__/adminQualityReport.spec.ts server/__tests__/adminService.spec.ts server/__tests__/appApiRoutes.spec.ts`
+- `npm run test -- src/modules/__tests__/AdminPage.spec.tsx src/modules/__tests__/App.spec.tsx`
+- `npm run build`
+
 ## 2026-05-08
 
 ### PR #36 `feat: 账号设置与会话治理一期 / Add account settings and session governance phase one`

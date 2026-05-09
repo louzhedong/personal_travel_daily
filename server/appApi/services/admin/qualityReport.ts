@@ -48,6 +48,68 @@ function createAccountIssueBase(account: AdminAccountNodeDto) {
   };
 }
 
+function createAdminOnlyNavigation() {
+  return {
+    navigationKind: 'adminOnly' as const,
+    canNavigate: false,
+  };
+}
+
+function createTripDetailNavigation(tripId?: string, markerId?: string) {
+  if (!tripId) {
+    return createAdminOnlyNavigation();
+  }
+
+  return {
+    navigationKind: 'tripDetail' as const,
+    navigationPayload: {
+      tripId,
+      markerId,
+    },
+    canNavigate: true,
+  };
+}
+
+function createTripChecklistNavigation(tripId?: string) {
+  if (!tripId) {
+    return createAdminOnlyNavigation();
+  }
+
+  return {
+    navigationKind: 'tripChecklist' as const,
+    navigationPayload: {
+      tripId,
+    },
+    canNavigate: true,
+  };
+}
+
+function createPhotoCurationNavigation(input: { tripId?: string; companionId?: string; photoId?: string }) {
+  if (!input.tripId && !input.companionId) {
+    return createAdminOnlyNavigation();
+  }
+
+  return {
+    navigationKind: 'photoCuration' as const,
+    navigationPayload: input,
+    canNavigate: true,
+  };
+}
+
+function createCompanionMemoriesNavigation(companionId?: string) {
+  if (!companionId) {
+    return createAdminOnlyNavigation();
+  }
+
+  return {
+    navigationKind: 'companionMemories' as const,
+    navigationPayload: {
+      companionId,
+    },
+    canNavigate: true,
+  };
+}
+
 function sortIssues(issues: AdminQualityIssueDto[]) {
   return [...issues].sort((left, right) => {
     const severityDiff = SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity];
@@ -111,6 +173,7 @@ function buildSnapshotIssue(
     targetLabel: snapshot.companion.name,
     detectedAt: getIssueDate(snapshot.expiresAt, now),
     suggestedAction: '进入旅伴回忆页刷新快照。',
+    ...createCompanionMemoriesNavigation(snapshot.companionId),
   };
 }
 
@@ -133,6 +196,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
           targetLabel: trip.name,
           detectedAt: getIssueDate(trip.createdAt, now),
           suggestedAction: '在行程详情中设置封面。',
+          ...createTripDetailNavigation(trip.id),
         });
       }
     }
@@ -153,6 +217,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
             targetLabel: `${marker.scopeName} · ${marker.city}`,
             detectedAt: getIssueDate(marker.createdAt, now),
             suggestedAction: '在记录详情中补充照片。',
+            ...createTripDetailNavigation(marker.tripId, marker.id),
           });
         }
 
@@ -169,6 +234,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
             targetLabel: `${marker.scopeName} · ${marker.city}`,
             detectedAt: getIssueDate(marker.createdAt, now),
             suggestedAction: '在时间线整理模式中归入行程。',
+            ...createAdminOnlyNavigation(),
           });
         }
 
@@ -186,6 +252,11 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
               targetLabel: `${marker.scopeName} · ${marker.city}`,
               detectedAt: getIssueDate(marker.createdAt, now),
               suggestedAction: '在影像编辑台补充照片说明。',
+              ...createPhotoCurationNavigation({
+                tripId: marker.tripId,
+                companionId: companion.id,
+                photoId: image.id,
+              }),
             });
           }
         }
@@ -205,6 +276,11 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
             targetLabel: guide.result.title,
             detectedAt: getIssueDate(guide.savedAt, now),
             suggestedAction: '在记录详情或攻略面板中建立关联。',
+            navigationKind: 'adminOnly',
+            navigationPayload: {
+              guideId: guide.id,
+            },
+            canNavigate: false,
           });
         }
       }
@@ -224,6 +300,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
             targetLabel: item.title,
             detectedAt: getIssueDate(item.plannedDate, now),
             suggestedAction: '在行程详情中确认是否转为记录。',
+            ...createTripChecklistNavigation(item.tripId),
           });
         }
       }
@@ -246,6 +323,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
         targetLabel: source.sourceName,
         detectedAt: getIssueDate(source.lastFailureAt, now),
         suggestedAction: '检查来源适配器或降级该来源权重。',
+        ...createAdminOnlyNavigation(),
       });
     }
   }
@@ -264,6 +342,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
       targetLabel: '攻略搜索',
       detectedAt: toIsoString(now),
       suggestedAction: '检查 guide-api、来源健康度和错误日志。',
+      ...createAdminOnlyNavigation(),
     });
   }
 

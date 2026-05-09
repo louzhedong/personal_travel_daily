@@ -8,18 +8,32 @@ import {
 interface AdminQualityIssueListProps {
   issues: AdminQualityIssueDto[];
   compact?: boolean;
+  emptyMessage?: string;
+  onSelectIssue?: (issue: AdminQualityIssueDto) => void;
+  onNavigateIssue?: (issue: AdminQualityIssueDto) => void;
 }
 
-export default function AdminQualityIssueList({ issues, compact = false }: AdminQualityIssueListProps) {
+export default function AdminQualityIssueList({
+  issues,
+  compact = false,
+  emptyMessage = '暂无质量问题',
+  onSelectIssue,
+  onNavigateIssue,
+}: AdminQualityIssueListProps) {
   if (issues.length === 0) {
-    return <div className="admin-empty-block">暂无质量问题</div>;
+    return <div className="admin-empty-block">{emptyMessage}</div>;
   }
 
   return (
     <div className={compact ? 'admin-quality-list admin-quality-list-compact' : 'admin-quality-list'}>
       {issues.map((issue) => (
         <article key={issue.id} className={`admin-quality-issue admin-quality-issue-${issue.severity}`}>
-          <div className="admin-quality-issue-main">
+          <button
+            type="button"
+            className="admin-quality-issue-main"
+            onClick={() => onSelectIssue?.(issue)}
+            disabled={!onSelectIssue}
+          >
             <div className="admin-quality-issue-title">
               <span className={`admin-quality-badge admin-quality-badge-${issue.severity}`}>
                 {ADMIN_QUALITY_SEVERITY_LABELS[issue.severity]}
@@ -33,8 +47,17 @@ export default function AdminQualityIssueList({ issues, compact = false }: Admin
               <span>{issue.targetLabel}</span>
               <span>{formatAdminDate(issue.detectedAt)}</span>
             </div>
-          </div>
-          {!compact ? <div className="admin-quality-action">{issue.suggestedAction}</div> : null}
+          </button>
+          {!compact ? (
+            <div className="admin-quality-action">
+              <span>{issue.suggestedAction}</span>
+              {issue.canNavigate && onNavigateIssue ? (
+                <button type="button" className="ghost-button" onClick={() => onNavigateIssue(issue)}>
+                  定位
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </article>
       ))}
     </div>
