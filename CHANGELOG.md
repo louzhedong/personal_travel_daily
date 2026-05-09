@@ -5,7 +5,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-05-08
 
-### PR 待定 / TBD `feat: 账号设置与会话治理一期 / Add account settings and session governance phase one`
+### PR #36 `feat: 账号设置与会话治理一期 / Add account settings and session governance phase one`
 
 ### Added / 新增
 
@@ -33,7 +33,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npm run db:generate`
 - `npm run build`
 
-### PR 待定 / TBD `feat: 管理后台与质量巡检一期 / Add admin quality operations phase one`
+### PR #36 `feat: 管理后台与质量巡检一期 / Add admin quality operations phase one`
 
 ### Added / 新增
 
@@ -58,7 +58,7 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 - `npm run test -- server/__tests__/appApiRoutes.spec.ts src/modules/__tests__/App.spec.tsx`
 - `npm run build`
 
-### PR 待定 / TBD `feat: 影像编辑台一期 / Add photo curation hub phase one`
+### PR #36 `feat: 影像编辑台一期 / Add photo curation hub phase one`
 
 ### Added / 新增
 
