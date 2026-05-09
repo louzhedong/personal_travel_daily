@@ -5,6 +5,8 @@ import AdminPage from './admin/AdminPage';
 import AchievementsPage from './achievements/AchievementsPage';
 import AuthPage from './auth/AuthPage';
 import CompanionMemoriesPage from './companions/CompanionMemoriesPage';
+import PhotoCurationPage from './photos/PhotoCurationPage';
+import AccountSettingsPage from './settings/AccountSettingsPage';
 import TravelApp from './TravelApp';
 import StatsPage from './stats/StatsPage';
 import TripDetailPage from './trips/TripDetailPage';
@@ -19,7 +21,9 @@ import {
   createCompanionMemoriesRoute,
   createHomeRoute,
   createLoginRoute,
+  createPhotoCurationRoute,
   createRegisterRoute,
+  createSettingsRoute,
   createStatsRoute,
   createTripChecklistRoute,
   createTripDetailRoute,
@@ -65,6 +69,8 @@ function App() {
           setEntryMessage('当前账号没有后台权限，已为你返回旅行主页。');
         } else if (route.kind === 'admin' && response.account.role === 'admin') {
           nextRoute = createAdminRoute();
+        } else if (route.kind === 'settings') {
+          nextRoute = createSettingsRoute();
         } else if (route.kind === 'tripDetail') {
           nextRoute = createTripDetailRoute(route.tripId);
         } else if (route.kind === 'tripStory') {
@@ -77,6 +83,8 @@ function App() {
           nextRoute = createAchievementsRoute();
         } else if (route.kind === 'companionMemories') {
           nextRoute = createCompanionMemoriesRoute(route.companionId);
+        } else if (route.kind === 'photoCuration') {
+          nextRoute = createPhotoCurationRoute(route.query);
         } else if (route.kind === 'stats') {
           nextRoute = createStatsRoute();
         } else {
@@ -101,7 +109,7 @@ function App() {
       cancelled = true;
     };
     // 中文：仅在挂载时恢复登录状态，沿用原有行为。
-    // English: run only on mount to restore the session, preserving the original behaviour.
+    // English: run only on mount to restore the session, preserving the original behavior.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -123,6 +131,10 @@ function App() {
 
   const handleLogout = async () => {
     await logout();
+    handleLoggedOut();
+  };
+
+  const handleLoggedOut = () => {
     setAccount(null);
     setEntryMessage(null);
     replace(createLoginRoute());
@@ -164,6 +176,18 @@ function App() {
     );
   }
 
+  if (route.kind === 'settings') {
+    return (
+      <AccountSettingsPage
+        account={account}
+        onAccountUpdated={setAccount}
+        onLogout={handleLogout}
+        onLoggedOut={handleLoggedOut}
+        onNavigateBack={() => goBackOrReplace(createHomeRoute())}
+      />
+    );
+  }
+
   if (route.kind === 'tripDetail') {
     return (
       <TripDetailPage
@@ -174,6 +198,7 @@ function App() {
         onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
         onOpenTripStory={(tripId) => navigate(createTripStoryRoute(tripId))}
         onOpenCompanionMemories={(companionId) => navigate(createCompanionMemoriesRoute(companionId))}
+        onOpenPhotoCuration={(query) => navigate(createPhotoCurationRoute(query))}
       />
     );
   }
@@ -185,6 +210,7 @@ function App() {
         tripId={route.tripId}
         onLogout={handleLogout}
         onNavigateBack={() => goBackOrReplace(createTripDetailRoute(route.tripId))}
+        onOpenPhotoCuration={(query) => navigate(createPhotoCurationRoute(query))}
       />
     );
   }
@@ -209,6 +235,7 @@ function App() {
         onNavigateBack={() => goBackOrReplace(createStatsRoute())}
         onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
         onOpenAchievements={() => navigate(createAchievementsRoute())}
+        onOpenPhotoCuration={(query) => navigate(createPhotoCurationRoute(query))}
       />
     );
   }
@@ -230,6 +257,17 @@ function App() {
         companionId={route.companionId}
         onLogout={handleLogout}
         onNavigateBack={() => goBackOrReplace(createStatsRoute())}
+      />
+    );
+  }
+
+  if (route.kind === 'photoCuration') {
+    return (
+      <PhotoCurationPage
+        account={account}
+        initialQuery={route.query}
+        onLogout={handleLogout}
+        onNavigateBack={() => goBackOrReplace(createHomeRoute())}
       />
     );
   }
@@ -258,6 +296,8 @@ function App() {
       onOpenStats={() => navigate(createStatsRoute())}
       onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
       onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
+      onOpenPhotoCuration={() => navigate(createPhotoCurationRoute())}
+      onOpenSettings={() => navigate(createSettingsRoute())}
       onOpenAdmin={
         account.role === 'admin'
           ? () => {

@@ -75,6 +75,9 @@ describe('authService', () => {
       nickname: '小明的旅行档案',
       username: 'xiaoming',
       password: 'demo123456',
+    }, {
+      userAgent: 'Vitest Browser',
+      ipAddress: '127.0.0.1',
     });
 
     expect(mocks.createInitialAccountStateMock).toHaveBeenCalledWith(
@@ -84,6 +87,13 @@ describe('authService', () => {
         primaryCompanionName: '小明的旅行档案',
         singleCompanion: true,
       },
+    );
+    expect(mocks.createAuthSessionMock).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({
+        userAgent: 'Vitest Browser',
+        ipAddress: '127.0.0.1',
+      }),
     );
   });
 });

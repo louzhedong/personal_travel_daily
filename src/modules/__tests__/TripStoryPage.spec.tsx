@@ -212,6 +212,32 @@ describe('TripStoryPage', () => {
     expect(window.print).toHaveBeenCalledOnce();
   });
 
+  it('opens photo curation when story photos are not manually featured', async () => {
+    const user = userEvent.setup();
+    const onOpenPhotoCuration = vi.fn();
+    vi.mocked(fetchTripDetail).mockResolvedValueOnce({
+      ...tripDetailResponse,
+      photos: tripDetailResponse.photos.map((photo) => ({
+        ...photo,
+        isFeatured: false,
+      })),
+    } as never);
+
+    render(
+      <TripStoryPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+        onOpenPhotoCuration={onOpenPhotoCuration}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: '去整理照片' }));
+
+    expect(onOpenPhotoCuration).toHaveBeenCalledWith({ tripId: 'trip-1' });
+  });
+
   it('switches story templates and exports a long image', async () => {
     const user = userEvent.setup();
     vi.mocked(fetchTripDetail).mockResolvedValueOnce({

@@ -20,6 +20,7 @@ interface AnnualReviewPageProps {
   onNavigateBack: () => void;
   onOpenTripDetail: (tripId: string) => void;
   onOpenAchievements?: () => void;
+  onOpenPhotoCuration?: (query: { year: number }) => void;
   onLogout: () => Promise<void> | void;
 }
 
@@ -29,6 +30,7 @@ export default function AnnualReviewPage({
   onNavigateBack,
   onOpenTripDetail,
   onOpenAchievements,
+  onOpenPhotoCuration,
   onLogout,
 }: AnnualReviewPageProps) {
   const [data, setData] = useState<AnnualReviewResponseDto | null>(null);
@@ -327,6 +329,11 @@ export default function AnnualReviewPage({
                     <h2>年度照片墙</h2>
                     <p>优先展示精选照片，再按时间选取最多 12 张代表照片。</p>
                   </div>
+                  {onOpenPhotoCuration ? (
+                    <button type="button" className="ghost-button" onClick={() => onOpenPhotoCuration({ year: Number(year) })}>
+                      整理年度照片
+                    </button>
+                  ) : null}
                 </div>
                 <div className="annual-review-photo-grid">
                   {data.photos.map((photo) => (

@@ -86,6 +86,15 @@ Summary: Wishlist Map is the account-level long-range planning pool that connect
 
 Summary: `/trips/:id/story` turns one trip into a private Story Studio with story badges, a route replay poster, featured-photo composition, share-card SVG export, long-image export, and print/PDF output.
 
+### 1.5F 影像编辑台 / Photo Curation Hub
+
+- `/photos` 提供账号级影像编辑台，集中整理所有旅行记录图片。
+- 支持按行程、旅伴、年份、精选状态和说明状态筛选照片。
+- 支持标记 / 取消精选与补充照片说明，结果复用 `VisitMarkerImage.isFeatured/caption/curatedSortOrder`。
+- 首页、行程详情“素材”Tab、年度回顾照片墙和 Story Studio 都提供入口。
+
+Summary: `/photos` provides an account-level photo curation desk for filtering, featuring, and captioning travel photos that power trip detail, annual review, Story Studio, and companion memories.
+
 ### 1.6 统计中心 / Stats Center
 
 - 独立统计中心 `/stats`，覆盖总览 KPI、旅行成就、年度趋势、月度分布、地区 / 城市 / 旅伴 / 行程排行、区域热力图、标签 / 心情 / 交通 / 预算级别排行与行程明细。
@@ -131,16 +140,18 @@ Summary: Data backup is reduced to a manual JSON snapshot export; the source of 
 - `/login` 与 `/register` 独立路由，旧 `/auth` 自动兼容到 `/login`。
 - 使用 Cookie Session，浏览器持有原始 token，数据库只存 SHA-256 hash。
 - 注册后立即自动登录；刷新页面可通过 `GET /api/auth/session` 恢复。
+- `/settings` 已提供账号资料、昵称修改、密码修改、多设备会话管理和数据导出入口。
 - 账号角色只有 `admin` 与 `member` 两种；默认种子账号 `demo` 为 `admin`。
 
-Summary: Auth uses Cookie Session with hash-only storage. Only `admin` and `member` roles exist, and the default seed account is admin.
+Summary: Auth uses Cookie Session with hash-only storage, and `/settings` now provides profile, password, session, and data-export governance. Only `admin` and `member` roles exist, and the default seed account is admin.
 
 ### 1.12 管理员后台 / Admin Backoffice
 
 - 独立 `/admin` 后台页，仅 `admin` 可进入；后端 `GET /api/admin/overview` 做最终权限裁决。
 - 后台只读展示账户、旅伴、旅行记录、行前规划、收藏攻略与搜索历史的系统级概览。
+- 后台已新增质量巡检摘要，覆盖记录缺图、未归行程、行程缺封面、照片缺说明、过期规划、攻略未关联、来源异常、搜索失败升高和旅伴回忆快照过期。
 
-Summary: `/admin` is an admin-only read-only overview page for accounts, companions, markers, planning items, saved guides, and search history; permissions are ultimately enforced by the backend.
+Summary: `/admin` is an admin-only read-only operations page for accounts, companions, markers, planning items, saved guides, search history, and quality issues; permissions are ultimately enforced by the backend.
 
 ---
 
@@ -148,7 +159,8 @@ Summary: `/admin` is an admin-only read-only overview page for accounts, compani
 
 ### 2.1 前端应用壳 / Frontend App Shell
 
-- `src/modules/App.tsx`：应用顶层容器。会话恢复、路由分流（`/login`、`/register`、`/admin`、`/`、`/trips/:id`、`/trips/:id/story`、`/trips/:id/checklist`、`/stats`、`/yearbook/:year` 等）、根据角色决定进入主应用或后台。
+- `src/modules/App.tsx`：应用顶层容器。会话恢复、路由分流（`/login`、`/register`、`/admin`、`/`、`/photos`、`/trips/:id`、`/trips/:id/story`、`/trips/:id/checklist`、`/stats`、`/yearbook/:year` 等）、根据角色决定进入主应用或后台。
+- `src/modules/settings/AccountSettingsPage.tsx`：账号设置页，承接资料、密码、会话治理和数据导出。
 - `src/modules/app/AppHero.tsx` / `AppContent.tsx` / `AppOverlays.tsx`：页面组合层。
 - `src/modules/app/useMapContext.ts`：地图范围、区域列表、选区、当前范围 marker 派生。
 - `src/modules/app/useTravelStoreActions.ts`：TravelStore 写操作（远端写入 + 本地回填）。
@@ -179,8 +191,10 @@ Summary: Components follow module-scoped responsibilities; cross-feature flows u
 - `src/lib/mapReplay.ts`：地图回放序列生成与状态文案。
 - `src/lib/guides/guideDocumentView.tsx`：攻略正文视图、高亮、HTML 清洗。
 - `src/modules/admin/adminPageModel.ts`：后台管理页的展示模型与汇总统计。
+- `src/components/admin/AdminQualitySummaryPanel.tsx` / `AdminQualityIssueList.tsx` / `AdminAccountQualityPanel.tsx`：后台质量巡检摘要、问题列表和账号级质量面板。
 - `src/modules/stats/TripStatsCenter.tsx`：统计中心页面主体，包含筛选、摘要、成就、排行、热力图与成就详情弹窗。
 - `src/modules/companions/CompanionMemoriesPage.tsx` / `companionMemoriesPageModel.ts`：旅伴共同回忆页与展示模型，从 companion memory DTO 派生页面文案、KPI、年度轨迹和照片 alt。
+- `src/modules/photos/PhotoCurationPage.tsx` / `photoCurationPageModel.ts`：影像编辑台页面与展示模型，从全局照片整理 DTO 派生筛选、预览、待整理清单和照片 alt。
 - `src/modules/trips/tripStoryPageModel.ts` / `tripStoryExport.ts`：旅行故事页展示模型与 SVG 导出 helper，从 `TripDetailResponseDto` 派生故事徽章、路线回放海报、分享卡模型、长图和分享卡导出内容。
 - `src/modules/yearbook/AnnualReviewPage.tsx`：年度回顾页面主体，包含年度成就板块。
 
@@ -190,7 +204,8 @@ Summary: Pure logic is pulled out of components into `src/lib` and per-module vi
 
 - `src/lib/api/httpClient.ts`：主业务 API 客户端基础能力，默认携带 `credentials`，本地开发优先走同源 `/api` 代理。
 - `src/lib/api/authApi.ts`：`register` / `login` / `fetchSession` / `logout`。
-- `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats` 等领域客户端，其中 `tripsApi.ts` 继续承接 checklist 与 planning 子资源。
+- `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats`、`photoCuration` 等领域客户端，其中 `tripsApi.ts` 继续承接 checklist 与 planning 子资源。
+- `src/lib/api/accountSettingsApi.ts`：账号设置、密码修改和会话治理客户端。
 - `src/lib/repositories/remoteTravelStoreRepository.ts`：组合多个 API 调用，为页面层提供稳定边界。
 - `src/lib/repositories/*`：IndexedDB 仅保留攻略缓存与本地辅助状态，不再作为主数据持久化。
 
@@ -199,11 +214,14 @@ Summary: The frontend talks to the backend through typed API modules and a remot
 ### 2.5 主业务 API（app-api）/ Main Business API
 
 - `server/appApiServer.ts`：Fastify 入口。
-- `server/appApi/routes/*`：`auth` / `bootstrap` / `companions` / `markers` / `savedGuides` / `guideSearchHistories` / `trips` / `stats` / `admin` 等路由。
+- `server/appApi/routes/*`：`auth` / `bootstrap` / `companions` / `markers` / `savedGuides` / `guideSearchHistories` / `trips` / `photoCuration` / `stats` / `admin` 等路由。
+- `server/appApi/routes/accountSettings.ts`：账号设置、密码修改和会话治理路由。
 - `server/appApi/services/companionMemoryService.ts`：旅伴共同回忆聚合、24 小时快照命中、过期重建和强制刷新。
+- `server/appApi/services/admin/qualityReport.ts`：后台质量巡检规则，按严重程度生成只读问题清单。
 - `server/appApi/services/tripChecklistService.ts` / `tripPlanningService.ts` / `tripChecklistGenerationService.ts` / `guideDocumentService.ts`：行前清单查询、规划项写操作、转记录规则、攻略正文提炼与回退策略。
-- `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、成就解锁持久化、trip detail、admin overview 等）。
+- `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、成就解锁持久化、trip detail、photo curation、admin overview 等）。
 - `server/appApi/auth/*`：`requestAuth`（恢复 / 鉴权）、`session`（token、cookie 序列化）、`password`（hash / verify）。
+- `server/appApi/services/accountSettingsService.ts`：昵称、密码和多设备会话治理规则。
 - `server/appApi/repositories/*`：Prisma 查询封装。
 - `server/appApi/serializers/*`：DB 模型 → 前端模型。
 - `server/appApi/errors.ts`：统一业务错误。

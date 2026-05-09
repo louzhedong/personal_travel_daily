@@ -29,6 +29,8 @@ describe('AdminPage', () => {
             savedGuideCount: 1,
             guideSearchHistoryCount: 1,
             markerSearchEventCount: 1,
+            planningItemCount: 1,
+            convertedPlanningItemCount: 0,
           },
           trips: [
             {
@@ -95,6 +97,26 @@ describe('AdminPage', () => {
                   createdAt: '2026-04-22T00:00:00.000Z',
                 },
               ],
+              planningItems: [
+                {
+                  id: 'planning-1',
+                  tripId: 'trip-1',
+                  tripName: '2026 江南春游',
+                  companionId: 'companion-1',
+                  companionName: '小悠',
+                  companionColor: '#2563eb',
+                  title: '灵隐寺',
+                  scope: 'domestic',
+                  scopeId: 'zj',
+                  scopeName: '浙江',
+                  city: '杭州',
+                  priority: 'high',
+                  status: 'planned',
+                  sortOrder: 0,
+                  createdAt: '2026-04-22T00:00:00.000Z',
+                  updatedAt: '2026-04-22T00:00:00.000Z',
+                },
+              ],
             },
           ],
         },
@@ -111,6 +133,8 @@ describe('AdminPage', () => {
             savedGuideCount: 0,
             guideSearchHistoryCount: 0,
             markerSearchEventCount: 0,
+            planningItemCount: 0,
+            convertedPlanningItemCount: 0,
           },
           trips: [],
           markerSearchEvents: [],
@@ -123,10 +147,62 @@ describe('AdminPage', () => {
               markers: [],
               savedGuides: [],
               guideSearchHistory: [],
+              planningItems: [],
             },
           ],
         },
       ],
+      quality: {
+        summary: {
+          criticalCount: 1,
+          warningCount: 1,
+          infoCount: 1,
+          affectedAccountCount: 1,
+          checkedAt: '2026-04-22T00:00:00.000Z',
+        },
+        issues: [
+          {
+            id: 'guide_source_degraded:source-1',
+            severity: 'critical',
+            type: 'guide_source_degraded',
+            title: '攻略来源异常',
+            description: '示例来源 最近失败 3 次，成功 1 次。',
+            targetKind: 'guideSource',
+            targetId: 'source-1',
+            targetLabel: '示例来源',
+            detectedAt: '2026-04-22T00:00:00.000Z',
+            suggestedAction: '检查来源适配器或降级该来源权重。',
+          },
+          {
+            id: 'marker_missing_photo:marker-1',
+            severity: 'warning',
+            type: 'marker_missing_photo',
+            title: '记录缺少照片',
+            description: '浙江 · 杭州 没有关联照片。',
+            accountId: 'acct-1',
+            accountName: 'Voyage Atlas',
+            targetKind: 'marker',
+            targetId: 'marker-1',
+            targetLabel: '浙江 · 杭州',
+            detectedAt: '2026-04-22T00:00:00.000Z',
+            suggestedAction: '在记录详情中补充照片。',
+          },
+          {
+            id: 'trip_missing_cover:trip-1',
+            severity: 'info',
+            type: 'trip_missing_cover',
+            title: '行程缺少封面',
+            description: '2026 江南春游 还没有封面图。',
+            accountId: 'acct-1',
+            accountName: 'Voyage Atlas',
+            targetKind: 'trip',
+            targetId: 'trip-1',
+            targetLabel: '2026 江南春游',
+            detectedAt: '2026-04-22T00:00:00.000Z',
+            suggestedAction: '在行程详情中设置封面。',
+          },
+        ],
+      },
       meta: {
         fetchedAt: '2026-04-22T00:00:00.000Z',
         accountCount: 2,
@@ -143,13 +219,16 @@ describe('AdminPage', () => {
 
     expect(await screen.findByText('系统用户总览')).toBeInTheDocument();
     expect(await screen.findByText('用户列表')).toBeInTheDocument();
-    expect(await screen.findAllByText('Voyage Atlas')).toHaveLength(2);
+    expect(await screen.findByRole('heading', { name: '质量巡检' })).toBeInTheDocument();
+    expect(await screen.findByText('攻略来源异常')).toBeInTheDocument();
+    expect(await screen.findByText('账号质量')).toBeInTheDocument();
+    expect((await screen.findAllByText('Voyage Atlas')).length).toBeGreaterThanOrEqual(2);
     expect(await screen.findByRole('tab', { name: '行程' })).toBeInTheDocument();
-    expect(await screen.findAllByText('2026 江南春游')).toHaveLength(2);
+    expect((await screen.findAllByText('2026 江南春游')).length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText('小悠').length).toBeGreaterThan(0);
 
     await userEvent.click(screen.getByRole('tab', { name: '旅行记录' }));
-    expect(await screen.findAllByText('2026 江南春游')).toHaveLength(2);
+    expect((await screen.findAllByText('2026 江南春游')).length).toBeGreaterThanOrEqual(2);
     expect(await screen.findByText('西湖散步')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('tab', { name: '收藏攻略' }));
@@ -164,6 +243,7 @@ describe('AdminPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /另一位用户/ }));
     expect(await screen.findByText('@other-user')).toBeInTheDocument();
+    expect(await screen.findByText('暂无质量问题')).toBeInTheDocument();
     expect(await screen.findByText('暂无行程。')).toBeInTheDocument();
   });
 

@@ -5,6 +5,9 @@ import type {
   AdminMarkerSearchEventNodeDto,
   AdminOverviewResponseDto,
   AdminPlanningItemNodeDto,
+  AdminQualityIssueDto,
+  AdminQualityIssueTypeDto,
+  AdminQualitySeverityDto,
   AdminSavedGuideNodeDto,
   AdminTripNodeDto,
 } from '../../lib/api/types';
@@ -49,6 +52,24 @@ export const ADMIN_DETAIL_TABS: AdminTabItem[] = [
   { key: 'guideSearchHistory', label: '攻略搜索' },
   { key: 'markerSearchEvents', label: '记录搜索' },
 ];
+
+export const ADMIN_QUALITY_SEVERITY_LABELS: Record<AdminQualitySeverityDto, string> = {
+  critical: '严重',
+  warning: '注意',
+  info: '建议',
+};
+
+export const ADMIN_QUALITY_TYPE_LABELS: Record<AdminQualityIssueTypeDto, string> = {
+  marker_missing_photo: '记录缺图',
+  marker_unassigned_trip: '未归行程',
+  trip_missing_cover: '行程缺封面',
+  photo_missing_caption: '照片缺说明',
+  planning_overdue: '规划过期',
+  saved_guide_unlinked: '攻略未关联',
+  guide_source_degraded: '来源异常',
+  guide_search_error_spike: '搜索失败升高',
+  companion_memory_snapshot_stale: '回忆快照过期',
+};
 
 export function formatAdminDate(value: string) {
   try {
@@ -111,6 +132,20 @@ export function getAdminSummary(overview: AdminOverviewResponseDto) {
       convertedPlanningItemCount: 0,
     },
   );
+}
+
+export function getTopQualityIssues(overview: AdminOverviewResponseDto, limit = 8): AdminQualityIssueDto[] {
+  return (overview.quality?.issues ?? []).slice(0, limit);
+}
+
+export function getAccountQualityIssues(
+  overview: AdminOverviewResponseDto,
+  accountId: string,
+  limit = 5,
+): AdminQualityIssueDto[] {
+  return (overview.quality?.issues ?? [])
+    .filter((issue) => issue.accountId === accountId)
+    .slice(0, limit);
 }
 
 export function getAccountDetailCollections(account: AdminAccountNodeDto): AdminDetailCollections {

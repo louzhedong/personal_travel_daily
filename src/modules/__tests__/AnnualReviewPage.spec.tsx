@@ -219,6 +219,25 @@ describe('AnnualReviewPage', () => {
     expect(window.print).toHaveBeenCalledOnce();
   });
 
+  it('opens photo curation with the annual year filter', async () => {
+    const onOpenPhotoCuration = vi.fn();
+    render(
+      <AnnualReviewPage
+        account={account}
+        year="2026"
+        onNavigateBack={vi.fn()}
+        onOpenTripDetail={vi.fn()}
+        onOpenAchievements={vi.fn()}
+        onOpenPhotoCuration={onOpenPhotoCuration}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    await userEvent.click(await screen.findByRole('button', { name: '整理年度照片' }));
+
+    expect(onOpenPhotoCuration).toHaveBeenCalledWith({ year: 2026 });
+  });
+
   it('renders an empty annual review', async () => {
     vi.mocked(fetchAnnualReview).mockResolvedValueOnce({
       ...annualReviewResponse,

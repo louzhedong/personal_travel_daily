@@ -8,10 +8,12 @@ const mocks = vi.hoisted(() => ({
   listRecentGuideSearchLogsMock: vi.fn(),
   aggregateGuideSearchStatusBreakdownMock: vi.fn(),
   listGuideSourceHealthSnapshotMock: vi.fn(),
+  listCompanionMemorySnapshotHealthMock: vi.fn(),
   serializeAdminOverviewMock: vi.fn(),
   serializeGuideSearchTrendsMock: vi.fn(),
   serializeGuideSearchStatusBreakdownMock: vi.fn(),
   serializeGuideSourceHealthSnapshotMock: vi.fn(),
+  buildAdminQualityReportMock: vi.fn(),
 }));
 
 vi.mock('../appApi/prisma.js', () => ({
@@ -31,11 +33,19 @@ vi.mock('../appApi/repositories/guideSourceHealthRepository.js', () => ({
   listGuideSourceHealthSnapshot: mocks.listGuideSourceHealthSnapshotMock,
 }));
 
+vi.mock('../appApi/repositories/adminQualityRepository.js', () => ({
+  listCompanionMemorySnapshotHealth: mocks.listCompanionMemorySnapshotHealthMock,
+}));
+
 vi.mock('../appApi/serializers/adminSerializer.js', () => ({
   serializeAdminOverview: mocks.serializeAdminOverviewMock,
   serializeGuideSearchTrends: mocks.serializeGuideSearchTrendsMock,
   serializeGuideSearchStatusBreakdown: mocks.serializeGuideSearchStatusBreakdownMock,
   serializeGuideSourceHealthSnapshot: mocks.serializeGuideSourceHealthSnapshotMock,
+}));
+
+vi.mock('../appApi/services/admin/qualityReport.js', () => ({
+  buildAdminQualityReport: mocks.buildAdminQualityReportMock,
 }));
 
 import { getAdminOverview } from '../appApi/services/adminService.js';
@@ -51,20 +61,33 @@ describe('adminService', () => {
     const logs = [{ id: 'log-1' }];
     const statusBreakdown = [{ status: 'success', _count: { _all: 3 } }];
     const sourceHealth = [{ id: 'health-1' }];
+    const snapshotHealth = [{ id: 'snapshot-1' }];
     const serialized = { accounts: [{ id: 'acct-1' }], meta: { accountCount: 1 } };
     const serializedTrends = [{ date: '2026-05-06', totalCount: 3 }];
     const serializedStatus = [{ status: 'success', count: 3 }];
     const serializedHealth = [{ id: 'health-1', sourceName: 'Qyer', sourceDomain: 'qyer.com' }];
+    const quality = {
+      summary: {
+        criticalCount: 0,
+        warningCount: 0,
+        infoCount: 0,
+        affectedAccountCount: 0,
+        checkedAt: '2026-05-06T00:00:00.000Z',
+      },
+      issues: [],
+    };
 
     mocks.getPrismaClientMock.mockReturnValue(prisma);
     mocks.listAdminOverviewAccountsMock.mockResolvedValue(accounts);
     mocks.listRecentGuideSearchLogsMock.mockResolvedValue(logs);
     mocks.aggregateGuideSearchStatusBreakdownMock.mockResolvedValue(statusBreakdown);
     mocks.listGuideSourceHealthSnapshotMock.mockResolvedValue(sourceHealth);
+    mocks.listCompanionMemorySnapshotHealthMock.mockResolvedValue(snapshotHealth);
     mocks.serializeAdminOverviewMock.mockReturnValue(serialized);
     mocks.serializeGuideSearchTrendsMock.mockReturnValue(serializedTrends);
     mocks.serializeGuideSearchStatusBreakdownMock.mockReturnValue(serializedStatus);
     mocks.serializeGuideSourceHealthSnapshotMock.mockReturnValue(serializedHealth);
+    mocks.buildAdminQualityReportMock.mockReturnValue(quality);
 
     const result = await getAdminOverview();
 
@@ -73,11 +96,19 @@ describe('adminService', () => {
     expect(mocks.serializeGuideSearchTrendsMock).toHaveBeenCalledWith(logs);
     expect(mocks.serializeGuideSearchStatusBreakdownMock).toHaveBeenCalledWith(statusBreakdown);
     expect(mocks.serializeGuideSourceHealthSnapshotMock).toHaveBeenCalledWith(sourceHealth);
+    expect(mocks.listCompanionMemorySnapshotHealthMock).toHaveBeenCalledWith(prisma);
+    expect(mocks.buildAdminQualityReportMock).toHaveBeenCalledWith({
+      accounts: serialized.accounts,
+      statusBreakdown: serializedStatus,
+      sourceHealth: serializedHealth,
+      snapshotHealth,
+    });
     expect(result).toEqual({
       ...serialized,
       guideSearchTrends: serializedTrends,
       guideSearchStatusBreakdown: serializedStatus,
       guideSourceHealth: serializedHealth,
+      quality,
     });
   });
 });

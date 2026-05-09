@@ -12,6 +12,11 @@ import { createAuthSession, deleteAuthSessionByTokenHash } from '../repositories
 import type { LoginBody, RegisterBody } from '../schemas/auth.js';
 import { createInitialAccountState } from './appContextService.js';
 
+export interface SessionClientMetadata {
+  userAgent?: string | null;
+  ipAddress?: string | null;
+}
+
 function serializeAccount(account: { id: string; name: string; username: string; role: 'admin' | 'member' }) {
   return {
     id: account.id,
@@ -21,7 +26,7 @@ function serializeAccount(account: { id: string; name: string; username: string;
   };
 }
 
-export async function registerAccount(input: RegisterBody) {
+export async function registerAccount(input: RegisterBody, metadata: SessionClientMetadata = {}) {
   const prisma = getPrismaClient();
   const username = input.username.trim();
   const nickname = input.nickname.trim();
@@ -51,6 +56,8 @@ export async function registerAccount(input: RegisterBody) {
       id: randomUUID(),
       accountId: account.id,
       tokenHash: hashSessionToken(sessionToken),
+      userAgent: metadata.userAgent,
+      ipAddress: metadata.ipAddress,
       expiresAt,
     });
 
@@ -64,7 +71,7 @@ export async function registerAccount(input: RegisterBody) {
   return result;
 }
 
-export async function loginAccount(input: LoginBody) {
+export async function loginAccount(input: LoginBody, metadata: SessionClientMetadata = {}) {
   const prisma = getPrismaClient();
   const account = await findAccountByUsername(prisma, input.username.trim());
 
@@ -80,6 +87,8 @@ export async function loginAccount(input: LoginBody) {
       id: randomUUID(),
       accountId: account.id,
       tokenHash: hashSessionToken(sessionToken),
+      userAgent: metadata.userAgent,
+      ipAddress: metadata.ipAddress,
       expiresAt,
     });
   });

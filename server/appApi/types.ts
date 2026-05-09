@@ -353,6 +353,40 @@ export interface AuthResponseDto {
   account: CurrentAccountDto;
 }
 
+export interface SessionResponseDto {
+  account: CurrentAccountDto | null;
+}
+
+export interface AccountSettingsDto {
+  account: CurrentAccountDto;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AccountSessionDto {
+  id: string;
+  isCurrent: boolean;
+  userAgent?: string;
+  deviceLabel: string;
+  ipAddress?: string;
+  createdAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+}
+
+export interface AccountSessionsResponseDto {
+  sessions: AccountSessionDto[];
+}
+
+export interface UpdateAccountProfileInputDto {
+  name: string;
+}
+
+export interface ChangePasswordInputDto {
+  currentPassword: string;
+  nextPassword: string;
+}
+
 export interface AdminMarkerNodeDto {
   id: string;
   tripId?: string;
@@ -366,6 +400,13 @@ export interface AdminMarkerNodeDto {
   weather?: MarkerWeather;
   transport?: MarkerTransport;
   budgetLevel?: MarkerBudgetLevel;
+  images?: Array<{
+    id: string;
+    imageUrl: string;
+    isFeatured: boolean;
+    caption?: string;
+    curatedSortOrder?: number;
+  }>;
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;
@@ -486,11 +527,53 @@ export interface AdminAccountNodeDto {
   };
 }
 
+export type AdminQualitySeverityDto = 'critical' | 'warning' | 'info';
+
+export type AdminQualityIssueTypeDto =
+  | 'marker_missing_photo'
+  | 'marker_unassigned_trip'
+  | 'trip_missing_cover'
+  | 'photo_missing_caption'
+  | 'planning_overdue'
+  | 'saved_guide_unlinked'
+  | 'guide_source_degraded'
+  | 'guide_search_error_spike'
+  | 'companion_memory_snapshot_stale';
+
+export interface AdminQualityIssueDto {
+  id: string;
+  severity: AdminQualitySeverityDto;
+  type: AdminQualityIssueTypeDto;
+  title: string;
+  description: string;
+  accountId?: string;
+  accountName?: string;
+  targetKind: 'account' | 'trip' | 'marker' | 'photo' | 'guide' | 'planningItem' | 'guideSource' | 'snapshot';
+  targetId?: string;
+  targetLabel: string;
+  detectedAt: string;
+  suggestedAction: string;
+}
+
+export interface AdminQualitySummaryDto {
+  criticalCount: number;
+  warningCount: number;
+  infoCount: number;
+  affectedAccountCount: number;
+  checkedAt: string;
+}
+
+export interface AdminQualityReportDto {
+  summary: AdminQualitySummaryDto;
+  issues: AdminQualityIssueDto[];
+}
+
 export interface AdminOverviewResponseDto {
   accounts: AdminAccountNodeDto[];
   guideSearchTrends?: GuideSearchTrendPointDto[];
   guideSearchStatusBreakdown?: GuideSearchStatusBreakdownDto[];
   guideSourceHealth?: GuideSourceHealthDto[];
+  quality?: AdminQualityReportDto;
   meta: {
     fetchedAt: string;
     accountCount: number;
@@ -884,4 +967,77 @@ export interface UpdateTripPhotoCurationItemDto {
 
 export interface UpdateTripPhotoCurationInputDto {
   items: UpdateTripPhotoCurationItemDto[];
+}
+
+export type PhotoCurationFeaturedFilterDto = 'all' | 'featured' | 'unfeatured';
+export type PhotoCurationCaptionFilterDto = 'all' | 'withCaption' | 'missingCaption';
+
+export interface PhotoCurationQueryDto {
+  tripId?: string;
+  companionId?: string;
+  year?: number;
+  featured?: PhotoCurationFeaturedFilterDto;
+  caption?: PhotoCurationCaptionFilterDto;
+  limit?: number;
+}
+
+export interface PhotoCurationFilterOptionDto {
+  id: string;
+  name: string;
+  photoCount: number;
+}
+
+export interface PhotoCurationCompanionFilterOptionDto extends PhotoCurationFilterOptionDto {
+  color: string;
+}
+
+export interface PhotoCurationYearFilterOptionDto {
+  year: number;
+  photoCount: number;
+}
+
+export interface PhotoCurationItemDto {
+  imageId: string;
+  imageUrl: string;
+  markerId: string;
+  markerTitle: string;
+  tripId?: string;
+  tripName?: string;
+  companionId: string;
+  companionName: string;
+  companionColor: string;
+  scopeName: string;
+  city: string;
+  visitedStartAt: string;
+  isFeatured: boolean;
+  caption?: string;
+  curatedSortOrder?: number;
+}
+
+export interface PhotoCurationResponseDto {
+  summary: {
+    totalPhotos: number;
+    featuredPhotos: number;
+    missingCaptionPhotos: number;
+    tripCount: number;
+    companionCount: number;
+    yearCount: number;
+  };
+  filters: {
+    trips: PhotoCurationFilterOptionDto[];
+    companions: PhotoCurationCompanionFilterOptionDto[];
+    years: PhotoCurationYearFilterOptionDto[];
+  };
+  sections: {
+    featured: PhotoCurationItemDto[];
+    missingCaptions: PhotoCurationItemDto[];
+    recent: PhotoCurationItemDto[];
+  };
+  items: PhotoCurationItemDto[];
+}
+
+export type UpdatePhotoCurationItemDto = UpdateTripPhotoCurationItemDto;
+
+export interface UpdatePhotoCurationInputDto {
+  items: UpdatePhotoCurationItemDto[];
 }

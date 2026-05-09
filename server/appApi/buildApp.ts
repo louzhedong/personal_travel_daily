@@ -3,6 +3,7 @@ import Fastify from 'fastify';
 import { getAppApiEnv } from './env.js';
 import { normalizeAppApiError } from './errors.js';
 import { registerAdminRoutes } from './routes/admin.js';
+import { registerAccountSettingsRoutes } from './routes/accountSettings.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerBootstrapRoutes } from './routes/bootstrap.js';
 import { registerCompanionMemoryRoutes } from './routes/companionMemories.js';
@@ -12,6 +13,7 @@ import { registerGuideSearchLogRoutes } from './routes/guideSearchLogs.js';
 import { registerGuideSourceHealthRoutes } from './routes/guideSourceHealth.js';
 import { registerHealthRoutes } from './routes/health.js';
 import { registerMarkerRoutes } from './routes/markers.js';
+import { registerPhotoCurationRoutes } from './routes/photoCuration.js';
 import { registerSavedGuideRoutes } from './routes/savedGuides.js';
 import { registerStatsRoutes } from './routes/stats.js';
 import { registerTripRoutes } from './routes/trips.js';
@@ -30,6 +32,7 @@ export async function buildApp() {
   });
 
   await registerAuthRoutes(app);
+  await registerAccountSettingsRoutes(app);
   await registerAdminRoutes(app);
   await registerHealthRoutes(app);
   await registerBootstrapRoutes(app);
@@ -38,6 +41,7 @@ export async function buildApp() {
   await registerTripRoutes(app);
   await registerWishlistRoutes(app);
   await registerStatsRoutes(app);
+  await registerPhotoCurationRoutes(app);
   await registerSavedGuideRoutes(app);
   await registerGuideSearchHistoryRoutes(app);
   await registerGuideSearchLogRoutes(app);

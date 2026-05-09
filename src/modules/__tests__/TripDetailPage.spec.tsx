@@ -399,6 +399,27 @@ describe('TripDetailPage', () => {
     });
   });
 
+  it('opens the global photo curation hub from the assets panel', async () => {
+    const user = userEvent.setup();
+    const onOpenPhotoCuration = vi.fn();
+
+    render(
+      <TripDetailPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+        onOpenPhotoCuration={onOpenPhotoCuration}
+      />,
+    );
+
+    await screen.findByRole('heading', { name: '江南春游' });
+    await user.click(screen.getByRole('button', { name: '素材' }));
+    await user.click(screen.getByRole('button', { name: '打开影像编辑台' }));
+
+    expect(onOpenPhotoCuration).toHaveBeenCalledWith({ tripId: 'trip-1' });
+  });
+
   it('runs checklist mutations, reloads checklist, and opens expanded checklist view', async () => {
     const user = userEvent.setup();
     const onOpenTripChecklist = vi.fn();

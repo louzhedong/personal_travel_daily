@@ -21,6 +21,8 @@ interface TravelAppProps {
   onOpenStats?: () => void;
   onOpenTripDetail?: (tripId: string) => void;
   onOpenTripChecklist?: (tripId: string) => void;
+  onOpenPhotoCuration?: () => void;
+  onOpenSettings?: () => void;
   entryMessage?: string | null;
 }
 
@@ -31,6 +33,8 @@ function TravelApp({
   onOpenStats,
   onOpenTripDetail,
   onOpenTripChecklist,
+  onOpenPhotoCuration,
+  onOpenSettings,
   entryMessage,
 }: TravelAppProps) {
   const [store, setStore] = useState<TravelStore>(() => createDefaultStore());
@@ -277,6 +281,8 @@ function TravelApp({
         onLogout={onLogout}
         onOpenAdmin={onOpenAdmin}
         onOpenStats={onOpenStats}
+        onOpenPhotoCuration={onOpenPhotoCuration}
+        onOpenSettings={onOpenSettings}
       />
 
       <StatsPanel scope={scope} markers={visibleMarkers} users={store.users} />

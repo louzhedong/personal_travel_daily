@@ -10,9 +10,20 @@ interface AppHeroProps {
   onLogout: () => Promise<void> | void;
   onOpenAdmin?: () => void;
   onOpenStats?: () => void;
+  onOpenPhotoCuration?: () => void;
+  onOpenSettings?: () => void;
 }
 
-export default function AppHero({ message, onOpenGuideSearch, account, onLogout, onOpenAdmin, onOpenStats }: AppHeroProps) {
+export default function AppHero({
+  message,
+  onOpenGuideSearch,
+  account,
+  onLogout,
+  onOpenAdmin,
+  onOpenStats,
+  onOpenPhotoCuration,
+  onOpenSettings,
+}: AppHeroProps) {
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   return (
@@ -119,11 +130,21 @@ export default function AppHero({ message, onOpenGuideSearch, account, onLogout,
             多人同行
           </span>
         </div>
-        {onOpenStats || (account.role === 'admin' && onOpenAdmin) ? (
+        {onOpenStats || onOpenPhotoCuration || onOpenSettings || (account.role === 'admin' && onOpenAdmin) ? (
           <div className="hero-admin-row">
+            {onOpenSettings ? (
+              <button type="button" className="ghost-button hero-admin-button" onClick={onOpenSettings}>
+                账号设置
+              </button>
+            ) : null}
             {onOpenStats ? (
               <button type="button" className="ghost-button hero-admin-button" onClick={onOpenStats}>
                 查看行程统计
+              </button>
+            ) : null}
+            {onOpenPhotoCuration ? (
+              <button type="button" className="ghost-button hero-admin-button" onClick={onOpenPhotoCuration}>
+                整理照片
               </button>
             ) : null}
             {account.role === 'admin' && onOpenAdmin ? (

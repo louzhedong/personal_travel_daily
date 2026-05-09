@@ -2,7 +2,11 @@ import type { FastifyRequest } from 'fastify';
 import { createForbiddenError, createUnauthorizedError } from '../errors.js';
 import { SESSION_COOKIE_NAME, hashSessionToken, readCookieValue } from './session.js';
 import { getPrismaClient } from '../prisma.js';
-import { deleteExpiredAuthSessions, findAuthSessionByTokenHash } from '../repositories/authSessionRepository.js';
+import {
+  deleteExpiredAuthSessions,
+  findActiveAuthSessionByTokenHash,
+  updateAuthSessionLastSeen,
+} from '../repositories/authSessionRepository.js';
 
 export interface AuthenticatedAccount {
   id: string;
@@ -21,10 +25,12 @@ export async function getAuthenticatedAccount(request: FastifyRequest) {
   const now = new Date();
   await deleteExpiredAuthSessions(prisma, now);
 
-  const session = await findAuthSessionByTokenHash(prisma, hashSessionToken(sessionToken));
+  const session = await findActiveAuthSessionByTokenHash(prisma, hashSessionToken(sessionToken));
   if (!session || session.expiresAt <= now) {
     return null;
   }
+
+  await updateAuthSessionLastSeen(prisma, session.id, now);
 
   return {
     id: session.account.id,
