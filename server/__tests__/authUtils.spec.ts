@@ -6,7 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getPrismaClientMock: vi.fn(),
   deleteExpiredAuthSessionsMock: vi.fn(),
-  findAuthSessionByTokenHashMock: vi.fn(),
+  findActiveAuthSessionByTokenHashMock: vi.fn(),
+  updateAuthSessionLastSeenMock: vi.fn(),
 }));
 
 vi.mock('../appApi/prisma.js', () => ({
@@ -15,7 +16,8 @@ vi.mock('../appApi/prisma.js', () => ({
 
 vi.mock('../appApi/repositories/authSessionRepository.js', () => ({
   deleteExpiredAuthSessions: mocks.deleteExpiredAuthSessionsMock,
-  findAuthSessionByTokenHash: mocks.findAuthSessionByTokenHashMock,
+  findActiveAuthSessionByTokenHash: mocks.findActiveAuthSessionByTokenHashMock,
+  updateAuthSessionLastSeen: mocks.updateAuthSessionLastSeenMock,
 }));
 
 import { createForbiddenError, createUnauthorizedError } from '../appApi/errors.js';
@@ -76,7 +78,7 @@ describe('auth utilities', () => {
 
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-04-02T00:00:00.000Z'));
-    mocks.findAuthSessionByTokenHashMock.mockResolvedValueOnce(null);
+    mocks.findActiveAuthSessionByTokenHashMock.mockResolvedValueOnce(null);
     await expect(
       getAuthenticatedAccount({
         headers: {
@@ -86,7 +88,8 @@ describe('auth utilities', () => {
     ).resolves.toBeNull();
     expect(mocks.deleteExpiredAuthSessionsMock).toHaveBeenCalledWith(prisma, new Date('2026-04-02T00:00:00.000Z'));
 
-    mocks.findAuthSessionByTokenHashMock.mockResolvedValueOnce({
+    mocks.findActiveAuthSessionByTokenHashMock.mockResolvedValueOnce({
+      id: 'session-expired',
       expiresAt: new Date('2026-04-01T23:59:59.000Z'),
       account: { id: 'acct-1', name: 'Atlas', username: 'demo', role: 'member' },
     });
@@ -103,7 +106,8 @@ describe('auth utilities', () => {
   it('returns authenticated accounts and enforces member/admin guards', async () => {
     const prisma = {};
     mocks.getPrismaClientMock.mockReturnValue(prisma);
-    mocks.findAuthSessionByTokenHashMock.mockResolvedValue({
+    mocks.findActiveAuthSessionByTokenHashMock.mockResolvedValue({
+      id: 'session-1',
       expiresAt: new Date('2099-04-10T00:00:00.000Z'),
       account: { id: 'acct-1', name: 'Atlas', username: 'demo', role: 'admin' },
     });
@@ -120,6 +124,7 @@ describe('auth utilities', () => {
       username: 'demo',
       role: 'admin',
     });
+    expect(mocks.updateAuthSessionLastSeenMock).toHaveBeenCalledWith(prisma, 'session-1', expect.any(Date));
 
     await expect(
       requireAuthenticatedAccount({
@@ -134,7 +139,8 @@ describe('auth utilities', () => {
       role: 'admin',
     });
 
-    mocks.findAuthSessionByTokenHashMock.mockResolvedValueOnce({
+    mocks.findActiveAuthSessionByTokenHashMock.mockResolvedValueOnce({
+      id: 'session-2',
       expiresAt: new Date('2099-04-10T00:00:00.000Z'),
       account: { id: 'acct-2', name: 'Traveler', username: 'member', role: 'member' },
     });
@@ -146,7 +152,7 @@ describe('auth utilities', () => {
       } as never),
     ).rejects.toMatchObject(createForbiddenError('admin access required'));
 
-    mocks.findAuthSessionByTokenHashMock.mockResolvedValueOnce(null);
+    mocks.findActiveAuthSessionByTokenHashMock.mockResolvedValueOnce(null);
     await expect(requireAuthenticatedAccount({ headers: {} } as never)).rejects.toMatchObject(
       createUnauthorizedError('authentication required'),
     );

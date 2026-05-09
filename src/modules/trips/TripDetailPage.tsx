@@ -62,6 +62,7 @@ interface TripDetailPageProps {
   onOpenTripChecklist?: (tripId: string) => void;
   onOpenTripStory?: (tripId: string) => void;
   onOpenCompanionMemories?: (companionId: string) => void;
+  onOpenPhotoCuration?: (query: { tripId: string }) => void;
 }
 
 export default function TripDetailPage({
@@ -72,6 +73,7 @@ export default function TripDetailPage({
   onOpenTripChecklist,
   onOpenTripStory,
   onOpenCompanionMemories,
+  onOpenPhotoCuration,
 }: TripDetailPageProps) {
   const [data, setData] = useState<TripDetailResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -849,6 +851,11 @@ export default function TripDetailPage({
                     <h2>行程照片</h2>
                     <p>只展示当前行程内记录所关联的照片素材。</p>
                   </div>
+                  {onOpenPhotoCuration && activeDetailTab === 'assets' ? (
+                    <button type="button" className="ghost-button" onClick={() => onOpenPhotoCuration({ tripId })}>
+                      打开影像编辑台
+                    </button>
+                  ) : null}
                 </div>
                 {data.photos.length === 0 ? (
                   <div className="trip-detail-empty">当前行程还没有照片。</div>

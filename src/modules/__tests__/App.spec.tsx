@@ -137,6 +137,20 @@ vi.mock('../companions/CompanionMemoriesPage', () => ({
   ),
 }));
 
+vi.mock('../photos/PhotoCurationPage', () => ({
+  default: ({ initialQuery }: { initialQuery?: { tripId?: string; companionId?: string; year?: number } }) => (
+    <div data-testid="photo-curation-page">
+      photo-curation-{initialQuery?.tripId ?? 'all'}-{initialQuery?.year ?? 'all'}
+    </div>
+  ),
+}));
+
+vi.mock('../settings/AccountSettingsPage', () => ({
+  default: ({ account }: { account: { username: string } }) => (
+    <div data-testid="account-settings-page">settings-{account.username}</div>
+  ),
+}));
+
 vi.mock('../../components/UserManager', () => ({
   default: () => <div data-testid="user-manager">user-manager</div>,
 }));
@@ -412,6 +426,42 @@ describe('App auth and guide permissions', () => {
 
     expect(await screen.findByTestId('companion-memories-page')).toHaveTextContent('companion-memories-u2');
     expect(window.location.pathname).toBe('/companions/u2/memories');
+  });
+
+  it('allows authenticated users to access /photos with query and renders the photo curation page', async () => {
+    window.history.replaceState({}, '', '/photos?tripId=trip-1&year=2026');
+
+    render(<App />);
+
+    expect(await screen.findByTestId('photo-curation-page')).toHaveTextContent('photo-curation-trip-1-2026');
+    expect(window.location.pathname).toBe('/photos');
+    expect(window.location.search).toBe('?tripId=trip-1&year=2026');
+  });
+
+  it('opens the photo curation hub from the homepage action', async () => {
+    render(<App />);
+
+    await userEvent.click(await screen.findByRole('button', { name: '整理照片' }));
+
+    expect(await screen.findByTestId('photo-curation-page')).toHaveTextContent('photo-curation-all-all');
+    expect(window.location.pathname).toBe('/photos');
+  });
+
+  it('allows authenticated users to access /settings', async () => {
+    window.history.replaceState({}, '', '/settings');
+
+    render(<App />);
+
+    expect(await screen.findByTestId('account-settings-page')).toHaveTextContent('settings-demo');
+    expect(window.location.pathname).toBe('/settings');
+  });
+
+  it('opens account settings from the homepage action', async () => {
+    render(<App />);
+    render(<App />);
+    await userEvent.click(await screen.findByRole('button', { name: '账号设置' }));
+
+    expect(window.location.pathname).toBe('/settings');
   });
 
   it('redirects members away from /admin back to the main app shell', async () => {

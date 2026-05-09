@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   getAnnualReviewMock: vi.fn(),
   getTripDetailMock: vi.fn(),
   updateTripPhotoCurationMock: vi.fn(),
+  listPhotoCurationResourceMock: vi.fn(),
+  updatePhotoCurationResourceMock: vi.fn(),
   listTripChecklistMock: vi.fn(),
   listTripPlanningMock: vi.fn(),
   createTripPlanningItemResourceMock: vi.fn(),
@@ -45,6 +47,12 @@ const mocks = vi.hoisted(() => ({
   registerAccountMock: vi.fn(),
   loginAccountMock: vi.fn(),
   logoutAccountMock: vi.fn(),
+  getAccountSettingsMock: vi.fn(),
+  updateAccountProfileMock: vi.fn(),
+  changeAccountPasswordMock: vi.fn(),
+  listAccountSessionsMock: vi.fn(),
+  revokeAccountSessionMock: vi.fn(),
+  logoutAllAccountSessionsMock: vi.fn(),
   requireAuthenticatedAccountMock: vi.fn(),
   requireAdminAccountMock: vi.fn(),
   getAuthenticatedAccountMock: vi.fn(),
@@ -69,6 +77,11 @@ vi.mock('../appApi/services/tripDetailService.js', () => ({
 
 vi.mock('../appApi/services/tripPhotoService.js', () => ({
   updateTripPhotoCuration: mocks.updateTripPhotoCurationMock,
+}));
+
+vi.mock('../appApi/services/photoCurationService.js', () => ({
+  listPhotoCurationResource: mocks.listPhotoCurationResourceMock,
+  updatePhotoCurationResource: mocks.updatePhotoCurationResourceMock,
 }));
 
 vi.mock('../appApi/services/tripChecklistService.js', () => ({
@@ -137,6 +150,15 @@ vi.mock('../appApi/services/authService.js', () => ({
   registerAccount: mocks.registerAccountMock,
   loginAccount: mocks.loginAccountMock,
   logoutAccount: mocks.logoutAccountMock,
+}));
+
+vi.mock('../appApi/services/accountSettingsService.js', () => ({
+  getAccountSettings: mocks.getAccountSettingsMock,
+  updateAccountProfile: mocks.updateAccountProfileMock,
+  changeAccountPassword: mocks.changeAccountPasswordMock,
+  listAccountSessions: mocks.listAccountSessionsMock,
+  revokeAccountSession: mocks.revokeAccountSessionMock,
+  logoutAllAccountSessions: mocks.logoutAllAccountSessionsMock,
 }));
 
 vi.mock('../appApi/auth/requestAuth.js', () => ({
@@ -218,6 +240,87 @@ describe('app api routes', () => {
       expect(response.json()).toEqual({
         account: currentAccount,
       });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('supports account settings routes for authenticated accounts', async () => {
+    mocks.getAccountSettingsMock.mockResolvedValue({
+      account: currentAccount,
+      createdAt: '2026-05-01T00:00:00.000Z',
+      updatedAt: '2026-05-02T00:00:00.000Z',
+    });
+    mocks.updateAccountProfileMock.mockResolvedValue({
+      account: { ...currentAccount, name: '新昵称' },
+      createdAt: '2026-05-01T00:00:00.000Z',
+      updatedAt: '2026-05-08T00:00:00.000Z',
+    });
+    mocks.changeAccountPasswordMock.mockResolvedValue({ success: true });
+    mocks.listAccountSessionsMock.mockResolvedValue({
+      sessions: [
+        {
+          id: 'session-current',
+          isCurrent: true,
+          deviceLabel: 'Mac 浏览器',
+          createdAt: '2026-05-01T00:00:00.000Z',
+          lastSeenAt: '2026-05-08T00:00:00.000Z',
+          expiresAt: '2026-05-15T00:00:00.000Z',
+        },
+      ],
+    });
+    mocks.revokeAccountSessionMock.mockResolvedValue({ success: true });
+    mocks.logoutAllAccountSessionsMock.mockResolvedValue({ success: true });
+
+    const app = await buildApp();
+    try {
+      const settingsResponse = await app.inject({ method: 'GET', url: '/api/account/settings' });
+      expect(settingsResponse.statusCode).toBe(200);
+      expect(mocks.getAccountSettingsMock).toHaveBeenCalledWith(currentAccount.id);
+
+      const profileResponse = await app.inject({
+        method: 'PATCH',
+        url: '/api/account/profile',
+        payload: { name: '新昵称' },
+      });
+      expect(profileResponse.statusCode).toBe(200);
+      expect(mocks.updateAccountProfileMock).toHaveBeenCalledWith(currentAccount.id, { name: '新昵称' });
+
+      const passwordResponse = await app.inject({
+        method: 'PATCH',
+        url: '/api/account/password',
+        headers: { cookie: 'voyage_atlas_session=raw-token' },
+        payload: { currentPassword: 'old-password', nextPassword: 'new-password' },
+      });
+      expect(passwordResponse.statusCode).toBe(200);
+      expect(mocks.changeAccountPasswordMock).toHaveBeenCalledWith(currentAccount.id, 'raw-token', {
+        currentPassword: 'old-password',
+        nextPassword: 'new-password',
+      });
+
+      const sessionsResponse = await app.inject({
+        method: 'GET',
+        url: '/api/account/sessions',
+        headers: { cookie: 'voyage_atlas_session=raw-token' },
+      });
+      expect(sessionsResponse.statusCode).toBe(200);
+      expect(mocks.listAccountSessionsMock).toHaveBeenCalledWith(currentAccount.id, 'raw-token');
+
+      const revokeResponse = await app.inject({
+        method: 'DELETE',
+        url: '/api/account/sessions/session-other',
+        headers: { cookie: 'voyage_atlas_session=raw-token' },
+      });
+      expect(revokeResponse.statusCode).toBe(200);
+      expect(mocks.revokeAccountSessionMock).toHaveBeenCalledWith(currentAccount.id, 'session-other', 'raw-token');
+
+      const logoutAllResponse = await app.inject({
+        method: 'POST',
+        url: '/api/account/sessions/logout-all',
+      });
+      expect(logoutAllResponse.statusCode).toBe(200);
+      expect(logoutAllResponse.headers['set-cookie']).toContain('voyage_atlas_session=');
+      expect(mocks.logoutAllAccountSessionsMock).toHaveBeenCalledWith(currentAccount.id);
     } finally {
       await app.close();
     }
@@ -596,6 +699,144 @@ describe('app api routes', () => {
     }
   });
 
+  it('returns global photo curation payload for authenticated accounts', async () => {
+    mocks.listPhotoCurationResourceMock.mockResolvedValue({
+      summary: {
+        totalPhotos: 2,
+        featuredPhotos: 1,
+        missingCaptionPhotos: 1,
+        tripCount: 1,
+        companionCount: 1,
+        yearCount: 1,
+      },
+      filters: {
+        trips: [{ id: 'trip-1', name: '杭州周末', photoCount: 2 }],
+        companions: [{ id: 'user-alice', name: '小悠', color: '#2563eb', photoCount: 2 }],
+        years: [{ year: 2026, photoCount: 2 }],
+      },
+      sections: {
+        featured: [],
+        missingCaptions: [],
+        recent: [],
+      },
+      items: [],
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/photos/curation?tripId=trip-1&companionId=user-alice&year=2026&featured=featured&caption=withCaption&limit=20',
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mocks.listPhotoCurationResourceMock).toHaveBeenCalledWith(currentAccount.id, {
+        tripId: 'trip-1',
+        companionId: 'user-alice',
+        year: 2026,
+        featured: 'featured',
+        caption: 'withCaption',
+        limit: 20,
+      });
+      expect(response.json().summary.totalPhotos).toBe(2);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('updates global photo curation metadata', async () => {
+    mocks.updatePhotoCurationResourceMock.mockResolvedValue({
+      summary: {
+        totalPhotos: 1,
+        featuredPhotos: 1,
+        missingCaptionPhotos: 0,
+        tripCount: 1,
+        companionCount: 1,
+        yearCount: 1,
+      },
+      filters: {
+        trips: [{ id: 'trip-1', name: '杭州周末', photoCount: 1 }],
+        companions: [{ id: 'user-alice', name: '小悠', color: '#2563eb', photoCount: 1 }],
+        years: [{ year: 2026, photoCount: 1 }],
+      },
+      sections: {
+        featured: [],
+        missingCaptions: [],
+        recent: [],
+      },
+      items: [],
+    });
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/photos/curation?tripId=trip-1',
+        payload: {
+          items: [
+            {
+              imageId: 'image-1',
+              isFeatured: true,
+              caption: '西湖晚风',
+              curatedSortOrder: 0,
+            },
+          ],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mocks.updatePhotoCurationResourceMock).toHaveBeenCalledWith(
+        currentAccount.id,
+        {
+          items: [
+            {
+              imageId: 'image-1',
+              isFeatured: true,
+              caption: '西湖晚风',
+              curatedSortOrder: 0,
+            },
+          ],
+        },
+        {
+          tripId: 'trip-1',
+          featured: 'all',
+          caption: 'all',
+          limit: 120,
+        },
+      );
+      expect(response.json().summary.featuredPhotos).toBe(1);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('returns NOT_FOUND when global photo curation updates include inaccessible images', async () => {
+    mocks.updatePhotoCurationResourceMock.mockRejectedValueOnce(
+      new AppApiError('NOT_FOUND', 'photo not found', 404),
+    );
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/photos/curation',
+        payload: {
+          items: [{ imageId: 'not-owned-image', isFeatured: true }],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.json()).toEqual({
+        error: {
+          code: 'NOT_FOUND',
+          message: 'photo not found',
+        },
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
   it('supports trip checklist routes for authenticated accounts', async () => {
     mocks.listTripChecklistMock.mockResolvedValue({
       summary: { total: 1, preDepartureCount: 1, inTransitCount: 0, doneCount: 0 },
@@ -914,11 +1155,17 @@ describe('app api routes', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.cookies[0]?.name).toBe('voyage_atlas_session');
-      expect(mocks.registerAccountMock).toHaveBeenCalledWith({
-        nickname: 'Voyage Atlas',
-        username: 'demo',
-        password: 'demo123456',
-      });
+      expect(mocks.registerAccountMock).toHaveBeenCalledWith(
+        {
+          nickname: 'Voyage Atlas',
+          username: 'demo',
+          password: 'demo123456',
+        },
+        {
+          userAgent: 'lightMyRequest',
+          ipAddress: '127.0.0.1',
+        },
+      );
     } finally {
       await app.close();
     }
@@ -959,6 +1206,30 @@ describe('app api routes', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/api/saved-guides',
+      });
+
+      expect(response.statusCode).toBe(401);
+      expect(response.json()).toEqual({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'authentication required',
+        },
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('returns UNAUTHORIZED for global photo curation when no session is available', async () => {
+    mocks.requireAuthenticatedAccountMock.mockRejectedValueOnce(
+      new AppApiError('UNAUTHORIZED', 'authentication required', 401),
+    );
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/photos/curation',
       });
 
       expect(response.statusCode).toBe(401);

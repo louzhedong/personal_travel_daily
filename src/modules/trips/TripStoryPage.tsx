@@ -16,6 +16,7 @@ interface TripStoryPageProps {
   tripId: string;
   onNavigateBack: () => void;
   onLogout: () => Promise<void> | void;
+  onOpenPhotoCuration?: (query: { tripId: string }) => void;
 }
 
 const TEMPLATE_OPTIONS: Array<{ value: TripStoryTemplate; label: string }> = [
@@ -29,6 +30,7 @@ export default function TripStoryPage({
   tripId,
   onNavigateBack,
   onLogout,
+  onOpenPhotoCuration,
 }: TripStoryPageProps) {
   const [data, setData] = useState<TripDetailResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,8 @@ export default function TripStoryPage({
   }, [tripId]);
 
   const story = useMemo(() => (data ? buildTripStoryViewModel(data) : null), [data]);
+  const shouldShowPhotoCurationLink =
+    !!story && !!data?.photos.length && !story.featuredPhotos.some((photo) => photo.isFeatured);
 
   useEffect(() => {
     if (!story) {
@@ -210,6 +214,11 @@ export default function TripStoryPage({
                   <span className="hero-kicker">Featured Memories</span>
                   <h2>精选瞬间</h2>
                 </div>
+                {shouldShowPhotoCurationLink && onOpenPhotoCuration ? (
+                  <button type="button" className="ghost-button" onClick={() => onOpenPhotoCuration({ tripId })}>
+                    去整理照片
+                  </button>
+                ) : null}
                 <p>优先展示行程素材里手动精选的照片；还没有精选时，会用照片流生成故事开场。</p>
               </div>
               {story.featuredPhotos.length === 0 ? (

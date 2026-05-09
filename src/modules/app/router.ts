@@ -29,9 +29,11 @@ export type AppRoute =
   | { kind: 'home'; pathname: '/' }
   | { kind: 'login'; pathname: '/login' }
   | { kind: 'register'; pathname: '/register' }
+  | { kind: 'settings'; pathname: '/settings' }
   | { kind: 'admin'; pathname: '/admin' }
   | { kind: 'stats'; pathname: '/stats' }
   | { kind: 'achievements'; pathname: '/achievements' }
+  | { kind: 'photoCuration'; pathname: string; query: PhotoCurationRouteQuery }
   | { kind: 'companionMemories'; pathname: string; companionId: string }
   | { kind: 'tripDetail'; pathname: string; tripId: string }
   | { kind: 'tripStory'; pathname: string; tripId: string }
@@ -52,6 +54,10 @@ export function createRegisterRoute(): AppRoute {
   return { kind: 'register', pathname: '/register' };
 }
 
+export function createSettingsRoute(): AppRoute {
+  return { kind: 'settings', pathname: '/settings' };
+}
+
 export function createAdminRoute(): AppRoute {
   return { kind: 'admin', pathname: '/admin' };
 }
@@ -62,6 +68,27 @@ export function createStatsRoute(): AppRoute {
 
 export function createAchievementsRoute(): AppRoute {
   return { kind: 'achievements', pathname: '/achievements' };
+}
+
+export interface PhotoCurationRouteQuery {
+  tripId?: string;
+  companionId?: string;
+  year?: number;
+}
+
+export function createPhotoCurationRoute(query: PhotoCurationRouteQuery = {}): AppRoute {
+  const params = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined) {
+      params.set(key, String(value));
+    }
+  });
+  const queryString = params.toString();
+  return {
+    kind: 'photoCuration',
+    pathname: queryString ? `/photos?${queryString}` : '/photos',
+    query,
+  };
 }
 
 export function createCompanionMemoriesRoute(companionId: string): AppRoute {
@@ -110,7 +137,7 @@ export function createAnnualReviewRoute(year: string): AppRoute {
  * 把 pathname 解析为 AppRoute（等价于旧的 normalizePathname）。
  * Parse a pathname into an AppRoute (equivalent to the former normalizePathname).
  */
-export function parsePathname(pathname: string): AppRoute {
+export function parsePathname(pathname: string, search = ''): AppRoute {
   const companionMemoriesMatch = pathname.match(/^\/companions\/([^/]+)\/memories$/);
   if (companionMemoriesMatch) {
     return createCompanionMemoriesRoute(decodeURIComponent(companionMemoriesMatch[1]));
@@ -140,12 +167,26 @@ export function parsePathname(pathname: string): AppRoute {
     return createAdminRoute();
   }
 
+  if (pathname === '/settings') {
+    return createSettingsRoute();
+  }
+
   if (pathname === '/stats') {
     return createStatsRoute();
   }
 
   if (pathname === '/achievements') {
     return createAchievementsRoute();
+  }
+
+  if (pathname === '/photos') {
+    const params = new URLSearchParams(search);
+    const year = params.get('year');
+    return createPhotoCurationRoute({
+      tripId: params.get('tripId') ?? undefined,
+      companionId: params.get('companionId') ?? undefined,
+      year: year ? Number(year) : undefined,
+    });
   }
 
   if (pathname === '/register') {
@@ -222,11 +263,11 @@ export interface AppRouterApi {
  */
 export function useAppRouter(): AppRouterApi {
   const [route, setRoute] = useState<AppRoute>(() =>
-    typeof window === 'undefined' ? createHomeRoute() : parsePathname(window.location.pathname),
+    typeof window === 'undefined' ? createHomeRoute() : parsePathname(window.location.pathname, window.location.search),
   );
 
   useEffect(() => {
-    const syncPathname = () => setRoute(parsePathname(window.location.pathname));
+    const syncPathname = () => setRoute(parsePathname(window.location.pathname, window.location.search));
     window.addEventListener('popstate', syncPathname);
     return () => {
       window.removeEventListener('popstate', syncPathname);

@@ -143,6 +143,13 @@ function serializeMarker(marker: VisitMarker & { images: VisitMarkerImage[] }): 
     scopeName: marker.scopeName,
     city: marker.city,
     note: marker.note,
+    images: marker.images.map((image) => ({
+      id: image.id,
+      imageUrl: image.imageUrl,
+      isFeatured: image.isFeatured,
+      caption: image.caption ?? undefined,
+      curatedSortOrder: image.curatedSortOrder ?? undefined,
+    })),
     imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
     visitedStartAt: toDateOnlyString(marker.visitedStartAt),
     visitedEndAt: toDateOnlyString(marker.visitedEndAt),

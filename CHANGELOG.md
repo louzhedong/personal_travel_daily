@@ -5,6 +5,84 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-05-08
 
+### PR 待定 / TBD `feat: 账号设置与会话治理一期 / Add account settings and session governance phase one`
+
+### Added / 新增
+
+- 新增 `/settings` 账号设置页，支持查看账号资料、修改昵称、修改密码、管理会话和导出数据快照。  
+  Added the `/settings` account settings page for profile details, display-name updates, password changes, session management, and data snapshot export.
+- 新增账号设置 API：`GET /api/account/settings`、`PATCH /api/account/profile`、`PATCH /api/account/password`、`GET /api/account/sessions`、`DELETE /api/account/sessions/:sessionId`、`POST /api/account/sessions/logout-all`。  
+  Added account settings APIs: `GET /api/account/settings`, `PATCH /api/account/profile`, `PATCH /api/account/password`, `GET /api/account/sessions`, `DELETE /api/account/sessions/:sessionId`, and `POST /api/account/sessions/logout-all`.
+- 新增 `docs/technical/account-settings-session-governance.md`，并同步文档导航、项目总览和路线图。  
+  Added `docs/technical/account-settings-session-governance.md` and refreshed the docs index, project overview, and roadmap.
+
+### Changed / 变更
+
+- `AuthSession` 新增 `userAgent`、`ipAddress`、`lastSeenAt` 和 `revokedAt`，用于多设备会话治理。  
+  `AuthSession` now stores `userAgent`, `ipAddress`, `lastSeenAt`, and `revokedAt` for multi-device session governance.
+- 登录和注册会写入 session 元数据；恢复会话时更新 `lastSeenAt`。  
+  Login and registration now write session metadata; session restoration updates `lastSeenAt`.
+- 修改密码成功后保留当前 session，并撤销其他 sessions。  
+  Password changes keep the current session and revoke other sessions.
+
+### Verified / 已验证
+
+- `npm run test -- server/__tests__/accountSettingsService.spec.ts server/__tests__/authService.spec.ts server/__tests__/appApiRoutes.spec.ts`
+- `npm run test -- src/modules/__tests__/AccountSettingsPage.spec.tsx src/modules/__tests__/App.spec.tsx`
+- `npm run test -- server/__tests__/authUtils.spec.ts src/components/__tests__/DataSync.spec.tsx`
+- `npm run db:generate`
+- `npm run build`
+
+### PR 待定 / TBD `feat: 管理后台与质量巡检一期 / Add admin quality operations phase one`
+
+### Added / 新增
+
+- 新增后台质量巡检报告，覆盖记录缺图、未归行程、行程缺封面、照片缺说明、过期规划、攻略未关联、来源异常、搜索失败升高和旅伴回忆快照过期。  
+  Added an admin quality report covering markers without photos, unassigned markers, trips without covers, photos without captions, overdue planning items, unlinked guides, degraded sources, search error spikes, and stale companion-memory snapshots.
+- 新增 `/admin` 质量巡检摘要、全局问题列表和账号级质量面板，保持只读运营视图。  
+  Added the `/admin` quality summary, global issue list, and account-level quality panel while keeping the backoffice read-only.
+- 新增 `docs/technical/admin-quality-operations.md`，并同步文档导航、项目总览和路线图。  
+  Added `docs/technical/admin-quality-operations.md` and refreshed the docs index, project overview, and roadmap.
+
+### Changed / 变更
+
+- `GET /api/admin/overview` 新增 `quality` 字段，复用既有后台概览接口，不新增修复写接口。  
+  `GET /api/admin/overview` now returns a `quality` field through the existing admin overview API without adding repair write endpoints.
+- 后台序列化的记录节点新增照片元数据，供质量巡检识别缺少照片说明的问题。  
+  Admin marker nodes now include photo metadata so quality inspection can identify photos without captions.
+
+### Verified / 已验证
+
+- `npm run test -- server/__tests__/adminQualityReport.spec.ts server/__tests__/adminService.spec.ts server/__tests__/adminSerializer.spec.ts`
+- `npm run test -- src/modules/__tests__/AdminPage.spec.tsx`
+- `npm run test -- server/__tests__/appApiRoutes.spec.ts src/modules/__tests__/App.spec.tsx`
+- `npm run build`
+
+### PR 待定 / TBD `feat: 影像编辑台一期 / Add photo curation hub phase one`
+
+### Added / 新增
+
+- 新增 `GET /api/photos/curation` 与 `PATCH /api/photos/curation`，支持账号级照片聚合、筛选、精选状态和说明批量更新。  
+  Added `GET /api/photos/curation` and `PATCH /api/photos/curation` for account-level photo aggregation, filtering, featured-state updates, and caption updates.
+- 新增 `/photos` 影像编辑台页面，支持按行程、旅伴、年份、精选状态和说明状态整理照片素材。  
+  Added the `/photos` Photo Curation Hub page for organizing photo material by trip, companion, year, featured state, and caption state.
+- 新增 `docs/technical/photo-curation-hub.md`，并同步文档导航、项目总览和路线图。  
+  Added `docs/technical/photo-curation-hub.md` and refreshed the docs index, project overview, and roadmap.
+
+### Changed / 变更
+
+- 首页、行程详情“素材”Tab、年度回顾照片墙和 Story Studio 现在都提供影像编辑台入口。  
+  The homepage, Trip Detail Assets tab, Annual Review photo wall, and Story Studio now expose entry points into the Photo Curation Hub.
+- 影像编辑台复用 `VisitMarkerImage.isFeatured/caption/curatedSortOrder`，不新增媒体库表或 migration。  
+  The hub reuses `VisitMarkerImage.isFeatured/caption/curatedSortOrder` without adding a media-library table or migration.
+
+### Verified / 已验证
+
+- `npm run test -- server/__tests__/photoCurationService.spec.ts server/__tests__/appApiRoutes.spec.ts`
+- `npm run test -- src/modules/__tests__/PhotoCurationPage.spec.tsx src/modules/__tests__/App.spec.tsx src/modules/__tests__/TripDetailPage.spec.tsx src/modules/__tests__/AnnualReviewPage.spec.tsx src/modules/__tests__/TripStoryPage.spec.tsx`
+- `npm run test -- server/__tests__/tripPhotoService.spec.ts server/__tests__/tripDetailService.spec.ts src/modules/__tests__/TripDetailPage.spec.tsx src/modules/__tests__/TripStoryPage.spec.tsx src/modules/__tests__/AnnualReviewPage.spec.tsx`
+- `npm run build`
+
 ### PR 待定 / TBD `feat: 旅伴共同回忆一期 / Add companion shared memories phase one`
 
 ### Added / 新增

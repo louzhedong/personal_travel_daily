@@ -8,6 +8,9 @@ export async function createAuthSession(
     id: string;
     accountId: string;
     tokenHash: string;
+    userAgent?: string | null;
+    ipAddress?: string | null;
+    lastSeenAt?: Date;
     expiresAt: Date;
   },
 ) {
@@ -16,6 +19,9 @@ export async function createAuthSession(
       id: input.id,
       accountId: input.accountId,
       tokenHash: input.tokenHash,
+      userAgent: input.userAgent ?? null,
+      ipAddress: input.ipAddress ?? null,
+      lastSeenAt: input.lastSeenAt ?? new Date(),
       expiresAt: input.expiresAt,
     },
   });
@@ -29,6 +35,37 @@ export async function findAuthSessionByTokenHash(
     where: { tokenHash },
     include: {
       account: true,
+    },
+  });
+}
+
+export async function findActiveAuthSessionByTokenHash(
+  prisma: PrismaExecutor,
+  tokenHash: string,
+) {
+  return prisma.authSession.findFirst({
+    where: {
+      tokenHash,
+      revokedAt: null,
+    },
+    include: {
+      account: true,
+    },
+  });
+}
+
+export async function updateAuthSessionLastSeen(
+  prisma: PrismaExecutor,
+  sessionId: string,
+  now: Date,
+) {
+  return prisma.authSession.updateMany({
+    where: {
+      id: sessionId,
+      revokedAt: null,
+    },
+    data: {
+      lastSeenAt: now,
     },
   });
 }

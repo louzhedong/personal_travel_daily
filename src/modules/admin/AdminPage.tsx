@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import AdminFiltersBar from '../../components/admin/AdminFiltersBar';
+import AdminAccountQualityPanel from '../../components/admin/AdminAccountQualityPanel';
 import AdminGuideSearchTrendsPanel from '../../components/admin/AdminGuideSearchTrendsPanel';
 import AdminOverviewCards from '../../components/admin/AdminOverviewCards';
 import AdminGuideSourceHealthPanel from '../../components/admin/AdminGuideSourceHealthPanel';
+import AdminQualitySummaryPanel from '../../components/admin/AdminQualitySummaryPanel';
 import AdminRankingTable from '../../components/admin/AdminRankingTable';
 import TravelIcon from '../../components/ui/TravelIcon';
 import { fetchAdminOverview } from '../../lib/api/adminApi';
@@ -107,6 +109,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
       {!loading && overview ? (
         <>
           <AdminOverviewCards overview={overview} />
+          <AdminQualitySummaryPanel overview={overview} />
 
           <section className="admin-workspace">
             <AdminFiltersBar
@@ -148,6 +151,8 @@ export default function AdminPage({ account, onLogout, onNavigateHome }: AdminPa
                   </div>
 
                   <section className="admin-detail-overview">
+                    <AdminAccountQualityPanel overview={overview} accountId={selectedAccount.id} />
+
                     <div className="admin-kpi-grid">
                       <article className="admin-kpi-card">
                         <span>行程</span>

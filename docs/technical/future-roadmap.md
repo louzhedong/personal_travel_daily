@@ -212,6 +212,49 @@ Summary: Story Studio and annual reviews now support private printable/exportabl
 
 Summary: Companion Shared Memories now ships as a private companion retrospective page with stats/trip-detail entry points, a 24-hour on-demand snapshot cache, and explicit refresh feedback.
 
+### 照片与媒体整理 / Photo and Media Curation
+
+- 状态：一期已完成。
+- 已落地范围：
+  - 新增 `/photos` 影像编辑台，作为账号级照片整理入口。
+  - 支持按行程、旅伴、年份、精选状态和说明状态筛选照片。
+  - 支持标记 / 取消精选与补充照片说明，复用 `VisitMarkerImage.isFeatured/caption/curatedSortOrder`。
+  - 从首页、行程详情“素材”Tab、年度回顾照片墙和 Story Studio 接入。
+  - 提供 `GET /api/photos/curation` 与 `PATCH /api/photos/curation`，并保持当前账号归属校验。
+- 后续增强：
+  - 图片缺失、坏链、重复图片的轻量检测。
+  - 相册导出、本地图片归档和更细的封面候选策略。
+
+Summary: Photo and media curation now ships as `/photos`, an account-level desk for filtering, featuring, and captioning travel photos that feed trip detail, annual review, Story Studio, and companion memories.
+
+### 管理后台与质量巡检 / Admin Quality Operations
+
+- 状态：一期已完成。
+- 已落地范围：
+  - `/admin` 新增只读质量巡检摘要，展示严重、注意、建议和受影响账号数。
+  - 质量问题覆盖记录缺图、未归行程、行程缺封面、照片缺说明、过期规划、攻略未关联、来源异常、搜索失败升高和旅伴回忆快照过期。
+  - 账号详情展示当前账号相关质量问题。
+  - 继续复用 `GET /api/admin/overview`，不新增后台写接口。
+- 后续增强：
+  - 修复工具、审计日志、告警推送和定时巡检。
+  - 坏图真实 HTTP 探测与更细的规则阈值配置。
+
+Summary: Admin Quality Operations now ships as a read-only quality desk inside `/admin`, surfacing data-health issues without adding repair writes.
+
+### 账号设置与会话治理 / Account Settings and Session Governance
+
+- 状态：一期已完成。
+- 已落地范围：
+  - 新增 `/settings` 账号设置页。
+  - 支持查看账号资料、修改昵称和修改密码。
+  - `AuthSession` 新增设备与活跃时间元数据，支持会话列表、退出其他设备和退出全部设备。
+  - 修改密码后保留当前 session，撤销其他 sessions。
+  - 数据导出入口正式收敛到账号设置页。
+- 后续增强：
+  - 找回密码、二次验证、设备地理位置解析和异常登录告警。
+
+Summary: Account Settings and Session Governance now ships `/settings` for profile, password, session, and data-export management on top of hash-only Cookie Sessions.
+
 ## 当前产品基线 / Current Product Baseline
 
 截至当前版本，项目已经具备这些核心能力：
@@ -230,6 +273,8 @@ Summary: Companion Shared Memories now ships as a private companion retrospectiv
 - A standalone `/stats` center is available with filters, rankings, trends, China/world map heatmaps, and drill-down into trip details.
 - 年度回顾页 `/yearbook/:year` 已上线，支持按年份生成私有年鉴式回看，并继续钻取到单次行程详情。
 - The `/yearbook/:year` annual review page is live, offering a private yearbook-style retrospective with continued drill-down into trip details.
+- 影像编辑台 `/photos` 已上线，支持跨行程、跨旅伴、跨年份整理精选照片与照片说明。
+- The `/photos` Photo Curation Hub is live for organizing featured photos and captions across trips, companions, and years.
 - 旅行成就系统已接入统计中心、年度回顾与独立总览页，支持稀有度、连续年度、下一步提示、分享卡和首次解锁时间。
 - Travel achievements now span stats, annual review, and a standalone atlas page with rarity, streaks, next hints, share cards, and first-unlock moments.
 - 地图回放一期已上线，首页地图卡片内嵌回放控制条、移动圆点与国家级路径回放。
@@ -270,45 +315,7 @@ Given the current product baseline, the product no longer lacks capture surfaces
 
 ## 下一阶段路线图 / Next-Phase Roadmap
 
-### 1. 照片与媒体整理 / Photo and Media Curation
-
-- 优先级：`P2`
-- 为什么值得做：
-  - 照片已经进入记录、行程详情、年度回顾和成就，接下来需要更好的精选、排序和复用能力。
-- 建议范围：
-  - 行程级照片墙，支持封面候选、精选标记和排序。
-  - 年度回顾和故事页优先使用精选照片。
-  - 图片缺失、坏链、重复图片的轻量检测。
-  - 后续再考虑相册导出和本地图片归档，不在一期引入重型媒体库。
-
-Summary: Media curation improves every retrospective surface that already depends on photos.
-
-### 2. 管理后台与质量巡检 / Admin Quality Operations
-
-- 优先级：`P2`
-- 为什么值得做：
-  - 主数据和聚合功能变多后，需要后台能看见数据健康、接口异常和内容质量，而不是只看账号树。
-- 建议范围：
-  - 后台增加数据健康面板：记录数量、缺失图片、无行程记录、坏攻略链接、搜索失败率。
-  - 增加迁移状态、最近错误、关键聚合接口响应概览。
-  - 保持只读优先；修复工具等写能力单独设计权限和审计。
-
-Summary: Admin operations should help detect data and integration problems before they become user-facing regressions.
-
-### 3. 账号设置与会话治理 / Account Settings and Session Governance
-
-- 优先级：`P3`
-- 为什么值得做：
-  - 当前认证链路已可用，但长期使用后，账户安全和多设备会话会成为基础体验。
-- 建议范围：
-  - 修改密码、账号资料、退出所有设备。
-  - 最近登录设备和会话列表。
-  - Cookie Session 过期提示与重新登录体验。
-  - 数据导出入口收敛到账号设置，而不是散落在首页能力区。
-
-Summary: Account settings are not flashy, but they matter once the app becomes a long-term personal archive.
-
-### 4. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+### 1. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 - 优先级：`P3`
 - 为什么值得做：
@@ -325,10 +332,7 @@ Summary: Architecture hardening keeps future feature work from becoming slower a
 
 建议按下面顺序推进（已完成项已挪到文档开头）：
 
-1. 照片与媒体整理 / Photo and Media Curation
-2. 管理后台与质量巡检 / Admin Quality Operations
-3. 账号设置与会话治理 / Account Settings and Session Governance
-4. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+1. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
 
 ## 选题原则 / Feature Selection Rules
 
