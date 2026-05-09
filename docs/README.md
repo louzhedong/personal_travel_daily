@@ -48,6 +48,7 @@ Summary: The architecture section now includes dedicated frontend and backend do
 - [旅伴共同回忆 / Companion Shared Memories](./technical/companion-shared-memories.md)
 - [影像编辑台 / Photo Curation Hub](./technical/photo-curation-hub.md)
 - [管理后台与质量巡检 / Admin Quality Operations](./technical/admin-quality-operations.md)
+- [后台管理二期 / Admin Management Phase Two](./technical/admin-management-phase-two.md)
 - [账号设置与会话治理 / Account Settings and Session Governance](./technical/account-settings-session-governance.md)
 - [旅行成就系统 / Travel Achievements](./technical/travel-achievements.md)
 - [攻略搜索功能说明 / Guide Search Feature](./technical/guide-search-feature.md)

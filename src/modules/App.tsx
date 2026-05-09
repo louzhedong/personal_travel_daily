@@ -28,6 +28,7 @@ import {
   createTripChecklistRoute,
   createTripDetailRoute,
   createTripStoryRoute,
+  parsePathname,
   useAppRouter,
   type AppRoute,
 } from './app/router';
@@ -171,6 +172,10 @@ function App() {
         onNavigateHome={() => {
           setEntryMessage(null);
           goBackOrReplace(createHomeRoute());
+        }}
+        onNavigateToPath={(path) => {
+          const [pathname, search = ''] = path.split('?');
+          navigate(parsePathname(pathname, search ? `?${search}` : ''));
         }}
       />
     );

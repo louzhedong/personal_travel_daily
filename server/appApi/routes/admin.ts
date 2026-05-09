@@ -1,7 +1,12 @@
 import type { FastifyInstance } from 'fastify';
 import { requireAdminAccount } from '../auth/requestAuth.js';
 import { parseWithSchema } from '../schemas/utils.js';
-import { adminOverviewQuerySchema } from '../schemas/admin.js';
+import {
+  adminAuditLogBodySchema,
+  adminAuditLogQuerySchema,
+  adminOverviewQuerySchema,
+} from '../schemas/admin.js';
+import { listAdminAuditTrail, recordAdminAuditLog } from '../services/adminAuditService.js';
 import { getAdminOverview } from '../services/adminService.js';
 
 export async function registerAdminRoutes(app: FastifyInstance) {
@@ -9,5 +14,17 @@ export async function registerAdminRoutes(app: FastifyInstance) {
     await requireAdminAccount(request);
     parseWithSchema(adminOverviewQuerySchema, request.query);
     return getAdminOverview();
+  });
+
+  app.get('/api/admin/audit-logs', async (request) => {
+    await requireAdminAccount(request);
+    const query = parseWithSchema(adminAuditLogQuerySchema, request.query);
+    return listAdminAuditTrail(query);
+  });
+
+  app.post('/api/admin/audit-logs', async (request) => {
+    const account = await requireAdminAccount(request);
+    const body = parseWithSchema(adminAuditLogBodySchema, request.body);
+    return recordAdminAuditLog(account.id, body);
   });
 }

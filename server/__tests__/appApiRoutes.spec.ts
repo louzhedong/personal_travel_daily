@@ -6,6 +6,8 @@ import { AppApiError } from '../appApi/errors.js';
 const mocks = vi.hoisted(() => ({
   getBootstrapPayloadMock: vi.fn(),
   getAdminOverviewMock: vi.fn(),
+  listAdminAuditTrailMock: vi.fn(),
+  recordAdminAuditLogMock: vi.fn(),
   getStatsOverviewMock: vi.fn(),
   getAnnualReviewMock: vi.fn(),
   getTripDetailMock: vi.fn(),
@@ -64,6 +66,11 @@ vi.mock('../appApi/services/bootstrapService.js', () => ({
 
 vi.mock('../appApi/services/adminService.js', () => ({
   getAdminOverview: mocks.getAdminOverviewMock,
+}));
+
+vi.mock('../appApi/services/adminAuditService.js', () => ({
+  listAdminAuditTrail: mocks.listAdminAuditTrailMock,
+  recordAdminAuditLog: mocks.recordAdminAuditLogMock,
 }));
 
 vi.mock('../appApi/services/statsService.js', () => ({
@@ -385,6 +392,94 @@ describe('app api routes', () => {
       expect(response.json().accounts[0].role).toBe('admin');
       expect(response.json().guideSourceHealth[0].sourceDomain).toBe('qyer.com');
       expect(mocks.getAdminOverviewMock).toHaveBeenCalledTimes(1);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('records and lists admin audit logs for admin accounts', async () => {
+    mocks.recordAdminAuditLogMock.mockResolvedValue({
+      id: 'audit-1',
+      adminAccountId: 'acct-1',
+      adminAccountName: 'Voyage Atlas',
+      action: 'quality_issue_viewed',
+      targetKind: 'marker',
+      targetId: 'marker-1',
+      metadata: {
+        issueId: 'issue-1',
+      },
+      createdAt: '2026-05-09T00:00:00.000Z',
+    });
+    mocks.listAdminAuditTrailMock.mockResolvedValue({
+      logs: [
+        {
+          id: 'audit-1',
+          adminAccountId: 'acct-1',
+          adminAccountName: 'Voyage Atlas',
+          action: 'quality_issue_viewed',
+          targetKind: 'marker',
+          targetId: 'marker-1',
+          createdAt: '2026-05-09T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const app = await buildApp();
+    try {
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/admin/audit-logs',
+        payload: {
+          action: 'quality_issue_viewed',
+          targetKind: 'marker',
+          targetId: 'marker-1',
+          metadata: {
+            issueId: 'issue-1',
+          },
+        },
+      });
+
+      expect(createResponse.statusCode).toBe(200);
+      expect(createResponse.json().id).toBe('audit-1');
+      expect(mocks.recordAdminAuditLogMock).toHaveBeenCalledWith('acct-1', {
+        action: 'quality_issue_viewed',
+        targetKind: 'marker',
+        targetId: 'marker-1',
+        metadata: {
+          issueId: 'issue-1',
+        },
+      });
+
+      const listResponse = await app.inject({
+        method: 'GET',
+        url: '/api/admin/audit-logs?action=quality_issue_viewed&targetKind=marker&limit=20',
+      });
+
+      expect(listResponse.statusCode).toBe(200);
+      expect(listResponse.json().logs[0].targetId).toBe('marker-1');
+      expect(mocks.listAdminAuditTrailMock).toHaveBeenCalledWith({
+        action: 'quality_issue_viewed',
+        targetKind: 'marker',
+        limit: 20,
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('rejects invalid admin audit actions', async () => {
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/admin/audit-logs',
+        payload: {
+          action: 'invalid_action',
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(mocks.recordAdminAuditLogMock).not.toHaveBeenCalled();
     } finally {
       await app.close();
     }

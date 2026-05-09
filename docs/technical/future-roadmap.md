@@ -229,17 +229,20 @@ Summary: Photo and media curation now ships as `/photos`, an account-level desk 
 
 ### 管理后台与质量巡检 / Admin Quality Operations
 
-- 状态：一期已完成。
+- 状态：二期已完成。
 - 已落地范围：
   - `/admin` 新增只读质量巡检摘要，展示严重、注意、建议和受影响账号数。
   - 质量问题覆盖记录缺图、未归行程、行程缺封面、照片缺说明、过期规划、攻略未关联、来源异常、搜索失败升高和旅伴回忆快照过期。
   - 账号详情展示当前账号相关质量问题。
+  - 后台二期新增质量问题筛选、详情抽屉、只读定位跳转和应用内提醒。
+  - 新增 `AdminAuditLog`，记录查看问题、复制上下文、定位问题、筛选问题和查看审计等后台治理动作。
   - 继续复用 `GET /api/admin/overview`，不新增后台写接口。
+  - 新增 `GET /api/admin/audit-logs` 与 `POST /api/admin/audit-logs`，仅用于审计日志查询和写入。
 - 后续增强：
-  - 修复工具、审计日志、告警推送和定时巡检。
-  - 坏图真实 HTTP 探测与更细的规则阈值配置。
+  - 外部告警推送、定时巡检快照和坏图真实 HTTP 探测。
+  - 更细的规则阈值配置和跨版本质量趋势。
 
-Summary: Admin Quality Operations now ships as a read-only quality desk inside `/admin`, surfacing data-health issues without adding repair writes.
+Summary: Admin Quality Operations now ships as a read-only governance desk inside `/admin`, adding filtering, drill-down, navigation, reminders, and audit logs without adding business-data repair writes.
 
 ### 账号设置与会话治理 / Account Settings and Session Governance
 

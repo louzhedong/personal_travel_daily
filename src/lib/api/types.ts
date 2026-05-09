@@ -641,6 +641,22 @@ export type AdminQualityIssueTypeDto =
   | 'guide_search_error_spike'
   | 'companion_memory_snapshot_stale';
 
+export type AdminQualityNavigationKindDto =
+  | 'tripDetail'
+  | 'tripChecklist'
+  | 'photoCuration'
+  | 'companionMemories'
+  | 'adminOnly';
+
+export interface AdminQualityNavigationPayloadDto {
+  tripId?: string;
+  companionId?: string;
+  year?: number;
+  markerId?: string;
+  photoId?: string;
+  guideId?: string;
+}
+
 export interface AdminQualityIssueDto {
   id: string;
   severity: AdminQualitySeverityDto;
@@ -654,6 +670,9 @@ export interface AdminQualityIssueDto {
   targetLabel: string;
   detectedAt: string;
   suggestedAction: string;
+  navigationKind: AdminQualityNavigationKindDto;
+  navigationPayload?: AdminQualityNavigationPayloadDto;
+  canNavigate: boolean;
 }
 
 export interface AdminQualitySummaryDto {
@@ -679,6 +698,35 @@ export interface AdminOverviewResponseDto {
     fetchedAt: string;
     accountCount: number;
   };
+}
+
+export type AdminAuditActionDto =
+  | 'quality_issue_viewed'
+  | 'quality_issue_context_copied'
+  | 'quality_issue_navigated'
+  | 'quality_issue_list_filtered'
+  | 'audit_trail_viewed';
+
+export interface AdminAuditLogDto {
+  id: string;
+  adminAccountId: string;
+  adminAccountName: string;
+  action: AdminAuditActionDto;
+  targetKind?: string;
+  targetId?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface CreateAdminAuditLogInputDto {
+  action: AdminAuditActionDto;
+  targetKind?: string;
+  targetId?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface AdminAuditLogsResponseDto {
+  logs: AdminAuditLogDto[];
 }
 
 export type StatsScopeDto = Scope | 'all';

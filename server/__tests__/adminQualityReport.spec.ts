@@ -179,6 +179,26 @@ describe('buildAdminQualityReport', () => {
       infoCount: 3,
       affectedAccountCount: 1,
     });
+    expect(report.issues.find((issue) => issue.type === 'trip_missing_cover')).toMatchObject({
+      navigationKind: 'tripDetail',
+      navigationPayload: {
+        tripId: 'trip-1',
+      },
+      canNavigate: true,
+    });
+    expect(report.issues.find((issue) => issue.type === 'photo_missing_caption')).toMatchObject({
+      navigationKind: 'photoCuration',
+      navigationPayload: {
+        tripId: 'trip-1',
+        companionId: 'companion-1',
+        photoId: 'image-1',
+      },
+      canNavigate: true,
+    });
+    expect(report.issues.find((issue) => issue.type === 'marker_unassigned_trip')).toMatchObject({
+      navigationKind: 'adminOnly',
+      canNavigate: false,
+    });
   });
 
   it('returns a compact empty report when no issues are detected', () => {

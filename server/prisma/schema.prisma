@@ -69,12 +69,30 @@ model Account {
   companionMemorySnapshots CompanionMemorySnapshot[]
   markerSearchEvents MarkerSearchEvent[]
   sessions     AuthSession[]
+  adminAuditLogs AdminAuditLog[] @relation("AdminAuditLogsByAccount")
   tripChecklistItems TripChecklistItem[]
   tripPlanningItems TripPlanningItem[]
   wishlistItems WishlistItem[]
   achievementUnlocks AchievementUnlock[]
 
   @@map("accounts")
+}
+
+model AdminAuditLog {
+  id             String   @id
+  adminAccountId String   @map("admin_account_id")
+  action         String
+  targetKind     String?  @map("target_kind")
+  targetId       String?  @map("target_id")
+  metadataJson   Json?    @map("metadata_json")
+  createdAt      DateTime @default(now()) @map("created_at")
+  adminAccount   Account  @relation("AdminAuditLogsByAccount", fields: [adminAccountId], references: [id])
+
+  @@index([adminAccountId], map: "idx_admin_audit_logs_admin_account_id")
+  @@index([action], map: "idx_admin_audit_logs_action")
+  @@index([targetKind, targetId], map: "idx_admin_audit_logs_target")
+  @@index([createdAt], map: "idx_admin_audit_logs_created_at")
+  @@map("admin_audit_logs")
 }
 
 model AchievementUnlock {
