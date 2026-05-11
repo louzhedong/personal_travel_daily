@@ -84,6 +84,14 @@ The homepage hero adds an `账号设置` entry point.
 
 Data export reuses `DataSync`; it still exports the current aggregate snapshot only and does not restore imports.
 
+设置页视觉遵循当前杂志内页规范：主容器限制最大宽度并居中，区块以细线分隔，表单按钮保持紧凑，非必要长说明被压缩为短句。
+
+The settings page follows the current editorial-spread visual rules: the shell is centered with a max width, sections are separated by hairlines, form buttons stay compact, and nonessential long descriptions are reduced to short copy.
+
+会话区域保持单行横向控制：标题、说明与“退出全部设备”按钮不做非必要换行，同时保留足够的上下间隔，避免信息拥挤。
+
+The session section keeps a single-line horizontal control row: the title, helper text, and "退出全部设备" button avoid unnecessary wrapping while preserving enough vertical breathing room.
+
 ## 5. 分层 / Layering
 
 - `server/appApi/routes/accountSettings.ts`：账号设置 HTTP routes。

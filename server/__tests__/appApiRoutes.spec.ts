@@ -2,179 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppApiError } from '../appApi/errors.js';
-
-const mocks = vi.hoisted(() => ({
-  getBootstrapPayloadMock: vi.fn(),
-  getAdminOverviewMock: vi.fn(),
-  listAdminAuditTrailMock: vi.fn(),
-  recordAdminAuditLogMock: vi.fn(),
-  getStatsOverviewMock: vi.fn(),
-  getAnnualReviewMock: vi.fn(),
-  getTripDetailMock: vi.fn(),
-  updateTripPhotoCurationMock: vi.fn(),
-  listPhotoCurationResourceMock: vi.fn(),
-  updatePhotoCurationResourceMock: vi.fn(),
-  listTripChecklistMock: vi.fn(),
-  listTripPlanningMock: vi.fn(),
-  createTripPlanningItemResourceMock: vi.fn(),
-  createTripPlanningItemFromWishlistMock: vi.fn(),
-  updateTripPlanningItemResourceMock: vi.fn(),
-  deleteTripPlanningItemResourceMock: vi.fn(),
-  convertTripPlanningItemToMarkerMock: vi.fn(),
-  createTripChecklistItemResourceMock: vi.fn(),
-  updateTripChecklistItemResourceMock: vi.fn(),
-  deleteTripChecklistItemResourceMock: vi.fn(),
-  generateTripChecklistMock: vi.fn(),
-  createCompanionRecordMock: vi.fn(),
-  updateCompanionRecordMock: vi.fn(),
-  getCompanionMemoryMock: vi.fn(),
-  refreshCompanionMemoryMock: vi.fn(),
-  createMarkerRecordMock: vi.fn(),
-  searchMarkerRecordsMock: vi.fn(),
-  updateMarkerRecordMock: vi.fn(),
-    batchUpdateMarkersTripMock: vi.fn(),
-  deleteMarkerRecordMock: vi.fn(),
-  listSavedGuidesResourceMock: vi.fn(),
-  createSavedGuideResourceMock: vi.fn(),
-  deleteSavedGuideResourceMock: vi.fn(),
-  listGuideSearchHistoriesResourceMock: vi.fn(),
-  createGuideSearchHistoryResourceMock: vi.fn(),
-  createGuideSearchLogResourceMock: vi.fn(),
-  listGuideSourceHealthResourceMock: vi.fn(),
-  listWishlistItemsMock: vi.fn(),
-  createWishlistItemResourceMock: vi.fn(),
-  updateWishlistItemResourceMock: vi.fn(),
-  convertWishlistItemToTripMock: vi.fn(),
-  deleteWishlistItemResourceMock: vi.fn(),
-  registerAccountMock: vi.fn(),
-  loginAccountMock: vi.fn(),
-  logoutAccountMock: vi.fn(),
-  getAccountSettingsMock: vi.fn(),
-  updateAccountProfileMock: vi.fn(),
-  changeAccountPasswordMock: vi.fn(),
-  listAccountSessionsMock: vi.fn(),
-  revokeAccountSessionMock: vi.fn(),
-  logoutAllAccountSessionsMock: vi.fn(),
-  requireAuthenticatedAccountMock: vi.fn(),
-  requireAdminAccountMock: vi.fn(),
-  getAuthenticatedAccountMock: vi.fn(),
-}));
-
-vi.mock('../appApi/services/bootstrapService.js', () => ({
-  getBootstrapPayload: mocks.getBootstrapPayloadMock,
-}));
-
-vi.mock('../appApi/services/adminService.js', () => ({
-  getAdminOverview: mocks.getAdminOverviewMock,
-}));
-
-vi.mock('../appApi/services/adminAuditService.js', () => ({
-  listAdminAuditTrail: mocks.listAdminAuditTrailMock,
-  recordAdminAuditLog: mocks.recordAdminAuditLogMock,
-}));
-
-vi.mock('../appApi/services/statsService.js', () => ({
-  getStatsOverview: mocks.getStatsOverviewMock,
-  getAnnualReview: mocks.getAnnualReviewMock,
-}));
-
-vi.mock('../appApi/services/tripDetailService.js', () => ({
-  getTripDetail: mocks.getTripDetailMock,
-}));
-
-vi.mock('../appApi/services/tripPhotoService.js', () => ({
-  updateTripPhotoCuration: mocks.updateTripPhotoCurationMock,
-}));
-
-vi.mock('../appApi/services/photoCurationService.js', () => ({
-  listPhotoCurationResource: mocks.listPhotoCurationResourceMock,
-  updatePhotoCurationResource: mocks.updatePhotoCurationResourceMock,
-}));
-
-vi.mock('../appApi/services/tripChecklistService.js', () => ({
-  listTripChecklist: mocks.listTripChecklistMock,
-  createTripChecklistItemResource: mocks.createTripChecklistItemResourceMock,
-  updateTripChecklistItemResource: mocks.updateTripChecklistItemResourceMock,
-  deleteTripChecklistItemResource: mocks.deleteTripChecklistItemResourceMock,
-  generateTripChecklist: mocks.generateTripChecklistMock,
-}));
-
-vi.mock('../appApi/services/tripPlanningService.js', () => ({
-  listTripPlanning: mocks.listTripPlanningMock,
-  createTripPlanningItemResource: mocks.createTripPlanningItemResourceMock,
-  createTripPlanningItemFromWishlist: mocks.createTripPlanningItemFromWishlistMock,
-  updateTripPlanningItemResource: mocks.updateTripPlanningItemResourceMock,
-  deleteTripPlanningItemResource: mocks.deleteTripPlanningItemResourceMock,
-  convertTripPlanningItemToMarker: mocks.convertTripPlanningItemToMarkerMock,
-}));
-
-vi.mock('../appApi/services/companionService.js', () => ({
-  createCompanionRecord: mocks.createCompanionRecordMock,
-  updateCompanionRecord: mocks.updateCompanionRecordMock,
-}));
-
-vi.mock('../appApi/services/companionMemoryService.js', () => ({
-  getCompanionMemory: mocks.getCompanionMemoryMock,
-  refreshCompanionMemory: mocks.refreshCompanionMemoryMock,
-}));
-
-vi.mock('../appApi/services/markerService.js', () => ({
-  createMarkerRecord: mocks.createMarkerRecordMock,
-  searchMarkerRecords: mocks.searchMarkerRecordsMock,
-  updateMarkerRecord: mocks.updateMarkerRecordMock,
-  batchUpdateMarkersTrip: mocks.batchUpdateMarkersTripMock,
-  deleteMarkerRecord: mocks.deleteMarkerRecordMock,
-}));
-
-vi.mock('../appApi/services/savedGuideService.js', () => ({
-  listSavedGuidesResource: mocks.listSavedGuidesResourceMock,
-  createSavedGuideResource: mocks.createSavedGuideResourceMock,
-  deleteSavedGuideResource: mocks.deleteSavedGuideResourceMock,
-}));
-
-vi.mock('../appApi/services/guideSearchHistoryService.js', () => ({
-  listGuideSearchHistoriesResource: mocks.listGuideSearchHistoriesResourceMock,
-  createGuideSearchHistoryResource: mocks.createGuideSearchHistoryResourceMock,
-}));
-
-vi.mock('../appApi/services/guideSearchLogService.js', () => ({
-  createGuideSearchLogResource: mocks.createGuideSearchLogResourceMock,
-}));
-
-vi.mock('../appApi/services/guideSourceHealthService.js', () => ({
-  listGuideSourceHealthResource: mocks.listGuideSourceHealthResourceMock,
-}));
-
-vi.mock('../appApi/services/wishlistService.js', () => ({
-  listWishlistItems: mocks.listWishlistItemsMock,
-  createWishlistItemResource: mocks.createWishlistItemResourceMock,
-  updateWishlistItemResource: mocks.updateWishlistItemResourceMock,
-  convertWishlistItemToTrip: mocks.convertWishlistItemToTripMock,
-  deleteWishlistItemResource: mocks.deleteWishlistItemResourceMock,
-}));
-
-vi.mock('../appApi/services/authService.js', () => ({
-  registerAccount: mocks.registerAccountMock,
-  loginAccount: mocks.loginAccountMock,
-  logoutAccount: mocks.logoutAccountMock,
-}));
-
-vi.mock('../appApi/services/accountSettingsService.js', () => ({
-  getAccountSettings: mocks.getAccountSettingsMock,
-  updateAccountProfile: mocks.updateAccountProfileMock,
-  changeAccountPassword: mocks.changeAccountPasswordMock,
-  listAccountSessions: mocks.listAccountSessionsMock,
-  revokeAccountSession: mocks.revokeAccountSessionMock,
-  logoutAllAccountSessions: mocks.logoutAllAccountSessionsMock,
-}));
-
-vi.mock('../appApi/auth/requestAuth.js', () => ({
-  requireAuthenticatedAccount: mocks.requireAuthenticatedAccountMock,
-  requireAdminAccount: mocks.requireAdminAccountMock,
-  getAuthenticatedAccount: mocks.getAuthenticatedAccountMock,
-}));
+import { getAppApiRouteMocks } from './appApiRoutes.mocks.js';
 
 import { buildApp } from '../appApi/buildApp.js';
+
+const mocks = getAppApiRouteMocks();
 
 const currentAccount = {
   id: 'acct-1',
@@ -480,6 +312,91 @@ describe('app api routes', () => {
 
       expect(response.statusCode).toBe(400);
       expect(mocks.recordAdminAuditLogMock).not.toHaveBeenCalled();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('previews and applies admin quality auto fixes with audit logs', async () => {
+    mocks.repairAdminQualityIssueMock
+      .mockResolvedValueOnce({
+        issueId: 'trip_missing_cover:trip-1',
+        issueType: 'trip_missing_cover',
+        targetKind: 'trip',
+        targetId: 'trip-1',
+        repairable: true,
+        status: 'preview',
+        title: '自动设置行程封面',
+        description: '将使用第一张旅行照片作为封面。',
+        changes: [{ field: 'coverImageUrl', before: null, after: 'https://example.com/cover.jpg' }],
+      })
+      .mockResolvedValueOnce({
+        issueId: 'trip_missing_cover:trip-1',
+        issueType: 'trip_missing_cover',
+        targetKind: 'trip',
+        targetId: 'trip-1',
+        repairable: true,
+        status: 'applied',
+        title: '自动设置行程封面',
+        description: '已设置行程封面。',
+        changes: [{ field: 'coverImageUrl', before: null, after: 'https://example.com/cover.jpg' }],
+        appliedAt: '2026-05-09T00:00:00.000Z',
+      });
+    mocks.recordAdminAuditLogMock.mockResolvedValue({
+      id: 'audit-fix',
+      adminAccountId: 'acct-1',
+      adminAccountName: 'Voyage Atlas',
+      action: 'quality_issue_auto_fixed',
+      createdAt: '2026-05-09T00:00:00.000Z',
+    });
+
+    const app = await buildApp();
+    try {
+      const previewResponse = await app.inject({
+        method: 'POST',
+        url: '/api/admin/quality-issues/auto-fix',
+        payload: {
+          issueId: 'trip_missing_cover:trip-1',
+          dryRun: true,
+        },
+      });
+      const applyResponse = await app.inject({
+        method: 'POST',
+        url: '/api/admin/quality-issues/auto-fix',
+        payload: {
+          issueId: 'trip_missing_cover:trip-1',
+          dryRun: false,
+        },
+      });
+
+      expect(previewResponse.statusCode).toBe(200);
+      expect(previewResponse.json().status).toBe('preview');
+      expect(applyResponse.statusCode).toBe(200);
+      expect(applyResponse.json().status).toBe('applied');
+      expect(mocks.repairAdminQualityIssueMock).toHaveBeenCalledWith({
+        issueId: 'trip_missing_cover:trip-1',
+        dryRun: true,
+      });
+      expect(mocks.repairAdminQualityIssueMock).toHaveBeenCalledWith({
+        issueId: 'trip_missing_cover:trip-1',
+        dryRun: false,
+      });
+      expect(mocks.recordAdminAuditLogMock).toHaveBeenCalledWith(
+        'acct-1',
+        expect.objectContaining({
+          action: 'quality_issue_auto_fix_previewed',
+          targetKind: 'trip',
+          targetId: 'trip-1',
+        }),
+      );
+      expect(mocks.recordAdminAuditLogMock).toHaveBeenCalledWith(
+        'acct-1',
+        expect.objectContaining({
+          action: 'quality_issue_auto_fixed',
+          targetKind: 'trip',
+          targetId: 'trip-1',
+        }),
+      );
     } finally {
       await app.close();
     }

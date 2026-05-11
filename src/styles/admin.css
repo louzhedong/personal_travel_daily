@@ -1,7 +1,10 @@
 .admin-shell {
   display: grid;
-  gap: 20px;
-  padding: 32px 0 40px;
+  width: min(100%, 1360px);
+  margin: 0 auto;
+  gap: 22px;
+  box-sizing: border-box;
+  padding: clamp(28px, 4vw, 48px) clamp(18px, 3vw, 40px) clamp(40px, 5vw, 64px);
 }
 
 .admin-hero {
@@ -207,18 +210,27 @@
 .admin-quality-filter-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
   gap: 12px;
 }
 
 .admin-quality-search {
-  display: grid;
-  gap: 6px;
+  display: block;
 }
 
-.admin-quality-search span {
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 800;
+.admin-quality-filter-grid .fancy-select,
+.admin-quality-search {
+  height: 40px;
+}
+
+.admin-quality-filter-grid .fancy-select-trigger,
+.admin-quality-search .field-control {
+  min-height: 40px;
+  height: 40px;
+  border-radius: 12px;
+  box-sizing: border-box;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .admin-quality-heading {
@@ -345,11 +357,16 @@
 }
 
 .admin-quality-action {
-  display: grid;
-  justify-items: start;
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
   color: #334155;
   font-weight: 700;
+}
+
+.admin-quality-action > span {
+  flex: 0 0 100%;
 }
 
 .admin-quality-badge,
@@ -479,6 +496,66 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.admin-quality-autofix {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.admin-quality-autofix-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-quality-autofix-heading span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(219, 234, 254, 0.9);
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-quality-autofix-changes {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.admin-quality-autofix-changes div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.admin-quality-autofix-changes dt {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-quality-autofix-changes dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.admin-quality-autofix-note {
+  color: #475569;
+  font-size: 13px;
 }
 
 .admin-audit-panel {
@@ -1002,6 +1079,11 @@
 }
 
 @media (max-width: 900px) {
+  .admin-shell {
+    gap: 16px;
+    padding: 20px 12px 36px;
+  }
+
   .admin-hero,
   .admin-account-header,
   .admin-detail-header,

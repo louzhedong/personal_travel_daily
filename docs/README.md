@@ -28,6 +28,8 @@ Summary: Product-oriented context lives in the overview and roadmap; read these 
 
 ## 3. Architecture / 架构
 
+- [架构硬化深度分析 / Architecture Hardening Analysis](./technical/architecture-hardening-analysis.md)
+  - 当前架构风险、技术债路线和首批 DTO 边界硬化策略。
 - [前端架构 / Frontend Architecture](./technical/frontend-architecture.md)
   - `App` 路由、`TravelApp` 容器、大组件拆分与样式组织约定。
 - [后端架构 / Backend Architecture](./technical/backend-architecture.md)
@@ -35,7 +37,7 @@ Summary: Product-oriented context lives in the overview and roadmap; read these 
 - [项目总览 / Project Overview](./technical/project-overview.md)
   - 产品能力、关键文件与全局约束的总入口。
 
-Summary: The architecture section now includes dedicated frontend and backend docs, with the project overview remaining the cross-cutting map.
+Summary: The architecture section now includes hardening analysis plus dedicated frontend and backend docs, with the project overview remaining the cross-cutting map.
 
 ## 4. Feature Docs / 按能力拆分的设计
 

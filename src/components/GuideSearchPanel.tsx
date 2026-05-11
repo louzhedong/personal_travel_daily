@@ -15,8 +15,8 @@ import { GuideSearchInputBar } from './GuideSearchInputBar';
 import { GuideSearchResultList } from './GuideSearchResultList';
 import { GuideDocumentDrawer } from './GuideDocumentDrawer';
 import { useGuideSearchLayoutLock } from './useGuideSearchLayoutLock';
-import Dialog from './ui/Dialog';
-import FancySelect from './ui/FancySelect';
+import { GuideChecklistGenerationDialog } from './guide-search/GuideChecklistGenerationDialog';
+import { GuidePlanningDialog, type GuidePlanningDraft } from './guide-search/GuidePlanningDialog';
 import { createTripPlanningItem } from '../lib/api/tripsApi';
 import type {
   GuideDocument,
@@ -124,7 +124,7 @@ export function GuideSearchPanel({
   const [planningSaving, setPlanningSaving] = useState(false);
   const [guidePendingPlanning, setGuidePendingPlanning] = useState<GuideSearchResult | null>(null);
   const [wishlistSaving, setWishlistSaving] = useState(false);
-  const [planningDraft, setPlanningDraft] = useState({
+  const [planningDraft, setPlanningDraft] = useState<GuidePlanningDraft>({
     tripId: '',
     scope: initialScope === 'international' ? 'international' : 'domestic',
     scopeId: '',
@@ -638,89 +638,24 @@ export function GuideSearchPanel({
         <div aria-hidden="true" style={{ height: panelSpacerHeight }} />
         <AppToast open={!!toast} message={toast?.message ?? ''} tone={toast?.tone} />
       </aside>
-      <Dialog
+      <GuideChecklistGenerationDialog
         open={checklistGenerationOpen}
-        eyebrow="攻略清单化"
-        title="选择要绑定的行程"
-        description="系统会优先读取攻略正文，再自动帮你生成一版“出发前 / 旅途中 / 已完成”三段清单。"
+        selectedTripId={selectedTripId}
+        trips={trips}
+        checklistGenerating={checklistGenerating}
         onClose={() => setChecklistGenerationOpen(false)}
-      >
-        <div className="dialog-form">
-          <label className="dialog-field">
-            <span className="dialog-field-label">目标行程</span>
-            <FancySelect
-              value={selectedTripId}
-              options={trips.map((trip) => ({
-                value: trip.id,
-                label: trip.name,
-              }))}
-              onChange={setSelectedTripId}
-              placeholder="选择目标行程"
-              ariaLabel="选择要绑定的目标行程"
-              className="guide-search-trip-select"
-              triggerClassName="guide-search-trip-select-trigger"
-              menuClassName="guide-search-trip-select-menu"
-              usePortal
-            />
-          </label>
-          <div className="dialog-actions">
-            <button type="button" className="ghost-button" onClick={() => setChecklistGenerationOpen(false)}>
-              取消
-            </button>
-            <button
-              type="button"
-              className="primary-button"
-              onClick={() => void handleConfirmChecklistGeneration()}
-              disabled={!selectedTripId || checklistGenerating}
-            >
-              {checklistGenerating ? '正在生成...' : '生成行前清单'}
-            </button>
-          </div>
-        </div>
-      </Dialog>
-      <Dialog
+        onSelectedTripIdChange={setSelectedTripId}
+        onConfirm={() => void handleConfirmChecklistGeneration()}
+      />
+      <GuidePlanningDialog
         open={planningDialogOpen}
-        eyebrow="行前规划"
-        title="加入行程规划"
-        description="把攻略先收成一个想去地点，之后可以在行程详情里补日期、备注并转成正式记录。"
+        planningSaving={planningSaving}
+        planningDraft={planningDraft}
+        trips={trips}
         onClose={() => setPlanningDialogOpen(false)}
-      >
-        <div className="dialog-form">
-          <label className="dialog-field">
-            <span className="dialog-field-label">目标行程</span>
-            <FancySelect
-              value={planningDraft.tripId}
-              options={trips.map((trip) => ({ value: trip.id, label: trip.name }))}
-              onChange={(tripId) => setPlanningDraft((current) => ({ ...current, tripId }))}
-              placeholder="选择目标行程"
-              ariaLabel="选择规划目标行程"
-              className="guide-search-trip-select"
-              triggerClassName="guide-search-trip-select-trigger"
-              menuClassName="guide-search-trip-select-menu"
-              usePortal
-            />
-          </label>
-          <div className="dialog-field-grid">
-            <input className="field-control" value={planningDraft.scopeName} onChange={(event) => setPlanningDraft((current) => ({ ...current, scopeName: event.target.value }))} placeholder="地区/国家" />
-            <input className="field-control" value={planningDraft.scopeId} onChange={(event) => setPlanningDraft((current) => ({ ...current, scopeId: event.target.value }))} placeholder="地区编码" />
-            <input className="field-control" value={planningDraft.city} onChange={(event) => setPlanningDraft((current) => ({ ...current, city: event.target.value }))} placeholder="城市" />
-            <input className="field-control" type="date" value={planningDraft.plannedDate} onChange={(event) => setPlanningDraft((current) => ({ ...current, plannedDate: event.target.value }))} aria-label="预计日期" />
-          </div>
-          <div className="dialog-actions">
-            <button type="button" className="ghost-button" onClick={() => setPlanningDialogOpen(false)}>
-              取消
-            </button>
-            <button
-              type="button"
-              className="primary-button"
-              disabled={!planningDraft.tripId || !planningDraft.scopeName.trim() || !planningDraft.scopeId.trim() || !planningDraft.city.trim() || planningSaving}
-              onClick={() => void handleConfirmPlanning()}
-            >
-              {planningSaving ? '保存中...' : '加入规划'}
-            </button>
-          </div>
-        </div>
-      </Dialog>
+        onPlanningDraftChange={setPlanningDraft}
+        onConfirm={() => void handleConfirmPlanning()}
+      />
     </div>
   );
 }

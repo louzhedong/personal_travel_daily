@@ -1,7 +1,7 @@
 # 后端架构 / Backend Architecture
 
-本文档记录当前 `server/appApi` 的真实分层方式，以及近一轮重构后几个最重要的拆分点：错误码常量共享、`visitMarkerRepository` 目录化、统计聚合与成就解锁分层、bootstrap serializer barrel 拆分、后台账号统计下沉。文档只描述已存在代码，不引入未来态设计。
-This document records the actual backend layering in `server/appApi` and the most important refactors from the latest pass: shared error codes, `visitMarkerRepository` directory splitting, stats aggregation and achievement-unlock layering, bootstrap serializer barrel splitting, and admin account-stat extraction. It only describes code that already exists.
+本文档记录当前 `server/appApi` 的真实分层方式，以及近一轮重构后几个最重要的拆分点：错误码常量共享、`visitMarkerRepository` 目录化、统计聚合与成就解锁分层、bootstrap serializer barrel 拆分、后台账号统计下沉、API DTO 目录化。文档只描述已存在代码，不引入未来态设计。
+This document records the actual backend layering in `server/appApi` and the most important refactors from the latest pass: shared error codes, `visitMarkerRepository` directory splitting, stats aggregation and achievement-unlock layering, bootstrap serializer barrel splitting, admin account-stat extraction, and API DTO directory splitting. It only describes code that already exists.
 
 ---
 
@@ -114,10 +114,14 @@ Based on the current backend structure, future work should follow these rules.
 
 - 新接口先补 `schema`，再写 `route` 和 `service`，不要跳过输入层。  
   Add the `schema` first for any new endpoint, then implement the `route` and `service`; do not skip the input layer.
+- 新增或变更 API DTO 时，优先进入 `server/appApi/dto/*` 对应领域文件；`server/appApi/types.ts` 只保留兼容 barrel。
+  Add or update API DTOs in the matching `server/appApi/dto/*` domain file; `server/appApi/types.ts` should stay as a compatibility barrel.
 - 需要复用的 DTO 组装逻辑优先放 `serializers/`，不要散落在 route/service。  
   Reusable DTO-shaping logic should live in `serializers/` instead of being scattered across routes or services.
 - 同域大文件膨胀时，优先做“目录化 + barrel 兼容层”拆分，延续 `visitMarkerRepository`、`bootstrapSerializer` 的模式。  
   When a same-domain file grows too large, prefer a directory split with a compatibility barrel, following the `visitMarkerRepository` and `bootstrapSerializer` pattern.
+- 超过约 `500` 行的纯聚合或规则文件应优先评估按子域拆分，并保留兼容 barrel 降低 import 迁移成本。
+  Pure aggregation or rule files above roughly `500` lines should be reviewed for subdomain splitting while keeping compatibility barrels to reduce import churn.
 - 真正跨前后端共享的纯常量和映射优先进入 `shared/`，并保持零运行时依赖。  
   Pure constants and mappings that are truly shared across frontend and backend should move into `shared/` and stay runtime-free.
 

@@ -171,6 +171,39 @@ describe('companionMemoryService', () => {
     }));
   });
 
+  it('stores source guide count independently from the display guide limit', async () => {
+    const manyGuides = Array.from({ length: 10 }, (_, index) => ({
+      id: `guide-${index + 1}`,
+      markerId: undefined,
+      saveContextKey: `context-${index + 1}`,
+      keyword: '京都',
+      guideIdentity: `kyoto-guide-${index + 1}`,
+      guideTitle: `京都攻略 ${index + 1}`,
+      guideSummary: '适合慢走的路线。',
+      guideSourceName: '示例来源',
+      guideSourceUrl: `https://example.com/guide-${index + 1}`,
+      guideCoverImageUrl: undefined,
+      savedAt: new Date(`2026-03-${String(index + 1).padStart(2, '0')}T00:00:00.000Z`),
+    }));
+    mocks.findCompanionMemorySnapshotMock.mockResolvedValue(null);
+    mocks.findCompanionMemorySourceMock.mockResolvedValue({
+      ...buildSource(),
+      guides: manyGuides,
+    });
+
+    const result = await getCompanionMemory('acct-1', 'companion-1');
+
+    expect(result.guides).toHaveLength(8);
+    expect(result.summary.guideCount).toBe(10);
+    expect(result.snapshot.sourceGuideCount).toBe(10);
+    expect(mocks.upsertCompanionMemorySnapshotMock).toHaveBeenCalledWith(
+      prisma,
+      expect.objectContaining({
+        sourceGuideCount: 10,
+      }),
+    );
+  });
+
   it('forces rebuild on manual refresh', async () => {
     mocks.findCompanionMemorySourceMock.mockResolvedValue(buildSource());
 

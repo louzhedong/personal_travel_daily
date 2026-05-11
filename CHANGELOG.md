@@ -5,6 +5,45 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-05-09
 
+### PR 待定 / TBD `refactor: 架构硬化与 DTO 边界拆分 / Harden architecture and split DTO boundaries`
+
+### Added / 新增
+
+- 新增 `docs/technical/architecture-hardening-analysis.md`，记录当前全栈架构风险、技术债路线和分阶段优化计划。
+  Added `docs/technical/architecture-hardening-analysis.md` to document current full-stack architecture risks, the technical-debt roadmap, and phased optimization plan.
+- 新增前后端 API DTO 分域目录：`server/appApi/dto/*` 与 `src/lib/api/dto/*`。
+  Added domain-based API DTO folders: `server/appApi/dto/*` and `src/lib/api/dto/*`.
+- 新增后台质量巡检可选自动修复能力，支持低/中/高风险白名单问题的预览后确认修复。
+  Added optional admin quality auto repair with preview-then-confirm support for low-, medium-, and high-risk allowlisted issues.
+
+### Changed / 变更
+
+- `server/appApi/types.ts` 和 `src/lib/api/types.ts` 收敛为兼容 barrel，降低跨域类型变更冲突。
+  Converted `server/appApi/types.ts` and `src/lib/api/types.ts` into compatibility barrels to reduce cross-domain type-change conflicts.
+- 拆分 Stats 聚合层、App 顶层路由恢复/守卫/渲染分发，以及 TripDetail/GuideSearch/MarkerDetail 复杂页面容器。
+  Split the stats aggregation layer, App route restoration/guard/render dispatch, and the TripDetail/GuideSearch/MarkerDetail complex page containers.
+- 拆出 `server/__tests__/appApiRoutes.mocks.ts`，将后端路由测试的 hoisted mocks 与 service mocks 从主 spec 中剥离。
+  Extracted `server/__tests__/appApiRoutes.mocks.ts` to move hoisted mocks and service mocks out of the main backend route spec.
+- `POST /api/admin/quality-issues/auto-fix` 新增 `dryRun` 预览模式、确认写入和 `quality_issue_auto_fix_previewed` / `quality_issue_auto_fixed` 审计动作。
+  `POST /api/admin/quality-issues/auto-fix` now supports `dryRun` previews, confirmed writes, and `quality_issue_auto_fix_previewed` / `quality_issue_auto_fixed` audit actions.
+- 自动修复白名单扩展至 `marker_unassigned_trip`、`planning_overdue`、`guide_source_degraded` 与 `companion_memory_snapshot_stale`。
+  The auto-repair allowlist now includes `marker_unassigned_trip`, `planning_overdue`, `guide_source_degraded`, and `companion_memory_snapshot_stale`.
+- 同步更新文档导航、项目总览、前端架构、后端架构和未来路线图中的架构硬化规则。
+  Updated the docs index, project overview, frontend architecture, backend architecture, and roadmap with architecture-hardening rules.
+- 优化后台与账号设置页视觉治理：统一轻量眉标、收紧 `/settings` 主容器、移除重复分割线，并保持会话操作行的单行与合理间距。
+  Refined admin and account-settings visual governance by unifying lightweight eyebrow labels, tightening the `/settings` shell, removing duplicated dividers, and keeping the session action row single-line with proper spacing.
+
+### Verified / 已验证
+
+- `npm run test -- src/lib/api/__tests__/apiModules.spec.ts src/lib/api/__tests__/httpClient.spec.ts`
+- `npm run test -- server/__tests__/apiDtoBarrel.spec.ts src/lib/api/__tests__/apiDtoBarrel.spec.ts`
+- `npm run test -- server/__tests__/adminAuditService.spec.ts server/__tests__/adminQualityReport.spec.ts server/__tests__/adminService.spec.ts server/__tests__/appApiRoutes.spec.ts`
+- `npm run test -- src/modules/__tests__/AdminPage.spec.tsx src/modules/__tests__/App.spec.tsx`
+- `npm run test -- server/__tests__/statsAggregator.spec.ts server/__tests__/statsService.spec.ts server/__tests__/appApiRoutes.spec.ts src/modules/__tests__/App.spec.tsx src/modules/app/__tests__/router.spec.ts src/modules/__tests__/TripDetailPage.spec.tsx src/modules/trips/__tests__/tripStoryPageModel.spec.ts src/components/__tests__/GuideSearchPanel.spec.tsx src/components/__tests__/MarkerDetailPanel.spec.tsx src/lib/api/__tests__/apiDtoBarrel.spec.ts server/__tests__/apiDtoBarrel.spec.ts`
+- `npm run test -- server/__tests__/adminQualityReport.spec.ts server/__tests__/adminQualityAutoFixService.spec.ts server/__tests__/appApiRoutes.spec.ts src/modules/__tests__/AdminPage.spec.tsx`
+- `npm run test -- src/modules/__tests__/AccountSettingsPage.spec.tsx src/modules/__tests__/AdminPage.spec.tsx src/modules/__tests__/App.spec.tsx server/__tests__/adminQualityReport.spec.ts server/__tests__/adminQualityAutoFixService.spec.ts server/__tests__/appApiRoutes.spec.ts server/__tests__/apiDtoBarrel.spec.ts src/lib/api/__tests__/apiDtoBarrel.spec.ts`
+- `npm run build`
+
 ### PR #37 `feat: 后台管理二期 / Add admin management phase two`
 
 ### Added / 新增

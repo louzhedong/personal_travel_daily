@@ -51,6 +51,11 @@ export default function AdminQualityIssueList({
           {!compact ? (
             <div className="admin-quality-action">
               <span>{issue.suggestedAction}</span>
+              {issue.autoFix?.repairable && onSelectIssue ? (
+                <button type="button" className="ghost-button" onClick={() => onSelectIssue(issue)}>
+                  修复
+                </button>
+              ) : null}
               {issue.canNavigate && onNavigateIssue ? (
                 <button type="button" className="ghost-button" onClick={() => onNavigateIssue(issue)}>
                   定位

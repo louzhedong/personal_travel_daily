@@ -3,10 +3,9 @@ import TripChecklistBoard from '../../components/trips/TripChecklistBoard';
 import TripPlanningBoard from '../../components/trips/TripPlanningBoard';
 import TravelIcon from '../../components/ui/TravelIcon';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import DateField from '../../components/ui/DateField';
-import Dialog from '../../components/ui/Dialog';
-import FancySelect from '../../components/ui/FancySelect';
 import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
+import TripDetailEditorDialog from './detail/TripDetailEditorDialog';
+import TripDetailHeader from './detail/TripDetailHeader';
 import {
   createTripChecklistItem,
   createTripPlanningItem,
@@ -414,70 +413,20 @@ export default function TripDetailPage({
   return (
     <main className="trip-detail-stage">
       <div className="trip-detail-shell">
-        <section className="trip-detail-hero card">
-          <div className="trip-detail-hero-copy">
-            <span className="hero-kicker">行程详情</span>
-            <h1>{data?.trip.name ?? '正在载入行程...'}</h1>
-            <p>
-              {data
-                ? `${formatTripDetailDateRange(data.trip.startsAt, data.trip.endsAt)} · 当前账号 ${account.name}`
-                : '从统计中心钻取后，可在这里回看某个具体行程的记录、攻略和照片。'}
-            </p>
-            <div className="trip-detail-hero-actions">
-              <button
-                type="button"
-                className="ghost-button trip-detail-action-button trip-detail-action-button-secondary"
-                onClick={onNavigateBack}
-              >
-                返回统计中心
-              </button>
-              {data ? (
-                <button
-                  type="button"
-                  className="ghost-button trip-detail-action-button trip-detail-action-button-primary"
-                  onClick={openTripEditor}
-                >
-                  编辑行程
-                </button>
-              ) : null}
-              {data && onOpenTripStory ? (
-                <button
-                  type="button"
-                  className="ghost-button trip-detail-action-button trip-detail-action-button-secondary"
-                  onClick={() => onOpenTripStory(tripId)}
-                >
-                  查看故事页
-                </button>
-              ) : null}
-              {data ? (
-                <button
-                  type="button"
-                  className="ghost-button trip-detail-action-button trip-detail-action-button-danger"
-                  onClick={() => {
-                    setFeedbackMessage('');
-                    setTripDeleteOpen(true);
-                  }}
-                >
-                  删除行程
-                </button>
-              ) : null}
-              <button
-                type="button"
-                className="ghost-button trip-detail-action-button trip-detail-action-button-subtle"
-                onClick={() => void onLogout()}
-              >
-                退出登录
-              </button>
-            </div>
-          </div>
-          {data?.trip.note || displayCoverUrl ? (
-            <aside className="trip-detail-note-card">
-              {displayCoverUrl ? <img src={displayCoverUrl} alt={`${data?.trip.name ?? '当前行程'}封面`} className="trip-detail-note-cover" /> : null}
-              {data?.trip.coverImageUrl ? <span className="trip-detail-note-eyebrow">Trip Cover</span> : null}
-              {data?.trip.note ? <strong>{data.trip.note}</strong> : <span className="trip-detail-note-empty">当前行程暂未填写备注</span>}
-            </aside>
-          ) : null}
-        </section>
+        <TripDetailHeader
+          account={account}
+          data={data}
+          displayCoverUrl={displayCoverUrl}
+          tripId={tripId}
+          onNavigateBack={onNavigateBack}
+          onLogout={onLogout}
+          onOpenEditor={openTripEditor}
+          onOpenTripStory={onOpenTripStory}
+          onOpenDeleteDialog={() => {
+            setFeedbackMessage('');
+            setTripDeleteOpen(true);
+          }}
+        />
 
         {feedbackMessage ? (
           <section className="card trip-detail-state-card">
@@ -496,67 +445,27 @@ export default function TripDetailPage({
           </section>
         ) : null}
 
-        <Dialog
+        <TripDetailEditorDialog
           open={tripEditorOpen}
-          eyebrow="Trip Collection"
-          title="编辑行程"
-          description="调整这次旅行的名称、时间、备注和封面展示。"
+          saving={tripSaving}
+          name={tripDraftName}
+          startsAt={tripDraftStartsAt}
+          endsAt={tripDraftEndsAt}
+          note={tripDraftNote}
+          coverImageUrl={tripDraftCoverImageUrl}
+          coverOptions={coverOptions}
           onClose={() => {
             if (!tripSaving) {
               setTripEditorOpen(false);
             }
           }}
-        >
-          <form
-            className="trip-detail-editor-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void handleSaveTrip();
-            }}
-          >
-            <input
-              type="text"
-              value={tripDraftName}
-              onChange={(event) => setTripDraftName(event.target.value)}
-              className="field-control trip-detail-editor-input"
-              placeholder="行程名称"
-            />
-            <div className="trip-detail-editor-date-row">
-              <DateField value={tripDraftStartsAt} max={tripDraftEndsAt || undefined} ariaLabel="行程开始日期" onChange={setTripDraftStartsAt} />
-              <DateField value={tripDraftEndsAt} min={tripDraftStartsAt || undefined} ariaLabel="行程结束日期" onChange={setTripDraftEndsAt} />
-            </div>
-            <FancySelect
-              value={tripDraftCoverImageUrl}
-              onChange={setTripDraftCoverImageUrl}
-              placeholder="不设置封面"
-              ariaLabel="选择行程封面"
-              triggerClassName="trip-detail-editor-select"
-              options={[
-                { value: '', label: '不设置封面' },
-                ...coverOptions,
-              ]}
-            />
-            <textarea
-              value={tripDraftNote}
-              onChange={(event) => setTripDraftNote(event.target.value)}
-              className="field-control trip-detail-editor-input trip-detail-editor-textarea"
-              placeholder="记录这次行程的主题、节奏或最值得记住的一句话"
-              rows={4}
-            />
-            <div className="dialog-actions">
-              <button type="button" className="ghost-button" onClick={() => setTripEditorOpen(false)} disabled={tripSaving}>
-                取消
-              </button>
-              <button
-                type="submit"
-                className="primary-button"
-                disabled={!tripDraftName.trim() || !tripDraftStartsAt || !tripDraftEndsAt || tripDraftEndsAt < tripDraftStartsAt || tripSaving}
-              >
-                {tripSaving ? '保存中...' : '保存行程'}
-              </button>
-            </div>
-          </form>
-        </Dialog>
+          onSubmit={() => void handleSaveTrip()}
+          onNameChange={setTripDraftName}
+          onStartsAtChange={setTripDraftStartsAt}
+          onEndsAtChange={setTripDraftEndsAt}
+          onNoteChange={setTripDraftNote}
+          onCoverImageUrlChange={setTripDraftCoverImageUrl}
+        />
 
         <ConfirmDialog
           open={tripDeleteOpen}

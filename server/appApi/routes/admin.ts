@@ -5,8 +5,10 @@ import {
   adminAuditLogBodySchema,
   adminAuditLogQuerySchema,
   adminOverviewQuerySchema,
+  adminQualityAutoFixBodySchema,
 } from '../schemas/admin.js';
 import { listAdminAuditTrail, recordAdminAuditLog } from '../services/adminAuditService.js';
+import { repairAdminQualityIssue } from '../services/adminQualityAutoFixService.js';
 import { getAdminOverview } from '../services/adminService.js';
 
 export async function registerAdminRoutes(app: FastifyInstance) {
@@ -26,5 +28,26 @@ export async function registerAdminRoutes(app: FastifyInstance) {
     const account = await requireAdminAccount(request);
     const body = parseWithSchema(adminAuditLogBodySchema, request.body);
     return recordAdminAuditLog(account.id, body);
+  });
+
+  app.post('/api/admin/quality-issues/auto-fix', async (request) => {
+    const account = await requireAdminAccount(request);
+    const body = parseWithSchema(adminQualityAutoFixBodySchema, request.body);
+    const result = await repairAdminQualityIssue(body);
+
+    await recordAdminAuditLog(account.id, {
+      action: body.dryRun ? 'quality_issue_auto_fix_previewed' : 'quality_issue_auto_fixed',
+      targetKind: result.targetKind,
+      targetId: result.targetId,
+      metadata: {
+        issueId: result.issueId,
+        issueType: result.issueType,
+        status: result.status,
+        repairable: result.repairable,
+        changes: result.changes,
+      },
+    });
+
+    return result;
   });
 }

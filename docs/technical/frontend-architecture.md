@@ -205,12 +205,16 @@ This structure makes ownership clearer between page-shell and feature-domain sty
 按照当前结构，后续新增前端能力时建议遵循以下规则。  
 Under the current structure, future frontend work should follow these rules.
 
+- 新增或变更 API DTO 时，优先进入 `src/lib/api/dto/*` 对应领域文件；`src/lib/api/types.ts` 只保留兼容 barrel 和错误码 re-export。
+  Add or update API DTOs in the matching `src/lib/api/dto/*` domain file; `src/lib/api/types.ts` should stay as a compatibility barrel plus error-code re-export.
 - 新顶层页面先改 `router.ts`，再改 `App.tsx`，不要在业务组件里直接拼路径判断。  
   Extend `router.ts` first and then `App.tsx` for any new top-level page instead of embedding route checks inside business components.
 - 首页新面板优先挂到 `AppContent` 或 `AppOverlays`，不要继续膨胀 `TravelApp.tsx`。  
   Add new homepage panels through `AppContent` or `AppOverlays` instead of growing `TravelApp.tsx` again.
 - 复杂组件优先拆成“容器 + 子组件 + hook + model”四层，而不是继续堆条件分支。  
   Prefer splitting complex UI into container, subcomponents, hooks, and models rather than adding more conditional branches to one file.
+- 超过约 `700` 行的页面容器应优先评估拆分，不再默认接受继续追加 JSX 和局部状态。
+  Page containers above roughly `700` lines should be reviewed for decomposition instead of accepting more JSX and local state by default.
 - 跨模块共享的纯逻辑优先放 `lib/` 或 `modules/*Model`，不要塞回 JSX 文件。  
   Shared pure logic should live in `lib/` or `modules/*Model` rather than being pushed back into JSX files.
 

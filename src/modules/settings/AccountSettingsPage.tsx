@@ -177,7 +177,7 @@ export default function AccountSettingsPage({
       </header>
 
       <section className="account-settings-hero">
-        <span>Account</span>
+        <span>账号</span>
         <h1>账号设置</h1>
         <p>{account.username}</p>
       </section>
