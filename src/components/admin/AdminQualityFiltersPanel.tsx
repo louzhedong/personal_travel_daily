@@ -94,11 +94,11 @@ export default function AdminQualityFiltersPanel({
           usePortal
         />
         <label className="admin-quality-search">
-          <span>关键词</span>
           <input
             className="field-control"
             value={filters.keyword}
             placeholder="搜索问题、账号或目标"
+            aria-label="关键词"
             onChange={(event) =>
               onChange({
                 ...filters,

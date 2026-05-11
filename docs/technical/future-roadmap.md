@@ -231,18 +231,20 @@ Summary: Photo and media curation now ships as `/photos`, an account-level desk 
 
 - 状态：二期已完成。
 - 已落地范围：
-  - `/admin` 新增只读质量巡检摘要，展示严重、注意、建议和受影响账号数。
+  - `/admin` 新增默认只读质量巡检摘要，展示严重、注意、建议和受影响账号数。
   - 质量问题覆盖记录缺图、未归行程、行程缺封面、照片缺说明、过期规划、攻略未关联、来源异常、搜索失败升高和旅伴回忆快照过期。
   - 账号详情展示当前账号相关质量问题。
   - 后台二期新增质量问题筛选、详情抽屉、只读定位跳转和应用内提醒。
   - 新增 `AdminAuditLog`，记录查看问题、复制上下文、定位问题、筛选问题和查看审计等后台治理动作。
-  - 继续复用 `GET /api/admin/overview`，不新增后台写接口。
+  - 新增低风险白名单自动修复能力：`trip_missing_cover` 可从行程照片设置封面，`photo_missing_caption` 可生成照片说明。
+  - 自动修复必须先预览字段变更，再由管理员确认执行，并记录 `quality_issue_auto_fix_previewed` / `quality_issue_auto_fixed` 审计动作。
+  - 继续复用 `GET /api/admin/overview`，并新增 `POST /api/admin/quality-issues/auto-fix` 承载确认式修复。
   - 新增 `GET /api/admin/audit-logs` 与 `POST /api/admin/audit-logs`，仅用于审计日志查询和写入。
 - 后续增强：
   - 外部告警推送、定时巡检快照和坏图真实 HTTP 探测。
   - 更细的规则阈值配置和跨版本质量趋势。
 
-Summary: Admin Quality Operations now ships as a read-only governance desk inside `/admin`, adding filtering, drill-down, navigation, reminders, and audit logs without adding business-data repair writes.
+Summary: Admin Quality Operations now ships as a read-by-default governance desk inside `/admin`, adding filtering, drill-down, navigation, reminders, audit logs, and preview-then-confirm repair for low-risk allowlisted issues.
 
 ### 账号设置与会话治理 / Account Settings and Session Governance
 
@@ -324,10 +326,12 @@ Given the current product baseline, the product no longer lacks capture surfaces
 - 为什么值得做：
   - 功能已经跨越地图、统计、行程、详情、攻略、成就、年度回顾和后台，后续继续上功能前需要持续防止容器层和聚合层变厚。
 - 建议范围：
-  - 继续抽离复杂状态 hook 和纯展示模型，特别是统计中心、年度回顾、行程详情和攻略面板。
-  - 为地图联动、统计筛选、年度回顾、成就解锁和行程详情回看补更细的集成测试。
-  - 为 Prisma migration、聚合 DTO 和错误码增加契约测试。
-  - 增加关键页面的浏览器级冒烟检查：登录、统计中心、成就弹窗、行程详情、年度回顾。
+  - `P0`：持续维护前后端 API DTO 目录化边界，新增 DTO 必须进入 `server/appApi/dto/*` 与 `src/lib/api/dto/*`。
+  - `P1`：将 `server/appApi/services/stats/aggregator.ts` 继续拆为筛选、排行、成就和年度回顾子模块。
+  - `P1`：评估 `src/modules/App.tsx` 顶层页面分发的表化，降低新增页面时的状态机膨胀。
+  - `P2`：继续抽离复杂状态 hook 和纯展示模型，特别是行程详情、攻略面板和记录详情面板。
+  - `P2`：按 route domain 拆分 `server/__tests__/appApiRoutes.spec.ts`，保留少量跨域 smoke。
+  - `P3`：为 Prisma migration、聚合 DTO、错误码和关键页面浏览器冒烟补契约与清单。
 
 Summary: Architecture hardening keeps future feature work from becoming slower and riskier.
 

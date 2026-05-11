@@ -20,6 +20,8 @@ import {
 } from '../lib/markerMetadata';
 import FancySelect from './ui/FancySelect';
 import TravelIcon from './ui/TravelIcon';
+import { MarkerEditActionBar } from './marker-detail/MarkerEditActionBar';
+import { MarkerLightbox } from './marker-detail/MarkerLightbox';
 import type { SavedGuide, TripCollection, UserProfile, VisitMarker } from '../types';
 
 const EMPTY_TRIPS: TripCollection[] = [];
@@ -250,6 +252,23 @@ export function MarkerDetailPanel({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    if (!displayMarker) {
+      return;
+    }
+    setDraftNote(displayMarker.note);
+    setDraftImageUrls(displayMarker.imageUrls ?? []);
+    setDraftTripId(displayMarker.tripId ?? '');
+    setDraftTags(displayMarker.tags ?? []);
+    setDraftMood(displayMarker.mood ?? '');
+    setDraftWeather(displayMarker.weather ?? '');
+    setDraftTransport(displayMarker.transport ?? '');
+    setDraftBudgetLevel(displayMarker.budgetLevel ?? '');
+    setEditError('');
+    setSaveFeedback('');
+    setIsEditing(false);
   };
 
   const panelTitle = isEditing ? '编辑旅行记录' : '旅行记录详情';
@@ -648,89 +667,28 @@ export function MarkerDetailPanel({
           </div>
         </section>
 
-        {lightboxImage ? (
-          <div className="detail-lightbox-backdrop" onClick={() => setLightboxIndex(null)}>
-            <div className="detail-lightbox-panel" onClick={(event) => event.stopPropagation()}>
-              <button
-                type="button"
-                className="modal-close-button detail-lightbox-close"
-                aria-label="关闭图片预览"
-                onClick={() => setLightboxIndex(null)}
-              >
-                ×
-              </button>
-              <img
-                src={lightboxImage}
-                alt={`${panelMarker.scopeName}-${panelMarker.city}-预览`}
-                className="detail-lightbox-image"
-              />
-              <div className="detail-lightbox-footer">
-                <span>{(lightboxIndex ?? 0) + 1} / {imageUrls.length}</span>
-                <div className="detail-lightbox-actions">
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    disabled={!canGoPrev}
-                    onClick={() => setLightboxIndex((current) => (current === null ? current : current - 1))}
-                  >
-                    上一张
-                  </button>
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    disabled={!canGoNext}
-                    onClick={() => setLightboxIndex((current) => (current === null ? current : current + 1))}
-                  >
-                    下一张
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : null}
+        <MarkerLightbox
+          imageUrl={lightboxImage}
+          imageAlt={`${panelMarker.scopeName}-${panelMarker.city}-预览`}
+          currentIndex={lightboxIndex ?? 0}
+          totalCount={imageUrls.length}
+          canGoPrev={canGoPrev}
+          canGoNext={canGoNext}
+          onClose={() => setLightboxIndex(null)}
+          onPrev={() => setLightboxIndex((current) => (current === null ? current : current - 1))}
+          onNext={() => setLightboxIndex((current) => (current === null ? current : current + 1))}
+        />
 
         {isEditing ? (
-          <div className={hasChanged ? 'detail-edit-action-bar active' : 'detail-edit-action-bar'}>
-            <div className="detail-edit-action-bar-inner">
-              <span className={saveFeedback && !hasChanged ? 'detail-edit-status success' : 'detail-edit-status'}>
-                {uploadingImage
-                  ? '图片上传中...'
-                  : saveFeedback && !hasChanged
-                    ? saveFeedback
-                    : hasChanged
-                      ? '有未保存的修改'
-                      : '当前没有未保存修改'}
-              </span>
-              <button
-                type="button"
-                className="marker-form-secondary-button"
-                disabled={saving || uploadingImage}
-                onClick={() => {
-                  setDraftNote(panelMarker.note);
-                  setDraftImageUrls(panelMarker.imageUrls ?? []);
-                  setDraftTripId(panelMarker.tripId ?? '');
-                  setDraftTags(panelMarker.tags ?? []);
-                  setDraftMood(panelMarker.mood ?? '');
-                  setDraftWeather(panelMarker.weather ?? '');
-                  setDraftTransport(panelMarker.transport ?? '');
-                  setDraftBudgetLevel(panelMarker.budgetLevel ?? '');
-                  setEditError('');
-                  setSaveFeedback('');
-                  setIsEditing(false);
-                }}
-              >
-                取消
-              </button>
-              <button
-                type="button"
-                className="primary-button"
-                disabled={!canSave}
-                onClick={() => void handleSave()}
-              >
-                {saving ? '保存中...' : '保存修改'}
-              </button>
-            </div>
-          </div>
+          <MarkerEditActionBar
+            hasChanged={hasChanged}
+            uploadingImage={uploadingImage}
+            saving={saving}
+            canSave={canSave}
+            saveFeedback={saveFeedback}
+            onCancel={handleCancelEdit}
+            onSave={() => void handleSave()}
+          />
         ) : null}
       </aside>
     </div>

@@ -1,4 +1,4 @@
-import type { AdminQualityIssueDto } from '../../lib/api/types';
+import type { AdminQualityAutoFixResultDto, AdminQualityIssueDto } from '../../lib/api/types';
 import {
   ADMIN_QUALITY_SEVERITY_LABELS,
   ADMIN_QUALITY_TYPE_LABELS,
@@ -6,12 +6,23 @@ import {
   formatAdminDate,
 } from '../../modules/admin/adminPageModel';
 
+const AUTO_FIX_RISK_LABELS: Record<NonNullable<AdminQualityIssueDto['autoFix']>['riskLevel'], string> = {
+  low: '低风险',
+  medium: '中风险',
+  high: '高风险',
+};
+
 interface AdminQualityIssueDrawerProps {
   issue: AdminQualityIssueDto | null;
   onClose: () => void;
   onCopyContext: (issue: AdminQualityIssueDto) => void;
   onMarkViewed: (issue: AdminQualityIssueDto) => void;
   onNavigate: (issue: AdminQualityIssueDto) => void;
+  autoFixPreview?: AdminQualityAutoFixResultDto | null;
+  autoFixLoading?: boolean;
+  autoFixApplying?: boolean;
+  onPreviewAutoFix?: (issue: AdminQualityIssueDto) => void;
+  onApplyAutoFix?: (issue: AdminQualityIssueDto) => void;
 }
 
 export default function AdminQualityIssueDrawer({
@@ -20,6 +31,11 @@ export default function AdminQualityIssueDrawer({
   onCopyContext,
   onMarkViewed,
   onNavigate,
+  autoFixPreview = null,
+  autoFixLoading = false,
+  autoFixApplying = false,
+  onPreviewAutoFix,
+  onApplyAutoFix,
 }: AdminQualityIssueDrawerProps) {
   if (!issue) {
     return null;
@@ -73,6 +89,53 @@ export default function AdminQualityIssueDrawer({
           <h3>建议</h3>
           <p>{issue.suggestedAction}</p>
         </section>
+
+        {issue.autoFix?.repairable ? (
+          <section className="admin-quality-drawer-section admin-quality-autofix">
+            <div className="admin-quality-autofix-heading">
+              <h3>可选修复</h3>
+              <span>{AUTO_FIX_RISK_LABELS[issue.autoFix.riskLevel]}</span>
+            </div>
+            <p>{issue.autoFix.description}</p>
+            {autoFixPreview?.issueId === issue.id && autoFixPreview.changes.length > 0 ? (
+              <dl className="admin-quality-autofix-changes">
+                {autoFixPreview.changes.map((change) => (
+                  <div key={change.field}>
+                    <dt>{change.field}</dt>
+                    <dd>
+                      <span>{change.before ?? '空'}</span>
+                      <strong>→</strong>
+                      <span>{change.after ?? '空'}</span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+            {autoFixPreview?.issueId === issue.id && autoFixPreview.status !== 'preview' ? (
+              <p className="admin-quality-autofix-note">{autoFixPreview.description}</p>
+            ) : null}
+            <div className="admin-quality-drawer-actions">
+              <button
+                type="button"
+                className="ghost-button"
+                disabled={autoFixLoading || autoFixApplying}
+                onClick={() => onPreviewAutoFix?.(issue)}
+              >
+                {autoFixLoading ? '生成预览中...' : '预览修复'}
+              </button>
+              {autoFixPreview?.issueId === issue.id && autoFixPreview.status === 'preview' ? (
+                <button
+                  type="button"
+                  className="primary-button"
+                  disabled={autoFixApplying}
+                  onClick={() => onApplyAutoFix?.(issue)}
+                >
+                  {autoFixApplying ? '修复中...' : '确认修复'}
+                </button>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
 
         <div className="admin-quality-drawer-actions">
           {navigationTarget ? (

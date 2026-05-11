@@ -13,11 +13,18 @@ import AdminQualitySummaryPanel from '../../components/admin/AdminQualitySummary
 import AdminRankingTable from '../../components/admin/AdminRankingTable';
 import AppToast, { type AppToastTone } from '../../components/ui/AppToast';
 import TravelIcon from '../../components/ui/TravelIcon';
-import { fetchAdminAuditLogs, fetchAdminOverview, recordAdminAuditLog } from '../../lib/api/adminApi';
+import {
+  applyAdminQualityAutoFix,
+  fetchAdminAuditLogs,
+  fetchAdminOverview,
+  previewAdminQualityAutoFix,
+  recordAdminAuditLog,
+} from '../../lib/api/adminApi';
 import type {
   AdminAuditActionDto,
   AdminAuditLogDto,
   AdminOverviewResponseDto,
+  AdminQualityAutoFixResultDto,
   AdminQualityIssueDto,
 } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
@@ -55,6 +62,16 @@ export default function AdminPage({ account, onLogout, onNavigateHome, onNavigat
   const [auditActionFilter, setAuditActionFilter] = useState<AdminAuditActionDto | 'all'>('all');
   const [toastMessage, setToastMessage] = useState('');
   const [toastTone, setToastTone] = useState<AppToastTone>('info');
+  const [autoFixPreview, setAutoFixPreview] = useState<AdminQualityAutoFixResultDto | null>(null);
+  const [autoFixLoading, setAutoFixLoading] = useState(false);
+  const [autoFixApplying, setAutoFixApplying] = useState(false);
+
+  const refreshAdminOverview = async () => {
+    const response = await fetchAdminOverview();
+    setOverview(response);
+    setSelectedAccountId((current) => current ?? response.accounts[0]?.id ?? null);
+    return response;
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -124,6 +141,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome, onNavigat
 
   const handleSelectQualityIssue = (issue: AdminQualityIssueDto) => {
     setSelectedQualityIssueId(issue.id);
+    setAutoFixPreview(null);
     void appendAuditLog({
       action: 'quality_issue_viewed',
       targetKind: issue.targetKind,
@@ -190,6 +208,63 @@ export default function AdminPage({ account, onLogout, onNavigateHome, onNavigat
   const handleQualityFiltersChange = (filters: AdminQualityFilters) => {
     setQualityFilters(filters);
     setSelectedQualityIssueId(null);
+    setAutoFixPreview(null);
+  };
+
+  const removeQualityIssueFromOverview = (issueId: string) => {
+    setOverview((current) => {
+      if (!current?.quality) {
+        return current;
+      }
+
+      const nextIssues = current.quality.issues.filter((issue) => issue.id !== issueId);
+      return {
+        ...current,
+        quality: {
+          ...current.quality,
+          summary: {
+            ...current.quality.summary,
+            criticalCount: nextIssues.filter((issue) => issue.severity === 'critical').length,
+            warningCount: nextIssues.filter((issue) => issue.severity === 'warning').length,
+            infoCount: nextIssues.filter((issue) => issue.severity === 'info').length,
+            affectedAccountCount: new Set(nextIssues.map((issue) => issue.accountId).filter(Boolean)).size,
+          },
+          issues: nextIssues,
+        },
+      };
+    });
+  };
+
+  const handlePreviewAutoFix = async (issue: AdminQualityIssueDto) => {
+    setAutoFixLoading(true);
+    try {
+      const result = await previewAdminQualityAutoFix(issue.id);
+      setAutoFixPreview(result);
+      showToast(result.status === 'preview' ? '已生成修复预览' : result.description, result.status === 'preview' ? 'success' : 'info');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '修复预览失败', 'error');
+    } finally {
+      setAutoFixLoading(false);
+    }
+  };
+
+  const handleApplyAutoFix = async (issue: AdminQualityIssueDto) => {
+    setAutoFixApplying(true);
+    try {
+      const result = await applyAdminQualityAutoFix(issue.id);
+      setAutoFixPreview(result);
+      if (result.status === 'applied' || result.status === 'already_resolved') {
+        removeQualityIssueFromOverview(issue.id);
+        setSelectedQualityIssueId(null);
+        setAutoFixPreview(null);
+        await refreshAdminOverview();
+      }
+      showToast(result.status === 'applied' ? '已完成自动修复' : result.description, result.status === 'not_repairable' ? 'info' : 'success');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '自动修复失败', 'error');
+    } finally {
+      setAutoFixApplying(false);
+    }
   };
 
   return (
@@ -232,7 +307,11 @@ export default function AdminPage({ account, onLogout, onNavigateHome, onNavigat
         <>
           <AdminOverviewCards overview={overview} />
           <AdminQualityReminderPanel overview={overview} />
-          <AdminQualitySummaryPanel overview={overview} />
+          <AdminQualitySummaryPanel
+            overview={overview}
+            onSelectIssue={handleSelectQualityIssue}
+            onNavigateIssue={handleNavigateQualityIssue}
+          />
           <section className="card admin-quality-workbench">
             <AdminQualityFiltersPanel
               accounts={overview.accounts}
@@ -433,6 +512,11 @@ export default function AdminPage({ account, onLogout, onNavigateHome, onNavigat
             onCopyContext={handleCopyQualityIssueContext}
             onMarkViewed={handleMarkQualityIssueViewed}
             onNavigate={handleNavigateQualityIssue}
+            autoFixPreview={autoFixPreview}
+            autoFixLoading={autoFixLoading}
+            autoFixApplying={autoFixApplying}
+            onPreviewAutoFix={handlePreviewAutoFix}
+            onApplyAutoFix={handleApplyAutoFix}
           />
         </>
       ) : null}

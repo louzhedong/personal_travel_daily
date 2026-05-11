@@ -92,6 +92,8 @@ export const ADMIN_AUDIT_ACTION_LABELS: Record<AdminAuditActionDto, string> = {
   quality_issue_viewed: '查看问题',
   quality_issue_context_copied: '复制上下文',
   quality_issue_navigated: '定位问题',
+  quality_issue_auto_fix_previewed: '预览修复',
+  quality_issue_auto_fixed: '自动修复',
   quality_issue_list_filtered: '筛选问题',
   audit_trail_viewed: '查看审计',
 };

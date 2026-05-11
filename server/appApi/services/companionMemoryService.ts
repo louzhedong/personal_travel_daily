@@ -298,6 +298,18 @@ function buildGuides(source: CompanionMemorySource): CompanionMemoryModel['guide
     .slice(0, 8);
 }
 
+function countSourceGuides(source: CompanionMemorySource) {
+  if (source.guides.length > 0) {
+    return source.guides.length;
+  }
+
+  return new Set(
+    source.markers
+      .flatMap((marker) => marker.savedGuides)
+      .map((guide) => `${guide.guideIdentity}:${guide.saveContextKey}`),
+  ).size;
+}
+
 function buildHeadline(source: CompanionMemorySource, markers: CompanionMemoryMarker[], topCities: CompanionMemoryModel['topCities']) {
   if (markers.length === 0) {
     return `还没有和 ${source.name} 留下旅行记录，下一次出发后这里会自动整理共同回忆。`;
@@ -370,6 +382,7 @@ function buildCompanionMemoryModel(source: CompanionMemorySource, generatedAt: D
   const markers = source.markers;
   const photos = buildPhotos(markers);
   const guides = buildGuides(source);
+  const sourceGuideCount = countSourceGuides(source);
   const topCities = buildTopCities(markers);
   const yearlySeries = buildYearlySeries(markers);
   const regions = buildTopRegions(markers);
@@ -390,7 +403,7 @@ function buildCompanionMemoryModel(source: CompanionMemorySource, generatedAt: D
       cityCount: new Set(markers.map((marker) => `${marker.scope}:${marker.scopeId}:${marker.city}`)).size,
       regionCount: new Set(markers.map((marker) => `${marker.scope}:${marker.scopeId}`)).size,
       photoCount: sourcePhotoCount,
-      guideCount: guides.length,
+      guideCount: sourceGuideCount,
       firstSharedAt: firstMarker?.visitedStartAt,
       latestSharedAt: latestMarker?.visitedStartAt,
       headline: buildHeadline(source, markers, topCities),
@@ -409,7 +422,7 @@ function buildCompanionMemoryModel(source: CompanionMemorySource, generatedAt: D
       stale: false,
       sourceMarkerCount: markers.length,
       sourcePhotoCount,
-      sourceGuideCount: guides.length,
+      sourceGuideCount,
     },
   };
 }

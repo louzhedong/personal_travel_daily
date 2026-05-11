@@ -1,38 +1,19 @@
 import { useEffect, useState } from 'react';
 import { fetchSession, login, logout, register } from '../lib/api/authApi';
 import type { AuthAccount } from '../types';
-import AdminPage from './admin/AdminPage';
-import AchievementsPage from './achievements/AchievementsPage';
 import AuthPage from './auth/AuthPage';
-import CompanionMemoriesPage from './companions/CompanionMemoriesPage';
-import PhotoCurationPage from './photos/PhotoCurationPage';
-import AccountSettingsPage from './settings/AccountSettingsPage';
-import TravelApp from './TravelApp';
-import StatsPage from './stats/StatsPage';
-import TripDetailPage from './trips/TripDetailPage';
-import TripStoryPage from './trips/TripStoryPage';
-import AnnualReviewPage from './yearbook/AnnualReviewPage';
+import { renderAuthenticatedRoute } from './app/routeRenderers';
+import { resolveRestoredRoute } from './app/routeRestore';
+import { shouldShowAuthPage } from './app/routeGuards';
 // 中文：统一从 app/router 模块消费手写路由（类型 / 工厂 / hook）。
 // English: consume the hand-rolled router (types / factories / hook) from app/router.
 import {
-  createAdminRoute,
-  createAchievementsRoute,
-  createAnnualReviewRoute,
-  createCompanionMemoriesRoute,
   createHomeRoute,
   createLoginRoute,
-  createPhotoCurationRoute,
   createRegisterRoute,
-  createSettingsRoute,
-  createStatsRoute,
-  createTripChecklistRoute,
-  createTripDetailRoute,
-  createTripStoryRoute,
-  parsePathname,
   useAppRouter,
   type AppRoute,
 } from './app/router';
-import TripChecklistPage from './trips/TripChecklistPage';
 
 function App() {
   // 中文：route / 导航动作均来自 useAppRouter，App.tsx 不再直接触碰 history。
@@ -61,37 +42,10 @@ function App() {
           return;
         }
 
+        const resolvedRoute = resolveRestoredRoute({ account: response.account, route });
         setAccount(response.account);
-        let nextRoute: AppRoute;
-        if (!response.account) {
-          nextRoute = route.kind === 'register' ? createRegisterRoute() : createLoginRoute();
-        } else if (route.kind === 'admin' && response.account.role !== 'admin') {
-          nextRoute = createHomeRoute();
-          setEntryMessage('当前账号没有后台权限，已为你返回旅行主页。');
-        } else if (route.kind === 'admin' && response.account.role === 'admin') {
-          nextRoute = createAdminRoute();
-        } else if (route.kind === 'settings') {
-          nextRoute = createSettingsRoute();
-        } else if (route.kind === 'tripDetail') {
-          nextRoute = createTripDetailRoute(route.tripId);
-        } else if (route.kind === 'tripStory') {
-          nextRoute = createTripStoryRoute(route.tripId);
-        } else if (route.kind === 'tripChecklist') {
-          nextRoute = createTripChecklistRoute(route.tripId);
-        } else if (route.kind === 'annualReview') {
-          nextRoute = createAnnualReviewRoute(route.year);
-        } else if (route.kind === 'achievements') {
-          nextRoute = createAchievementsRoute();
-        } else if (route.kind === 'companionMemories') {
-          nextRoute = createCompanionMemoriesRoute(route.companionId);
-        } else if (route.kind === 'photoCuration') {
-          nextRoute = createPhotoCurationRoute(route.query);
-        } else if (route.kind === 'stats') {
-          nextRoute = createStatsRoute();
-        } else {
-          nextRoute = createHomeRoute();
-        }
-        replace(nextRoute);
+        setEntryMessage(resolvedRoute.entryMessage);
+        replace(resolvedRoute.route);
       })
       .catch(() => {
         if (!cancelled) {
@@ -152,7 +106,7 @@ function App() {
     );
   }
 
-  if (!account || route.kind === 'login' || route.kind === 'register') {
+  if (shouldShowAuthPage(account, route)) {
     return (
       <AuthPage
         mode={route.kind === 'register' ? 'register' : 'login'}
@@ -164,156 +118,21 @@ function App() {
     );
   }
 
-  if (route.kind === 'admin') {
-    return (
-      <AdminPage
-        account={account}
-        onLogout={handleLogout}
-        onNavigateHome={() => {
-          setEntryMessage(null);
-          goBackOrReplace(createHomeRoute());
-        }}
-        onNavigateToPath={(path) => {
-          const [pathname, search = ''] = path.split('?');
-          navigate(parsePathname(pathname, search ? `?${search}` : ''));
-        }}
-      />
-    );
+  if (!account) {
+    return null;
   }
 
-  if (route.kind === 'settings') {
-    return (
-      <AccountSettingsPage
-        account={account}
-        onAccountUpdated={setAccount}
-        onLogout={handleLogout}
-        onLoggedOut={handleLoggedOut}
-        onNavigateBack={() => goBackOrReplace(createHomeRoute())}
-      />
-    );
-  }
-
-  if (route.kind === 'tripDetail') {
-    return (
-      <TripDetailPage
-        account={account}
-        tripId={route.tripId}
-        onLogout={handleLogout}
-        onNavigateBack={() => goBackOrReplace(createStatsRoute())}
-        onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
-        onOpenTripStory={(tripId) => navigate(createTripStoryRoute(tripId))}
-        onOpenCompanionMemories={(companionId) => navigate(createCompanionMemoriesRoute(companionId))}
-        onOpenPhotoCuration={(query) => navigate(createPhotoCurationRoute(query))}
-      />
-    );
-  }
-
-  if (route.kind === 'tripStory') {
-    return (
-      <TripStoryPage
-        account={account}
-        tripId={route.tripId}
-        onLogout={handleLogout}
-        onNavigateBack={() => goBackOrReplace(createTripDetailRoute(route.tripId))}
-        onOpenPhotoCuration={(query) => navigate(createPhotoCurationRoute(query))}
-      />
-    );
-  }
-
-  if (route.kind === 'tripChecklist') {
-    return (
-      <TripChecklistPage
-        account={account}
-        tripId={route.tripId}
-        onLogout={handleLogout}
-        onNavigateBack={() => goBackOrReplace(createTripDetailRoute(route.tripId))}
-      />
-    );
-  }
-
-  if (route.kind === 'annualReview') {
-    return (
-      <AnnualReviewPage
-        account={account}
-        year={route.year}
-        onLogout={handleLogout}
-        onNavigateBack={() => goBackOrReplace(createStatsRoute())}
-        onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
-        onOpenAchievements={() => navigate(createAchievementsRoute())}
-        onOpenPhotoCuration={(query) => navigate(createPhotoCurationRoute(query))}
-      />
-    );
-  }
-
-  if (route.kind === 'achievements') {
-    return (
-      <AchievementsPage
-        account={account}
-        onLogout={handleLogout}
-        onNavigateBack={() => goBackOrReplace(createStatsRoute())}
-      />
-    );
-  }
-
-  if (route.kind === 'companionMemories') {
-    return (
-      <CompanionMemoriesPage
-        account={account}
-        companionId={route.companionId}
-        onLogout={handleLogout}
-        onNavigateBack={() => goBackOrReplace(createStatsRoute())}
-      />
-    );
-  }
-
-  if (route.kind === 'photoCuration') {
-    return (
-      <PhotoCurationPage
-        account={account}
-        initialQuery={route.query}
-        onLogout={handleLogout}
-        onNavigateBack={() => goBackOrReplace(createHomeRoute())}
-      />
-    );
-  }
-
-  if (route.kind === 'stats') {
-    return (
-      <StatsPage
-        account={account}
-        onLogout={handleLogout}
-        onNavigateHome={() => {
-          setEntryMessage(null);
-          goBackOrReplace(createHomeRoute());
-        }}
-        onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
-        onOpenAnnualReview={(year) => navigate(createAnnualReviewRoute(year))}
-        onOpenAchievements={() => navigate(createAchievementsRoute())}
-        onOpenCompanionMemories={(companionId) => navigate(createCompanionMemoriesRoute(companionId))}
-      />
-    );
-  }
-
-  return (
-    <TravelApp
-      account={account}
-      onLogout={handleLogout}
-      onOpenStats={() => navigate(createStatsRoute())}
-      onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
-      onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
-      onOpenPhotoCuration={() => navigate(createPhotoCurationRoute())}
-      onOpenSettings={() => navigate(createSettingsRoute())}
-      onOpenAdmin={
-        account.role === 'admin'
-          ? () => {
-              setEntryMessage(null);
-              navigate(createAdminRoute());
-            }
-          : undefined
-      }
-      entryMessage={entryMessage}
-    />
-  );
+  return renderAuthenticatedRoute({
+    account,
+    entryMessage,
+    route,
+    navigate,
+    goBackOrReplace,
+    setAccount,
+    setEntryMessage,
+    onLogout: handleLogout,
+    onLoggedOut: handleLoggedOut,
+  });
 }
 
 export default App;

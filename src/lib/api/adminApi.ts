@@ -4,6 +4,7 @@ import type {
   AdminAuditLogDto,
   AdminAuditLogsResponseDto,
   AdminOverviewResponseDto,
+  AdminQualityAutoFixResultDto,
   CreateAdminAuditLogInputDto,
 } from './types';
 
@@ -36,4 +37,18 @@ export function fetchAdminAuditLogs(query: FetchAdminAuditLogsQuery = {}) {
 
 export function recordAdminAuditLog(input: CreateAdminAuditLogInputDto) {
   return httpClient.post<AdminAuditLogDto>(adminBaseUrl, '/admin/audit-logs', input);
+}
+
+export function previewAdminQualityAutoFix(issueId: string) {
+  return httpClient.post<AdminQualityAutoFixResultDto>(adminBaseUrl, '/admin/quality-issues/auto-fix', {
+    issueId,
+    dryRun: true,
+  });
+}
+
+export function applyAdminQualityAutoFix(issueId: string) {
+  return httpClient.post<AdminQualityAutoFixResultDto>(adminBaseUrl, '/admin/quality-issues/auto-fix', {
+    issueId,
+    dryRun: false,
+  });
 }

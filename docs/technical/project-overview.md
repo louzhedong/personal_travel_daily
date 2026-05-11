@@ -206,6 +206,7 @@ Summary: Pure logic is pulled out of components into `src/lib` and per-module vi
 - `src/lib/api/httpClient.ts`：主业务 API 客户端基础能力，默认携带 `credentials`，本地开发优先走同源 `/api` 代理。
 - `src/lib/api/authApi.ts`：`register` / `login` / `fetchSession` / `logout`。
 - `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats`、`photoCuration` 等领域客户端，其中 `tripsApi.ts` 继续承接 checklist 与 planning 子资源。
+- `src/lib/api/dto/*`：前端 API DTO 按领域拆分；`src/lib/api/types.ts` 仅作为兼容 barrel 和错误码 re-export。
 - `src/lib/api/accountSettingsApi.ts`：账号设置、密码修改和会话治理客户端。
 - `src/lib/repositories/remoteTravelStoreRepository.ts`：组合多个 API 调用，为页面层提供稳定边界。
 - `src/lib/repositories/*`：IndexedDB 仅保留攻略缓存与本地辅助状态，不再作为主数据持久化。
@@ -224,6 +225,7 @@ Summary: The frontend talks to the backend through typed API modules and a remot
 - `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、成就解锁持久化、trip detail、photo curation、admin overview 等）。
 - `server/appApi/auth/*`：`requestAuth`（恢复 / 鉴权）、`session`（token、cookie 序列化）、`password`（hash / verify）。
 - `server/appApi/services/accountSettingsService.ts`：昵称、密码和多设备会话治理规则。
+- `server/appApi/dto/*`：后端 API DTO 按领域拆分；`server/appApi/types.ts` 仅作为兼容 barrel。
 - `server/appApi/repositories/*`：Prisma 查询封装。
 - `server/appApi/serializers/*`：DB 模型 → 前端模型。
 - `server/appApi/errors.ts`：统一业务错误。
@@ -304,6 +306,7 @@ Summary: MySQL is the only source of truth; caches are auxiliary; admin permissi
 - 文档：新增技术文档优先写在 `docs/technical/`；AI 协作材料写在 `docs/prompts/`，并视为辅助素材而非事实源。
 - 每次 PR：同步 `CHANGELOG.md` 与涉及的 `docs/` 说明，保持 README 为入口级信息。
 - PR 默认直接创建为 Ready for review；除非明确要求 Draft。
+- API DTO：新增 DTO 必须进入前后端对应 `dto/*` 文件，不再直接膨胀兼容 `types.ts` barrel。
 
 Summary: The project enforces bilingual docs, strict layering, and a single source of truth to keep long-term maintenance cost low.
 
@@ -321,6 +324,7 @@ Summary: The project enforces bilingual docs, strict layering, and a single sour
 - [地图回放模式](./map-replay-mode.md)
 - [本地联调排查文档](./local-dev-troubleshooting.md)
 - [未来 Roadmap](./future-roadmap.md)
+- [架构硬化深度分析](./architecture-hardening-analysis.md)
 - 历史档案：[MySQL 升级技术方案（归档）](./archived/mysql-upgrade-design.md)
 
 Summary: Use this section as a jump table into feature-specific specs; start here and drill further only when you need the details.

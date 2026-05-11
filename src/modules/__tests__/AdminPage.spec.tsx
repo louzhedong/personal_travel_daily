@@ -1,13 +1,21 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchAdminAuditLogs, fetchAdminOverview, recordAdminAuditLog } from '../../lib/api/adminApi';
+import {
+  applyAdminQualityAutoFix,
+  fetchAdminAuditLogs,
+  fetchAdminOverview,
+  previewAdminQualityAutoFix,
+  recordAdminAuditLog,
+} from '../../lib/api/adminApi';
 import AdminPage from '../admin/AdminPage';
 
 vi.mock('../../lib/api/adminApi', () => ({
   fetchAdminOverview: vi.fn(),
   fetchAdminAuditLogs: vi.fn(),
   recordAdminAuditLog: vi.fn(),
+  previewAdminQualityAutoFix: vi.fn(),
+  applyAdminQualityAutoFix: vi.fn(),
 }));
 
 describe('AdminPage', () => {
@@ -20,6 +28,29 @@ describe('AdminPage', () => {
       adminAccountName: 'Voyage Atlas',
       action: 'quality_issue_viewed',
       createdAt: '2026-04-22T00:00:00.000Z',
+    });
+    vi.mocked(previewAdminQualityAutoFix).mockResolvedValue({
+      issueId: 'trip_missing_cover:trip-1',
+      issueType: 'trip_missing_cover',
+      targetKind: 'trip',
+      targetId: 'trip-1',
+      repairable: true,
+      status: 'preview',
+      title: '自动设置行程封面',
+      description: '将使用第一张旅行照片作为封面。',
+      changes: [{ field: 'coverImageUrl', before: null, after: 'https://example.com/cover.jpg' }],
+    });
+    vi.mocked(applyAdminQualityAutoFix).mockResolvedValue({
+      issueId: 'trip_missing_cover:trip-1',
+      issueType: 'trip_missing_cover',
+      targetKind: 'trip',
+      targetId: 'trip-1',
+      repairable: true,
+      status: 'applied',
+      title: '自动设置行程封面',
+      description: '已设置行程封面。',
+      changes: [{ field: 'coverImageUrl', before: null, after: 'https://example.com/cover.jpg' }],
+      appliedAt: '2026-04-22T00:00:00.000Z',
     });
   });
 
@@ -223,6 +254,12 @@ describe('AdminPage', () => {
               tripId: 'trip-1',
             },
             canNavigate: true,
+            autoFix: {
+              repairable: true,
+              label: '自动设置封面',
+              description: '从该行程已有旅行照片中选择第一张作为封面。',
+              riskLevel: 'low',
+            },
           },
         ],
       },
@@ -285,6 +322,14 @@ describe('AdminPage', () => {
         targetId: 'marker-1',
       }),
     );
+
+    await userEvent.click(screen.getByRole('button', { name: '关闭' }));
+    await userEvent.click(screen.getAllByRole('button', { name: /行程缺少封面/ })[1]);
+    await userEvent.click(await screen.findByRole('button', { name: '预览修复' }));
+    expect(await screen.findByText('coverImageUrl')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: '确认修复' }));
+    expect(previewAdminQualityAutoFix).toHaveBeenCalledWith('trip_missing_cover:trip-1');
+    expect(applyAdminQualityAutoFix).toHaveBeenCalledWith('trip_missing_cover:trip-1');
   });
 
   it('calls navigation and logout actions', async () => {

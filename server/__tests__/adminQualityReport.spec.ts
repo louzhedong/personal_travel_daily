@@ -185,6 +185,11 @@ describe('buildAdminQualityReport', () => {
         tripId: 'trip-1',
       },
       canNavigate: true,
+      autoFix: {
+        repairable: true,
+        label: '自动设置封面',
+        riskLevel: 'low',
+      },
     });
     expect(report.issues.find((issue) => issue.type === 'photo_missing_caption')).toMatchObject({
       navigationKind: 'photoCuration',
@@ -194,10 +199,41 @@ describe('buildAdminQualityReport', () => {
         photoId: 'image-1',
       },
       canNavigate: true,
+      autoFix: {
+        repairable: true,
+        label: '自动补充说明',
+        riskLevel: 'low',
+      },
     });
     expect(report.issues.find((issue) => issue.type === 'marker_unassigned_trip')).toMatchObject({
       navigationKind: 'adminOnly',
       canNavigate: false,
+      autoFix: {
+        repairable: true,
+        label: '自动归入行程',
+        riskLevel: 'medium',
+      },
+    });
+    expect(report.issues.find((issue) => issue.type === 'planning_overdue')).toMatchObject({
+      autoFix: {
+        repairable: true,
+        label: '顺延规划日期',
+        riskLevel: 'medium',
+      },
+    });
+    expect(report.issues.find((issue) => issue.type === 'guide_source_degraded')).toMatchObject({
+      autoFix: {
+        repairable: true,
+        label: '重置来源健康',
+        riskLevel: 'high',
+      },
+    });
+    expect(report.issues.find((issue) => issue.type === 'companion_memory_snapshot_stale')).toMatchObject({
+      autoFix: {
+        repairable: true,
+        label: '刷新回忆快照',
+        riskLevel: 'high',
+      },
     });
   });
 

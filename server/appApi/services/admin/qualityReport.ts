@@ -16,6 +16,45 @@ const SEVERITY_RANK: Record<AdminQualityIssueDto['severity'], number> = {
   info: 2,
 };
 
+const AUTO_FIXES: Partial<Record<AdminQualityIssueDto['type'], AdminQualityIssueDto['autoFix']>> = {
+  trip_missing_cover: {
+    repairable: true,
+    label: '自动设置封面',
+    description: '从该行程已有旅行照片中选择第一张作为封面。',
+    riskLevel: 'low',
+  },
+  photo_missing_caption: {
+    repairable: true,
+    label: '自动补充说明',
+    description: '使用照片所属记录的地区与城市生成简短说明。',
+    riskLevel: 'low',
+  },
+  marker_unassigned_trip: {
+    repairable: true,
+    label: '自动归入行程',
+    description: '按记录日期匹配最合适的现有行程。',
+    riskLevel: 'medium',
+  },
+  planning_overdue: {
+    repairable: true,
+    label: '顺延规划日期',
+    description: '将过期规划顺延 7 天，保留规划内容。',
+    riskLevel: 'medium',
+  },
+  guide_source_degraded: {
+    repairable: true,
+    label: '重置来源健康',
+    description: '确认排障后清空该来源的失败计数与失败原因。',
+    riskLevel: 'high',
+  },
+  companion_memory_snapshot_stale: {
+    repairable: true,
+    label: '刷新回忆快照',
+    description: '重新生成旅伴回忆快照，使统计与当前数据一致。',
+    riskLevel: 'high',
+  },
+};
+
 interface BuildAdminQualityReportInput {
   accounts: AdminAccountNodeDto[];
   statusBreakdown: GuideSearchStatusBreakdownDto[];
@@ -173,6 +212,7 @@ function buildSnapshotIssue(
     targetLabel: snapshot.companion.name,
     detectedAt: getIssueDate(snapshot.expiresAt, now),
     suggestedAction: '进入旅伴回忆页刷新快照。',
+    autoFix: AUTO_FIXES.companion_memory_snapshot_stale,
     ...createCompanionMemoriesNavigation(snapshot.companionId),
   };
 }
@@ -196,6 +236,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
           targetLabel: trip.name,
           detectedAt: getIssueDate(trip.createdAt, now),
           suggestedAction: '在行程详情中设置封面。',
+          autoFix: AUTO_FIXES.trip_missing_cover,
           ...createTripDetailNavigation(trip.id),
         });
       }
@@ -234,6 +275,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
             targetLabel: `${marker.scopeName} · ${marker.city}`,
             detectedAt: getIssueDate(marker.createdAt, now),
             suggestedAction: '在时间线整理模式中归入行程。',
+            autoFix: AUTO_FIXES.marker_unassigned_trip,
             ...createAdminOnlyNavigation(),
           });
         }
@@ -252,6 +294,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
               targetLabel: `${marker.scopeName} · ${marker.city}`,
               detectedAt: getIssueDate(marker.createdAt, now),
               suggestedAction: '在影像编辑台补充照片说明。',
+              autoFix: AUTO_FIXES.photo_missing_caption,
               ...createPhotoCurationNavigation({
                 tripId: marker.tripId,
                 companionId: companion.id,
@@ -300,6 +343,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
             targetLabel: item.title,
             detectedAt: getIssueDate(item.plannedDate, now),
             suggestedAction: '在行程详情中确认是否转为记录。',
+            autoFix: AUTO_FIXES.planning_overdue,
             ...createTripChecklistNavigation(item.tripId),
           });
         }
@@ -323,6 +367,7 @@ export function buildAdminQualityReport(input: BuildAdminQualityReportInput): Ad
         targetLabel: source.sourceName,
         detectedAt: getIssueDate(source.lastFailureAt, now),
         suggestedAction: '检查来源适配器或降级该来源权重。',
+        autoFix: AUTO_FIXES.guide_source_degraded,
         ...createAdminOnlyNavigation(),
       });
     }
