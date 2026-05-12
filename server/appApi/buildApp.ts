@@ -4,6 +4,7 @@ import { getAppApiEnv } from './env.js';
 import { normalizeAppApiError } from './errors.js';
 import { registerAdminRoutes } from './routes/admin.js';
 import { registerAccountSettingsRoutes } from './routes/accountSettings.js';
+import { registerAtlasRoutes } from './routes/atlas.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerBootstrapRoutes } from './routes/bootstrap.js';
 import { registerCompanionMemoryRoutes } from './routes/companionMemories.js';
@@ -41,6 +42,7 @@ export async function buildApp() {
   await registerCompanionMemoryRoutes(app);
   await registerTripRoutes(app);
   await registerWishlistRoutes(app);
+  await registerAtlasRoutes(app);
   await registerStatsRoutes(app);
   await registerMemoryCapsuleRoutes(app);
   await registerPhotoCurationRoutes(app);

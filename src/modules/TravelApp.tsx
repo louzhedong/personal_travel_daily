@@ -19,6 +19,7 @@ interface TravelAppProps {
   onLogout: () => Promise<void> | void;
   onOpenAdmin?: () => void;
   onOpenStats?: () => void;
+  onOpenAtlas?: () => void;
   onOpenTripDetail?: (tripId: string) => void;
   onOpenTripChecklist?: (tripId: string) => void;
   onOpenPhotoCuration?: () => void;
@@ -32,6 +33,7 @@ function TravelApp({
   onLogout,
   onOpenAdmin,
   onOpenStats,
+  onOpenAtlas,
   onOpenTripDetail,
   onOpenTripChecklist,
   onOpenPhotoCuration,
@@ -283,6 +285,7 @@ function TravelApp({
         onLogout={onLogout}
         onOpenAdmin={onOpenAdmin}
         onOpenStats={onOpenStats}
+        onOpenAtlas={onOpenAtlas}
         onOpenPhotoCuration={onOpenPhotoCuration}
         onOpenMemoryCapsules={onOpenMemoryCapsules}
         onOpenSettings={onOpenSettings}

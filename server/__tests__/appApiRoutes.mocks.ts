@@ -8,6 +8,7 @@ const appApiRouteMocks = vi.hoisted(() => ({
   repairAdminQualityIssueMock: vi.fn(),
   getStatsOverviewMock: vi.fn(),
   getAnnualReviewMock: vi.fn(),
+  getAtlasTimelineMock: vi.fn(),
   listAccountMemoryCapsulesMock: vi.fn(),
   createAccountMemoryCapsuleMock: vi.fn(),
   getAccountMemoryCapsuleMock: vi.fn(),
@@ -84,6 +85,10 @@ vi.mock('../appApi/services/adminQualityAutoFixService.js', () => ({
 vi.mock('../appApi/services/statsService.js', () => ({
   getStatsOverview: appApiRouteMocks.getStatsOverviewMock,
   getAnnualReview: appApiRouteMocks.getAnnualReviewMock,
+}));
+
+vi.mock('../appApi/services/atlasService.js', () => ({
+  getAtlasTimeline: appApiRouteMocks.getAtlasTimelineMock,
 }));
 
 vi.mock('../appApi/services/memoryCapsuleService.js', () => ({

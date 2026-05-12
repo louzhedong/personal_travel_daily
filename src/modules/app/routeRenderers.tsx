@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { AuthAccount } from '../../types';
 import AdminPage from '../admin/AdminPage';
 import AchievementsPage from '../achievements/AchievementsPage';
+import TravelAtlasPage from '../atlas/TravelAtlasPage';
 import MemoryCapsuleCenterPage from '../capsules/MemoryCapsuleCenterPage';
 import MemoryCapsuleDetailPage from '../capsules/MemoryCapsuleDetailPage';
 import CompanionMemoriesPage from '../companions/CompanionMemoriesPage';
@@ -17,6 +18,7 @@ import { canOpenAdmin } from './routeGuards';
 import {
   createAdminRoute,
   createAchievementsRoute,
+  createAtlasRoute,
   createAnnualReviewRoute,
   createCompanionMemoriesRoute,
   createHomeRoute,
@@ -79,6 +81,16 @@ export function renderAuthenticatedRoute({
         onAccountUpdated={setAccount}
         onLogout={onLogout}
         onLoggedOut={onLoggedOut}
+        onNavigateBack={() => goBackOrReplace(createHomeRoute())}
+      />
+    );
+  }
+
+  if (route.kind === 'atlas') {
+    return (
+      <TravelAtlasPage
+        account={account}
+        onLogout={onLogout}
         onNavigateBack={() => goBackOrReplace(createHomeRoute())}
       />
     );
@@ -209,6 +221,7 @@ export function renderAuthenticatedRoute({
       account={account}
       onLogout={onLogout}
       onOpenStats={() => navigate(createStatsRoute())}
+      onOpenAtlas={() => navigate(createAtlasRoute())}
       onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
       onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
       onOpenPhotoCuration={() => navigate(createPhotoCurationRoute())}

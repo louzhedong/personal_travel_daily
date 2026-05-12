@@ -560,6 +560,56 @@ describe('app api routes', () => {
     }
   });
 
+  it('returns atlas timeline payload for authenticated accounts', async () => {
+    const atlasResponse = {
+      filters: { year: '2026', month: '03', scope: 'domestic' },
+      availableYears: ['2026'],
+      companions: [{ id: 'user-alice', name: 'Alice', color: '#0f172a' }],
+      trips: [{ id: 'trip-1', name: '江南春游', startsAt: '2026-03-01', endsAt: '2026-03-03' }],
+      summary: {
+        markerCount: 1,
+        travelDays: 1,
+        cityCount: 1,
+        regionCount: 1,
+        countryCount: 0,
+        photoCount: 1,
+        companionCount: 1,
+        tripCount: 1,
+        firstVisitedAt: '2026-03-01',
+        latestVisitedAt: '2026-03-01',
+      },
+      replay: [],
+      placeIndex: { regions: [] },
+      compare: { years: [], companions: [], scopes: [] },
+      exportModel: {
+        posterTitle: '旅行地图时间机器',
+        posterSubtitle: '2026 · 1 段旅行记录 · 1 座城市',
+        routeTitle: '等待第一段旅行轨迹',
+        indexTitle: '1 座城市索引',
+      },
+      generatedAt: '2026-05-12T00:00:00.000Z',
+    };
+    mocks.getAtlasTimelineMock.mockResolvedValue(atlasResponse);
+
+    const app = await buildApp();
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/atlas/timeline?year=2026&month=03&scope=domestic',
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual(atlasResponse);
+      expect(mocks.getAtlasTimelineMock).toHaveBeenCalledWith(currentAccount, {
+        year: '2026',
+        month: '03',
+        scope: 'domestic',
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
   it('supports memory capsule routes for authenticated accounts', async () => {
     const capsuleResponse = {
       capsule: {

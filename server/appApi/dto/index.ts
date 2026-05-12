@@ -10,3 +10,4 @@ export * from './admin.js';
 export * from './stats.js';
 export * from './photos.js';
 export * from './memoryCapsules.js';
+export * from './atlas.js';

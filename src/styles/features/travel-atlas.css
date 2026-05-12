@@ -1,0 +1,223 @@
+.travel-atlas-shell {
+  min-height: 100vh;
+  padding: 28px clamp(20px, 4vw, 56px) 64px;
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.78)),
+    #f8fafc;
+  color: #0f172a;
+}
+
+.travel-atlas-topbar,
+.travel-atlas-hero,
+.travel-atlas-filters,
+.travel-atlas-stage,
+.travel-atlas-summary,
+.travel-atlas-grid,
+.travel-atlas-export,
+.travel-atlas-error {
+  width: min(100%, 1180px);
+  margin-inline: auto;
+}
+
+.travel-atlas-topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.travel-atlas-hero {
+  display: grid;
+  gap: 14px;
+  padding: 16px 0 28px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.26);
+}
+
+.travel-atlas-hero h1 {
+  margin: 0;
+  font-size: clamp(46px, 8vw, 84px);
+  font-weight: 950;
+  letter-spacing: -0.08em;
+  line-height: 0.92;
+}
+
+.travel-atlas-hero p {
+  max-width: 680px;
+  margin: 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.travel-atlas-filters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  padding: 24px 0;
+}
+
+.travel-atlas-filters .fancy-select,
+.travel-atlas-filters .fancy-select-trigger {
+  min-height: 40px;
+  height: 40px;
+}
+
+.travel-atlas-error {
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.travel-atlas-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: clamp(24px, 5vw, 64px);
+  align-items: stretch;
+}
+
+.atlas-map svg {
+  display: block;
+  width: 100%;
+  min-height: 460px;
+  border-radius: 36px;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
+}
+
+.travel-atlas-replay-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 24px 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.28);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+.travel-atlas-replay-panel h2,
+.travel-atlas-index h2,
+.travel-atlas-compare h2,
+.travel-atlas-export h2 {
+  margin: 8px 0 0;
+  font-size: 30px;
+  letter-spacing: -0.06em;
+}
+
+.travel-atlas-replay-panel p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.travel-atlas-progress {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.travel-atlas-replay-actions,
+.travel-atlas-export div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.travel-atlas-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  padding: 30px 0 20px;
+}
+
+.travel-atlas-summary div {
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+.travel-atlas-summary span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.travel-atlas-summary strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 34px;
+  letter-spacing: -0.06em;
+}
+
+.travel-atlas-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
+  gap: clamp(28px, 5vw, 72px);
+  padding-top: 24px;
+}
+
+.travel-atlas-index,
+.travel-atlas-compare,
+.travel-atlas-export {
+  padding: 24px 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.26);
+}
+
+.travel-atlas-index-row {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 18px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.travel-atlas-index-row strong {
+  color: #94a3b8;
+  font-size: 18px;
+}
+
+.travel-atlas-index-row h3 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+
+.travel-atlas-index-row p,
+.travel-atlas-compare-row em {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  font-style: normal;
+}
+
+.travel-atlas-compare-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+  padding: 13px 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.travel-atlas-compare-row span {
+  color: #64748b;
+  font-weight: 900;
+}
+
+.travel-atlas-compare-row strong {
+  font-size: 18px;
+}
+
+.travel-atlas-export {
+  margin-top: 28px;
+}
+
+.travel-atlas-export h2 {
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .travel-atlas-filters,
+  .travel-atlas-stage,
+  .travel-atlas-summary,
+  .travel-atlas-grid {
+    grid-template-columns: 1fr;
+  }
+}

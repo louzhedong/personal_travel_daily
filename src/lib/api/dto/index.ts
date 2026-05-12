@@ -10,3 +10,4 @@ export * from './admin';
 export * from './stats';
 export * from './photos';
 export * from './memoryCapsules';
+export * from './atlas';

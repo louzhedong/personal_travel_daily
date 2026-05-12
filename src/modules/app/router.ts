@@ -31,6 +31,7 @@ export type AppRoute =
   | { kind: 'register'; pathname: '/register' }
   | { kind: 'settings'; pathname: '/settings' }
   | { kind: 'admin'; pathname: '/admin' }
+  | { kind: 'atlas'; pathname: '/atlas' }
   | { kind: 'stats'; pathname: '/stats' }
   | { kind: 'achievements'; pathname: '/achievements' }
   | { kind: 'memoryCapsules'; pathname: '/capsules' }
@@ -62,6 +63,10 @@ export function createSettingsRoute(): AppRoute {
 
 export function createAdminRoute(): AppRoute {
   return { kind: 'admin', pathname: '/admin' };
+}
+
+export function createAtlasRoute(): AppRoute {
+  return { kind: 'atlas', pathname: '/atlas' };
 }
 
 export function createStatsRoute(): AppRoute {
@@ -184,6 +189,10 @@ export function parsePathname(pathname: string, search = ''): AppRoute {
 
   if (pathname === '/admin') {
     return createAdminRoute();
+  }
+
+  if (pathname === '/atlas') {
+    return createAtlasRoute();
   }
 
   if (pathname === '/settings') {
