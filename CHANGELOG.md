@@ -5,6 +5,22 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-05-09
 
+### PR 待定 / TBD `feat: 旅行地图时间机器 / Add travel atlas timeline`
+
+### Added / 新增
+
+- 新增 `/atlas` 旅行地图时间机器页面，支持地图热力、时间轴播放、地名索引、年份对比和本地 SVG 导出。
+  Added the `/atlas` Travel Atlas Timeline page with map heat, timeline replay, place index, year comparison, and local SVG exports.
+- 新增 `GET /api/atlas/timeline` 后端接口、Atlas DTO、schema、service、serializer 和 route。
+  Added the `GET /api/atlas/timeline` backend endpoint, Atlas DTOs, schema, service, serializer, and route.
+- 新增 `docs/technical/travel-atlas-timeline.md` 规划文档，并纳入文档导航。
+  Added `docs/technical/travel-atlas-timeline.md` and linked it from the docs index.
+
+### Verified / 已验证
+
+- 待补充。
+  To be completed.
+
 ### PR 待定 / TBD `feat: 旅行胶囊完整大版本 / Add travel memory capsules`
 
 ### Added / 新增

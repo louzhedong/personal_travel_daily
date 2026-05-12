@@ -10,6 +10,7 @@ interface AppHeroProps {
   onLogout: () => Promise<void> | void;
   onOpenAdmin?: () => void;
   onOpenStats?: () => void;
+  onOpenAtlas?: () => void;
   onOpenPhotoCuration?: () => void;
   onOpenMemoryCapsules?: () => void;
   onOpenSettings?: () => void;
@@ -22,6 +23,7 @@ export default function AppHero({
   onLogout,
   onOpenAdmin,
   onOpenStats,
+  onOpenAtlas,
   onOpenPhotoCuration,
   onOpenMemoryCapsules,
   onOpenSettings,
@@ -132,7 +134,7 @@ export default function AppHero({
             多人同行
           </span>
         </div>
-        {onOpenStats || onOpenPhotoCuration || onOpenMemoryCapsules || onOpenSettings || (account.role === 'admin' && onOpenAdmin) ? (
+        {onOpenStats || onOpenAtlas || onOpenPhotoCuration || onOpenMemoryCapsules || onOpenSettings || (account.role === 'admin' && onOpenAdmin) ? (
           <div className="hero-admin-row">
             {onOpenSettings ? (
               <button type="button" className="ghost-button hero-admin-button" onClick={onOpenSettings}>
@@ -142,6 +144,11 @@ export default function AppHero({
             {onOpenStats ? (
               <button type="button" className="ghost-button hero-admin-button" onClick={onOpenStats}>
                 查看行程统计
+              </button>
+            ) : null}
+            {onOpenAtlas ? (
+              <button type="button" className="ghost-button hero-admin-button" onClick={onOpenAtlas}>
+                地图时间机器
               </button>
             ) : null}
             {onOpenPhotoCuration ? (
