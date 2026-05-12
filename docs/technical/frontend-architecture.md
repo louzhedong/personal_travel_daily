@@ -144,6 +144,10 @@ The implementation still keeps both the plain timeline and the trip-grouped time
 `src/modules/trips/TripStoryPage.tsx` 是登录态私有故事页容器，继续复用 `GET /api/trips/:id/detail`，不拥有独立持久化或公开分享状态。页面自身只处理加载、模板切换、打印和导出按钮。
 `src/modules/trips/TripStoryPage.tsx` is the private authenticated story-page container. It still reuses `GET /api/trips/:id/detail` and does not own standalone persistence or public sharing state. The page itself handles loading, template switching, printing, and export actions.
 
+`src/modules/capsules/MemoryCapsuleCenterPage.tsx` 与 `MemoryCapsuleDetailPage.tsx` 承接新的旅行胶囊中心和详情编辑台。它们通过 `memoryCapsulesApi.ts` 读取持久化配置与实时派生内容，页面只负责预览、编辑、保存和本地导出，不处理公开分享权限。
+
+`src/modules/capsules/MemoryCapsuleCenterPage.tsx` and `MemoryCapsuleDetailPage.tsx` own the new capsule center and detail editing desk. They read saved configuration plus derived content through `memoryCapsulesApi.ts`; the pages only handle previewing, editing, saving, and local exports, not public sharing permissions.
+
 - `tripStoryPageModel.ts`：从 `TripDetailResponseDto` 纯函数派生故事摘要、精选照片、时间线、路线停靠点、故事徽章、路线回放海报和分享卡模型。
   `tripStoryPageModel.ts`: derives story summaries, featured photos, timeline sections, route stops, story badges, the route replay poster, and share-card models from `TripDetailResponseDto`.
 - `tripStoryExport.ts`：集中生成 SVG 长图、方形分享卡和竖版分享卡，并触发浏览器下载；不截图、不内联远程图片。

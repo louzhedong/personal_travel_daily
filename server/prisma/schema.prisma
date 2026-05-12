@@ -52,6 +52,18 @@ enum WishlistPriority {
   high
 }
 
+enum MemoryCapsuleType {
+  trip
+  annual
+  companion
+}
+
+enum MemoryCapsuleStatus {
+  draft
+  ready
+  archived
+}
+
 model Account {
   id           String               @id
   name         String
@@ -74,8 +86,31 @@ model Account {
   tripPlanningItems TripPlanningItem[]
   wishlistItems WishlistItem[]
   achievementUnlocks AchievementUnlock[]
+  memoryCapsules MemoryCapsule[]
 
   @@map("accounts")
+}
+
+model MemoryCapsule {
+  id         String              @id
+  accountId  String              @map("account_id")
+  type       MemoryCapsuleType
+  targetId   String              @map("target_id")
+  title      String
+  subtitle   String?             @db.Text
+  template   String              @default("editorial")
+  status     MemoryCapsuleStatus @default(draft)
+  configJson Json                @map("config_json")
+  createdAt  DateTime            @default(now()) @map("created_at")
+  updatedAt  DateTime            @updatedAt @map("updated_at")
+  archivedAt DateTime?           @map("archived_at")
+  account    Account             @relation(fields: [accountId], references: [id])
+
+  @@index([accountId], map: "idx_memory_capsules_account_id")
+  @@index([accountId, type], map: "idx_memory_capsules_account_type")
+  @@index([targetId], map: "idx_memory_capsules_target_id")
+  @@index([updatedAt], map: "idx_memory_capsules_updated_at")
+  @@map("memory_capsules")
 }
 
 model AdminAuditLog {

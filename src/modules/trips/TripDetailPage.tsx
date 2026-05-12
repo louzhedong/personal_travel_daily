@@ -60,6 +60,7 @@ interface TripDetailPageProps {
   onLogout: () => Promise<void> | void;
   onOpenTripChecklist?: (tripId: string) => void;
   onOpenTripStory?: (tripId: string) => void;
+  onOpenMemoryCapsules?: () => void;
   onOpenCompanionMemories?: (companionId: string) => void;
   onOpenPhotoCuration?: (query: { tripId: string }) => void;
 }
@@ -71,6 +72,7 @@ export default function TripDetailPage({
   onLogout,
   onOpenTripChecklist,
   onOpenTripStory,
+  onOpenMemoryCapsules,
   onOpenCompanionMemories,
   onOpenPhotoCuration,
 }: TripDetailPageProps) {
@@ -422,6 +424,7 @@ export default function TripDetailPage({
           onLogout={onLogout}
           onOpenEditor={openTripEditor}
           onOpenTripStory={onOpenTripStory}
+          onOpenMemoryCapsules={onOpenMemoryCapsules}
           onOpenDeleteDialog={() => {
             setFeedbackMessage('');
             setTripDeleteOpen(true);

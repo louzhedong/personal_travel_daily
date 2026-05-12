@@ -21,6 +21,7 @@ interface AnnualReviewPageProps {
   onOpenTripDetail: (tripId: string) => void;
   onOpenAchievements?: () => void;
   onOpenPhotoCuration?: (query: { year: number }) => void;
+  onOpenMemoryCapsules?: () => void;
   onLogout: () => Promise<void> | void;
 }
 
@@ -31,6 +32,7 @@ export default function AnnualReviewPage({
   onOpenTripDetail,
   onOpenAchievements,
   onOpenPhotoCuration,
+  onOpenMemoryCapsules,
   onLogout,
 }: AnnualReviewPageProps) {
   const [data, setData] = useState<AnnualReviewResponseDto | null>(null);
@@ -145,6 +147,9 @@ export default function AnnualReviewPage({
               </button>
               <button type="button" className="ghost-button" onClick={onOpenAchievements} disabled={!onOpenAchievements}>
                 查看全部成就
+              </button>
+              <button type="button" className="ghost-button" onClick={onOpenMemoryCapsules} disabled={!onOpenMemoryCapsules}>
+                创建胶囊
               </button>
               <button type="button" className="ghost-button" onClick={() => void onLogout()}>
                 退出登录

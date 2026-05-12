@@ -47,6 +47,7 @@ Summary: The architecture section now includes hardening analysis plus dedicated
 - [行前规划工作台 / Trip Planning Workspace](./technical/trip-planning-workspace.md)
 - [愿望地图 / Wishlist Map](./technical/wishlist-map.md)
 - [Story Studio 与旅行故事导出 / Story Studio and Trip Story Export](./technical/trip-story-export.md)
+- [旅行胶囊 / Travel Memory Capsules](./technical/memory-capsules.md)
 - [旅伴共同回忆 / Companion Shared Memories](./technical/companion-shared-memories.md)
 - [影像编辑台 / Photo Curation Hub](./technical/photo-curation-hub.md)
 - [管理后台与质量巡检 / Admin Quality Operations](./technical/admin-quality-operations.md)

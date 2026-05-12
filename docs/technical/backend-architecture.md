@@ -88,6 +88,10 @@ Achievement status is still computed live for the current request view. Only the
 `bootstrap` 相关序列化现在已经拆到 `serializers/bootstrap/` 子目录，包括 `companions.ts`、`trips.ts`、`markers.ts`、`guides.ts`、`shared.ts`、`store.ts` 和 `index.ts`。  
 Bootstrap serialization has now been split into the `serializers/bootstrap/` folder, including `companions.ts`, `trips.ts`, `markers.ts`, `guides.ts`, `shared.ts`, `store.ts`, and `index.ts`.
 
+旅行胶囊新增 `routes/memoryCapsules.ts`、`services/memoryCapsuleService.ts`、`services/memoryCapsules/*`、`repositories/memoryCapsuleRepository.ts` 和 `serializers/memoryCapsuleSerializer.ts`。服务层保存配置并实时组合行程、年度或旅伴源内容，避免创建新的内容快照事实源。
+
+Travel Memory Capsules add `routes/memoryCapsules.ts`, `services/memoryCapsuleService.ts`, `services/memoryCapsules/*`, `repositories/memoryCapsuleRepository.ts`, and `serializers/memoryCapsuleSerializer.ts`. The service layer persists configuration and composes trip, annual, or companion source content at read time, avoiding a second snapshot source of truth.
+
 同时保留 `serializers/bootstrapSerializer.ts` 作为对外兼容 barrel，仅 re-export 新目录中的实现。这样对内按业务域拆清楚，对外又不需要一次性修改所有 import 路径。  
 At the same time, `serializers/bootstrapSerializer.ts` remains as a compatibility barrel that simply re-exports the new folder implementation. This keeps internals organized by business domain without forcing all existing imports to change at once.
 

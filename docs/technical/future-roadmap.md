@@ -198,6 +198,19 @@ Summary: Travel achievements now ship across stats, annual review, and a standal
 
 Summary: Story Studio and annual reviews now support private printable/exportable artifacts without new backend persistence.
 
+### 旅行胶囊 / Travel Memory Capsules
+
+- 状态：完整大版本已完成。
+- 已落地范围：
+  - 新增 `/capsules` 私密胶囊中心，统一管理行程、年度和旅伴三类胶囊。
+  - 新增 `MemoryCapsule` 持久化模型，保存模板、标题、章节、照片、徽章和导出偏好配置。
+  - 新增 `/capsules/:id` 胶囊详情页，支持杂志化预览、深度编辑、PDF/打印、SVG 长图、方形分享卡和竖版分享卡导出。
+  - 首页、行程详情、年度回顾和旅伴共同回忆均提供胶囊入口。
+- 后续增强：
+  - 如果未来引入公开分享，需要单独设计 token、过期、撤销、匿名访问和隐私策略。
+
+Summary: Travel Memory Capsules now ship as a private capsule center for trip, annual, and companion retrospectives with saved configuration, editorial preview, deep editing, and local exports.
+
 ### 旅伴共同回忆 / Companion Shared Memories
 
 - 状态：一期已完成。

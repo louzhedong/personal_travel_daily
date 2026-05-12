@@ -13,6 +13,7 @@ import { registerGuideSearchLogRoutes } from './routes/guideSearchLogs.js';
 import { registerGuideSourceHealthRoutes } from './routes/guideSourceHealth.js';
 import { registerHealthRoutes } from './routes/health.js';
 import { registerMarkerRoutes } from './routes/markers.js';
+import { registerMemoryCapsuleRoutes } from './routes/memoryCapsules.js';
 import { registerPhotoCurationRoutes } from './routes/photoCuration.js';
 import { registerSavedGuideRoutes } from './routes/savedGuides.js';
 import { registerStatsRoutes } from './routes/stats.js';
@@ -41,6 +42,7 @@ export async function buildApp() {
   await registerTripRoutes(app);
   await registerWishlistRoutes(app);
   await registerStatsRoutes(app);
+  await registerMemoryCapsuleRoutes(app);
   await registerPhotoCurationRoutes(app);
   await registerSavedGuideRoutes(app);
   await registerGuideSearchHistoryRoutes(app);

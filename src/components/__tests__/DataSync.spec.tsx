@@ -65,10 +65,10 @@ describe('DataSync', () => {
 
     render(<DataSync store={store} />);
 
-    expect(screen.getByText('当前版本以云端主数据为准。这里保留导出当前聚合快照的能力，用于手动备份；本地 JSON 导入恢复已暂停开放。')).toBeInTheDocument();
-    expect(screen.getByText('云端版说明')).toBeInTheDocument();
-    expect(screen.getByText('当前主数据默认从主业务 API 加载，并写入 MySQL。')).toBeInTheDocument();
-    expect(screen.getByText('导出的 JSON 仅作为人工备份快照，不再作为应用内恢复入口。')).toBeInTheDocument();
+    expect(screen.getByText('导出当前快照，用于手动备份。')).toBeInTheDocument();
+    expect(screen.getByText('说明')).toBeInTheDocument();
+    expect(screen.getByText('主数据以云端为准。')).toBeInTheDocument();
+    expect(screen.getByText('JSON 仅作人工备份。')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '导出备份' }));
 

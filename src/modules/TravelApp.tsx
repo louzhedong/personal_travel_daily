@@ -22,6 +22,7 @@ interface TravelAppProps {
   onOpenTripDetail?: (tripId: string) => void;
   onOpenTripChecklist?: (tripId: string) => void;
   onOpenPhotoCuration?: () => void;
+  onOpenMemoryCapsules?: () => void;
   onOpenSettings?: () => void;
   entryMessage?: string | null;
 }
@@ -34,6 +35,7 @@ function TravelApp({
   onOpenTripDetail,
   onOpenTripChecklist,
   onOpenPhotoCuration,
+  onOpenMemoryCapsules,
   onOpenSettings,
   entryMessage,
 }: TravelAppProps) {
@@ -282,6 +284,7 @@ function TravelApp({
         onOpenAdmin={onOpenAdmin}
         onOpenStats={onOpenStats}
         onOpenPhotoCuration={onOpenPhotoCuration}
+        onOpenMemoryCapsules={onOpenMemoryCapsules}
         onOpenSettings={onOpenSettings}
       />
 
