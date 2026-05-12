@@ -176,6 +176,9 @@ describe('additional appApi repositories', () => {
         id: 'session-1',
         accountId: 'acct-1',
         tokenHash: 'hash',
+        userAgent: null,
+        ipAddress: null,
+        lastSeenAt: expect.any(Date),
         expiresAt,
       },
     });

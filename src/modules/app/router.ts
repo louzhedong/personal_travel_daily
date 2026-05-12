@@ -33,6 +33,8 @@ export type AppRoute =
   | { kind: 'admin'; pathname: '/admin' }
   | { kind: 'stats'; pathname: '/stats' }
   | { kind: 'achievements'; pathname: '/achievements' }
+  | { kind: 'memoryCapsules'; pathname: '/capsules' }
+  | { kind: 'memoryCapsuleDetail'; pathname: string; capsuleId: string }
   | { kind: 'photoCuration'; pathname: string; query: PhotoCurationRouteQuery }
   | { kind: 'companionMemories'; pathname: string; companionId: string }
   | { kind: 'tripDetail'; pathname: string; tripId: string }
@@ -68,6 +70,18 @@ export function createStatsRoute(): AppRoute {
 
 export function createAchievementsRoute(): AppRoute {
   return { kind: 'achievements', pathname: '/achievements' };
+}
+
+export function createMemoryCapsulesRoute(): AppRoute {
+  return { kind: 'memoryCapsules', pathname: '/capsules' };
+}
+
+export function createMemoryCapsuleDetailRoute(capsuleId: string): AppRoute {
+  return {
+    kind: 'memoryCapsuleDetail',
+    pathname: `/capsules/${encodeURIComponent(capsuleId)}`,
+    capsuleId,
+  };
 }
 
 export interface PhotoCurationRouteQuery {
@@ -138,6 +152,11 @@ export function createAnnualReviewRoute(year: string): AppRoute {
  * Parse a pathname into an AppRoute (equivalent to the former normalizePathname).
  */
 export function parsePathname(pathname: string, search = ''): AppRoute {
+  const memoryCapsuleMatch = pathname.match(/^\/capsules\/([^/]+)$/);
+  if (memoryCapsuleMatch) {
+    return createMemoryCapsuleDetailRoute(decodeURIComponent(memoryCapsuleMatch[1]));
+  }
+
   const companionMemoriesMatch = pathname.match(/^\/companions\/([^/]+)\/memories$/);
   if (companionMemoriesMatch) {
     return createCompanionMemoriesRoute(decodeURIComponent(companionMemoriesMatch[1]));
@@ -177,6 +196,10 @@ export function parsePathname(pathname: string, search = ''): AppRoute {
 
   if (pathname === '/achievements') {
     return createAchievementsRoute();
+  }
+
+  if (pathname === '/capsules') {
+    return createMemoryCapsulesRoute();
   }
 
   if (pathname === '/photos') {

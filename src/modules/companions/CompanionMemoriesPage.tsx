@@ -18,6 +18,7 @@ interface CompanionMemoriesPageProps {
   account: AuthAccount;
   companionId: string;
   onNavigateBack: () => void;
+  onOpenMemoryCapsules?: () => void;
   onLogout: () => Promise<void> | void;
 }
 
@@ -37,6 +38,7 @@ export default function CompanionMemoriesPage({
   account: _account,
   companionId,
   onNavigateBack,
+  onOpenMemoryCapsules,
   onLogout,
 }: CompanionMemoriesPageProps) {
   const [data, setData] = useState<CompanionMemoryResponseDto | null>(null);
@@ -130,6 +132,9 @@ export default function CompanionMemoriesPage({
         <div className="companion-memory-topbar-actions">
           <button type="button" className="primary-button" onClick={handleRefresh} disabled={refreshing}>
             {refreshing ? '正在整理...' : '刷新回忆'}
+          </button>
+          <button type="button" className="ghost-button" onClick={onOpenMemoryCapsules} disabled={!onOpenMemoryCapsules}>
+            创建胶囊
           </button>
           <button type="button" className="ghost-button" onClick={onLogout}>
             退出登录

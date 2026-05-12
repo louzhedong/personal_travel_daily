@@ -540,6 +540,38 @@ Summary: The API contract maps directly onto the current backend layering of rou
 - `401 UNAUTHORIZED`
 - `503 DATABASE_UNAVAILABLE`
 
+## 旅行胶囊接口
+
+### `GET /api/memory-capsules`
+
+- 返回当前账号未归档旅行胶囊列表。
+- Returns the current account's non-archived travel capsules.
+
+### `POST /api/memory-capsules`
+
+- 创建行程、年度或旅伴胶囊，并写入默认配置。
+- Creates a trip, annual, or companion capsule with default configuration.
+
+### `GET /api/memory-capsules/:id`
+
+- 返回胶囊配置与实时派生内容。
+- Returns capsule configuration plus content derived from current source data.
+
+### `PATCH /api/memory-capsules/:id`
+
+- 更新标题、副标题、模板、状态或 `config`。
+- Updates title, subtitle, template, status, or `config`.
+
+### `POST /api/memory-capsules/:id/duplicate`
+
+- 复制胶囊配置并生成副本。
+- Duplicates capsule configuration into a new capsule.
+
+### `POST /api/memory-capsules/:id/archive`
+
+- 将胶囊软归档，不硬删除。
+- Soft-archives a capsule without hard deletion.
+
 ## 旅伴接口
 
 ### `POST /api/companions`

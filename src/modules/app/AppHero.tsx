@@ -11,6 +11,7 @@ interface AppHeroProps {
   onOpenAdmin?: () => void;
   onOpenStats?: () => void;
   onOpenPhotoCuration?: () => void;
+  onOpenMemoryCapsules?: () => void;
   onOpenSettings?: () => void;
 }
 
@@ -22,6 +23,7 @@ export default function AppHero({
   onOpenAdmin,
   onOpenStats,
   onOpenPhotoCuration,
+  onOpenMemoryCapsules,
   onOpenSettings,
 }: AppHeroProps) {
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
@@ -130,7 +132,7 @@ export default function AppHero({
             多人同行
           </span>
         </div>
-        {onOpenStats || onOpenPhotoCuration || onOpenSettings || (account.role === 'admin' && onOpenAdmin) ? (
+        {onOpenStats || onOpenPhotoCuration || onOpenMemoryCapsules || onOpenSettings || (account.role === 'admin' && onOpenAdmin) ? (
           <div className="hero-admin-row">
             {onOpenSettings ? (
               <button type="button" className="ghost-button hero-admin-button" onClick={onOpenSettings}>
@@ -145,6 +147,11 @@ export default function AppHero({
             {onOpenPhotoCuration ? (
               <button type="button" className="ghost-button hero-admin-button" onClick={onOpenPhotoCuration}>
                 整理照片
+              </button>
+            ) : null}
+            {onOpenMemoryCapsules ? (
+              <button type="button" className="ghost-button hero-admin-button" onClick={onOpenMemoryCapsules}>
+                旅行胶囊
               </button>
             ) : null}
             {account.role === 'admin' && onOpenAdmin ? (

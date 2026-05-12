@@ -5,6 +5,34 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
 
 ## 2026-05-09
 
+### PR 待定 / TBD `feat: 旅行胶囊完整大版本 / Add travel memory capsules`
+
+### Added / 新增
+
+- 新增 `MemoryCapsule` Prisma 模型、migration、前后端 DTO、胶囊 repository/service/serializer/routes。
+  Added the `MemoryCapsule` Prisma model, migration, frontend/backend DTOs, and capsule repository/service/serializer/routes.
+- 新增 `/capsules` 私密胶囊中心与 `/capsules/:id` 胶囊详情编辑页。
+  Added the private `/capsules` capsule center and `/capsules/:id` capsule detail editing page.
+- 新增行程、年度、旅伴三类胶囊内容聚合，支持保存标题、模板、章节、照片、徽章和导出偏好配置。
+  Added trip, annual, and companion capsule composition with saved title, template, section, photo, badge, and export-preset configuration.
+- 新增 PDF/打印、SVG 长图、方形分享卡和竖版分享卡导出能力。
+  Added PDF/print, SVG long-image, square share-card, and vertical share-card exports.
+- 新增 `docs/technical/memory-capsules.md` 并同步文档导航、项目总览、Roadmap、前后端架构和 App API 契约。
+  Added `docs/technical/memory-capsules.md` and refreshed the docs index, project overview, roadmap, frontend/backend architecture, and App API contract.
+
+### Changed / 变更
+
+- 首页新增“旅行胶囊”入口，行程详情、年度回顾和旅伴共同回忆新增胶囊入口。
+  Added a homepage entry for Travel Capsules and capsule entries from trip detail, annual review, and companion memories.
+
+### Verified / 已验证
+
+- `npm run db:generate`
+- `npm run test -- server/__tests__/memoryCapsuleSerializer.spec.ts server/__tests__/appApiRoutes.spec.ts src/modules/capsules/__tests__/memoryCapsulePageModel.spec.ts src/modules/capsules/__tests__/memoryCapsuleExport.spec.ts`
+- `npm run test -- src/modules/__tests__/MemoryCapsuleCenterPage.spec.tsx src/modules/__tests__/MemoryCapsuleDetailPage.spec.tsx`
+- `npm run test -- src/modules/__tests__/App.spec.tsx src/modules/__tests__/TripDetailPage.spec.tsx src/modules/__tests__/AnnualReviewPage.spec.tsx src/modules/__tests__/CompanionMemoriesPage.spec.tsx`
+- `npm run build`
+
 ### PR 待定 / TBD `refactor: 架构硬化与 DTO 边界拆分 / Harden architecture and split DTO boundaries`
 
 ### Added / 新增

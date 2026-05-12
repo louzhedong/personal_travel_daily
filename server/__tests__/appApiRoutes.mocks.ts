@@ -8,6 +8,12 @@ const appApiRouteMocks = vi.hoisted(() => ({
   repairAdminQualityIssueMock: vi.fn(),
   getStatsOverviewMock: vi.fn(),
   getAnnualReviewMock: vi.fn(),
+  listAccountMemoryCapsulesMock: vi.fn(),
+  createAccountMemoryCapsuleMock: vi.fn(),
+  getAccountMemoryCapsuleMock: vi.fn(),
+  updateAccountMemoryCapsuleMock: vi.fn(),
+  duplicateAccountMemoryCapsuleMock: vi.fn(),
+  archiveAccountMemoryCapsuleMock: vi.fn(),
   getTripDetailMock: vi.fn(),
   updateTripPhotoCurationMock: vi.fn(),
   listPhotoCurationResourceMock: vi.fn(),
@@ -78,6 +84,15 @@ vi.mock('../appApi/services/adminQualityAutoFixService.js', () => ({
 vi.mock('../appApi/services/statsService.js', () => ({
   getStatsOverview: appApiRouteMocks.getStatsOverviewMock,
   getAnnualReview: appApiRouteMocks.getAnnualReviewMock,
+}));
+
+vi.mock('../appApi/services/memoryCapsuleService.js', () => ({
+  listAccountMemoryCapsules: appApiRouteMocks.listAccountMemoryCapsulesMock,
+  createAccountMemoryCapsule: appApiRouteMocks.createAccountMemoryCapsuleMock,
+  getAccountMemoryCapsule: appApiRouteMocks.getAccountMemoryCapsuleMock,
+  updateAccountMemoryCapsule: appApiRouteMocks.updateAccountMemoryCapsuleMock,
+  duplicateAccountMemoryCapsule: appApiRouteMocks.duplicateAccountMemoryCapsuleMock,
+  archiveAccountMemoryCapsule: appApiRouteMocks.archiveAccountMemoryCapsuleMock,
 }));
 
 vi.mock('../appApi/services/tripDetailService.js', () => ({

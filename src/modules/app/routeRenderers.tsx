@@ -2,6 +2,8 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { AuthAccount } from '../../types';
 import AdminPage from '../admin/AdminPage';
 import AchievementsPage from '../achievements/AchievementsPage';
+import MemoryCapsuleCenterPage from '../capsules/MemoryCapsuleCenterPage';
+import MemoryCapsuleDetailPage from '../capsules/MemoryCapsuleDetailPage';
 import CompanionMemoriesPage from '../companions/CompanionMemoriesPage';
 import PhotoCurationPage from '../photos/PhotoCurationPage';
 import AccountSettingsPage from '../settings/AccountSettingsPage';
@@ -18,6 +20,8 @@ import {
   createAnnualReviewRoute,
   createCompanionMemoriesRoute,
   createHomeRoute,
+  createMemoryCapsuleDetailRoute,
+  createMemoryCapsulesRoute,
   createPhotoCurationRoute,
   createSettingsRoute,
   createStatsRoute,
@@ -89,6 +93,7 @@ export function renderAuthenticatedRoute({
         onNavigateBack={() => goBackOrReplace(createStatsRoute())}
         onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
         onOpenTripStory={(tripId) => navigate(createTripStoryRoute(tripId))}
+        onOpenMemoryCapsules={() => navigate(createMemoryCapsulesRoute())}
         onOpenCompanionMemories={(companionId) => navigate(createCompanionMemoriesRoute(companionId))}
         onOpenPhotoCuration={(query) => navigate(createPhotoCurationRoute(query))}
       />
@@ -128,12 +133,35 @@ export function renderAuthenticatedRoute({
         onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
         onOpenAchievements={() => navigate(createAchievementsRoute())}
         onOpenPhotoCuration={(query) => navigate(createPhotoCurationRoute(query))}
+        onOpenMemoryCapsules={() => navigate(createMemoryCapsulesRoute())}
       />
     );
   }
 
   if (route.kind === 'achievements') {
     return <AchievementsPage account={account} onLogout={onLogout} onNavigateBack={() => goBackOrReplace(createStatsRoute())} />;
+  }
+
+  if (route.kind === 'memoryCapsules') {
+    return (
+      <MemoryCapsuleCenterPage
+        account={account}
+        onLogout={onLogout}
+        onNavigateBack={() => goBackOrReplace(createHomeRoute())}
+        onOpenCapsule={(capsuleId) => navigate(createMemoryCapsuleDetailRoute(capsuleId))}
+      />
+    );
+  }
+
+  if (route.kind === 'memoryCapsuleDetail') {
+    return (
+      <MemoryCapsuleDetailPage
+        account={account}
+        capsuleId={route.capsuleId}
+        onLogout={onLogout}
+        onNavigateBack={() => goBackOrReplace(createMemoryCapsulesRoute())}
+      />
+    );
   }
 
   if (route.kind === 'companionMemories') {
@@ -143,6 +171,7 @@ export function renderAuthenticatedRoute({
         companionId={route.companionId}
         onLogout={onLogout}
         onNavigateBack={() => goBackOrReplace(createStatsRoute())}
+        onOpenMemoryCapsules={() => navigate(createMemoryCapsulesRoute())}
       />
     );
   }
@@ -183,6 +212,7 @@ export function renderAuthenticatedRoute({
       onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
       onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
       onOpenPhotoCuration={() => navigate(createPhotoCurationRoute())}
+      onOpenMemoryCapsules={() => navigate(createMemoryCapsulesRoute())}
       onOpenSettings={() => navigate(createSettingsRoute())}
       onOpenAdmin={
         canOpenAdmin(account)

@@ -86,6 +86,15 @@ Summary: Wishlist Map is the account-level long-range planning pool that connect
 
 Summary: `/trips/:id/story` turns one trip into a private Story Studio with story badges, a route replay poster, featured-photo composition, share-card SVG export, long-image export, and print/PDF output.
 
+### 1.5E2 旅行胶囊 / Travel Memory Capsules
+
+- `/capsules` 是私密胶囊中心，统一管理行程胶囊、年度胶囊和旅伴胶囊。
+- 胶囊保存标题、副标题、模板、章节、照片、徽章和导出偏好配置，但内容实时从行程详情、年度回顾和旅伴共同回忆派生。
+- `/capsules/:id` 提供杂志化预览、深度编辑、PDF/打印、SVG 长图、方形分享卡和竖版分享卡导出。
+- 本阶段不做公开分享链接、服务端截图、图片代理或离线归档。
+
+Summary: `/capsules` is a private capsule center for trip, annual, and companion capsules with saved configuration, editorial preview, deep editing, and local exports.
+
 ### 1.5F 影像编辑台 / Photo Curation Hub
 
 - `/photos` 提供账号级影像编辑台，集中整理所有旅行记录图片。
@@ -181,6 +190,7 @@ Summary: The frontend shell separates routing, page composition, map state, stor
 - `src/components/trips/TripPlanningBoard.tsx`：行程详情“行前规划”Tab 的共享工作台，承接新增、编辑、删除、愿望导入、优先级筛选和转旅行记录。
 - `src/components/trips/TripChecklistBoard.tsx`：行前清单的共享展示与编辑组件，供行程详情页和放大页复用。
 - `src/components/DataSync.tsx`：数据备份（仅导出）。
+- `src/modules/capsules/MemoryCapsuleCenterPage.tsx` / `MemoryCapsuleDetailPage.tsx`：旅行胶囊中心与深度编辑页面。
 
 Summary: Components follow module-scoped responsibilities; cross-feature flows use shared helpers instead of ad-hoc wiring.
 
@@ -197,6 +207,7 @@ Summary: Components follow module-scoped responsibilities; cross-feature flows u
 - `src/modules/companions/CompanionMemoriesPage.tsx` / `companionMemoriesPageModel.ts`：旅伴共同回忆页与展示模型，从 companion memory DTO 派生页面文案、KPI、年度轨迹和照片 alt。
 - `src/modules/photos/PhotoCurationPage.tsx` / `photoCurationPageModel.ts`：影像编辑台页面与展示模型，从全局照片整理 DTO 派生筛选、预览、待整理清单和照片 alt。
 - `src/modules/trips/tripStoryPageModel.ts` / `tripStoryExport.ts`：旅行故事页展示模型与 SVG 导出 helper，从 `TripDetailResponseDto` 派生故事徽章、路线回放海报、分享卡模型、长图和分享卡导出内容。
+- `src/modules/capsules/memoryCapsulePageModel.ts` / `memoryCapsuleExport.ts`：旅行胶囊展示模型、配置应用和 SVG 导出。
 - `src/modules/yearbook/AnnualReviewPage.tsx`：年度回顾页面主体，包含年度成就板块。
 
 Summary: Pure logic is pulled out of components into `src/lib` and per-module view models so that rendering stays shallow.
@@ -208,6 +219,7 @@ Summary: Pure logic is pulled out of components into `src/lib` and per-module vi
 - `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats`、`photoCuration` 等领域客户端，其中 `tripsApi.ts` 继续承接 checklist 与 planning 子资源。
 - `src/lib/api/dto/*`：前端 API DTO 按领域拆分；`src/lib/api/types.ts` 仅作为兼容 barrel 和错误码 re-export。
 - `src/lib/api/accountSettingsApi.ts`：账号设置、密码修改和会话治理客户端。
+- `src/lib/api/memoryCapsulesApi.ts`：旅行胶囊列表、创建、详情、更新、复制和归档客户端。
 - `src/lib/repositories/remoteTravelStoreRepository.ts`：组合多个 API 调用，为页面层提供稳定边界。
 - `src/lib/repositories/*`：IndexedDB 仅保留攻略缓存与本地辅助状态，不再作为主数据持久化。
 
@@ -225,6 +237,7 @@ Summary: The frontend talks to the backend through typed API modules and a remot
 - `server/appApi/services/*`：业务规则（注册 / 登录、bootstrap 聚合、stats 聚合、成就解锁持久化、trip detail、photo curation、admin overview 等）。
 - `server/appApi/auth/*`：`requestAuth`（恢复 / 鉴权）、`session`（token、cookie 序列化）、`password`（hash / verify）。
 - `server/appApi/services/accountSettingsService.ts`：昵称、密码和多设备会话治理规则。
+- `server/appApi/services/memoryCapsuleService.ts` 与 `services/memoryCapsules/*`：旅行胶囊配置持久化、三类内容聚合和配置应用。
 - `server/appApi/dto/*`：后端 API DTO 按领域拆分；`server/appApi/types.ts` 仅作为兼容 barrel。
 - `server/appApi/repositories/*`：Prisma 查询封装。
 - `server/appApi/serializers/*`：DB 模型 → 前端模型。

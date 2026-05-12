@@ -11,6 +11,7 @@ interface TripDetailHeaderProps {
   onLogout: () => Promise<void> | void;
   onOpenEditor: () => void;
   onOpenTripStory?: (tripId: string) => void;
+  onOpenMemoryCapsules?: () => void;
   onOpenDeleteDialog: () => void;
 }
 
@@ -23,6 +24,7 @@ export default function TripDetailHeader({
   onLogout,
   onOpenEditor,
   onOpenTripStory,
+  onOpenMemoryCapsules,
   onOpenDeleteDialog,
 }: TripDetailHeaderProps) {
   return (
@@ -51,6 +53,15 @@ export default function TripDetailHeader({
               onClick={() => onOpenTripStory(tripId)}
             >
               查看故事页
+            </button>
+          ) : null}
+          {data && onOpenMemoryCapsules ? (
+            <button
+              type="button"
+              className="ghost-button trip-detail-action-button trip-detail-action-button-secondary"
+              onClick={onOpenMemoryCapsules}
+            >
+              创建胶囊
             </button>
           ) : null}
           {data ? (
