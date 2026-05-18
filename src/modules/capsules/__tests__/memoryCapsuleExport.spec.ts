@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { buildMemoryCapsuleLongImageSvg, buildMemoryCapsuleShareCardSvg } from '../memoryCapsuleExport';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  buildMemoryCapsuleLongImageSvg,
+  buildMemoryCapsuleShareCardSvg,
+  exportMemoryCapsuleArchivePackage,
+} from '../memoryCapsuleExport';
 import type { MemoryCapsuleDetailDto } from '../../../lib/api/types';
 
 const detail: MemoryCapsuleDetailDto = {
@@ -31,7 +35,32 @@ const detail: MemoryCapsuleDetailDto = {
   },
 };
 
+function readBlobAsText(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => resolve(String(reader.result)));
+    reader.addEventListener('error', () => reject(reader.error));
+    reader.readAsText(blob);
+  });
+}
+
 describe('memoryCapsuleExport', () => {
+  const originalCreateObjectUrl = URL.createObjectURL;
+  const originalRevokeObjectUrl = URL.revokeObjectURL;
+  const originalClick = HTMLAnchorElement.prototype.click;
+
+  beforeEach(() => {
+    URL.createObjectURL = vi.fn(() => 'blob:capsule-archive');
+    URL.revokeObjectURL = vi.fn();
+    HTMLAnchorElement.prototype.click = vi.fn();
+  });
+
+  afterEach(() => {
+    URL.createObjectURL = originalCreateObjectUrl;
+    URL.revokeObjectURL = originalRevokeObjectUrl;
+    HTMLAnchorElement.prototype.click = originalClick;
+  });
+
   it('builds a long image svg with capsule sections and photos', () => {
     const svg = buildMemoryCapsuleLongImageSvg(detail);
 
@@ -43,5 +72,17 @@ describe('memoryCapsuleExport', () => {
   it('builds square and story share cards with different canvas heights', () => {
     expect(buildMemoryCapsuleShareCardSvg(detail, 'square')).toContain('height="1080"');
     expect(buildMemoryCapsuleShareCardSvg(detail, 'story')).toContain('height="1920"');
+  });
+
+  it('exports a browser local archive package with manifest and capsule assets', async () => {
+    const blob = exportMemoryCapsuleArchivePackage(detail);
+    const zipText = await readBlobAsText(blob);
+
+    expect(blob.type).toBe('application/zip');
+    expect(zipText).toContain('manifest.json');
+    expect(zipText).toContain('content/capsule.json');
+    expect(zipText).toContain('exports/capsule-long-image.svg');
+    expect(zipText).toContain('https://example.com/a.jpg');
+    expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledOnce();
   });
 });

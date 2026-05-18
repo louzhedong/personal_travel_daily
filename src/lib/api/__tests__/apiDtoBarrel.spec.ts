@@ -7,6 +7,7 @@ import type {
   AdminOverviewResponseDto,
   BootstrapResponseDto,
   PhotoCurationResponseDto,
+  PhotoAlbumsResponseDto,
   StatsOverviewResponseDto,
   TripDetailResponseDto,
 } from '../types';
@@ -25,6 +26,7 @@ describe('frontend api dto barrel', () => {
       stats: StatsOverviewResponseDto;
       trip: TripDetailResponseDto;
       photos: PhotoCurationResponseDto;
+      photoAlbums: PhotoAlbumsResponseDto;
     };
 
     expect(_samples).toBeNull();

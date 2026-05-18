@@ -50,3 +50,81 @@ export async function listGuideSourceHealthSnapshot(prisma: PrismaExecutor, limi
     take: limit,
   });
 }
+
+export async function listGuideSourcePreferences(prisma: PrismaExecutor) {
+  return prisma.guideSourcePreference.findMany({
+    orderBy: [{ priorityWeight: 'asc' }, { updatedAt: 'desc' }],
+  });
+}
+
+export async function findGuideSourcePreference(
+  prisma: PrismaExecutor,
+  input: {
+    sourceName: string;
+    sourceDomain: string;
+  },
+) {
+  return prisma.guideSourcePreference.findUnique({
+    where: {
+      sourceName_sourceDomain: {
+        sourceName: input.sourceName,
+        sourceDomain: input.sourceDomain,
+      },
+    },
+  });
+}
+
+export async function upsertGuideSourcePreference(
+  prisma: PrismaExecutor,
+  input: {
+    id: string;
+    sourceName: string;
+    sourceDomain: string;
+    priorityWeight: number;
+    demotionReason?: string;
+    updatedBy?: string;
+  },
+) {
+  return prisma.guideSourcePreference.upsert({
+    where: {
+      sourceName_sourceDomain: {
+        sourceName: input.sourceName,
+        sourceDomain: input.sourceDomain,
+      },
+    },
+    create: {
+      id: input.id,
+      sourceName: input.sourceName,
+      sourceDomain: input.sourceDomain,
+      priorityWeight: input.priorityWeight,
+      demotionReason: input.demotionReason,
+      updatedBy: input.updatedBy,
+    },
+    update: {
+      priorityWeight: input.priorityWeight,
+      demotionReason: input.demotionReason,
+      updatedBy: input.updatedBy,
+    },
+  });
+}
+
+export async function listLatestGuideQualitySnapshotsByDomain(
+  prisma: PrismaExecutor,
+  sourceDomains: string[],
+) {
+  if (sourceDomains.length === 0) {
+    return [];
+  }
+
+  return prisma.guideQualitySnapshot.findMany({
+    where: {
+      sourceDomain: {
+        in: sourceDomains,
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: sourceDomains.length * 3,
+  });
+}

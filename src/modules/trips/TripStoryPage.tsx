@@ -3,7 +3,7 @@ import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
 import { fetchTripDetail } from '../../lib/api/tripsApi';
 import type { TripDetailResponseDto } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
-import { exportTripStoryLongImage, exportTripStoryShareCard } from './tripStoryExport';
+import { exportTripStoryArchivePackage, exportTripStoryLongImage, exportTripStoryShareCard } from './tripStoryExport';
 import { isTripDetailNotFoundError } from './tripDetailPageModel';
 import {
   buildTripStoryViewModel,
@@ -17,6 +17,7 @@ interface TripStoryPageProps {
   onNavigateBack: () => void;
   onLogout: () => Promise<void> | void;
   onOpenPhotoCuration?: (query: { tripId: string }) => void;
+  onOpenMapReplayStory?: (tripId: string) => void;
 }
 
 const TEMPLATE_OPTIONS: Array<{ value: TripStoryTemplate; label: string }> = [
@@ -31,6 +32,7 @@ export default function TripStoryPage({
   onNavigateBack,
   onLogout,
   onOpenPhotoCuration,
+  onOpenMapReplayStory,
 }: TripStoryPageProps) {
   const [data, setData] = useState<TripDetailResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,6 +101,12 @@ export default function TripStoryPage({
     }
   };
 
+  const handleExportArchive = () => {
+    if (story) {
+      exportTripStoryArchivePackage(story, template, tripId);
+    }
+  };
+
   if (loading) {
     return <RoutePageSkeleton variant="story" />;
   }
@@ -146,6 +154,14 @@ export default function TripStoryPage({
                   <button type="button" className="ghost-button" onClick={() => handleExportShareCard('story')}>
                     导出竖版分享卡
                   </button>
+                  <button type="button" className="ghost-button" onClick={handleExportArchive}>
+                    导出本地归档包
+                  </button>
+                  {onOpenMapReplayStory ? (
+                    <button type="button" className="ghost-button" onClick={() => onOpenMapReplayStory(tripId)}>
+                      打开地图回放故事
+                    </button>
+                  ) : null}
                 </>
               ) : null}
               <button type="button" className="ghost-button" onClick={onNavigateBack}>

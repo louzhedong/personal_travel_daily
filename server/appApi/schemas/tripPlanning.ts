@@ -64,6 +64,17 @@ export const convertTripPlanningItemBodySchema = z
     path: ['visitedEndAt'],
   });
 
+export const updateTripPlanningItemScheduleBodySchema = z.object({
+  plannedDate: dateSchema.nullable(),
+});
+
+export const importTripPlanningScheduleWishlistBodySchema = z.object({
+  wishlistIds: z.array(z.string().trim().min(1, 'wishlist item id is required')).min(1).max(20),
+  plannedDate: dateSchema,
+});
+
 export type CreateTripPlanningItemBody = z.infer<typeof createTripPlanningItemBodySchema>;
 export type UpdateTripPlanningItemBody = z.infer<typeof updateTripPlanningItemBodySchema>;
 export type ConvertTripPlanningItemBody = z.infer<typeof convertTripPlanningItemBodySchema>;
+export type UpdateTripPlanningItemScheduleBody = z.infer<typeof updateTripPlanningItemScheduleBodySchema>;
+export type ImportTripPlanningScheduleWishlistBody = z.infer<typeof importTripPlanningScheduleWishlistBodySchema>;

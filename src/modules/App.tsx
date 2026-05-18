@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchSession, login, logout, register } from '../lib/api/authApi';
 import type { AuthAccount } from '../types';
 import AuthPage from './auth/AuthPage';
-import { renderAuthenticatedRoute } from './app/routeRenderers';
+import { renderAuthenticatedRoute, renderPublicRoute } from './app/routeRenderers';
 import { resolveRestoredRoute } from './app/routeRestore';
 import { shouldShowAuthPage } from './app/routeGuards';
 // 中文：统一从 app/router 模块消费手写路由（类型 / 工厂 / hook）。
@@ -35,6 +35,13 @@ function App() {
 
   useEffect(() => {
     let cancelled = false;
+
+    if (route.kind === 'publicShare') {
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
 
     fetchSession()
       .then((response) => {
@@ -116,6 +123,10 @@ function App() {
         onNavigateRegister={() => navigate(createRegisterRoute())}
       />
     );
+  }
+
+  if (route.kind === 'publicShare') {
+    return renderPublicRoute(route);
   }
 
   if (!account) {

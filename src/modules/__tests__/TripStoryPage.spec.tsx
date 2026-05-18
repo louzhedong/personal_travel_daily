@@ -238,6 +238,25 @@ describe('TripStoryPage', () => {
     expect(onOpenPhotoCuration).toHaveBeenCalledWith({ tripId: 'trip-1' });
   });
 
+  it('opens the map replay story from Story Studio', async () => {
+    const user = userEvent.setup();
+    const onOpenMapReplayStory = vi.fn();
+
+    render(
+      <TripStoryPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+        onOpenMapReplayStory={onOpenMapReplayStory}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: '打开地图回放故事' }));
+
+    expect(onOpenMapReplayStory).toHaveBeenCalledWith('trip-1');
+  });
+
   it('switches story templates and exports a long image', async () => {
     const user = userEvent.setup();
     vi.mocked(fetchTripDetail).mockResolvedValueOnce({
@@ -320,6 +339,32 @@ describe('TripStoryPage', () => {
     expect(verticalSvg).toContain('width="1080" height="1920"');
     expect(verticalSvg).toContain('私有旅行故事分享卡');
     expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledTimes(2);
+  });
+
+  it('exports a local archive package for the trip story', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TripStoryPage
+        account={account}
+        tripId="trip-1"
+        onNavigateBack={vi.fn()}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '导出本地归档包' }));
+
+    expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    const exportedBlob = vi.mocked(URL.createObjectURL).mock.calls[0][0] as Blob;
+    const archiveText = await readBlobAsText(exportedBlob);
+    expect(exportedBlob.type).toBe('application/zip');
+    expect(archiveText).toContain('manifest.json');
+    expect(archiveText).toContain('content/story.json');
+    expect(archiveText).toContain('exports/trip-story.svg');
+    expect(archiveText).toContain('https://example.com/hangzhou.jpg');
+    expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledOnce();
   });
 
   it('shows empty states when optional story materials are missing', async () => {

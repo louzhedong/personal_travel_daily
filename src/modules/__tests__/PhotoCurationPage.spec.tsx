@@ -1,9 +1,15 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fetchPhotoAlbums, updatePhotoAlbumPreferences } from '../../lib/api/photoAlbumsApi';
 import { fetchPhotoCuration, updatePhotoCuration } from '../../lib/api/photoCurationApi';
-import type { PhotoCurationResponseDto } from '../../lib/api/types';
+import type { PhotoAlbumsResponseDto, PhotoCurationResponseDto } from '../../lib/api/types';
 import PhotoCurationPage from '../photos/PhotoCurationPage';
+
+vi.mock('../../lib/api/photoAlbumsApi', () => ({
+  fetchPhotoAlbums: vi.fn(),
+  updatePhotoAlbumPreferences: vi.fn(),
+}));
 
 vi.mock('../../lib/api/photoCurationApi', () => ({
   fetchPhotoCuration: vi.fn(),
@@ -100,10 +106,62 @@ const responseWithWorklist: PhotoCurationResponseDto = {
   items: [...baseResponse.sections.featured, ...baseResponse.sections.missingCaptions],
 };
 
+const albumResponse: PhotoAlbumsResponseDto = {
+  summary: {
+    albumCount: 1,
+    coverCandidateCount: 2,
+    pinnedCoverCount: 0,
+    issueCount: 1,
+  },
+  albums: [
+    {
+      id: 'trip-cover-trip-1',
+      kind: 'tripCover',
+      targetKind: 'trip',
+      targetId: 'trip-1',
+      title: '杭州周末封面候选',
+      subtitle: 'Story Studio、行程详情与胶囊共用的封面排序',
+      metricLabel: '2 张照片',
+      photoCount: 2,
+      coverCandidates: [
+        {
+          ...baseResponse.sections.featured[0],
+          score: 96,
+          isPinned: false,
+          issueKinds: [],
+        },
+        {
+          ...baseResponse.sections.missingCaptions[0],
+          score: 40,
+          isPinned: false,
+          issueKinds: ['missingCaption'],
+        },
+      ],
+    },
+  ],
+  issues: [
+    {
+      kind: 'missingCaption',
+      title: '缺少说明',
+      description: '补充说明后可提升故事质量。',
+      photos: [
+        {
+          ...baseResponse.sections.missingCaptions[0],
+          score: 40,
+          isPinned: false,
+          issueKinds: ['missingCaption'],
+        },
+      ],
+    },
+  ],
+  preferences: [],
+};
+
 describe('PhotoCurationPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(fetchPhotoCuration).mockResolvedValue(responseWithWorklist);
+    vi.mocked(fetchPhotoAlbums).mockResolvedValue(albumResponse);
     vi.mocked(updatePhotoCuration).mockResolvedValue({
       ...responseWithWorklist,
       summary: {
@@ -112,9 +170,16 @@ describe('PhotoCurationPage', () => {
         missingCaptionPhotos: 0,
       },
     });
+    vi.mocked(updatePhotoAlbumPreferences).mockResolvedValue({
+      ...albumResponse,
+      summary: {
+        ...albumResponse.summary,
+        pinnedCoverCount: 1,
+      },
+    });
   });
 
-  it('renders summary, filters, featured preview, and worklist', async () => {
+  it('renders summary, smart albums, filters, featured preview, and worklist', async () => {
     render(
       <PhotoCurationPage
         account={account}
@@ -123,15 +188,19 @@ describe('PhotoCurationPage', () => {
       />,
     );
 
-    expect(await screen.findByRole('heading', { name: '影像编辑台' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '影像策展台' })).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
     expect(screen.getAllByText('全部照片').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('智能相册').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('杭州周末封面候选').length).toBeGreaterThan(0);
+    expect(screen.getByText('缺少说明')).toBeInTheDocument();
     expect(screen.getByLabelText('选择行程')).toBeInTheDocument();
     expect(screen.getByText('精选预览')).toBeInTheDocument();
     expect(screen.getByText('待整理')).toBeInTheDocument();
     expect(screen.getByText('西湖晚风')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('补一句可以被故事复用的话')).toBeInTheDocument();
     expect(fetchPhotoCuration).toHaveBeenCalledWith({ featured: 'all', caption: 'all', limit: 120 });
+    expect(fetchPhotoAlbums).toHaveBeenCalled();
   });
 
   it('refetches when filters change', async () => {
@@ -144,7 +213,7 @@ describe('PhotoCurationPage', () => {
       />,
     );
 
-    await screen.findByRole('heading', { name: '影像编辑台' });
+    await screen.findByRole('heading', { name: '影像策展台' });
     await user.selectOptions(screen.getByLabelText('选择行程'), 'trip-1');
 
     await waitFor(() => {
@@ -176,6 +245,31 @@ describe('PhotoCurationPage', () => {
       { featured: 'all', caption: 'all', limit: 120 },
     );
     expect(await screen.findByText('已设为精选照片')).toBeInTheDocument();
+  });
+
+  it('pins a smart album cover candidate and shows global toast feedback', async () => {
+    const user = userEvent.setup();
+    render(
+      <PhotoCurationPage
+        account={account}
+        onLogout={vi.fn()}
+        onNavigateBack={vi.fn()}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: /96 分/ }));
+
+    expect(updatePhotoAlbumPreferences).toHaveBeenCalledWith({
+      preferences: [
+        {
+          targetKind: 'trip',
+          targetId: 'trip-1',
+          pinnedImageIds: ['image-1'],
+          sortOrder: ['image-1', 'image-2'],
+        },
+      ],
+    });
+    expect(await screen.findByText('已钉选封面候选')).toBeInTheDocument();
   });
 
   it('updates caption on blur and shows global toast feedback', async () => {
@@ -233,6 +327,17 @@ describe('PhotoCurationPage', () => {
       filters: { trips: [], companions: [], years: [] },
       sections: { featured: [], missingCaptions: [], recent: [] },
       items: [],
+    });
+    vi.mocked(fetchPhotoAlbums).mockResolvedValueOnce({
+      summary: {
+        albumCount: 0,
+        coverCandidateCount: 0,
+        pinnedCoverCount: 0,
+        issueCount: 0,
+      },
+      albums: [],
+      issues: [],
+      preferences: [],
     });
 
     render(

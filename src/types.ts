@@ -111,6 +111,21 @@ export interface TripPlanningSummary {
   highPriorityCount: number;
 }
 
+export interface TripPlanningScheduleDay {
+  date: string;
+  dayIndex: number;
+  title: string;
+  items: TripPlanningItem[];
+  checklistGroups: TripChecklistGroup[];
+}
+
+export interface TripPlanningSchedule {
+  summary: TripPlanningSummary;
+  days: TripPlanningScheduleDay[];
+  unscheduledItems: TripPlanningItem[];
+  checklistGroups: TripChecklistGroup[];
+}
+
 export type WishlistPriority = 'low' | 'medium' | 'high';
 
 export interface WishlistItem {
@@ -190,6 +205,17 @@ export interface GuideSearchResult {
   matchReason?: string;
   semanticScore?: number;
   queryInterpretation?: string;
+  quality?: {
+    score: number;
+    level: 'high' | 'medium' | 'low';
+    relevanceScore?: number;
+    completenessScore?: number;
+    readabilityScore?: number;
+    sourceStabilityScore?: number;
+    saveRateScore?: number;
+    priorityWeight?: number;
+    reasons: string[];
+  };
 }
 
 export interface GuideContentBlock {

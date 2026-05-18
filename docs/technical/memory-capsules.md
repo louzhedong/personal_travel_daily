@@ -81,10 +81,12 @@ Exports use the existing private SVG strategy:
 - SVG long image: dynamic height with source image URLs.
 - 方形分享卡与竖版分享卡：生成本地 SVG，不上传文件。
 - Square and vertical share cards: local SVG generation without uploads.
+- 本地归档包：浏览器端生成 ZIP，包含 `manifest.json`、`summary.md`、`content/capsule.json`、`images/image-urls.md` 和 `exports/capsule-long-image.svg`。
+- Local archive package: browser-generated ZIP with `manifest.json`, `summary.md`, `content/capsule.json`, `images/image-urls.md`, and `exports/capsule-long-image.svg`.
 
-本阶段不做公开分享链接、服务端截图、图片代理、离线归档或 base64 内联。
+本阶段不做公开分享链接、服务端截图、图片代理、原图下载或 base64 内联；本地归档包仅保留远程图片 URL 清单。
 
-This phase does not add public share links, server-side screenshots, image proxying, offline archiving, or base64 inlining.
+This phase does not add public share links, server-side screenshots, image proxying, original-image downloads, or base64 inlining; local archive packages only preserve remote image URL lists.
 
 ## 6. 视觉规范 / Visual Rules
 

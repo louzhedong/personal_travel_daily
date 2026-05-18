@@ -1,7 +1,7 @@
 .app-shell {
-  max-width: 1440px;
+  max-width: var(--page-frame-wide);
   margin: 0 auto;
-  padding: 24px;
+  padding: 28px var(--page-gutter) 64px;
 }
 
 .app-toast-layer {
@@ -20,9 +20,9 @@
   gap: 12px;
   padding: 14px 16px;
   border-radius: 18px;
-  border: 1px solid rgba(226, 232, 240, 0.92);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--line-soft);
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: var(--shadow-panel);
   backdrop-filter: blur(14px);
 }
 
@@ -62,7 +62,7 @@
 
 .app-toast-message {
   color: #0f172a;
-  font-size: 14px;
+  font-size: var(--text-body);
   font-weight: 600;
   line-height: 1.6;
 }
@@ -90,20 +90,20 @@
   height: 44px;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(135deg, #2563eb, #14b8a6);
-  color: #fff;
-  font-size: 22px;
+  background: var(--ink);
+  color: var(--surface-paper);
+  font-size: var(--title-sm);
   line-height: 1;
-  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 12px 26px rgba(16, 20, 24, 0.16);
   pointer-events: auto;
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 253, 248, 0.78);
+  border: 1px solid var(--line-hair);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
 }
 
 .panel-card {
@@ -129,8 +129,8 @@
   max-height: calc(100vh - 48px);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-plain);
+  border: 1px solid var(--line-soft);
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-modal);
   overflow: hidden;
@@ -142,7 +142,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 16px 20px 0;
-  background: #fff;
+  background: var(--surface-plain);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -152,36 +152,48 @@
   margin: 0;
   font-size: var(--heading-modal);
   font-weight: 700;
-  color: #0f172a;
+  color: var(--ink);
 }
 
 .modal-subtitle {
   margin: 6px 0 0;
-  font-size: 13px;
-  color: #64748b;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
 }
 
 .modal-close-button {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  font-size: 20px;
+  border: 1px solid var(--line-soft);
+  background: transparent;
+  font-size: var(--title-sm);
   line-height: 1;
-  color: #0f172a;
+  color: var(--ink);
 }
 
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(340px, 420px);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+  gap: 28px;
   align-items: start;
 }
 
 .sidebar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  min-width: 0;
   align-self: start;
+}
+
+.content-grid > * {
+  min-width: 0;
+}
+
+.content-grid > .stack:first-child {
+  overflow: clip;
 }
 
 .stack {
@@ -204,9 +216,10 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
   padding-bottom: 14px;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  border-bottom: 1px solid var(--line-soft);
   position: relative;
 }
 
@@ -217,7 +230,7 @@
   right: 0;
   bottom: -1px;
   height: 18px;
-  background: linear-gradient(180deg, rgba(219, 234, 254, 0.12), transparent);
+  background: linear-gradient(180deg, rgba(16, 20, 24, 0.035), transparent);
   pointer-events: none;
 }
 
@@ -238,9 +251,10 @@
   gap: 8px;
   padding: 8px 12px;
   border-radius: 999px;
-  background: #f1f5f9;
-  color: #334155;
-  font-size: 13px;
+  background: rgba(255, 253, 248, 0.78);
+  border: 1px solid var(--line-hair);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 
@@ -258,8 +272,9 @@
 }
 
 .route-skeleton-shell {
-  width: min(1180px, calc(100vw - 56px));
+  width: min(100%, var(--page-frame));
   margin: 0 auto;
+  padding-inline: var(--page-gutter);
   display: grid;
   gap: 20px;
 }

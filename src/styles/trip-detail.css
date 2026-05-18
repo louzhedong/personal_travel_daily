@@ -1,10 +1,10 @@
 .trip-detail-stage {
   min-height: 100%;
-  padding: 28px 28px 40px;
+  padding: 28px var(--page-gutter) 40px;
 }
 
 .trip-detail-shell {
-  width: min(1380px, 100%);
+  width: min(100%, var(--page-frame-wide));
   margin: 0 auto;
   display: grid;
   gap: 22px;
@@ -28,7 +28,7 @@
 
 .trip-detail-hero-copy h1 {
   margin: 0;
-  font-size: 36px;
+  font-size: var(--metric-md);
   line-height: 1.1;
   color: var(--brand-ink);
 }
@@ -36,7 +36,7 @@
 .trip-detail-hero-copy p {
   margin: 0;
   color: #475569;
-  font-size: 15px;
+  font-size: var(--text-md);
   line-height: 1.7;
 }
 
@@ -54,7 +54,7 @@
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.92);
   color: #1e3a8a;
-  font-size: 14px;
+  font-size: var(--text-body);
   font-weight: 700;
   box-shadow: 0 10px 22px rgba(37, 99, 235, 0.08);
 }
@@ -100,7 +100,7 @@
 }
 
 .trip-detail-note-eyebrow {
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--brand-blue);
@@ -108,7 +108,7 @@
 
 .trip-detail-note-empty {
   color: #64748b;
-  font-size: 14px;
+  font-size: var(--text-body);
   line-height: 1.6;
 }
 
@@ -130,7 +130,7 @@
 .trip-detail-editor-input {
   min-height: 40px;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 
 .trip-detail-editor-textarea {
@@ -183,6 +183,32 @@
   border-color: #0f172a;
 }
 
+.trip-detail-view-switch {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.84);
+}
+
+.trip-detail-view-switch button {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  min-height: 32px;
+  padding: 0 12px;
+}
+
+.trip-detail-view-switch button.is-active {
+  background: #0f172a;
+  color: #fff;
+}
+
 .trip-planning-board {
   display: grid;
   gap: 14px;
@@ -207,7 +233,7 @@
   background: rgba(15, 23, 42, 0.06);
   color: #64748b;
   padding: 5px 9px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -282,12 +308,12 @@
 
 .trip-planning-wishlist-copy strong {
   color: #92400e;
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .trip-planning-wishlist-copy span {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
@@ -300,7 +326,7 @@
 
 .trip-planning-wishlist-empty {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   grid-column: 1 / -1;
 }
@@ -323,12 +349,12 @@
 
 .trip-detail-summary-card span {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
 .trip-detail-summary-card strong {
-  font-size: 28px;
+  font-size: var(--title-lg);
   line-height: 1;
   color: var(--brand-ink);
 }
@@ -336,7 +362,7 @@
 .trip-detail-summary-card p {
   margin: 0;
   color: #475569;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.6;
 }
 
@@ -412,7 +438,7 @@
 
 .trip-detail-cover-story-title {
   display: block;
-  font-size: 30px;
+  font-size: var(--title-xl);
 }
 
 .trip-detail-cover-story-copy > p {
@@ -444,7 +470,7 @@
 .trip-detail-cover-story-strip figcaption {
   padding: 7px 8px;
   color: #475569;
-  font-size: 12px;
+  font-size: var(--text-xs);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -459,7 +485,7 @@
 
 .trip-detail-section-heading h2 {
   margin: 0 0 4px;
-  font-size: 20px;
+  font-size: var(--title-sm);
 }
 
 .trip-detail-section-heading p {
@@ -501,7 +527,7 @@
 }
 
 .trip-detail-companion-card-head strong {
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .trip-detail-companion-card-badge {
@@ -513,7 +539,7 @@
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(191, 219, 254, 0.95);
   color: #1d4ed8;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -525,20 +551,20 @@
 
 .trip-detail-companion-card-metrics strong {
   color: var(--brand-ink);
-  font-size: 42px;
+  font-size: var(--display-sm);
   line-height: 1;
 }
 
 .trip-detail-companion-card-metrics span {
   color: #64748b;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
 }
 
 .trip-detail-companion-card-note {
   margin: 0;
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.7;
 }
 
@@ -554,14 +580,14 @@
 
 .trip-detail-companion-card-footnote {
   color: #94a3b8;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 
 .trip-detail-companion-card-footvalue {
   color: #475569;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
@@ -584,12 +610,12 @@
 
 .trip-detail-overview-list span {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-detail-overview-list strong {
   color: var(--brand-ink);
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .trip-detail-empty {
@@ -627,7 +653,7 @@
   border-radius: 999px;
   background: rgba(37, 99, 235, 0.1);
   color: var(--brand-blue);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-detail-marker-list {
@@ -683,7 +709,7 @@
   white-space: nowrap;
   padding: 6px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -693,7 +719,7 @@
   flex-wrap: wrap;
   gap: 10px;
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-detail-photo-groups {
@@ -714,7 +740,7 @@
   border-radius: 999px;
   background: rgba(249, 115, 22, 0.1);
   color: #c2410c;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 800;
 }
 
@@ -759,20 +785,20 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 
 .trip-detail-photo-card figcaption p {
   margin: 0;
   color: #475569;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
 .trip-detail-photo-card span,
 .trip-detail-guide-top p {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-detail-photo-featured-badge {
@@ -781,7 +807,7 @@
   border-radius: 999px;
   background: rgba(14, 165, 233, 0.12);
   color: #0369a1;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -796,7 +822,7 @@
 .trip-detail-photo-icon-button {
   min-height: 30px;
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .trip-detail-photo-order-actions {
@@ -812,7 +838,7 @@
 .trip-detail-photo-caption-input {
   min-height: 34px;
   padding: 7px 9px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-detail-guide-list {
@@ -859,7 +885,7 @@
   border: 1px solid rgba(226, 232, 240, 0.92);
   background: rgba(248, 250, 252, 0.95);
   color: #475569;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   text-decoration: none;
   transition:

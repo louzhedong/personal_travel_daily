@@ -1,25 +1,87 @@
 :root {
-  font-family: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  font-family: 'Avenir Next', 'Gill Sans', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #0f172a;
-  background: linear-gradient(180deg, #f9fcff 0%, #edf7f4 100%);
-  --radius-card: 24px;
-  --radius-panel: 18px;
-  --radius-control: 14px;
+  color: #101418;
+  background:
+    radial-gradient(circle at 14% 8%, rgba(182, 106, 69, 0.08), transparent 28%),
+    radial-gradient(circle at 84% 2%, rgba(49, 93, 114, 0.08), transparent 26%),
+    linear-gradient(135deg, #fbfaf6 0%, #f4f1ea 52%, #eef3f1 100%);
+  --surface-paper: #fbfaf6;
+  --surface-wash: #f3f0e8;
+  --surface-mist: #eef3f1;
+  --surface-plain: #fffdf8;
+  --surface-glass: rgba(255, 253, 248, 0.78);
+  --surface-sheet: rgba(255, 253, 248, 0.9);
+  --surface-quiet: rgba(243, 240, 232, 0.62);
+  --surface-tint-blue: rgba(49, 93, 114, 0.09);
+  --surface-tint-route: rgba(31, 111, 104, 0.09);
+  --surface-tint-clay: rgba(182, 106, 69, 0.1);
+  --ink: #101418;
+  --ink-muted: #66706f;
+  --ink-soft: #8a918c;
+  --ink-inverse: #fffdf8;
+  --line-soft: rgba(16, 20, 24, 0.12);
+  --line-hair: rgba(16, 20, 24, 0.08);
+  --line-strong: rgba(16, 20, 24, 0.24);
+  --accent-route: #1f6f68;
+  --accent-clay: #b66a45;
+  --accent-blueprint: #315d72;
+  --accent-danger: #9f3d2f;
+  --accent-warning: #a86f1d;
+  --accent-success: #25765f;
+  --font-display: 'Avenir Next', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-body: 'Gill Sans', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-body: 14px;
+  --text-md: 15px;
+  --text-lg: 16px;
+  --text-lead: 17px;
+  --title-xs: 18px;
+  --title-sm: 20px;
+  --title-md: 24px;
+  --title-lg: 28px;
+  --title-xl: 32px;
+  --metric-sm: 28px;
+  --metric-md: 38px;
+  --metric-lg: 48px;
+  --display-sm: clamp(34px, 4vw, 48px);
+  --display-md: clamp(42px, 7vw, 76px);
+  --display-lg: clamp(52px, 7.6vw, 92px);
+  --leading-tight: 1.08;
+  --leading-title: 1.18;
+  --leading-body: 1.62;
+  --leading-loose: 1.8;
+  --tracking-kicker: 0.18em;
+  --tracking-tight: -0.055em;
+  --radius-card: 20px;
+  --radius-panel: 16px;
+  --radius-control: 999px;
   --radius-badge: 999px;
-  --shadow-card: 0 20px 40px rgba(15, 23, 42, 0.08);
-  --shadow-panel: 0 12px 28px rgba(15, 23, 42, 0.08);
-  --shadow-modal: 0 28px 64px rgba(15, 23, 42, 0.22);
-  --heading-main: 38px;
-  --heading-section: 20px;
-  --heading-modal: 18px;
+  --space-card-x: clamp(24px, 3vw, 36px);
+  --space-card-y: clamp(22px, 3vw, 34px);
+  --space-card-compact: clamp(16px, 2vw, 22px);
+  --space-card-gap: clamp(14px, 1.8vw, 22px);
+  --page-frame: 1180px;
+  --page-frame-wide: 1320px;
+  --page-gutter: clamp(20px, 3vw, 36px);
+  --page-hero-title: var(--display-sm);
+  --page-hero-copy: var(--text-lg);
+  --shadow-card: 0 18px 50px rgba(16, 20, 24, 0.06);
+  --shadow-panel: 0 12px 32px rgba(16, 20, 24, 0.055);
+  --shadow-hover: 0 18px 34px rgba(16, 20, 24, 0.1);
+  --shadow-modal: 0 28px 64px rgba(16, 20, 24, 0.18);
+  --heading-main: var(--display-sm);
+  --heading-section: var(--title-sm);
+  --heading-modal: var(--title-xs);
   --control-height: 44px;
   --control-height-sm: 40px;
-  --brand-blue: #2563eb;
-  --brand-teal: #14b8a6;
-  --brand-orange: #f97316;
-  --brand-ink: #0f172a;
+  --brand-blue: var(--accent-blueprint);
+  --brand-teal: var(--accent-route);
+  --brand-orange: var(--accent-clay);
+  --brand-ink: var(--ink);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -42,7 +104,15 @@ body,
 }
 
 body {
-  color: #0f172a;
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    linear-gradient(rgba(16, 20, 24, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 20, 24, 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 18% 12%, rgba(182, 106, 69, 0.07), transparent 30%),
+    radial-gradient(circle at 84% 6%, rgba(31, 111, 104, 0.06), transparent 28%),
+    linear-gradient(135deg, var(--surface-paper), var(--surface-wash) 54%, var(--surface-mist));
+  background-size: 44px 44px, 44px 44px, auto, auto, auto;
 }
 
 html::-webkit-scrollbar,

@@ -5,18 +5,25 @@ import {
   createTripChecklistItem,
   deleteTrip,
   deleteTripChecklistItem,
+  fetchTripPlanning,
+  fetchTripPlanningSchedule,
   fetchTripChecklist,
   fetchTripDetail,
+  importWishlistToTripPlanningSchedule,
   updateTrip,
   updateTripPhotoCuration,
   updateTripChecklistItem,
+  updateTripPlanningItemSchedule,
 } from '../../lib/api/tripsApi';
+import { createTripExpense, deleteTripExpense, fetchTripExpenses } from '../../lib/api/expensesApi';
+import { fetchWishlistItems } from '../../lib/api/wishlistApi';
 import TripDetailPage from '../trips/TripDetailPage';
 
 vi.mock('../../lib/api/tripsApi', () => ({
   fetchTripDetail: vi.fn(),
   fetchTripChecklist: vi.fn(),
   fetchTripPlanning: vi.fn(),
+  fetchTripPlanningSchedule: vi.fn(),
   updateTrip: vi.fn(),
   updateTripPhotoCuration: vi.fn(),
   deleteTrip: vi.fn(),
@@ -26,12 +33,21 @@ vi.mock('../../lib/api/tripsApi', () => ({
   createTripPlanningItem: vi.fn(),
   createTripPlanningItemFromWishlist: vi.fn(),
   updateTripPlanningItem: vi.fn(),
+  updateTripPlanningItemSchedule: vi.fn(),
+  importWishlistToTripPlanningSchedule: vi.fn(),
   deleteTripPlanningItem: vi.fn(),
   convertTripPlanningItemToMarker: vi.fn(),
 }));
 
 vi.mock('../../lib/api/wishlistApi', () => ({
   fetchWishlistItems: vi.fn(),
+}));
+
+vi.mock('../../lib/api/expensesApi', () => ({
+  fetchTripExpenses: vi.fn(),
+  createTripExpense: vi.fn(),
+  updateTripExpense: vi.fn(),
+  deleteTripExpense: vi.fn(),
 }));
 
 vi.mock('../../components/trips/TripChecklistBoard', () => ({
@@ -262,6 +278,40 @@ describe('TripDetailPage', () => {
         items: [],
       },
     ],
+    expenses: {
+      tripId: 'trip-1',
+      summary: {
+        totalAmountCents: 8800,
+        actualAmountCents: 8800,
+        draftAmountCents: 0,
+        currency: 'CNY',
+        itemCount: 1,
+        draftCount: 0,
+        actualCount: 1,
+        averagePerCompanionCents: 8800,
+        averagePerDayCents: 2933,
+        categoryBreakdown: [{ category: 'food' as const, label: '餐饮', amountCents: 8800, itemCount: 1, percentage: 100 }],
+        companionShares: [{ companionId: 'user-alice', companionName: '小悠', companionColor: '#2563eb', amountCents: 8800, itemCount: 1 }],
+      },
+      trend: [{ period: '2026-05', amountCents: 8800, itemCount: 1 }],
+      items: [
+        {
+          id: 'expense-1',
+          tripId: 'trip-1',
+          companionId: 'user-alice',
+          companionName: '小悠',
+          companionColor: '#2563eb',
+          title: '西湖午餐',
+          category: 'food' as const,
+          amountCents: 8800,
+          currency: 'CNY',
+          spentAt: '2026-05-01',
+          status: 'actual' as const,
+          createdAt: '2026-05-01T00:00:00.000Z',
+          updatedAt: '2026-05-01T00:00:00.000Z',
+        },
+      ],
+    },
     meta: {
       generatedAt: '2026-05-06T12:30:00.000Z',
     },
@@ -286,6 +336,52 @@ describe('TripDetailPage', () => {
       },
       groups: tripDetailResponse.checklistGroups,
     } as never);
+    vi.mocked(fetchTripPlanning).mockResolvedValue({
+      summary: { total: 1, plannedCount: 1, convertedCount: 0, highPriorityCount: 1 },
+      items: [],
+    } as never);
+    vi.mocked(fetchTripPlanningSchedule).mockResolvedValue({
+      summary: { total: 1, plannedCount: 1, convertedCount: 0, highPriorityCount: 1 },
+      days: [
+        {
+          date: '2026-05-01',
+          dayIndex: 1,
+          title: 'Day 1',
+          items: [],
+          checklistGroups: [
+            {
+              stage: 'pre_departure',
+              title: '出发前准备',
+              description: '把预约、路线、装备和行前确认放在这里。',
+              itemCount: 1,
+              items: [],
+            },
+          ],
+        },
+      ],
+      unscheduledItems: [
+        {
+          id: 'plan-1',
+          tripId: 'trip-1',
+          companionId: 'user-alice',
+          companionName: '小悠',
+          companionColor: '#2563eb',
+          title: '岚山竹林',
+          scope: 'international',
+          scopeId: 'japan',
+          scopeName: '日本',
+          city: '京都',
+          priority: 'high',
+          status: 'planned',
+          sortOrder: 0,
+          createdAt: '2026-05-01T00:00:00.000Z',
+          updatedAt: '2026-05-01T00:00:00.000Z',
+        },
+      ],
+      checklistGroups: [],
+    } as never);
+    vi.mocked(fetchWishlistItems).mockResolvedValue({ items: [] } as never);
+    vi.mocked(fetchTripExpenses).mockResolvedValue(tripDetailResponse.expenses as never);
     vi.mocked(updateTripPhotoCuration).mockResolvedValue({
       ...tripDetailResponse,
       photos: [
@@ -313,6 +409,7 @@ describe('TripDetailPage', () => {
 
     expect(await screen.findByRole('heading', { name: '江南春游' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '行前规划 0' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '消费 1' })).toBeInTheDocument();
     expect(screen.getByText('旅行记录')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '封面故事' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '行程记录' })).toBeInTheDocument();
@@ -339,6 +436,35 @@ describe('TripDetailPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: '查看共同回忆' }));
 
     expect(onOpenCompanionMemories).toHaveBeenCalledWith('user-alice');
+  });
+
+  it('creates and deletes expenses from the expense tab', async () => {
+    const user = userEvent.setup();
+    vi.mocked(createTripExpense).mockResolvedValue(tripDetailResponse.expenses.items[0] as never);
+    vi.mocked(deleteTripExpense).mockResolvedValue({ deletedId: 'expense-1' } as never);
+
+    render(<TripDetailPage account={account} tripId="trip-1" onNavigateBack={vi.fn()} onLogout={vi.fn()} />);
+
+    await screen.findByRole('heading', { name: '江南春游' });
+    await user.click(screen.getByRole('button', { name: '消费 1' }));
+    expect(screen.getByRole('heading', { name: '预算与消费' })).toBeInTheDocument();
+    expect(screen.getByText('西湖午餐')).toBeInTheDocument();
+
+    await user.clear(screen.getByPlaceholderText('费用名称，例如 京都地铁一日券'));
+    await user.type(screen.getByPlaceholderText('费用名称，例如 京都地铁一日券'), '夜游船票');
+    await user.type(screen.getByPlaceholderText('金额'), '55');
+    await user.click(screen.getByRole('button', { name: '记录费用' }));
+    await user.click(screen.getByRole('button', { name: '删除' }));
+
+    await waitFor(() => {
+      expect(createTripExpense).toHaveBeenCalledWith(expect.objectContaining({
+        tripId: 'trip-1',
+        title: '夜游船票',
+        amountCents: 5500,
+      }));
+      expect(deleteTripExpense).toHaveBeenCalledWith('expense-1');
+      expect(fetchTripExpenses).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('edits the trip and updates local state after save', async () => {
@@ -455,6 +581,45 @@ describe('TripDetailPage', () => {
     });
     expect(onOpenTripChecklist).toHaveBeenCalledWith('trip-1');
     expect(screen.getByText('已删除这条清单。')).toBeInTheDocument();
+  });
+
+  it('loads the planning schedule board and schedules an item', async () => {
+    const user = userEvent.setup();
+    vi.mocked(updateTripPlanningItemSchedule).mockResolvedValue({
+      summary: { total: 1, plannedCount: 1, convertedCount: 0, highPriorityCount: 1 },
+      days: [
+        {
+          date: '2026-05-01',
+          dayIndex: 1,
+          title: 'Day 1',
+          items: [],
+          checklistGroups: [],
+        },
+      ],
+      unscheduledItems: [],
+      checklistGroups: [],
+    } as never);
+    vi.mocked(importWishlistToTripPlanningSchedule).mockResolvedValue({
+      summary: { total: 1, plannedCount: 1, convertedCount: 0, highPriorityCount: 1 },
+      days: [],
+      unscheduledItems: [],
+      checklistGroups: [],
+    } as never);
+
+    render(<TripDetailPage account={account} tripId="trip-1" onNavigateBack={vi.fn()} onLogout={vi.fn()} />);
+
+    await screen.findByRole('heading', { name: '江南春游' });
+    await user.click(screen.getByRole('button', { name: '行前规划 0' }));
+    await user.click(await screen.findByRole('button', { name: '日程视图' }));
+    expect(await screen.findByLabelText('行前规划日程摘要')).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText('安排 岚山竹林 到日期'), '2026-05-01');
+
+    await waitFor(() => {
+      expect(updateTripPlanningItemSchedule).toHaveBeenCalledWith('trip-1', 'plan-1', {
+        plannedDate: '2026-05-01',
+      });
+    });
+    expect(screen.getByText('已把规划项安排到当天。')).toBeInTheDocument();
   });
 
   it('deletes the trip, handles delete failure, and triggers logout', async () => {

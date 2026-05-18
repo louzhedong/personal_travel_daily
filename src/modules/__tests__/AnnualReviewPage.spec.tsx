@@ -13,9 +13,21 @@ vi.mock('../../geo/loader', () => ({
   normalizeChinaName: (value: string) => value,
 }));
 
+function readBlobAsText(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => resolve(String(reader.result)));
+    reader.addEventListener('error', () => reject(reader.error));
+    reader.readAsText(blob);
+  });
+}
+
 describe('AnnualReviewPage', () => {
   const originalPrint = window.print;
   const originalTitle = document.title;
+  const originalCreateObjectUrl = URL.createObjectURL;
+  const originalRevokeObjectUrl = URL.revokeObjectURL;
+  const originalClick = HTMLAnchorElement.prototype.click;
   const account = {
     id: 'acct-1',
     name: 'Voyage Atlas',
@@ -133,6 +145,24 @@ describe('AnnualReviewPage', () => {
         nextHint: '还差 16 天，继续累积更多出发日。',
       },
     ],
+    expenseInsights: {
+      summary: {
+        totalAmountCents: 98000,
+        actualAmountCents: 80000,
+        draftAmountCents: 18000,
+        currency: 'CNY',
+        itemCount: 6,
+        draftCount: 1,
+        actualCount: 5,
+        averagePerCompanionCents: 98000,
+        averagePerDayCents: 24500,
+        categoryBreakdown: [{ category: 'food' as const, label: '餐饮', amountCents: 42000, itemCount: 3, percentage: 43 }],
+        companionShares: [{ companionId: 'user-alice', companionName: '小悠', companionColor: '#2563eb', amountCents: 98000, itemCount: 6 }],
+      },
+      trend: [{ period: '2026-05', amountCents: 98000, itemCount: 6 }],
+      topCategories: [{ category: 'food' as const, label: '餐饮', amountCents: 42000, itemCount: 3, percentage: 43 }],
+      topTrips: [{ tripId: 'trip-1', tripName: '江南春游', amountCents: 98000, itemCount: 6 }],
+    },
     firstMarker: {
       id: 'marker-1',
       tripId: 'trip-1',
@@ -167,12 +197,18 @@ describe('AnnualReviewPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.print = vi.fn();
+    URL.createObjectURL = vi.fn(() => 'blob:annual-archive');
+    URL.revokeObjectURL = vi.fn();
+    HTMLAnchorElement.prototype.click = vi.fn();
     document.title = originalTitle;
     vi.mocked(fetchAnnualReview).mockResolvedValue(annualReviewResponse);
   });
 
   afterEach(() => {
     window.print = originalPrint;
+    URL.createObjectURL = originalCreateObjectUrl;
+    URL.revokeObjectURL = originalRevokeObjectUrl;
+    HTMLAnchorElement.prototype.click = originalClick;
     document.title = originalTitle;
   });
 
@@ -191,6 +227,7 @@ describe('AnnualReviewPage', () => {
 
     expect(await screen.findByRole('heading', { name: '2026 年度旅行回顾' })).toBeInTheDocument();
     expect(screen.getByText('年度亮点')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '年度消费洞察' })).toBeInTheDocument();
     expect(screen.getByText('杭州周末攻略')).toBeInTheDocument();
     expect(document.title).toBe('2026 年度旅行回顾');
 
@@ -217,6 +254,33 @@ describe('AnnualReviewPage', () => {
     await user.click(screen.getByRole('button', { name: '导出 PDF / 打印' }));
 
     expect(window.print).toHaveBeenCalledOnce();
+  });
+
+  it('exports a local archive package for the annual review', async () => {
+    const user = userEvent.setup();
+    render(
+      <AnnualReviewPage
+        account={account}
+        year="2026"
+        onNavigateBack={vi.fn()}
+        onOpenTripDetail={vi.fn()}
+        onOpenAchievements={vi.fn()}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole('heading', { name: '2026 年度旅行回顾' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '导出本地归档包' }));
+
+    expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    const exportedBlob = vi.mocked(URL.createObjectURL).mock.calls[0][0] as Blob;
+    const archiveText = await readBlobAsText(exportedBlob);
+    expect(exportedBlob.type).toBe('application/zip');
+    expect(archiveText).toContain('manifest.json');
+    expect(archiveText).toContain('content/annual-review.json');
+    expect(archiveText).toContain('exports/annual-review.svg');
+    expect(archiveText).toContain('https://example.com/photo.jpg');
+    expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledOnce();
   });
 
   it('opens photo curation with the annual year filter', async () => {

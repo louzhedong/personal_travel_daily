@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   findTripDetailSourceMock: vi.fn(),
   listActiveTripChecklistItemsByTripIdMock: vi.fn(),
   listActiveTripPlanningItemsByTripIdMock: vi.fn(),
+  listActiveTripExpensesByTripIdMock: vi.fn(),
 }));
 
 vi.mock('../appApi/prisma.js', () => ({
@@ -25,6 +26,10 @@ vi.mock('../appApi/repositories/tripPlanningRepository.js', () => ({
   listActiveTripPlanningItemsByTripId: mocks.listActiveTripPlanningItemsByTripIdMock,
 }));
 
+vi.mock('../appApi/repositories/expenseRepository.js', () => ({
+  listActiveTripExpensesByTripId: mocks.listActiveTripExpensesByTripIdMock,
+}));
+
 import { getTripDetail } from '../appApi/services/tripDetailService.js';
 
 describe('tripDetailService', () => {
@@ -32,6 +37,37 @@ describe('tripDetailService', () => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
     mocks.getPrismaClientMock.mockReturnValue({});
     mocks.listActiveTripPlanningItemsByTripIdMock.mockResolvedValue([]);
+    mocks.listActiveTripExpensesByTripIdMock.mockResolvedValue([
+      {
+        id: 'expense-1',
+        accountId: 'acct-1',
+        tripId: 'trip-1',
+        companionId: 'user-alice',
+        sourcePlanningItemId: null,
+        title: '西湖船票',
+        category: 'ticket',
+        amountCents: 5500,
+        currency: 'CNY',
+        spentAt: new Date('2026-05-02T00:00:00.000Z'),
+        note: null,
+        status: 'actual',
+        isDeleted: false,
+        createdAt: new Date('2026-05-02T00:00:00.000Z'),
+        updatedAt: new Date('2026-05-02T00:00:00.000Z'),
+        deletedAt: null,
+        companion: {
+          id: 'user-alice',
+          accountId: 'acct-1',
+          name: '小悠',
+          color: '#2563eb',
+          sortOrder: 0,
+          createdAt: new Date('2026-04-20T00:00:00.000Z'),
+          updatedAt: new Date('2026-04-20T00:00:00.000Z'),
+          deletedAt: null,
+          isDeleted: false,
+        },
+      },
+    ]);
     mocks.listActiveTripChecklistItemsByTripIdMock.mockResolvedValue([
       {
         id: 'item-1',
@@ -257,5 +293,11 @@ describe('tripDetailService', () => {
     });
     expect(result.checklistSummary.total).toBe(1);
     expect(result.checklistGroups[0].title).toBe('出发前准备');
+    expect(result.expenses.summary.totalAmountCents).toBe(5500);
+    expect(result.expenses.items[0]).toMatchObject({
+      title: '西湖船票',
+      category: 'ticket',
+      companionName: '小悠',
+    });
   });
 });

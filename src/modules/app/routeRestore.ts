@@ -8,6 +8,7 @@ import {
   createLoginRoute,
   createPhotoCurationRoute,
   createRegisterRoute,
+  createRemindersRoute,
   createSettingsRoute,
   createStatsRoute,
   createTripChecklistRoute,
@@ -67,6 +68,10 @@ export function resolveRestoredRoute({ account, route }: ResolveRestoredRouteInp
 
   if (route.kind === 'achievements') {
     return { route: createAchievementsRoute(), entryMessage: null };
+  }
+
+  if (route.kind === 'reminders') {
+    return { route: createRemindersRoute(), entryMessage: null };
   }
 
   if (route.kind === 'companionMemories') {

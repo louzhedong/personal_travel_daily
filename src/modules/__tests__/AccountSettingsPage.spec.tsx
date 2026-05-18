@@ -9,6 +9,12 @@ import {
   revokeAccountSession,
   updateAccountProfile,
 } from '../../lib/api/accountSettingsApi';
+import {
+  createPrivateShareLink,
+  listPrivateShareLinks,
+  revokePrivateShareLink,
+} from '../../lib/api/shareLinksApi';
+import { fetchReminders, muteReminderType, unmuteReminderType } from '../../lib/api/remindersApi';
 import { remoteTravelStoreRepository } from '../../lib/repositories/remoteTravelStoreRepository';
 import type { AccountSessionsResponseDto, AccountSettingsDto } from '../../lib/api/types';
 import type { TravelStore } from '../../types';
@@ -25,6 +31,18 @@ vi.mock('../../lib/api/accountSettingsApi', () => ({
   fetchAccountSessions: vi.fn(),
   revokeAccountSession: vi.fn(),
   logoutAllAccountSessions: vi.fn(),
+}));
+
+vi.mock('../../lib/api/shareLinksApi', () => ({
+  listPrivateShareLinks: vi.fn(),
+  createPrivateShareLink: vi.fn(),
+  revokePrivateShareLink: vi.fn(),
+}));
+
+vi.mock('../../lib/api/remindersApi', () => ({
+  fetchReminders: vi.fn(),
+  muteReminderType: vi.fn(),
+  unmuteReminderType: vi.fn(),
 }));
 
 vi.mock('../../lib/repositories/remoteTravelStoreRepository', () => ({
@@ -95,7 +113,45 @@ describe('AccountSettingsPage', () => {
     vi.clearAllMocks();
     vi.mocked(fetchAccountSettings).mockResolvedValue(settingsResponse);
     vi.mocked(fetchAccountSessions).mockResolvedValue(sessionsResponse);
+    vi.mocked(listPrivateShareLinks).mockResolvedValue({
+      links: [
+        {
+          id: 'share-1',
+          resourceType: 'memory_capsule',
+          resourceId: 'capsule-1',
+          title: '京都胶囊',
+          status: 'active',
+          tokenPreview: 'abcd1234',
+          passwordProtected: true,
+          accessCount: 2,
+          createdAt: '2026-05-12T00:00:00.000Z',
+          updatedAt: '2026-05-12T00:00:00.000Z',
+        },
+      ],
+    });
     vi.mocked(remoteTravelStoreRepository.loadStore).mockResolvedValue(store);
+    vi.mocked(fetchReminders).mockResolvedValue({
+      reminders: [],
+      preferences: [{ type: 'planning_overdue', enabled: true }],
+      summary: {
+        totalCount: 0,
+        activeCount: 0,
+        mutedCount: 0,
+        resolvedCount: 0,
+        criticalCount: 0,
+        warningCount: 0,
+        infoCount: 0,
+      },
+      generatedAt: '2026-05-12T00:00:00.000Z',
+    });
+    vi.mocked(muteReminderType).mockResolvedValue({
+      success: true,
+      preference: { type: 'planning_overdue', enabled: true, mutedUntil: '2026-05-19T00:00:00.000Z' },
+    });
+    vi.mocked(unmuteReminderType).mockResolvedValue({
+      success: true,
+      preference: { type: 'planning_overdue', enabled: true },
+    });
     vi.mocked(updateAccountProfile).mockResolvedValue({
       ...settingsResponse,
       account: { ...account, name: '新的旅行档案' },
@@ -103,6 +159,36 @@ describe('AccountSettingsPage', () => {
     vi.mocked(changeAccountPassword).mockResolvedValue({ success: true });
     vi.mocked(revokeAccountSession).mockResolvedValue({ success: true });
     vi.mocked(logoutAllAccountSessions).mockResolvedValue({ success: true });
+    vi.mocked(createPrivateShareLink).mockResolvedValue({
+      link: {
+        id: 'share-2',
+        resourceType: 'annual_review',
+        resourceId: '2026',
+        title: '2026 年度回顾',
+        status: 'active',
+        url: '/share/raw-share-token-123',
+        tokenPreview: 'token123',
+        passwordProtected: false,
+        accessCount: 0,
+        createdAt: '2026-05-12T00:00:00.000Z',
+        updatedAt: '2026-05-12T00:00:00.000Z',
+      },
+    });
+    vi.mocked(revokePrivateShareLink).mockResolvedValue({
+      link: {
+        id: 'share-1',
+        resourceType: 'memory_capsule',
+        resourceId: 'capsule-1',
+        title: '京都胶囊',
+        status: 'revoked',
+        tokenPreview: 'abcd1234',
+        passwordProtected: true,
+        accessCount: 2,
+        createdAt: '2026-05-12T00:00:00.000Z',
+        updatedAt: '2026-05-12T00:00:00.000Z',
+        revokedAt: '2026-05-12T01:00:00.000Z',
+      },
+    });
   });
 
   it('renders account settings, sessions, and data export', async () => {
@@ -112,6 +198,7 @@ describe('AccountSettingsPage', () => {
     expect(screen.getByDisplayValue('Voyage Atlas')).toBeInTheDocument();
     expect(screen.getByText('Mac 浏览器')).toBeInTheDocument();
     expect(screen.getByText('iOS 设备')).toBeInTheDocument();
+    expect(screen.getByText('京都胶囊')).toBeInTheDocument();
     expect(screen.getByTestId('data-sync')).toBeInTheDocument();
   });
 
@@ -180,5 +267,48 @@ describe('AccountSettingsPage', () => {
     await user.click(screen.getByRole('button', { name: '退出全部设备' }));
     expect(logoutAllAccountSessions).toHaveBeenCalled();
     expect(onLoggedOut).toHaveBeenCalled();
+  });
+
+  it('creates and revokes private share links', async () => {
+    const user = userEvent.setup();
+    vi.mocked(revokePrivateShareLink).mockResolvedValueOnce({
+      link: {
+        id: 'share-2',
+        resourceType: 'annual_review',
+        resourceId: '2026',
+        title: '2026 年度回顾',
+        status: 'revoked',
+        tokenPreview: 'token123',
+        passwordProtected: false,
+        accessCount: 0,
+        createdAt: '2026-05-12T00:00:00.000Z',
+        updatedAt: '2026-05-12T00:00:00.000Z',
+        revokedAt: '2026-05-12T01:00:00.000Z',
+      },
+    });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
+    renderPage();
+
+    await screen.findByText('京都胶囊');
+    await user.selectOptions(screen.getByLabelText('类型'), 'annual_review');
+    await user.type(screen.getByLabelText('资源 ID'), '2026');
+    await user.type(screen.getByLabelText('标题'), '2026 年度回顾');
+    await user.click(screen.getByRole('button', { name: '创建分享链接' }));
+
+    expect(createPrivateShareLink).toHaveBeenCalledWith({
+      resourceType: 'annual_review',
+      resourceId: '2026',
+      title: '2026 年度回顾',
+      expiresAt: undefined,
+      password: undefined,
+      maxAccessCount: undefined,
+    });
+    expect(await screen.findByText('分享链接已创建并复制')).toBeInTheDocument();
+
+    await user.click(screen.getAllByRole('button', { name: '撤销链接' })[0]);
+    expect(revokePrivateShareLink).toHaveBeenCalledWith('share-2');
   });
 });

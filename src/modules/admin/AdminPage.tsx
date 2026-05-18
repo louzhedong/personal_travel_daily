@@ -20,12 +20,14 @@ import {
   previewAdminQualityAutoFix,
   recordAdminAuditLog,
 } from '../../lib/api/adminApi';
+import { fetchAdminReminderTrends } from '../../lib/api/remindersApi';
 import type {
   AdminAuditActionDto,
   AdminAuditLogDto,
   AdminOverviewResponseDto,
   AdminQualityAutoFixResultDto,
   AdminQualityIssueDto,
+  ReminderAdminTrendDto,
 } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
 import {
@@ -63,6 +65,7 @@ export default function AdminPage({ account, onLogout, onNavigateHome, onNavigat
   const [toastMessage, setToastMessage] = useState('');
   const [toastTone, setToastTone] = useState<AppToastTone>('info');
   const [autoFixPreview, setAutoFixPreview] = useState<AdminQualityAutoFixResultDto | null>(null);
+  const [reminderTrends, setReminderTrends] = useState<ReminderAdminTrendDto[]>([]);
   const [autoFixLoading, setAutoFixLoading] = useState(false);
   const [autoFixApplying, setAutoFixApplying] = useState(false);
 
@@ -78,11 +81,12 @@ export default function AdminPage({ account, onLogout, onNavigateHome, onNavigat
 
     // Preserve the original fetch flow and cancellation guard.
     // 保持原有数据拉取流程与取消标记，避免拆分后改变时序行为。
-    Promise.all([fetchAdminOverview(), fetchAdminAuditLogs({ limit: 50 })])
-      .then(([response, auditResponse]) => {
+    Promise.all([fetchAdminOverview(), fetchAdminAuditLogs({ limit: 50 }), fetchAdminReminderTrends()])
+      .then(([response, auditResponse, reminderResponse]) => {
         if (!cancelled) {
           setOverview(response);
           setAuditLogs(auditResponse.logs);
+          setReminderTrends(reminderResponse.trends);
           setSelectedAccountId((current) => current ?? response.accounts[0]?.id ?? null);
           setErrorMessage('');
         }
@@ -306,6 +310,27 @@ export default function AdminPage({ account, onLogout, onNavigateHome, onNavigat
       {!loading && overview ? (
         <>
           <AdminOverviewCards overview={overview} />
+          <section className="card admin-reminder-trends">
+            <div className="admin-section-title">
+              <span className="travel-icon-badge travel-icon-badge-orange">
+                <TravelIcon name="spark" size={14} />
+              </span>
+              <h3>提醒趋势</h3>
+            </div>
+            {reminderTrends.length > 0 ? (
+              <div className="admin-reminder-trend-grid">
+                {reminderTrends.map((trend) => (
+                  <article key={trend.type} className="admin-reminder-trend">
+                    <span>{trend.label}</span>
+                    <strong>{trend.activeCount}</strong>
+                    <p>总计 {trend.totalCount} · 静音 {trend.mutedCount} · 已处理 {trend.resolvedCount}</p>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="admin-empty-block">暂无跨账号提醒趋势。</div>
+            )}
+          </section>
           <AdminQualityReminderPanel overview={overview} />
           <AdminQualitySummaryPanel
             overview={overview}
@@ -475,7 +500,23 @@ export default function AdminPage({ account, onLogout, onNavigateHome, onNavigat
                     </section>
 
                     <AdminGuideSearchTrendsPanel items={overview.guideSearchTrends ?? []} />
-                    <AdminGuideSourceHealthPanel items={overview.guideSourceHealth ?? []} />
+                    <AdminGuideSourceHealthPanel
+                      items={overview.guideSourceHealth ?? []}
+                      onUpdated={(item) => {
+                        setOverview((current) =>
+                          current
+                            ? {
+                                ...current,
+                                guideSourceHealth: [
+                                  item,
+                                  ...(current.guideSourceHealth ?? []).filter((source) => source.id !== item.id),
+                                ],
+                              }
+                            : current,
+                        );
+                        showToast('来源优先级已更新', 'success');
+                      }}
+                    />
                   </section>
 
                   <section className="admin-detail-tabs">

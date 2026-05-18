@@ -14,12 +14,12 @@
 
 .stats-summary-label {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
 .stats-summary-card strong {
-  font-size: 34px;
+  font-size: var(--title-xl);
   line-height: 1;
   color: var(--brand-ink);
 }
@@ -27,7 +27,7 @@
 .stats-summary-card p {
   margin: 0;
   color: #52627a;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
@@ -68,7 +68,7 @@
 
 .stats-highlight-card strong {
   display: block;
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .stats-highlight-card p {
@@ -121,13 +121,13 @@
 
 .stats-section-heading h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--title-xs);
 }
 
 .stats-section-heading p {
   margin: 6px 0 0;
   color: #64748b;
-  font-size: 14px;
+  font-size: var(--text-body);
   line-height: 1.6;
 }
 
@@ -161,11 +161,11 @@
 .stats-trend-item span,
 .stats-trend-item small {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .stats-trend-item strong {
-  font-size: 16px;
+  font-size: var(--text-lg);
 }
 
 .stats-trend-track {
@@ -207,12 +207,12 @@
 }
 
 .stats-bar-copy strong {
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 
 .stats-bar-copy span {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .stats-bar-track {
@@ -277,19 +277,19 @@
   border-radius: 999px;
   background: rgba(37, 99, 235, 0.08);
   color: #1d4ed8;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 800;
 }
 
 .stats-companion-identity strong {
   min-width: 0;
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .stats-companion-days {
   white-space: nowrap;
   color: #475569;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
@@ -312,7 +312,7 @@
   gap: 12px;
   flex-wrap: wrap;
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .stats-achievement-panel {
@@ -332,7 +332,7 @@
   border-radius: 999px;
   background: rgba(20, 184, 166, 0.1);
   color: #0f766e;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 800;
   white-space: nowrap;
 }
@@ -393,7 +393,7 @@
 .stats-achievement-category,
 .stats-achievement-status {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 800;
 }
 
@@ -410,13 +410,13 @@
 }
 
 .stats-achievement-card strong {
-  font-size: 17px;
+  font-size: var(--text-lead);
 }
 
 .stats-achievement-card p {
   margin: 0;
   color: #52627a;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.6;
 }
 
@@ -432,7 +432,7 @@
   min-height: 24px;
   padding: 0 10px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -459,7 +459,7 @@
 .stats-achievement-next-hint {
   display: block;
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.6;
 }
 
@@ -470,7 +470,7 @@
 .stats-achievement-progress-row {
   margin-top: auto;
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -561,7 +561,7 @@
 .stats-achievement-evidence-list span,
 .stats-achievement-unlocked-at {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 

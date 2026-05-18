@@ -83,7 +83,29 @@ describe('GuideSearchPanel', () => {
       hasMore: false,
     });
     mocks.getGuideDocumentMock.mockResolvedValue(document);
-    mocks.fetchGuideSourceHealthMock.mockResolvedValue({ items: [] });
+    mocks.fetchGuideSourceHealthMock.mockResolvedValue({
+      items: [
+        {
+          id: 'health-1',
+          sourceName: 'Mock Guide',
+          sourceDomain: 'mock.example.com',
+          recentSuccess: 6,
+          recentFailure: 1,
+          priorityWeight: 1,
+          quality: {
+            score: 84,
+            level: 'high',
+            relevanceScore: 88,
+            completenessScore: 76,
+            readabilityScore: 82,
+            sourceStabilityScore: 90,
+            saveRateScore: 66,
+            priorityWeight: 1,
+            reasons: ['高相关', '内容完整', '来源稳定'],
+          },
+        },
+      ],
+    });
     mocks.useGuideSearchLayoutLockMock.mockReturnValue({
       layoutLocked: false,
       panelSpacerHeight: 0,
@@ -149,6 +171,8 @@ describe('GuideSearchPanel', () => {
 
     expect(await screen.findByRole('heading', { name: /Kyoto Spring Cherry Blossom Guide/i })).toBeInTheDocument();
     expect(screen.getByText('Cherry blossom timing, popular viewpoints and quiet morning walking route.')).toBeInTheDocument();
+    expect(screen.getByText('高相关')).toBeInTheDocument();
+    expect(screen.getByText('优先来源')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '收藏攻略' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '关联到当前记录' })).not.toBeInTheDocument();
 

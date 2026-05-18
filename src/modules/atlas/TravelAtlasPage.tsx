@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   MARKER_BUDGET_LEVELS,
   MARKER_MOODS,
-  MARKER_TAGS,
   MARKER_TRANSPORTS,
   MARKER_WEATHERS,
 } from '../../../shared/markerMetadata';
@@ -10,6 +9,8 @@ import AtlasMap from '../../components/atlas/AtlasMap';
 import FancySelect from '../../components/ui/FancySelect';
 import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
 import { fetchAtlasTimeline } from '../../lib/api/atlasApi';
+import { fetchMarkerTagVocabulary } from '../../lib/api/tagVocabularyApi';
+import { MARKER_TAG_OPTIONS, type MarkerTagOption } from '../../lib/markerMetadata';
 import type { AtlasScopeDto, AtlasTimelineQueryDto, AtlasTimelineResponseDto } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
 import {
@@ -32,7 +33,6 @@ interface TravelAtlasPageProps {
 }
 
 const metadataOption = (label: string, value: string) => ({ value, label });
-const TAG_OPTIONS = [{ value: 'all', label: '全部标签' }, ...MARKER_TAGS.map((value) => metadataOption(value, value))];
 const MOOD_OPTIONS = [{ value: 'all', label: '全部情绪' }, ...MARKER_MOODS.map((value) => metadataOption(value, value))];
 const WEATHER_OPTIONS = [{ value: 'all', label: '全部天气' }, ...MARKER_WEATHERS.map((value) => metadataOption(value, value))];
 const TRANSPORT_OPTIONS = [{ value: 'all', label: '全部交通' }, ...MARKER_TRANSPORTS.map((value) => metadataOption(value, value))];
@@ -45,6 +45,23 @@ export default function TravelAtlasPage({ account, onLogout, onNavigateBack }: T
   const [errorMessage, setErrorMessage] = useState('');
   const [replayIndex, setReplayIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [tagOptions, setTagOptions] = useState<MarkerTagOption[]>(MARKER_TAG_OPTIONS);
+
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchMarkerTagVocabulary()
+      .then((response) => {
+        if (cancelled) return;
+        setTagOptions(response.visibleItems.map((item) => ({ value: item.value, label: item.label, source: item.source })));
+      })
+      .catch(() => {
+        if (!cancelled) setTagOptions(MARKER_TAG_OPTIONS);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,7 +128,7 @@ export default function TravelAtlasPage({ account, onLogout, onNavigateBack }: T
         <FancySelect value={filters.scope ?? 'all'} options={ATLAS_SCOPE_OPTIONS} onChange={(value) => updateFilter('scope', value as AtlasScopeDto)} placeholder="范围" ariaLabel="范围" />
         <FancySelect value={filters.companionId ?? 'all'} options={buildAtlasCompanionOptions(data?.companions ?? [])} onChange={(value) => updateFilter('companionId', value)} placeholder="旅伴" ariaLabel="旅伴" />
         <FancySelect value={filters.tripId ?? 'all'} options={buildAtlasTripOptions(data?.trips ?? [])} onChange={(value) => updateFilter('tripId', value)} placeholder="行程" ariaLabel="行程" />
-        <FancySelect value={filters.tag ?? 'all'} options={TAG_OPTIONS} onChange={(value) => updateFilter('tag', value)} placeholder="标签" ariaLabel="标签" />
+        <FancySelect value={filters.tag ?? 'all'} options={[{ value: 'all', label: '全部标签' }, ...tagOptions]} onChange={(value) => updateFilter('tag', value)} placeholder="标签" ariaLabel="标签" />
         <FancySelect value={filters.mood ?? 'all'} options={MOOD_OPTIONS} onChange={(value) => updateFilter('mood', value)} placeholder="情绪" ariaLabel="情绪" />
         <FancySelect value={filters.weather ?? 'all'} options={WEATHER_OPTIONS} onChange={(value) => updateFilter('weather', value)} placeholder="天气" ariaLabel="天气" />
         <FancySelect value={filters.transport ?? 'all'} options={TRANSPORT_OPTIONS} onChange={(value) => updateFilter('transport', value)} placeholder="交通" ariaLabel="交通" />

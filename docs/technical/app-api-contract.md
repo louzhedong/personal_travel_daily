@@ -5,7 +5,7 @@
 当前版本职责：
 
 - 提供旅行主数据聚合加载能力
-- 提供旅伴、旅伴共同回忆、行程集合、旅行记录、攻略收藏/关联、搜索历史、trip-bound 行前清单、行前规划工作台，以及愿望地图的服务端读写接口
+- 提供旅伴、旅伴共同回忆、行程集合、旅行记录、攻略收藏/关联、搜索历史、trip-bound 行前清单、行前规划工作台、行前规划日程、愿望地图、整理工作台、智能相册、标签治理、攻略质量、私密分享、预算消费、地图回放故事和主动提醒的服务端读写接口
 - 作为前端 `remoteTravelStoreRepository` 的默认数据源
 
 ## 当前后端实现对照 / Current Backend Architecture References
@@ -30,6 +30,7 @@
 - 行前规划工作台使用 `routes/trips.ts` 下的 trip 子资源接口，并按 `schemas / services / repositories / serializers` 分层实现
 - 愿望地图使用 `routes/wishlist.ts` 独立资源接口，并通过 `TripPlanningItem.sourceWishlistId` 标记导入关系
 - 旅伴共同回忆使用 `routes/companionMemories.ts`，通过 `CompanionMemorySnapshot` 做 24 小时按需重建缓存
+- Roadmap 收口域新增 `routes/organization.ts`、`photoAlbums.ts`、`tagVocabulary.ts`、`shareLinks.ts`、`expenses.ts`、`mapReplayStories.ts`、`reminders.ts`，并继续使用 DTO 目录化和分层 service
 
 Summary: The API contract maps directly onto the current backend layering of routes, schemas, services, repositories, serializers, and shared modules.
 
@@ -1656,3 +1657,83 @@ Success response:
 - 确认 MySQL 已启动
 - 确认 `DATABASE_URL` 指向 `127.0.0.1:3306`
 - 确认已执行 `npm run db:generate`、`npm run db:migrate:deploy`（或本地对应 migrate 流程）、`npm run db:seed`
+
+
+## Roadmap 收口接口 / Roadmap Closure APIs
+
+### 行前规划日程 / Trip Planning Schedule
+
+- `GET /api/trips/:id/planning/schedule`：读取行程按天规划、未排期池和当天清单提示。
+- `PATCH /api/trips/:id/planning/items/:itemId/schedule`：调整规划项日期或移回未排期。
+- `POST /api/trips/:id/planning/schedule/import-wishlist`：把愿望地图项目导入指定日期。
+
+Summary: Schedule APIs reuse `TripPlanningItem.plannedDate` and do not introduce a second itinerary model.
+
+### 整理工作台 / Organization Workbench
+
+- `GET /api/organization/workbench`：读取当前账号整理建议。
+- `POST /api/organization/actions/preview`：预览批量整理造成的字段变更。
+- `POST /api/organization/actions/apply`：确认执行已预览的批量整理。
+
+Summary: Organization APIs are account-scoped and follow preview-before-apply for every bulk mutation.
+
+### 智能相册 / Smart Albums
+
+- `GET /api/photo-albums`：读取年度、城市、旅伴和行程封面候选相册。
+- `PATCH /api/photo-albums/preferences`：保存封面排序、pin 和账号级相册偏好。
+
+Summary: Photo album APIs reuse photo curation metadata and keep image URLs as references.
+
+### 标签治理 / Tag Governance
+
+- `GET /api/marker-tags/vocabulary`：读取系统标签与账号级自定义词表。
+- `POST /api/marker-tags/vocabulary`：新增自定义标签。
+- `PATCH /api/marker-tags/vocabulary/:value`：更新隐藏、排序、别名或标签展示信息。
+- `DELETE /api/marker-tags/vocabulary/:value`：删除账号级自定义标签。
+
+Summary: Tag APIs preserve existing marker tag JSON while adding account-level vocabulary governance.
+
+### 攻略质量与来源优先级 / Guide Quality and Source Priority
+
+- `GET /api/guide-source-health`：读取来源健康度、质量评分摘要和后台趋势。
+- `PATCH /api/guide-source-health/preferences`：更新来源优先级和降权建议。
+
+Summary: Guide quality APIs make search result ranking explainable without requiring LLM availability.
+
+### 私密分享链接 / Private Share Links
+
+- `GET /api/share-links`：读取账号内分享链接列表。
+- `POST /api/share-links`：创建分享链接，明文 token 仅在本次响应返回。
+- `PATCH /api/share-links/:id`：更新过期时间、访问密码或访问上限等治理字段。
+- `POST /api/share-links/:id/revoke`：撤销分享链接。
+- `POST /api/public/share-links/:token/access`：公开只读访问，并记录匿名访问审计。
+
+Summary: Share APIs store token hashes only and keep public access read-only.
+
+### 旅行预算与消费 / Travel Expenses
+
+- `GET /api/expenses`：按行程或统计上下文读取消费明细。
+- `POST /api/expenses`：创建 trip-bound 消费记录。
+- `PATCH /api/expenses/:id`：更新消费金额、类别、日期、备注、旅伴或状态。
+- `DELETE /api/expenses/:id`：删除消费记录。
+- `POST /api/expenses/from-planning/:tripId/:itemId`：从规划项创建预算草稿。
+
+Summary: Expense APIs keep spending private and trip-bound, with no exchange-rate or OCR scope in this phase.
+
+### 地图回放故事 / Map Replay Stories
+
+- `GET /api/map-replay-stories/trip/:tripId`：读取单次行程回放故事。
+- `GET /api/map-replay-stories/year/:year`：读取年度回放故事。
+- `GET /api/map-replay-stories/companion/:companionId`：读取旅伴回放故事。
+
+Summary: Replay story APIs aggregate existing markers, photos, guides, and Atlas-style route data without map screenshots.
+
+### 主动提醒 / Proactive Reminders
+
+- `GET /api/reminders`：读取当前账号提醒、偏好和处理状态。
+- `POST /api/reminders/:fingerprint/resolve`：标记单条提醒已处理。
+- `POST /api/reminders/preferences/:type/mute`：静音某类提醒。
+- `DELETE /api/reminders/preferences/:type/mute`：恢复某类提醒。
+- `GET /api/admin/reminders/trends`：管理员读取跨账号提醒趋势。
+
+Summary: Reminder APIs are low-noise in-app signals only and do not send external notifications.

@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { fetchPhotoAlbums, updatePhotoAlbumPreferences } from '../../lib/api/photoAlbumsApi';
 import { fetchPhotoCuration, updatePhotoCuration } from '../../lib/api/photoCurationApi';
 import type {
+  PhotoAlbumCandidateDto,
+  PhotoAlbumDto,
+  PhotoAlbumsResponseDto,
   PhotoCurationCaptionFilterDto,
   PhotoCurationFeaturedFilterDto,
   PhotoCurationItemDto,
@@ -20,6 +24,15 @@ import {
   getPhotoCurationEmptyText,
   getWorklistPhotos,
 } from './photoCurationPageModel';
+import { exportPhotoAlbumSvg } from './photoAlbumExport';
+import {
+  buildPhotoAlbumAlt,
+  getAlbumCover,
+  getAlbumIssueText,
+  getCandidateBadge,
+  getFeaturedPhotoAlbums,
+  getPrimaryPhotoAlbum,
+} from './photoAlbumModel';
 
 interface PhotoCurationPageProps {
   account: AuthAccount;
@@ -91,6 +104,45 @@ function PhotoCard({
   );
 }
 
+function AlbumCandidateStrip({
+  album,
+  busy,
+  onPinCover,
+}: {
+  album: PhotoAlbumDto;
+  busy: boolean;
+  onPinCover: (album: PhotoAlbumDto, candidate: PhotoAlbumCandidateDto) => void;
+}) {
+  const cover = getAlbumCover(album);
+
+  return (
+    <article className="photo-album-row">
+      <div className="photo-album-row-copy">
+        <span>{album.metricLabel}</span>
+        <h3>{album.title}</h3>
+        <p>{album.subtitle}</p>
+        <button type="button" className="ghost-button" disabled={!cover} onClick={() => exportPhotoAlbumSvg(album)}>
+          导出 SVG
+        </button>
+      </div>
+      <div className="photo-album-candidates">
+        {album.coverCandidates.slice(0, 4).map((candidate) => (
+          <button
+            key={candidate.imageId}
+            type="button"
+            className={candidate.isPinned ? 'photo-album-candidate is-pinned' : 'photo-album-candidate'}
+            disabled={busy}
+            onClick={() => onPinCover(album, candidate)}
+          >
+            <img src={candidate.imageUrl} alt={buildPhotoAlbumAlt(candidate)} loading="lazy" />
+            <span>{getCandidateBadge(candidate)}</span>
+          </button>
+        ))}
+      </div>
+    </article>
+  );
+}
+
 export default function PhotoCurationPage({
   account,
   initialQuery,
@@ -98,6 +150,7 @@ export default function PhotoCurationPage({
   onNavigateBack,
 }: PhotoCurationPageProps) {
   const [data, setData] = useState<PhotoCurationResponseDto | null>(null);
+  const [albumData, setAlbumData] = useState<PhotoAlbumsResponseDto | null>(null);
   const [query, setQuery] = useState(() => buildQueryState(initialQuery));
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -124,10 +177,11 @@ export default function PhotoCurationPage({
     let cancelled = false;
     setLoading(true);
 
-    fetchPhotoCuration(query)
-      .then((response) => {
+    Promise.all([fetchPhotoCuration(query), fetchPhotoAlbums()])
+      .then(([curationResponse, albumsResponse]) => {
         if (!cancelled) {
-          setData(response);
+          setData(curationResponse);
+          setAlbumData(albumsResponse);
           setErrorMessage('');
         }
       })
@@ -149,6 +203,8 @@ export default function PhotoCurationPage({
 
   const heroPhotos = useMemo(() => (data ? getHeroPhotos(data) : []), [data]);
   const worklistPhotos = useMemo(() => (data ? getWorklistPhotos(data) : []), [data]);
+  const primaryAlbum = useMemo(() => getPrimaryPhotoAlbum(albumData), [albumData]);
+  const featuredAlbums = useMemo(() => getFeaturedPhotoAlbums(albumData), [albumData]);
 
   const applyCuration = async (
     photo: PhotoCurationItemDto,
@@ -184,6 +240,28 @@ export default function PhotoCurationPage({
     }));
   };
 
+  const pinAlbumCover = async (album: PhotoAlbumDto, candidate: PhotoAlbumCandidateDto) => {
+    setBusy(true);
+    try {
+      const response = await updatePhotoAlbumPreferences({
+        preferences: [
+          {
+            targetKind: album.targetKind,
+            targetId: album.targetId,
+            pinnedImageIds: [candidate.imageId],
+            sortOrder: album.coverCandidates.map((item) => item.imageId),
+          },
+        ],
+      });
+      setAlbumData(response);
+      showToast('已钉选封面候选', 'success');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '封面候选更新失败', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (loading && !data) {
     return <RoutePageSkeleton variant="detail" />;
   }
@@ -192,26 +270,24 @@ export default function PhotoCurationPage({
     <main className="photo-curation-shell">
       <header className="photo-curation-topbar">
         <button type="button" className="ghost-button" onClick={onNavigateBack}>
-          返回
+          返回首页
         </button>
-        <div>
-          <span>当前账号：{account.name}</span>
-          <button type="button" className="ghost-button" onClick={() => void onLogout()}>
-            退出登录
-          </button>
-        </div>
+        <button type="button" className="ghost-button" onClick={() => void onLogout()}>
+          退出登录
+        </button>
       </header>
 
       <section className="photo-curation-hero">
         <div className="photo-curation-hero-copy">
           <span className="hero-kicker">PHOTO DESK</span>
-          <h1>影像编辑台</h1>
-          <p>把旅行照片整理成可以被故事、年鉴和回忆继续使用的素材。</p>
+          <h1>影像策展台</h1>
+          <p>把旅行照片整理成智能相册、封面候选和可导出的精选版面。</p>
           {data ? (
             <div className="photo-curation-summary">
               <span><strong>{data.summary.totalPhotos}</strong> 全部照片</span>
               <span><strong>{data.summary.featuredPhotos}</strong> 已精选</span>
               <span><strong>{data.summary.missingCaptionPhotos}</strong> 待补说明</span>
+              {albumData ? <span><strong>{albumData.summary.albumCount}</strong> 智能相册</span> : null}
             </div>
           ) : null}
         </div>
@@ -230,6 +306,57 @@ export default function PhotoCurationPage({
 
       {data ? (
         <>
+          {albumData ? (
+            <section className="photo-album-studio">
+              <div className="photo-curation-section-head">
+                <h2>智能相册</h2>
+                <span>{albumData.summary.coverCandidateCount} 个候选</span>
+              </div>
+              {primaryAlbum ? (
+                <div className="photo-album-hero">
+                  <div>
+                    <span className="hero-kicker">COVER CURATION</span>
+                    <h2>{primaryAlbum.title}</h2>
+                    <p>{primaryAlbum.subtitle}</p>
+                    <div className="photo-album-hero-actions">
+                      <button type="button" className="primary-button" onClick={() => exportPhotoAlbumSvg(primaryAlbum)}>
+                        导出精选相册 SVG
+                      </button>
+                      <span>{primaryAlbum.metricLabel}</span>
+                    </div>
+                  </div>
+                  {getAlbumCover(primaryAlbum) ? (
+                    <img src={getAlbumCover(primaryAlbum)?.imageUrl} alt={`${primaryAlbum.title}封面`} />
+                  ) : null}
+                </div>
+              ) : (
+                <div className="photo-curation-empty">暂无智能相册</div>
+              )}
+              <div className="photo-album-row-list">
+                {featuredAlbums.map((album) => (
+                  <AlbumCandidateStrip
+                    key={album.id}
+                    album={album}
+                    busy={busy}
+                    onPinCover={(targetAlbum, candidate) => void pinAlbumCover(targetAlbum, candidate)}
+                  />
+                ))}
+              </div>
+              {albumData.issues.length > 0 ? (
+                <div className="photo-album-issues" aria-label="影像质量检测">
+                  {albumData.issues.map((issue) => (
+                    <article key={issue.kind}>
+                      <span>{getAlbumIssueText(issue)}</span>
+                      <strong>{issue.title}</strong>
+                      <p>{issue.description}</p>
+                      <small>{issue.photos.length} 张</small>
+                    </article>
+                  ))}
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
           <section className="photo-curation-filters" aria-label="影像筛选">
             <FancySelect
               value={query.tripId ?? 'all'}

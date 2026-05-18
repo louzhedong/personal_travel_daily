@@ -28,8 +28,10 @@ import type {
   GuideSearchResultDto,
   GuideSourceHealthDto,
   GuideSourceHealthListResponseDto,
+  GuideSourcePrioritySuggestionDto,
 } from '../types.js';
 import { buildAdminAccountStats } from '../services/admin/accountStats.js';
+import { buildGuideSourcePrioritySuggestion } from '../services/guideQualityService.js';
 import { serializeTripPlanningItem } from './tripPlanningSerializer.js';
 
 // admin serializer：model → DTO 映射。
@@ -318,18 +320,70 @@ export function serializeGuideSearchStatusBreakdown(
 }
 
 export function serializeGuideSourceHealthSnapshot(
-  items: GuideSourceHealth[],
+  items: Array<
+    GuideSourceHealth & {
+      preference?: {
+        priorityWeight: number;
+        demotionReason?: string | null;
+      } | null;
+      qualitySnapshot?: {
+        id: string;
+        score: number;
+        level: string;
+        relevanceScore: number;
+        completenessScore: number;
+        readabilityScore: number;
+        sourceStabilityScore: number;
+        saveRateScore: number;
+        priorityWeight: number;
+        reasonsJson: unknown;
+        createdAt: Date;
+      } | null;
+    }
+  >,
 ): GuideSourceHealthDto[] {
-  return items.map((item) => ({
-    id: item.id,
-    sourceName: item.sourceName,
-    sourceDomain: item.sourceDomain,
-    recentSuccess: item.recentSuccess,
-    recentFailure: item.recentFailure,
-    lastSuccessAt: item.lastSuccessAt ? toIsoString(item.lastSuccessAt) : undefined,
-    lastFailureAt: item.lastFailureAt ? toIsoString(item.lastFailureAt) : undefined,
-    lastFailureReason: item.lastFailureReason ?? undefined,
-  }));
+  return items.map((item) => {
+    const suggestion: GuideSourcePrioritySuggestionDto = buildGuideSourcePrioritySuggestion({
+      recentSuccess: item.recentSuccess,
+      recentFailure: item.recentFailure,
+      priorityWeight: item.preference?.priorityWeight ?? 0,
+    });
+    const reasons = Array.isArray(item.qualitySnapshot?.reasonsJson)
+      ? item.qualitySnapshot.reasonsJson.filter((reason): reason is string => typeof reason === 'string')
+      : [];
+
+    return {
+      id: item.id,
+      sourceName: item.sourceName,
+      sourceDomain: item.sourceDomain,
+      recentSuccess: item.recentSuccess,
+      recentFailure: item.recentFailure,
+      lastSuccessAt: item.lastSuccessAt ? toIsoString(item.lastSuccessAt) : undefined,
+      lastFailureAt: item.lastFailureAt ? toIsoString(item.lastFailureAt) : undefined,
+      lastFailureReason: item.lastFailureReason ?? undefined,
+      priorityWeight: item.preference?.priorityWeight ?? 0,
+      demotionReason: item.preference?.demotionReason ?? undefined,
+      quality: item.qualitySnapshot
+        ? {
+            id: item.qualitySnapshot.id,
+            score: item.qualitySnapshot.score,
+            level:
+              item.qualitySnapshot.level === 'high' || item.qualitySnapshot.level === 'low'
+                ? item.qualitySnapshot.level
+                : 'medium',
+            relevanceScore: item.qualitySnapshot.relevanceScore,
+            completenessScore: item.qualitySnapshot.completenessScore,
+            readabilityScore: item.qualitySnapshot.readabilityScore,
+            sourceStabilityScore: item.qualitySnapshot.sourceStabilityScore,
+            saveRateScore: item.qualitySnapshot.saveRateScore,
+            priorityWeight: item.qualitySnapshot.priorityWeight,
+            reasons,
+            createdAt: toIsoString(item.qualitySnapshot.createdAt),
+          }
+        : undefined,
+      suggestion,
+    };
+  });
 }
 
 export function serializeGuideSourceHealthList(

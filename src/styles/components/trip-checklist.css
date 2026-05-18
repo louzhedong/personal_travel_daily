@@ -20,13 +20,13 @@
 
 .trip-checklist-summary-card span {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
 .trip-checklist-summary-card strong {
   color: var(--brand-ink);
-  font-size: 22px;
+  font-size: var(--title-sm);
   line-height: 1;
 }
 
@@ -39,7 +39,7 @@
 
 .trip-checklist-board-top h3 {
   margin: 0 0 4px;
-  font-size: 20px;
+  font-size: var(--title-sm);
 }
 
 .trip-checklist-board-top p {
@@ -124,7 +124,7 @@
 .trip-checklist-group-header strong {
   display: block;
   margin-bottom: 4px;
-  font-size: 16px;
+  font-size: var(--text-lg);
 }
 
 .trip-checklist-group-header p {
@@ -135,7 +135,7 @@
 
 .trip-checklist-group-header span {
   color: var(--brand-blue);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
@@ -174,7 +174,7 @@
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -185,7 +185,7 @@
 
 .trip-checklist-item-title {
   color: var(--brand-ink);
-  font-size: 16px;
+  font-size: var(--text-lg);
 }
 
 .trip-checklist-item-note,
@@ -202,7 +202,7 @@
 
 .trip-checklist-item-source span {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 

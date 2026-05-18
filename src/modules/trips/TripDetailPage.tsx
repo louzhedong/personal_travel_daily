@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import TripChecklistBoard from '../../components/trips/TripChecklistBoard';
+import TripPlanningCalendarBoard from '../../components/trips/TripPlanningCalendarBoard';
 import TripPlanningBoard from '../../components/trips/TripPlanningBoard';
 import TravelIcon from '../../components/ui/TravelIcon';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import RoutePageSkeleton from '../../components/ui/RoutePageSkeleton';
 import TripDetailEditorDialog from './detail/TripDetailEditorDialog';
 import TripDetailHeader from './detail/TripDetailHeader';
+import TripExpensePanel from '../expenses/TripExpensePanel';
 import {
   createTripChecklistItem,
   createTripPlanningItem,
@@ -17,11 +19,20 @@ import {
   fetchTripChecklist,
   fetchTripDetail,
   fetchTripPlanning,
+  fetchTripPlanningSchedule,
+  importWishlistToTripPlanningSchedule,
   updateTrip,
   updateTripChecklistItem,
   updateTripPhotoCuration,
   updateTripPlanningItem,
+  updateTripPlanningItemSchedule,
 } from '../../lib/api/tripsApi';
+import {
+  createTripExpense,
+  deleteTripExpense,
+  fetchTripExpenses,
+  updateTripExpense,
+} from '../../lib/api/expensesApi';
 import { fetchWishlistItems } from '../../lib/api/wishlistApi';
 import {
   MARKER_BUDGET_LEVEL_LABELS,
@@ -32,14 +43,16 @@ import {
 import type {
   CreateTripChecklistItemInput,
   CreateTripPlanningItemInput,
+  CreateTripExpenseInputDto,
   ConvertTripPlanningItemInput,
   TripDetailResponseDto,
   TripDetailPhotoItemDto,
   UpdateTripChecklistItemInput,
+  UpdateTripExpenseInputDto,
   UpdateTripPhotoCurationInput,
   UpdateTripPlanningItemInput,
 } from '../../lib/api/types';
-import type { AuthAccount, TripPlanningItem, TripPlanningSummary, WishlistItem } from '../../types';
+import type { AuthAccount, TripPlanningItem, TripPlanningSchedule, TripPlanningSummary, WishlistItem } from '../../types';
 import {
   buildTripCoverOptions,
   buildTripCoverStory,
@@ -90,8 +103,10 @@ export default function TripDetailPage({
   const [tripDeleteOpen, setTripDeleteOpen] = useState(false);
   const [checklistBusy, setChecklistBusy] = useState(false);
   const [planningBusy, setPlanningBusy] = useState(false);
+  const [expenseBusy, setExpenseBusy] = useState(false);
   const [photoCurationBusy, setPhotoCurationBusy] = useState(false);
   const [planningItems, setPlanningItems] = useState<TripPlanningItem[]>([]);
+  const [planningSchedule, setPlanningSchedule] = useState<TripPlanningSchedule | null>(null);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [planningSummary, setPlanningSummary] = useState<TripPlanningSummary>({
     total: 0,
@@ -99,7 +114,8 @@ export default function TripDetailPage({
     convertedCount: 0,
     highPriorityCount: 0,
   });
-  const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'planning' | 'records' | 'assets'>('overview');
+  const [activeDetailTab, setActiveDetailTab] = useState<'overview' | 'planning' | 'expenses' | 'records' | 'assets'>('overview');
+  const [planningViewMode, setPlanningViewMode] = useState<'list' | 'schedule'>('list');
 
   useEffect(() => {
     let cancelled = false;
@@ -146,11 +162,12 @@ export default function TripDetailPage({
       };
     }
 
-    Promise.all([fetchTripPlanning(tripId), fetchWishlistItems()])
-      .then(([response, wishlistResponse]) => {
+    Promise.all([fetchTripPlanning(tripId), fetchTripPlanningSchedule(tripId), fetchWishlistItems()])
+      .then(([response, scheduleResponse, wishlistResponse]) => {
         if (!cancelled) {
           setPlanningItems(response.items);
           setPlanningSummary(response.summary);
+          setPlanningSchedule(scheduleResponse);
           setWishlistItems(wishlistResponse.items);
         }
       })
@@ -264,14 +281,30 @@ export default function TripDetailPage({
   };
 
   const reloadPlanning = async () => {
-    const response = await fetchTripPlanning(tripId);
+    const [response, scheduleResponse] = await Promise.all([
+      fetchTripPlanning(tripId),
+      fetchTripPlanningSchedule(tripId),
+    ]);
     setPlanningItems(response.items);
     setPlanningSummary(response.summary);
+    setPlanningSchedule(scheduleResponse);
     setData((current) =>
       current
         ? {
             ...current,
             planningSummary: response.summary,
+          }
+        : current,
+    );
+  };
+
+  const reloadExpenses = async () => {
+    const response = await fetchTripExpenses(tripId);
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            expenses: response,
           }
         : current,
     );
@@ -342,6 +375,46 @@ export default function TripDetailPage({
     wrapPlanningMutation(async () => {
       await createTripPlanningItemFromWishlist(tripId, wishlistId);
     }, '已从愿望地图加入行前规划。');
+
+  const handleSchedulePlanningItem = async (itemId: string, plannedDate: string | null) =>
+    wrapPlanningMutation(async () => {
+      const scheduleResponse = await updateTripPlanningItemSchedule(tripId, itemId, { plannedDate });
+      setPlanningSchedule(scheduleResponse);
+    }, plannedDate ? '已把规划项安排到当天。' : '已把规划项移回未排期池。');
+
+  const handleImportWishlistToSchedule = async (wishlistIds: string[], plannedDate: string) =>
+    wrapPlanningMutation(async () => {
+      const scheduleResponse = await importWishlistToTripPlanningSchedule(tripId, { wishlistIds, plannedDate });
+      setPlanningSchedule(scheduleResponse);
+    }, '已把愿望地点导入当天日程。');
+
+  const wrapExpenseMutation = async (action: () => Promise<void>, successMessage: string) => {
+    setExpenseBusy(true);
+    try {
+      await action();
+      await reloadExpenses();
+      setFeedbackMessage(successMessage);
+    } catch (error) {
+      setFeedbackMessage(error instanceof Error ? error.message : '费用记录更新失败');
+    } finally {
+      setExpenseBusy(false);
+    }
+  };
+
+  const handleCreateExpense = async (input: CreateTripExpenseInputDto) =>
+    wrapExpenseMutation(async () => {
+      await createTripExpense(input);
+    }, '已记录一笔旅行费用。');
+
+  const handleUpdateExpense = async (expenseId: string, input: UpdateTripExpenseInputDto) =>
+    wrapExpenseMutation(async () => {
+      await updateTripExpense(expenseId, input);
+    }, '已更新这笔旅行费用。');
+
+  const handleDeleteExpense = async (expenseId: string) =>
+    wrapExpenseMutation(async () => {
+      await deleteTripExpense(expenseId);
+    }, '已删除这笔旅行费用。');
 
   const openTripEditor = () => {
     if (!data) {
@@ -505,6 +578,7 @@ export default function TripDetailPage({
               {[
                 { key: 'overview', label: '概览' },
                 { key: 'planning', label: `行前规划 ${planningSummary.plannedCount}` },
+                { key: 'expenses', label: `消费 ${data.expenses.summary.itemCount}` },
                 { key: 'records', label: `记录 ${data.summary.markerCount}` },
                 { key: 'assets', label: '素材' },
               ].map((tab) => (
@@ -526,19 +600,59 @@ export default function TripDetailPage({
                     <h2>行前规划</h2>
                     <p>把想去地点、攻略来源和预计日期先收进这次行程，回来后再转成正式记录。</p>
                   </div>
+                  <div className="trip-detail-view-switch" aria-label="行前规划视图">
+                    <button
+                      type="button"
+                      className={planningViewMode === 'list' ? 'is-active' : ''}
+                      onClick={() => setPlanningViewMode('list')}
+                    >
+                      清单视图
+                    </button>
+                    <button
+                      type="button"
+                      className={planningViewMode === 'schedule' ? 'is-active' : ''}
+                      onClick={() => setPlanningViewMode('schedule')}
+                    >
+                      日程视图
+                    </button>
+                  </div>
                 </div>
-                <TripPlanningBoard
-                  activeCompanionId={data.companions[0]?.id ?? account.id}
-                  summary={planningSummary}
-                  items={planningItems}
-                  wishlistItems={wishlistItems}
-                  busy={planningBusy}
-                  feedbackMessage=""
-                  onCreateItem={handleCreatePlanningItem}
-                  onUpdateItem={handleUpdatePlanningItem}
-                  onDeleteItem={handleDeletePlanningItem}
-                  onConvertItem={handleConvertPlanningItem}
-                  onImportWishlistItem={handleImportWishlistItem}
+                {planningViewMode === 'list' ? (
+                  <TripPlanningBoard
+                    activeCompanionId={data.companions[0]?.id ?? account.id}
+                    summary={planningSummary}
+                    items={planningItems}
+                    wishlistItems={wishlistItems}
+                    busy={planningBusy}
+                    feedbackMessage=""
+                    onCreateItem={handleCreatePlanningItem}
+                    onUpdateItem={handleUpdatePlanningItem}
+                    onDeleteItem={handleDeletePlanningItem}
+                    onConvertItem={handleConvertPlanningItem}
+                    onImportWishlistItem={handleImportWishlistItem}
+                  />
+                ) : (
+                  <TripPlanningCalendarBoard
+                    schedule={planningSchedule}
+                    wishlistItems={wishlistItems}
+                    busy={planningBusy}
+                    onScheduleItem={handleSchedulePlanningItem}
+                    onImportWishlistItems={handleImportWishlistToSchedule}
+                  />
+                )}
+              </section>
+            ) : null}
+
+            {activeDetailTab === 'expenses' ? (
+              <section className="card trip-detail-panel">
+                <TripExpensePanel
+                  tripId={tripId}
+                  expenses={data.expenses}
+                  companions={data.companions}
+                  busy={expenseBusy}
+                  onCreateExpense={handleCreateExpense}
+                  onUpdateExpense={handleUpdateExpense}
+                  onDeleteExpense={handleDeleteExpense}
                 />
               </section>
             ) : null}

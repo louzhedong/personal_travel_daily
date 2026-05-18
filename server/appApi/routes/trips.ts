@@ -16,8 +16,10 @@ import {
 import {
   convertTripPlanningItemBodySchema,
   createTripPlanningItemBodySchema,
+  importTripPlanningScheduleWishlistBodySchema,
   tripPlanningItemParamsSchema,
   tripPlanningWishlistParamsSchema,
+  updateTripPlanningItemScheduleBodySchema,
   updateTripPlanningItemBodySchema,
 } from '../schemas/tripPlanning.js';
 import {
@@ -42,6 +44,11 @@ import {
   listTripPlanning,
   updateTripPlanningItemResource,
 } from '../services/tripPlanningService.js';
+import {
+  getTripPlanningSchedule,
+  importWishlistItemsToTripPlanningSchedule,
+  updateTripPlanningItemSchedule,
+} from '../services/tripPlanningScheduleService.js';
 
 export async function registerTripRoutes(app: FastifyInstance) {
   app.get('/api/trips/:id/detail', async (request) => {
@@ -69,6 +76,12 @@ export async function registerTripRoutes(app: FastifyInstance) {
     return listTripPlanning(account.id, params.id);
   });
 
+  app.get('/api/trips/:id/planning/schedule', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripParamsSchema, request.params);
+    return getTripPlanningSchedule(account.id, params.id);
+  });
+
   app.post('/api/trips/:id/planning/items', async (request) => {
     const account = await requireAuthenticatedAccount(request);
     const params = parseWithSchema(tripParamsSchema, request.params);
@@ -80,6 +93,20 @@ export async function registerTripRoutes(app: FastifyInstance) {
     const account = await requireAuthenticatedAccount(request);
     const params = parseWithSchema(tripPlanningWishlistParamsSchema, request.params);
     return createTripPlanningItemFromWishlist(account.id, params.id, params.wishlistId);
+  });
+
+  app.post('/api/trips/:id/planning/schedule/import-wishlist', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripParamsSchema, request.params);
+    const body = parseWithSchema(importTripPlanningScheduleWishlistBodySchema, request.body);
+    return importWishlistItemsToTripPlanningSchedule(account.id, params.id, body);
+  });
+
+  app.patch('/api/trips/:id/planning/items/:itemId/schedule', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const params = parseWithSchema(tripPlanningItemParamsSchema, request.params);
+    const body = parseWithSchema(updateTripPlanningItemScheduleBodySchema, request.body);
+    return updateTripPlanningItemSchedule(account.id, params.id, params.itemId, body);
   });
 
   app.patch('/api/trips/:id/planning/items/:itemId', async (request) => {

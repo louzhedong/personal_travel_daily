@@ -3,6 +3,12 @@ import type {
   TripStoryTemplate,
   TripStoryViewModel,
 } from './tripStoryPageModel';
+import {
+  buildImageUrlList,
+  buildMarkdownSummary,
+  exportLocalArchivePackage,
+  uniqueImageUrls,
+} from '../archive/localArchive';
 
 function escapeSvgText(value: string) {
   return value
@@ -330,4 +336,32 @@ export function exportTripStoryShareCard(
 ) {
   const suffix = variant === 'square' ? '方形分享卡' : '竖版分享卡';
   triggerSvgDownload(buildTripStoryShareCardSvg(story, template, variant), `${story.title}-${suffix}.svg`);
+}
+
+export function exportTripStoryArchivePackage(story: TripStoryViewModel, template: TripStoryTemplate, tripId: string) {
+  const imageUrls = uniqueImageUrls([
+    story.coverImageUrl,
+    story.shareCard.coverImageUrl,
+    ...story.featuredPhotos.map((photo) => photo.imageUrl),
+    ...story.photoSections.flatMap((section) => section.photos.map((photo) => photo.imageUrl)),
+  ]);
+  const archiveInput = {
+    packageType: 'trip' as const,
+    sourceId: tripId,
+    title: story.title,
+    subtitle: story.summaryText,
+    metrics: story.highlights.map((highlight) => ({
+      label: highlight.label,
+      value: highlight.value,
+      description: highlight.description,
+    })),
+    imageUrls,
+  };
+  const files = [
+    { path: 'summary.md', content: buildMarkdownSummary(archiveInput, [story.smartNarrative]) },
+    { path: 'content/story.json', content: `${JSON.stringify({ template, story }, null, 2)}\n` },
+    { path: 'images/image-urls.md', content: buildImageUrlList(imageUrls) },
+    { path: 'exports/trip-story.svg', content: buildTripStoryLongImageSvg(story, template) },
+  ];
+  return exportLocalArchivePackage(archiveInput, files);
 }

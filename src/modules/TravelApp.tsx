@@ -3,6 +3,8 @@ import ConfirmDialog from '../components/ui/ConfirmDialog';
 import AppToast, { type AppToastTone } from '../components/ui/AppToast';
 import StatsPanel from '../components/StatsPanel';
 import { searchMarkers } from '../lib/api/markersApi';
+import { fetchMarkerTagVocabulary } from '../lib/api/tagVocabularyApi';
+import { MARKER_TAG_OPTIONS, type MarkerTagOption } from '../lib/markerMetadata';
 import { createDefaultStore } from '../lib/storage';
 import { remoteTravelStoreRepository } from '../lib/repositories/remoteTravelStoreRepository';
 import type { AuthAccount, Scope, TravelStore } from '../types';
@@ -20,10 +22,13 @@ interface TravelAppProps {
   onOpenAdmin?: () => void;
   onOpenStats?: () => void;
   onOpenAtlas?: () => void;
+  onOpenOrganize?: () => void;
+  onOpenTagGovernance?: () => void;
   onOpenTripDetail?: (tripId: string) => void;
   onOpenTripChecklist?: (tripId: string) => void;
   onOpenPhotoCuration?: () => void;
   onOpenMemoryCapsules?: () => void;
+  onOpenReminders?: () => void;
   onOpenSettings?: () => void;
   entryMessage?: string | null;
 }
@@ -34,10 +39,13 @@ function TravelApp({
   onOpenAdmin,
   onOpenStats,
   onOpenAtlas,
+  onOpenOrganize,
+  onOpenTagGovernance,
   onOpenTripDetail,
   onOpenTripChecklist,
   onOpenPhotoCuration,
   onOpenMemoryCapsules,
+  onOpenReminders,
   onOpenSettings,
   entryMessage,
 }: TravelAppProps) {
@@ -55,6 +63,7 @@ function TravelApp({
   const [pendingDeleteMarkerId, setPendingDeleteMarkerId] = useState<string | null>(null);
   const [message, setMessage] = useState(entryMessage ?? '点击地图区域即可弹出表单，快速记录你的旅行足迹。');
   const [toast, setToast] = useState<{ message: string; tone: AppToastTone } | null>(null);
+  const [tagOptions, setTagOptions] = useState<MarkerTagOption[]>(MARKER_TAG_OPTIONS);
 
   const closeMarkerModal = () => setMarkerModalOpen(false);
   const closeDataSync = () => setDataSyncOpen(false);
@@ -72,6 +81,21 @@ function TravelApp({
       setMessage(entryMessage);
     }
   }, [entryMessage]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchMarkerTagVocabulary()
+      .then((response) => {
+        if (cancelled) return;
+        setTagOptions(response.visibleItems.map((item) => ({ value: item.value, label: item.label, source: item.source })));
+      })
+      .catch(() => {
+        if (!cancelled) setTagOptions(MARKER_TAG_OPTIONS);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!toast) {
@@ -286,8 +310,11 @@ function TravelApp({
         onOpenAdmin={onOpenAdmin}
         onOpenStats={onOpenStats}
         onOpenAtlas={onOpenAtlas}
+        onOpenOrganize={onOpenOrganize}
+        onOpenTagGovernance={onOpenTagGovernance}
         onOpenPhotoCuration={onOpenPhotoCuration}
         onOpenMemoryCapsules={onOpenMemoryCapsules}
+        onOpenReminders={onOpenReminders}
         onOpenSettings={onOpenSettings}
       />
 
@@ -347,6 +374,7 @@ function TravelApp({
         selectedRegion={selectedRegion}
         activeUser={activeUser}
         onSubmitMarker={handleSubmitMarker}
+        tagOptions={tagOptions}
         dataSyncOpen={dataSyncOpen}
         closeDataSync={closeDataSync}
         store={store}

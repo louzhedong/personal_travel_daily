@@ -1,6 +1,6 @@
 .account-settings-shell {
   min-height: 100vh;
-  padding: 24px clamp(20px, 4vw, 56px) 56px;
+  padding: 24px var(--page-gutter) 56px;
   background:
     linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.72)),
     #f8fafc;
@@ -11,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  width: min(100%, 1040px);
+  width: min(100%, var(--page-frame));
   margin: 0 auto 28px;
 }
 
@@ -20,7 +20,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: clamp(20px, 5vw, 72px);
   align-items: end;
-  width: min(100%, 1040px);
+  width: min(100%, var(--page-frame));
   margin: 0 auto 24px;
   padding: 18px 0 22px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.26);
@@ -33,7 +33,7 @@
   grid-column: 1;
   width: fit-content;
   color: #64748b;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 900;
   letter-spacing: 0.16em;
 }
@@ -49,7 +49,7 @@
   grid-column: 1;
   margin: 10px 0 0;
   max-width: 5em;
-  font-size: clamp(36px, 5vw, 56px);
+  font-size: var(--display-sm);
   font-weight: 900;
   letter-spacing: -0.07em;
   line-height: 0.96;
@@ -68,14 +68,14 @@
   align-self: end;
   justify-self: end;
   color: #475569;
-  font-size: 14px;
+  font-size: var(--text-body);
   font-weight: 800;
 }
 
 .account-settings-layout {
   display: grid;
   gap: 0;
-  width: min(100%, 1040px);
+  width: min(100%, var(--page-frame));
   margin: 0 auto;
   border-bottom: 1px solid rgba(148, 163, 184, 0.3);
 }
@@ -102,13 +102,13 @@
 
 .account-settings-section-title h2 {
   margin: 0;
-  font-size: clamp(18px, 2vw, 22px);
+  font-size: var(--title-sm);
   letter-spacing: -0.055em;
   line-height: 1;
 }
 
 .account-settings-section-title p {
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.55;
 }
 
@@ -148,12 +148,13 @@
 
 .account-settings-field span {
   color: #64748b;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 900;
   letter-spacing: 0.08em;
 }
 
-.account-settings-field input {
+.account-settings-field input,
+.account-settings-field select {
   width: 100%;
   border: 0;
   border-bottom: 1px solid #cbd5e1;
@@ -161,12 +162,13 @@
   background: transparent;
   padding: 9px 0 10px;
   color: #0f172a;
-  font-size: 14px;
+  font-size: var(--text-body);
   font-weight: 650;
   outline: none;
 }
 
-.account-settings-field input:focus {
+.account-settings-field input:focus,
+.account-settings-field select:focus {
   border-color: #0f172a;
 }
 
@@ -198,6 +200,46 @@
   border-top-color: rgba(15, 23, 42, 0.42);
 }
 
+.account-settings-shares {
+  align-items: stretch;
+}
+
+.account-settings-share-panel {
+  display: grid;
+  gap: 22px;
+}
+
+.account-settings-share-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.account-settings-share-form .primary-button {
+  width: fit-content;
+  min-height: 36px;
+  padding: 0 18px;
+}
+
+.account-settings-share-list {
+  display: grid;
+  gap: 0;
+}
+
+.account-settings-share-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 0 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.account-settings-share-link.is-revoked,
+.account-settings-share-link.is-expired,
+.account-settings-share-link.is-depleted {
+  opacity: 0.62;
+}
+
 .account-settings-session-title {
   display: flex;
   flex-wrap: wrap;
@@ -206,7 +248,7 @@
 }
 
 .account-settings-session-title strong {
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 
 .account-settings-session-title span {
@@ -214,7 +256,7 @@
   border-radius: 999px;
   padding: 2px 8px;
   color: #475569;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 800;
 }
 
@@ -222,7 +264,7 @@
   max-width: 78ch;
   overflow: hidden;
   margin-top: 5px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.45;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -237,7 +279,7 @@
 
 .account-settings-session-meta span {
   color: #64748b;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 700;
 }
 
@@ -264,7 +306,7 @@
 }
 
 .account-settings-section .data-sync-desc {
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .account-settings-section .data-sync-actions {
@@ -275,7 +317,7 @@
   width: auto;
   min-height: 36px;
   padding: 8px 14px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .account-settings-section .data-sync-cloud-note {
@@ -283,7 +325,7 @@
   padding-top: 12px;
   border-top: 1px solid rgba(148, 163, 184, 0.2);
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .account-settings-section .data-sync-cloud-note p,

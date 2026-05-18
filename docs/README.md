@@ -49,6 +49,16 @@ Summary: The architecture section now includes hardening analysis plus dedicated
 - [Story Studio 与旅行故事导出 / Story Studio and Trip Story Export](./technical/trip-story-export.md)
 - [旅行胶囊 / Travel Memory Capsules](./technical/memory-capsules.md)
 - [旅行地图时间机器 / Travel Atlas Timeline](./technical/travel-atlas-timeline.md)
+- [日程化行前规划 / Calendar-Based Trip Planning](./technical/trip-planning-calendar.md)
+- [整理工作台 / Organization Workbench](./technical/organization-workbench.md)
+- [智能相册与封面策展 / Smart Albums and Cover Curation](./technical/smart-albums-cover-curation.md)
+- [标签治理与自定义词表 / Tag Governance and Custom Vocabulary](./technical/tag-governance.md)
+- [攻略质量评分与来源优先级 / Guide Quality Scoring and Source Priority](./technical/guide-quality-scoring.md)
+- [私密分享链接治理 / Private Share Link Governance](./technical/private-share-links.md)
+- [本地归档与离线纪念包 / Local Archive Package](./technical/local-archive-package.md)
+- [旅行预算与消费洞察 / Travel Budget and Expense Insights](./technical/travel-budget-expenses.md)
+- [地图回放故事页二期 / Map Replay Story Phase 2](./technical/map-replay-story-phase-two.md)
+- [主动提醒与异常告警 / Proactive Reminders](./technical/proactive-reminders.md)
 - [旅伴共同回忆 / Companion Shared Memories](./technical/companion-shared-memories.md)
 - [影像编辑台 / Photo Curation Hub](./technical/photo-curation-hub.md)
 - [管理后台与质量巡检 / Admin Quality Operations](./technical/admin-quality-operations.md)
@@ -60,9 +70,10 @@ Summary: The architecture section now includes hardening analysis plus dedicated
 - [攻略搜索增强与来源治理 / Guide Search Enhancement and Source Governance](./technical/guide-search-governance.md)
 - [地图渲染与 Hover 性能 / Map Rendering and Hover Performance](./technical/map-rendering-and-hover-performance.md)
 - [地图回放模式 / Map Replay Mode](./technical/map-replay-mode.md)
-- [设计 Token / Design Tokens](./design/design-tokens.md)
+- [视觉 Token 与字体规范 / Visual Tokens and Typography Guide](./design/design-tokens.md)
+  - 全局字号阶梯、模块使用规则、颜色/圆角/阴影/间距约束。
 
-Summary: Feature docs focus on one capability at a time, including the shipped trip-collection phase-two workflow.
+Summary: Feature docs focus on one capability at a time, including the completed roadmap delivery from scheduled planning through proactive reminders.
 
 ## 5. API Contracts / 接口契约
 

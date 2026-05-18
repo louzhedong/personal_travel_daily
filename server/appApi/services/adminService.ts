@@ -4,7 +4,11 @@ import {
   aggregateGuideSearchStatusBreakdown,
   listRecentGuideSearchLogs,
 } from '../repositories/guideSearchLogRepository.js';
-import { listGuideSourceHealthSnapshot } from '../repositories/guideSourceHealthRepository.js';
+import {
+  listGuideSourceHealthSnapshot,
+  listGuideSourcePreferences,
+  listLatestGuideQualitySnapshotsByDomain,
+} from '../repositories/guideSourceHealthRepository.js';
 import { listCompanionMemorySnapshotHealth } from '../repositories/adminQualityRepository.js';
 import {
   serializeAdminOverview,
@@ -32,10 +36,31 @@ export async function getAdminOverview() {
     listGuideSourceHealthSnapshot(prisma, 20),
     listCompanionMemorySnapshotHealth(prisma),
   ]);
+  const [sourcePreferences, qualitySnapshots] = await Promise.all([
+    listGuideSourcePreferences(prisma),
+    listLatestGuideQualitySnapshotsByDomain(
+      prisma,
+      sourceHealth.map((item) => item.sourceDomain),
+    ),
+  ]);
+  const preferenceBySource = new Map(
+    sourcePreferences.map((item) => [`${item.sourceName}:${item.sourceDomain}`, item]),
+  );
+  const qualitySnapshotByDomain = new Map<string, (typeof qualitySnapshots)[number]>();
+  for (const snapshot of qualitySnapshots) {
+    if (snapshot.sourceDomain && !qualitySnapshotByDomain.has(snapshot.sourceDomain)) {
+      qualitySnapshotByDomain.set(snapshot.sourceDomain, snapshot);
+    }
+  }
+  const enrichedSourceHealth = sourceHealth.map((item) => ({
+    ...item,
+    preference: preferenceBySource.get(`${item.sourceName}:${item.sourceDomain}`),
+    qualitySnapshot: qualitySnapshotByDomain.get(item.sourceDomain),
+  }));
 
   const overview = serializeAdminOverview(accounts);
   const guideSearchStatusBreakdown = serializeGuideSearchStatusBreakdown(statusBreakdown);
-  const guideSourceHealth = serializeGuideSourceHealthSnapshot(sourceHealth);
+  const guideSourceHealth = serializeGuideSourceHealthSnapshot(enrichedSourceHealth);
 
   return {
     ...overview,

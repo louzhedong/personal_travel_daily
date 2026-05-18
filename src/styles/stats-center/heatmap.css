@@ -17,7 +17,7 @@
 
 .stats-heatmap-card header span {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .stats-heatmap-map-layout {
@@ -105,13 +105,13 @@
 }
 
 .stats-heatmap-legend-head strong {
-  font-size: 15px;
+  font-size: var(--text-md);
   color: var(--brand-ink);
 }
 
 .stats-heatmap-legend-head span {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .stats-heatmap-legend-scale-card,
@@ -152,17 +152,17 @@
   justify-content: space-between;
   gap: 10px;
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .stats-heatmap-hover-card strong {
   color: var(--brand-ink);
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 
 .stats-heatmap-hover-card span {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -229,12 +229,12 @@
 
 .stats-heatmap-legend-rank span {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
 .stats-heatmap-legend-rank strong {
-  font-size: 14px;
+  font-size: var(--text-body);
   color: var(--brand-ink);
   white-space: nowrap;
   overflow: hidden;
@@ -247,7 +247,7 @@
   gap: 10px;
   white-space: nowrap;
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .stats-heatmap-dot {
@@ -311,14 +311,14 @@
 
 .stats-trip-detail-main strong {
   display: block;
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .stats-trip-detail-main p,
 .stats-trip-detail-main span {
   margin: 6px 0 0;
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
@@ -327,7 +327,7 @@
   gap: 8px;
   justify-items: end;
   color: #334155;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -362,7 +362,6 @@
   }
 
   .stats-center-header,
-  .stats-page-hero,
   .stats-bar-copy,
   .stats-companion-card-top,
   .stats-trip-detail,
@@ -379,18 +378,6 @@
   .stats-achievement-grid,
   .stats-two-column-grid {
     grid-template-columns: 1fr;
-  }
-
-  .stats-page-hero {
-    min-height: auto;
-    padding: 26px 22px;
-  }
-
-  .stats-page-hero::after {
-    width: 220px;
-    height: 220px;
-    right: -46px;
-    top: 14px;
   }
 
   .stats-trend-grid {

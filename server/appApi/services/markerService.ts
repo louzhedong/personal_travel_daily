@@ -25,6 +25,7 @@ import { createMarkerSearchEvent } from '../repositories/markerSearchEventReposi
 import { buildCurrentStoreSnapshot } from './storeSnapshotService.js';
 import { serializeMarker } from '../serializers/bootstrapSerializer.js';
 import type { MarkerSearchResponseDto } from '../types.js';
+import { assertMarkerTagsAreKnown } from './tagVocabularyService.js';
 
 function parseDateOnly(value: string) {
   return new Date(`${value}T00:00:00.000Z`);
@@ -38,6 +39,8 @@ export async function createMarkerRecord(accountId: string, input: CreateMarkerB
     if (!companion) {
       throw createNotFoundError('companion not found');
     }
+
+    await assertMarkerTagsAreKnown(accountId, input.tags);
 
     if (input.tripId) {
       const trip = await findActiveTripById(tx, accountId, input.tripId);
@@ -90,6 +93,8 @@ export async function updateMarkerRecord(
     if (nextEndAt < nextStartAt) {
       throw createValidationError('visitedEndAt must be later than or equal to visitedStartAt');
     }
+
+    await assertMarkerTagsAreKnown(accountId, input.tags);
 
     if (input.tripId) {
       const trip = await findActiveTripById(tx, accountId, input.tripId);

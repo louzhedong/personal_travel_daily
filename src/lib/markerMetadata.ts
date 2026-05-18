@@ -96,3 +96,13 @@ export const MARKER_BUDGET_LEVEL_OPTIONS = MARKER_BUDGET_LEVELS.map((value) => (
   value,
   label: MARKER_BUDGET_LEVEL_LABELS[value].zh,
 }));
+
+export interface MarkerTagOption {
+  value: MarkerTag;
+  label: string;
+  source?: 'system' | 'custom';
+}
+
+export function getMarkerTagLabel(value: string, options: MarkerTagOption[] = MARKER_TAG_OPTIONS) {
+  return options.find((option) => option.value === value)?.label ?? MARKER_TAG_LABELS[value as keyof typeof MARKER_TAG_LABELS]?.zh ?? value;
+}

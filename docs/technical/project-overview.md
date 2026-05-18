@@ -104,6 +104,22 @@ Summary: `/capsules` is a private capsule center for trip, annual, and companion
 
 Summary: `/photos` provides an account-level photo curation desk for filtering, featuring, and captioning travel photos that power trip detail, annual review, Story Studio, and companion memories.
 
+
+### 1.5G Roadmap 收口能力 / Roadmap Closure Capabilities
+
+- `/trips/:id` 行前规划已升级为日程视图，支持未排期池、按天排期、愿望地图导入到指定日期和当天清单提示。
+- `/organize` 整理工作台聚合未归行程记录、缺说明照片、未关联攻略、待精选照片和弱标签记录，并通过预览确认执行批量整理。
+- `/photos` 增加智能相册与封面策展，覆盖年度、城市、旅伴和行程封面候选，并支持精选相册 SVG 导出。
+- `/tags` 标签治理页支持账号级自定义标签、隐藏、排序、同义合并和批量替换。
+- 攻略搜索新增质量评分和来源优先级解释，后台可维护来源偏好和降权建议。
+- 私密分享链接支持行程故事、年度回顾、旅伴回忆和旅行胶囊的只读分享、撤销、过期、密码和访问审计。
+- 本地归档包让行程故事、年度回顾和胶囊可导出 ZIP，包含 manifest、内容 JSON、Markdown 摘要、SVG 和图片 URL 清单。
+- 旅行预算与消费洞察新增 trip-bound expense，联动行程详情、统计中心和年度回顾。
+- 地图回放故事页二期提供行程、年份和旅伴三类路线叙事页面，并支持 SVG 长图导出。
+- `/reminders` 主动提醒中心聚合质量、会话、规划和攻略来源信号，支持静音、处理和跳转定位。
+
+Summary: The completed roadmap closure adds scheduled planning, organization, smart albums, tag governance, guide quality, private sharing, archive packages, expense insights, replay stories, and proactive reminders as shipped product surfaces.
+
 ### 1.6 统计中心 / Stats Center
 
 - 独立统计中心 `/stats`，覆盖总览 KPI、旅行成就、年度趋势、月度分布、地区 / 城市 / 旅伴 / 行程排行、区域热力图、标签 / 心情 / 交通 / 预算级别排行与行程明细。
@@ -191,6 +207,8 @@ Summary: The frontend shell separates routing, page composition, map state, stor
 - `src/components/trips/TripChecklistBoard.tsx`：行前清单的共享展示与编辑组件，供行程详情页和放大页复用。
 - `src/components/DataSync.tsx`：数据备份（仅导出）。
 - `src/modules/capsules/MemoryCapsuleCenterPage.tsx` / `MemoryCapsuleDetailPage.tsx`：旅行胶囊中心与深度编辑页面。
+- `src/modules/organize/OrganizationWorkbenchPage.tsx`、`src/modules/tag-governance/TagGovernancePage.tsx`、`src/modules/reminders/ReminderCenterPage.tsx`：整理、标签治理和提醒中心页面。
+- `src/modules/expenses/TripExpensePanel.tsx`、`src/modules/replay/MapReplayStoryPage.tsx`、`src/modules/share/PublicSharePage.tsx`：消费、回放故事和公开分享体验。
 
 Summary: Components follow module-scoped responsibilities; cross-feature flows use shared helpers instead of ad-hoc wiring.
 
@@ -216,7 +234,7 @@ Summary: Pure logic is pulled out of components into `src/lib` and per-module vi
 
 - `src/lib/api/httpClient.ts`：主业务 API 客户端基础能力，默认携带 `credentials`，本地开发优先走同源 `/api` 代理。
 - `src/lib/api/authApi.ts`：`register` / `login` / `fetchSession` / `logout`。
-- `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats`、`photoCuration` 等领域客户端，其中 `tripsApi.ts` 继续承接 checklist 与 planning 子资源。
+- `src/lib/api/*Api.ts`：`bootstrap`、`companions`、`markers`、`savedGuides`、`guideSearchHistory`、`trips`、`stats`、`photoCuration`、`organization`、`photoAlbums`、`tagVocabulary`、`shareLinks`、`expenses`、`mapReplayStories`、`reminders` 等领域客户端，其中 `tripsApi.ts` 继续承接 checklist 与 planning / schedule 子资源。
 - `src/lib/api/dto/*`：前端 API DTO 按领域拆分；`src/lib/api/types.ts` 仅作为兼容 barrel 和错误码 re-export。
 - `src/lib/api/accountSettingsApi.ts`：账号设置、密码修改和会话治理客户端。
 - `src/lib/api/memoryCapsulesApi.ts`：旅行胶囊列表、创建、详情、更新、复制和归档客户端。
@@ -228,7 +246,7 @@ Summary: The frontend talks to the backend through typed API modules and a remot
 ### 2.5 主业务 API（app-api）/ Main Business API
 
 - `server/appApiServer.ts`：Fastify 入口。
-- `server/appApi/routes/*`：`auth` / `bootstrap` / `companions` / `markers` / `savedGuides` / `guideSearchHistories` / `trips` / `photoCuration` / `stats` / `admin` 等路由。
+- `server/appApi/routes/*`：`auth` / `bootstrap` / `companions` / `markers` / `savedGuides` / `guideSearchHistories` / `trips` / `photoCuration` / `organization` / `photoAlbums` / `tagVocabulary` / `shareLinks` / `expenses` / `mapReplayStories` / `reminders` / `stats` / `admin` 等路由。
 - `server/appApi/routes/accountSettings.ts`：账号设置、密码修改和会话治理路由。
 - `server/appApi/services/companionMemoryService.ts`：旅伴共同回忆聚合、24 小时快照命中、过期重建和强制刷新。
 - `server/appApi/services/admin/qualityReport.ts`：后台质量巡检规则，按严重程度生成只读问题清单。

@@ -12,13 +12,18 @@ import {
   moveSectionConfig,
   summarizeCapsuleMetrics,
 } from './memoryCapsulePageModel';
-import { exportMemoryCapsuleLongImage, exportMemoryCapsuleShareCard } from './memoryCapsuleExport';
+import {
+  exportMemoryCapsuleArchivePackage,
+  exportMemoryCapsuleLongImage,
+  exportMemoryCapsuleShareCard,
+} from './memoryCapsuleExport';
 
 interface MemoryCapsuleDetailPageProps {
   account: AuthAccount;
   capsuleId: string;
   onLogout: () => Promise<void> | void;
   onNavigateBack: () => void;
+  onOpenMapReplayStory?: (targetType: 'trip' | 'year' | 'companion', targetId: string) => void;
 }
 
 const TEMPLATE_OPTIONS = [
@@ -39,6 +44,7 @@ export default function MemoryCapsuleDetailPage({
   capsuleId,
   onLogout,
   onNavigateBack,
+  onOpenMapReplayStory,
 }: MemoryCapsuleDetailPageProps) {
   const [detail, setDetail] = useState<MemoryCapsuleDetailDto | null>(null);
   const [draftTitle, setDraftTitle] = useState('');
@@ -139,12 +145,13 @@ export default function MemoryCapsuleDetailPage({
 
   const visiblePhotos = getVisibleCapsulePhotos(previewDetail.content);
   const badges = getEnabledCapsuleBadges(previewDetail.content);
+  const replayTargetType = previewDetail.capsule.type === 'annual' ? 'year' : previewDetail.capsule.type;
 
   return (
     <main className={`memory-capsule-detail memory-capsule-template-${draftTemplate}`}>
       <header className="memory-capsule-topbar">
         <button type="button" className="ghost-button" onClick={onNavigateBack}>
-          返回胶囊中心
+          返回首页
         </button>
         <div className="memory-capsule-topbar-actions">
           <button type="button" className="primary-button" onClick={handleSave} disabled={saving}>
@@ -301,6 +308,18 @@ export default function MemoryCapsuleDetailPage({
             <button type="button" className="ghost-button" onClick={() => exportMemoryCapsuleShareCard(previewDetail, 'story')}>
               导出竖版分享卡
             </button>
+            <button type="button" className="ghost-button" onClick={() => exportMemoryCapsuleArchivePackage(previewDetail)}>
+              导出本地归档包
+            </button>
+            {onOpenMapReplayStory ? (
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={() => onOpenMapReplayStory(replayTargetType, previewDetail.capsule.targetId)}
+              >
+                打开地图回放故事
+              </button>
+            ) : null}
           </section>
         </aside>
       </div>

@@ -5,6 +5,8 @@ import { fetchAnnualReview } from '../../lib/api/statsApi';
 import type { AnnualReviewResponseDto } from '../../lib/api/types';
 import type { AuthAccount } from '../../types';
 import { ACHIEVEMENT_RARITY_LABELS } from '../achievements/achievementsPageModel';
+import { formatExpenseMoney } from '../expenses/expenseModel';
+import { exportAnnualReviewArchivePackage } from './annualReviewArchive';
 import {
   buildAnnualHighlightItems,
   buildAnnualSummaryCards,
@@ -91,6 +93,12 @@ export default function AnnualReviewPage({
     window.print();
   };
 
+  const handleExportArchive = () => {
+    if (data) {
+      exportAnnualReviewArchivePackage(data);
+    }
+  };
+
   useEffect(() => {
     setActivePhotoIndex(0);
   }, [year, coverPhotos.length]);
@@ -127,6 +135,15 @@ export default function AnnualReviewPage({
   return (
     <main className="annual-review-stage">
       <div className="annual-review-shell">
+        <header className="annual-review-topbar">
+          <button type="button" className="ghost-button" onClick={onNavigateBack}>
+            返回首页
+          </button>
+          <button type="button" className="ghost-button" onClick={() => void onLogout()}>
+            退出登录
+          </button>
+        </header>
+
         <section className="annual-review-hero">
           <div className="annual-review-hero-copy">
             <span className="hero-kicker">Travel Yearbook</span>
@@ -142,17 +159,16 @@ export default function AnnualReviewPage({
                   导出 PDF / 打印
                 </button>
               ) : null}
-              <button type="button" className="ghost-button" onClick={onNavigateBack}>
-                返回统计中心
-              </button>
+              {data && !errorMessage ? (
+                <button type="button" className="ghost-button" onClick={handleExportArchive}>
+                  导出本地归档包
+                </button>
+              ) : null}
               <button type="button" className="ghost-button" onClick={onOpenAchievements} disabled={!onOpenAchievements}>
                 查看全部成就
               </button>
               <button type="button" className="ghost-button" onClick={onOpenMemoryCapsules} disabled={!onOpenMemoryCapsules}>
                 创建胶囊
-              </button>
-              <button type="button" className="ghost-button" onClick={() => void onLogout()}>
-                退出登录
               </button>
             </div>
           </div>
@@ -282,6 +298,31 @@ export default function AnnualReviewPage({
                     </article>
                   ))}
                 </div>
+              </section>
+
+              <section className="card annual-review-panel">
+                <div className="annual-review-heading">
+                  <div>
+                    <h2>年度消费洞察</h2>
+                    <p>把这一年的预算草稿和实际支出合在一起，作为年鉴里的现实注脚。</p>
+                  </div>
+                  <strong className="annual-review-expense-total">
+                    {formatExpenseMoney(data.expenseInsights.summary.totalAmountCents, data.expenseInsights.summary.currency)}
+                  </strong>
+                </div>
+                {data.expenseInsights.summary.itemCount === 0 ? (
+                  <div className="annual-review-empty-inline">这一年暂无费用记录。</div>
+                ) : (
+                  <div className="annual-review-expense-grid">
+                    {data.expenseInsights.topCategories.map((item) => (
+                      <article key={item.category}>
+                        <span>{item.label}</span>
+                        <strong>{formatExpenseMoney(item.amountCents, data.expenseInsights.summary.currency)}</strong>
+                        <p>{item.itemCount} 笔 · {item.percentage}%</p>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </section>
 
               <section className="card annual-review-panel">

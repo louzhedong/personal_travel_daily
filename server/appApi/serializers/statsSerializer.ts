@@ -63,6 +63,7 @@ export interface StatsOverviewModel {
   topBudgetLevels: StatsOverviewResponseDto['topBudgetLevels'];
   tripHighlights: StatsOverviewResponseDto['tripHighlights'];
   achievements: StatsOverviewResponseDto['achievements'];
+  expenseInsights: StatsOverviewResponseDto['expenseInsights'];
   heatmap: StatsOverviewResponseDto['heatmap'];
   generatedAt: Date;
 }
@@ -109,6 +110,7 @@ export function serializeStatsOverview(model: StatsOverviewModel): StatsOverview
     topBudgetLevels: model.topBudgetLevels,
     tripHighlights: model.tripHighlights,
     achievements: model.achievements,
+    expenseInsights: model.expenseInsights,
     heatmap: model.heatmap,
     generatedAt: toIsoString(model.generatedAt),
   };

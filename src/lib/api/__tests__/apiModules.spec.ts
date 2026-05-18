@@ -23,6 +23,14 @@ vi.mock('../httpClient', () => ({
 import { fetchAppBootstrap } from '../appBootstrapApi';
 import { fetchAdminOverview } from '../adminApi';
 import { fetchStatsOverview } from '../statsApi';
+import {
+  fetchCompanionMapReplayStory,
+  fetchTripMapReplayStory,
+  fetchYearMapReplayStory,
+} from '../mapReplayStoriesApi';
+import { accessPublicShareLink, createPrivateShareLink, listPrivateShareLinks, revokePrivateShareLink } from '../shareLinksApi';
+import { createMarkerTagVocabulary, deleteMarkerTagVocabulary, fetchMarkerTagVocabulary, updateMarkerTagVocabulary } from '../tagVocabularyApi';
+import { fetchPhotoAlbums, updatePhotoAlbumPreferences } from '../photoAlbumsApi';
 import { fetchSession, login, logout, register } from '../authApi';
 import { createCompanion, updateCompanion } from '../companionsApi';
 import { createGuideSearchHistory, fetchGuideSearchHistories } from '../guideSearchHistoryApi';
@@ -101,6 +109,73 @@ describe('app api modules', () => {
       '/api',
       '/stats/overview?year=2026&scope=domestic&companionId=user-alice&tripId=trip-1',
     );
+  });
+
+  it('routes map replay story requests through the resource base url', async () => {
+    await fetchTripMapReplayStory('trip-1');
+    await fetchYearMapReplayStory('2026');
+    await fetchCompanionMapReplayStory('user-alice');
+
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/map-replay-stories/trip/trip-1');
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/map-replay-stories/year/2026');
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/map-replay-stories/companion/user-alice');
+  });
+
+
+  it('routes marker tag vocabulary governance requests through the resource base url', async () => {
+    await fetchMarkerTagVocabulary();
+    await createMarkerTagVocabulary({ label: '温泉', value: 'onsen' });
+    await updateMarkerTagVocabulary('onsen', { isHidden: true, sortOrder: 80 });
+    await deleteMarkerTagVocabulary('onsen');
+
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/marker-tags/vocabulary');
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/marker-tags/vocabulary', { label: '温泉', value: 'onsen' });
+    expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/marker-tags/vocabulary/onsen', { isHidden: true, sortOrder: 80 });
+    expect(mocks.deleteMock).toHaveBeenCalledWith('/api', '/marker-tags/vocabulary/onsen');
+  });
+
+  it('routes smart photo album requests through the resource base url', async () => {
+    await fetchPhotoAlbums();
+    await updatePhotoAlbumPreferences({
+      preferences: [
+        {
+          targetKind: 'trip',
+          targetId: 'trip-1',
+          pinnedImageIds: ['image-1'],
+          sortOrder: ['image-1', 'image-2'],
+        },
+      ],
+    });
+
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/photo-albums');
+    expect(mocks.patchMock).toHaveBeenCalledWith('/api', '/photo-albums/preferences', {
+      preferences: [
+        {
+          targetKind: 'trip',
+          targetId: 'trip-1',
+          pinnedImageIds: ['image-1'],
+          sortOrder: ['image-1', 'image-2'],
+        },
+      ],
+    });
+  });
+
+  it('routes private share link requests through the resource base url', async () => {
+    await listPrivateShareLinks();
+    await createPrivateShareLink({ resourceType: 'memory_capsule', resourceId: 'capsule-1', maxAccessCount: 5 });
+    await revokePrivateShareLink('share-1');
+    await accessPublicShareLink('raw-share-token-123', 'secret');
+
+    expect(mocks.getMock).toHaveBeenCalledWith('/api', '/share-links');
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/share-links', {
+      resourceType: 'memory_capsule',
+      resourceId: 'capsule-1',
+      maxAccessCount: 5,
+    });
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/share-links/share-1/revoke', {});
+    expect(mocks.postMock).toHaveBeenCalledWith('/api', '/public/share-links/raw-share-token-123/access', {
+      password: 'secret',
+    });
   });
 
   it('routes trip detail requests through the resource base url', async () => {

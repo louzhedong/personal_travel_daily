@@ -12,4 +12,97 @@
 @import './photo-curation.css';
 @import './account-settings.css';
 @import './memory-capsules.css';
+@import './public-share.css';
 @import './travel-atlas.css';
+@import './map-replay-story.css';
+@import './trip-planning-calendar.css';
+@import './organization-workbench.css';
+@import './tag-governance.css';
+@import './expenses.css';
+@import './reminders.css';
+
+.account-settings-shell,
+.admin-shell,
+.reminder-shell,
+.tag-governance-shell,
+.photo-curation-shell,
+.organization-workbench-shell,
+.memory-capsule-shell,
+.memory-capsule-center-shell,
+.companion-memory-shell,
+.map-replay-story-shell,
+.annual-review-shell,
+.trip-detail-shell {
+  color: var(--ink);
+}
+
+.account-settings-hero,
+.admin-hero,
+.reminder-hero,
+.tag-governance-hero,
+.photo-curation-hero,
+.organization-hero,
+.companion-memory-hero,
+.memory-capsule-center-hero,
+.map-replay-story-hero,
+.annual-review-hero,
+.trip-detail-hero {
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.9), rgba(243, 240, 232, 0.72)),
+    var(--surface-paper);
+  border: 1px solid var(--line-hair);
+  box-shadow: var(--shadow-card);
+}
+
+.reminder-summary-strip,
+.tag-governance-summary,
+.photo-curation-summary,
+.organization-summary-strip,
+.trip-detail-summary-grid,
+.annual-review-summary-grid,
+.trip-expense-summary,
+.map-replay-story-summary {
+  border-color: var(--line-soft);
+}
+
+.reminder-summary-strip div,
+.tag-governance-summary div,
+.photo-curation-summary div,
+.organization-summary-strip div,
+.organization-summary-strip dd,
+.trip-detail-summary-card,
+.annual-review-summary-card,
+.trip-expense-summary div {
+  background: rgba(255, 253, 248, 0.68);
+  border-color: var(--line-hair);
+  box-shadow: none;
+}
+
+.account-settings-card,
+.admin-section,
+.reminder-section,
+.tag-governance-panel,
+.photo-curation-panel,
+.organization-panel,
+.trip-expense-panel {
+  background: rgba(255, 253, 248, 0.72);
+  border-color: var(--line-hair);
+  box-shadow: none;
+}
+
+.admin-section h2,
+.reminder-hero h1,
+.tag-governance-hero h1,
+.photo-curation-hero h1,
+.organization-hero h1,
+.account-settings-hero h1 {
+  font-family: var(--font-display);
+  letter-spacing: -0.055em;
+}
+
+.hero-admin-button:hover,
+.hero-admin-button:focus-visible {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface-paper);
+}

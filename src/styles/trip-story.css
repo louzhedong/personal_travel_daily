@@ -19,9 +19,10 @@
 }
 
 .trip-story-shell {
-  width: min(1180px, calc(100vw - 48px));
+  width: min(100%, var(--page-frame));
   margin: 0 auto;
   padding-top: 28px;
+  padding-inline: var(--page-gutter);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -86,7 +87,7 @@
 
 .trip-story-hero h1 {
   margin: 0;
-  font-size: 48px;
+  font-size: var(--display-sm);
   line-height: 1.05;
 }
 
@@ -170,7 +171,7 @@
 .trip-story-smart-copy {
   margin-top: 12px !important;
   color: #334155 !important;
-  font-size: 16px;
+  font-size: var(--text-lg);
   line-height: 1.8;
 }
 
@@ -208,7 +209,7 @@
 
 .trip-story-badge span {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
@@ -216,7 +217,7 @@
   display: block;
   margin: 12px 0 6px;
   color: #0f172a;
-  font-size: 28px;
+  font-size: var(--title-lg);
 }
 
 .trip-story-badge p {
@@ -270,13 +271,13 @@
 .trip-story-guide-card span,
 .trip-story-checklist-card span {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-story-highlight-card strong {
   display: block;
   margin: 12px 0 6px;
-  font-size: 30px;
+  font-size: var(--title-xl);
 }
 
 .trip-story-panel {
@@ -317,7 +318,7 @@
 
 .trip-story-route-index {
   color: #94a3b8;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -329,7 +330,7 @@
 .trip-story-route-film p {
   margin: 0;
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-story-route-dot {
@@ -366,13 +367,13 @@
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.08);
   color: #2563eb;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 800;
 }
 
 .trip-story-route-poster-copy strong {
   color: #0f172a;
-  font-size: 28px;
+  font-size: var(--title-lg);
   line-height: 1.2;
 }
 
@@ -412,7 +413,7 @@
   justify-content: center;
   border-radius: 999px;
   color: #fff;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 900;
 }
 
@@ -424,7 +425,7 @@
 .trip-story-route-track p {
   margin: 0;
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-story-timeline {
@@ -441,7 +442,7 @@
 
 .trip-story-day header span {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-story-marker-list,
@@ -495,12 +496,12 @@
 .trip-story-featured-grid figcaption span,
 .trip-story-featured-grid figcaption small {
   color: rgba(255, 255, 255, 0.82);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
 .trip-story-featured-grid figcaption strong {
-  font-size: 18px;
+  font-size: var(--title-xs);
 }
 
 .trip-story-marker-card,
@@ -538,7 +539,7 @@
   border-radius: 999px;
   background: #f1f5f9;
   color: #475569;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .trip-story-two-column {
@@ -555,7 +556,7 @@
 .trip-story-photo-stack section > p {
   margin: 0 0 10px;
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-story-photo-grid {
@@ -587,7 +588,7 @@
   gap: 3px;
   padding: 8px 10px;
   color: #475569;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .trip-story-photo-grid figcaption strong {
@@ -619,7 +620,7 @@
 .trip-story-checklist-card strong {
   display: block;
   margin: 8px 0;
-  font-size: 26px;
+  font-size: var(--title-lg);
 }
 
 .trip-story-checklist-card ul {
@@ -642,7 +643,7 @@
   }
 
   .trip-story-shell {
-    width: min(100%, calc(100vw - 48px));
+    width: 100%;
     padding-top: 24px;
   }
 
@@ -665,7 +666,7 @@
   }
 
   .trip-story-hero h1 {
-    font-size: 34px;
+    font-size: var(--title-xl);
   }
 
   .trip-story-highlight-grid,
@@ -705,7 +706,7 @@
   }
 
   .trip-story-shell {
-    width: min(100%, calc(100vw - 32px));
+    width: 100%;
   }
 
   .trip-story-hero-content {

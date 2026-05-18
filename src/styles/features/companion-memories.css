@@ -1,7 +1,7 @@
 .companion-memory-shell {
-  width: min(1120px, calc(100vw - 48px));
+  width: min(100%, var(--page-frame));
   margin: 0 auto;
-  padding: 28px 0 64px;
+  padding: 28px var(--page-gutter) 64px;
   color: #142038;
 }
 
@@ -54,7 +54,7 @@
   display: grid;
   gap: 4px;
   margin: 0;
-  font-size: clamp(2.1rem, 4.5vw, 4rem);
+  font-size: var(--display-md);
   line-height: 0.98;
   letter-spacing: -0.065em;
 }
@@ -67,7 +67,7 @@
   max-width: 640px;
   margin: 0;
   color: rgba(20, 32, 56, 0.76);
-  font-size: 1rem;
+  font-size: var(--text-lg);
   line-height: 1.72;
 }
 
@@ -77,13 +77,13 @@
   gap: 10px;
   align-items: baseline;
   color: rgba(20, 32, 56, 0.72);
-  font-size: 0.98rem;
+  font-size: var(--text-lg);
   line-height: 1.5;
 }
 
 .companion-memory-inline-stats strong {
   color: #142038;
-  font-size: 1.48rem;
+  font-size: var(--title-md);
   font-weight: 800;
   letter-spacing: -0.04em;
 }
@@ -94,7 +94,7 @@
 
 .companion-memory-updated {
   color: rgba(20, 32, 56, 0.52);
-  font-size: 0.84rem;
+  font-size: var(--text-sm);
 }
 
 .companion-memory-hero-note {
@@ -109,13 +109,13 @@
 
 .companion-memory-hero-note strong {
   color: #dc6a17;
-  font-size: 1.48rem;
+  font-size: var(--title-md);
   line-height: 1.12;
   letter-spacing: -0.04em;
 }
 
 .companion-memory-hero-note span:last-child {
-  font-size: 0.92rem;
+  font-size: var(--text-body);
   font-weight: 700;
 }
 
@@ -129,7 +129,7 @@
 
 .companion-memory-section-head h2 {
   margin: 0;
-  font-size: 1.18rem;
+  font-size: var(--title-xs);
   line-height: 1.1;
   letter-spacing: -0.03em;
 }
@@ -156,14 +156,14 @@
 }
 
 .companion-memory-year-label {
-  font-size: 1rem;
+  font-size: var(--text-lg);
   font-weight: 800;
   letter-spacing: 0.04em;
 }
 
 .companion-memory-year-card-badge {
   color: rgba(20, 32, 56, 0.46);
-  font-size: 0.76rem;
+  font-size: var(--text-2xs);
   font-style: normal;
   font-weight: 700;
   text-transform: uppercase;
@@ -177,7 +177,7 @@
 }
 
 .companion-memory-year-row-main strong {
-  font-size: 2.2rem;
+  font-size: var(--title-xl);
   line-height: 0.92;
   letter-spacing: -0.06em;
 }
@@ -216,7 +216,7 @@
 }
 
 .companion-memory-featured-copy strong {
-  font-size: 1.34rem;
+  font-size: var(--title-sm);
   line-height: 1.24;
 }
 
@@ -348,7 +348,7 @@
 
 .companion-memory-photo-card span {
   color: rgba(255, 255, 255, 0.78);
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
 }
 
 .companion-memory-photo-kicker {
@@ -356,7 +356,7 @@
   left: 12px;
   top: 12px;
   color: #fff;
-  font-size: 0.72rem;
+  font-size: var(--text-2xs);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -458,8 +458,9 @@
 
 @media (max-width: 640px) {
   .companion-memory-shell {
-    width: min(100vw - 24px, 1120px);
+    width: 100%;
     padding-top: 20px;
+    padding-inline: clamp(16px, 4vw, 24px);
   }
 
   .companion-memory-topbar {
@@ -472,7 +473,7 @@
   }
 
   .companion-memory-hero-copy h1 {
-    font-size: clamp(1.9rem, 11vw, 2.8rem);
+    font-size: var(--display-sm);
   }
 
   .companion-memory-photo-grid {
