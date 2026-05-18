@@ -27,8 +27,18 @@
 - 管理员后台 `/admin`：`admin` 角色专用的只读概览，含行前规划统计与明细巡检，后端 `GET /api/admin/overview` 最终裁决权限
 - 数据备份：应用内仅保留导出当前聚合快照为 JSON 的能力
 - 云端主数据：旅行记录、旅伴、攻略收藏 / 关联与搜索历史默认由主业务 API + MySQL 承载
+- 日程化行前规划：行程详情内支持按天组织规划项、未排期池、愿望地图导入到指定日期和当天清单提示
+- 整理工作台 `/organize`：聚合未归行程记录、缺说明照片、未关联攻略、待精选照片和弱标签记录，并通过预览确认执行批量整理
+- 智能相册与封面策展：`/photos` 支持年度、城市、旅伴和行程封面候选，并提供精选相册 SVG 导出
+- 标签治理 `/tags`：支持账号级自定义标签、隐藏、排序、同义合并和批量替换，并联动统计、Atlas 和整理工作台
+- 攻略质量评分：搜索结果展示高相关、内容完整、来源稳定等轻量解释，后台可维护来源优先级和降权建议
+- 私密分享链接：支持行程故事、年度回顾、旅伴回忆和旅行胶囊的可撤销、可过期、可选密码只读分享
+- 本地归档纪念包：行程故事、年度回顾和旅行胶囊可导出包含 manifest、JSON、Markdown、SVG 与图片 URL 清单的 ZIP
+- 旅行预算与消费洞察：行程绑定消费记录、预算草稿、人均估算、类别占比和统计 / 年度趋势
+- 地图回放故事页二期：`/replay/trip/:id`、`/replay/year/:year`、`/replay/companion/:id` 组合路线、照片、记录摘要和攻略摘录并支持 SVG 导出
+- 主动提醒中心 `/reminders`：聚合过期规划、缺封面、缺照片说明、异常登录和攻略来源异常，并支持静音、处理和跳转定位
 
-Summary: Every shipped capability above lives under the current bilingual design rules and a single MySQL-backed data layer, including wishlist planning, trip-bound planning, printable trip stories, guide-to-checklist planning, and persistent travel-achievement unlock moments.
+Summary: Every shipped capability above lives under the current bilingual design rules and a single MySQL-backed data layer, including scheduled planning, organization, smart albums, tag governance, guide quality, private sharing, archive packages, expenses, replay stories, reminders, and persistent travel-achievement unlock moments.
 
 ## 技术栈 / Tech Stack
 
@@ -211,6 +221,7 @@ npm run test
 - 攻略提炼为行前清单与行程详情联动
 - Story Studio 长图 / 分享卡导出与数据备份（导出）
 - 主业务 API 契约与仓库层行为
+- 日程规划、整理工作台、智能相册、标签治理、私密分享、预算、回放故事和提醒等新增域
 
 Summary: Run `npm run test` to cover critical flows across the map, timeline, guides, trips, backup, and the app-api contract.
 

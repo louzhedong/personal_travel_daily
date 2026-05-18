@@ -6,6 +6,7 @@ import type {
   MarkerWeather,
 } from '../../../shared/markerMetadata.js';
 import type { Scope } from './common.js';
+import type { TripExpenseCategorySummaryDto, TripExpenseSummaryDto, TripExpenseTrendPointDto } from './expenses.js';
 
 export type StatsScopeDto = Scope | 'all';
 export type StatsYearFilterDto = string | 'all';
@@ -114,6 +115,20 @@ export interface StatsHeatmapItemDto {
   markerCount: number;
 }
 
+export interface StatsExpenseTripItemDto {
+  tripId: string;
+  tripName: string;
+  amountCents: number;
+  itemCount: number;
+}
+
+export interface StatsExpenseInsightsDto {
+  summary: TripExpenseSummaryDto;
+  trend: TripExpenseTrendPointDto[];
+  topCategories: TripExpenseCategorySummaryDto[];
+  topTrips: StatsExpenseTripItemDto[];
+}
+
 export interface StatsMetadataRankingItemDto {
   value: string;
   label: string;
@@ -176,6 +191,7 @@ export interface StatsOverviewResponseDto {
     mostMarkersTrip?: { tripId: string; tripName: string; markerCount: number };
   };
   achievements: StatsAchievementDto[];
+  expenseInsights: StatsExpenseInsightsDto;
   heatmap: StatsHeatmapItemDto[];
   generatedAt: string;
 }
@@ -260,6 +276,7 @@ export interface AnnualReviewResponseDto {
   guides: AnnualReviewGuideDto[];
   trips: AnnualReviewTripDto[];
   achievements: StatsAchievementDto[];
+  expenseInsights: StatsExpenseInsightsDto;
   firstMarker?: AnnualReviewMarkerDto;
   lastMarker?: AnnualReviewMarkerDto;
   generatedAt: string;

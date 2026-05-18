@@ -6,6 +6,7 @@ import type {
   MarkerWeather,
 } from '../../../shared/markerMetadata.js';
 import type { Scope, TripDto } from './common.js';
+import type { TripExpenseListResponseDto } from './expenses.js';
 import type { GuideDocumentDto, GuideSearchResultDto } from './guides.js';
 
 export type TripPlanningPriorityDto = 'low' | 'medium' | 'high';
@@ -47,6 +48,21 @@ export interface TripPlanningSummaryDto {
 export interface TripPlanningResponseDto {
   summary: TripPlanningSummaryDto;
   items: TripPlanningItemDto[];
+}
+
+export interface TripPlanningScheduleDayDto {
+  date: string;
+  dayIndex: number;
+  title: string;
+  items: TripPlanningItemDto[];
+  checklistGroups: TripChecklistGroupDto[];
+}
+
+export interface TripPlanningScheduleResponseDto {
+  summary: TripPlanningSummaryDto;
+  days: TripPlanningScheduleDayDto[];
+  unscheduledItems: TripPlanningItemDto[];
+  checklistGroups: TripChecklistGroupDto[];
 }
 
 export interface TripDetailSummaryDto {
@@ -164,6 +180,7 @@ export interface TripDetailResponseDto {
   planningSummary: TripPlanningSummaryDto;
   checklistSummary: TripChecklistSummaryDto;
   checklistGroups: TripChecklistGroupDto[];
+  expenses: TripExpenseListResponseDto;
   meta: {
     generatedAt: string;
   };

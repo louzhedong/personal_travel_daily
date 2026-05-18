@@ -5,6 +5,11 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.98));
 }
 
+.user-manager-card .section-heading {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
 .saved-guides-panel {
   background:
     radial-gradient(circle at top left, rgba(20, 184, 166, 0.08), transparent 30%),
@@ -37,13 +42,13 @@
 
 .sidebar-section-heading h3 {
   margin: 0 0 4px;
-  font-size: 15px;
+  font-size: var(--text-md);
   color: #0f172a;
 }
 
 .sidebar-section-heading p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #64748b;
   line-height: 1.55;
 }
@@ -57,7 +62,7 @@
   justify-content: center;
   background: rgba(251, 191, 36, 0.16);
   color: #92400e;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 800;
 }
 
@@ -77,7 +82,7 @@
 
 .wishlist-select {
   min-height: 36px;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .wishlist-card {
@@ -96,13 +101,13 @@
 
 .wishlist-card-main strong {
   color: #0f172a;
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 
 .wishlist-card-main span,
 .wishlist-card p {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.55;
   margin: 0;
 }
@@ -118,7 +123,7 @@
   border-radius: 999px;
   background: rgba(241, 245, 249, 0.95);
   color: #475569;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 700;
 }
 
@@ -127,7 +132,7 @@
   border-radius: 8px;
   background: rgba(16, 185, 129, 0.1);
   color: #047857;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 800;
   line-height: 1.45;
 }
@@ -147,7 +152,7 @@
 .wishlist-card-actions .ghost-button {
   padding: 8px 10px;
   min-height: 34px;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .wishlist-delete-button {
@@ -188,13 +193,13 @@
 }
 
 .saved-guides-toggle-text {
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
   line-height: 1;
 }
 
 .saved-guides-toggle-arrow {
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1;
   transform: rotate(-90deg);
   transition: transform 0.28s ease;
@@ -230,13 +235,13 @@
 
 .saved-guides-title-row h3 {
   margin: 0 0 4px;
-  font-size: 15px;
+  font-size: var(--text-md);
   color: #0f172a;
 }
 
 .saved-guides-title-row p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #64748b;
   line-height: 1.55;
 }
@@ -305,12 +310,12 @@
 }
 
 .saved-guide-top strong {
-  font-size: 14px;
+  font-size: var(--text-body);
   color: #0f172a;
 }
 
 .saved-guide-top span {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: #64748b;
   font-weight: 600;
   white-space: nowrap;
@@ -318,7 +323,7 @@
 
 .saved-guide-summary {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #475569;
   line-height: 1.7;
 }
@@ -337,17 +342,17 @@
   border-radius: 999px;
   background: rgba(239, 246, 255, 0.96);
   color: #1d4ed8;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 700;
 }
 
 .saved-guide-date {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: #94a3b8;
 }
 
 .saved-guide-linked-marker {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: #64748b;
 }
 
@@ -359,7 +364,7 @@
 
 .saved-guides-empty {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #94a3b8;
   line-height: 1.6;
 }
@@ -377,6 +382,7 @@
 
 .user-manager-title-row h3 {
   margin: 0;
+  white-space: nowrap;
 }
 
 .user-manager-icon {
@@ -389,6 +395,8 @@
   border: 1px solid rgba(226, 232, 240, 0.9);
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
   position: relative;
+  justify-self: start;
+  max-width: 100%;
 }
 
 .user-manager-group {
@@ -415,13 +423,13 @@
 .user-manager-group-title {
   display: block;
   color: #0f172a;
-  font-size: 16px;
+  font-size: var(--text-lg);
 }
 
 .user-manager-group-text {
   margin: 6px 0 0;
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.6;
 }
 
@@ -465,12 +473,12 @@
 }
 
 .user-manager-create-entry strong {
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .user-manager-create-entry small {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -479,7 +487,7 @@
   align-items: center;
   gap: 8px;
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .user-manager-create-form {
@@ -520,7 +528,7 @@
   border-radius: 999px;
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(20, 184, 166, 0.1));
   color: #0f172a;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 800;
   flex-shrink: 0;
 }
@@ -533,7 +541,7 @@
 .user-avatar-badge-small {
   width: 28px;
   height: 28px;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .user-status-dot {
@@ -561,7 +569,7 @@
 }
 
 .color-theme-name {
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
   color: #64748b;
 }
@@ -619,7 +627,7 @@
   border-radius: 999px;
   background: rgba(245, 158, 11, 0.14);
   color: #92400e;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 800;
 }
 
@@ -632,14 +640,14 @@
 
 .map-hover-item-title {
   color: #1e293b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
 .map-hover-item-time,
 .map-hover-empty {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .map-top-right {
@@ -666,7 +674,7 @@
 
 .map-selection-card strong {
   color: #334155;
-  font-size: 14px;
+  font-size: var(--text-body);
   line-height: 1.3;
 }
 
@@ -682,7 +690,7 @@
   border: 1px solid rgba(191, 219, 254, 0.95);
   background: rgba(239, 246, 255, 0.96);
   color: #1d4ed8;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -707,7 +715,7 @@
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(240, 249, 255, 0.92));
   color: var(--brand-blue);
-  font-size: 18px;
+  font-size: var(--title-xs);
   font-weight: 700;
   line-height: 1;
   box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
@@ -749,6 +757,6 @@
 
 .field-label {
   color: #334155;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }

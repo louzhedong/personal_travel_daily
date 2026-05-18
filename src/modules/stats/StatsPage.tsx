@@ -23,33 +23,22 @@ export default function StatsPage({
   return (
     <main className="stats-page-stage">
       <div className="stats-page-shell">
-        <section className="stats-page-hero card">
+        <header className="stats-page-topbar">
+          <button type="button" className="ghost-button" onClick={onNavigateHome}>
+            返回首页
+          </button>
+          <button type="button" className="ghost-button" onClick={() => void onLogout()}>
+            退出登录
+          </button>
+        </header>
+
+        <section className="stats-page-hero">
           <div className="stats-page-hero-copy">
             <span className="hero-kicker">Travel Yearbook</span>
             <h1>行程统计中心</h1>
             <p>
               用一页把旅途里的时间、热区、行程与回忆收拢起来。它应该更像一本旅行年鉴的封面，而不是一组后台模块的平铺组合。
             </p>
-            <div className="stats-page-badges">
-              <span className="stats-page-badge">年度回看</span>
-              <span className="stats-page-badge">热区足迹</span>
-              <span className="stats-page-badge">行程年鉴</span>
-            </div>
-            <span className="stats-page-account">当前账号：{account.name}</span>
-            <div className="stats-page-action-row">
-              <button type="button" className="ghost-button" onClick={onNavigateHome}>
-                返回旅行主页
-              </button>
-              <button type="button" className="ghost-button" onClick={() => void onLogout()}>
-                退出登录
-              </button>
-            </div>
-          </div>
-          <div className="stats-page-actions">
-            <div className="stats-page-side-note">
-              <span className="stats-page-side-note-title">阅读路径</span>
-              <p>先翻封面摘要，再切年份和范围，最后进入某一段行程，把它当成旅程档案来回看。</p>
-            </div>
           </div>
         </section>
 

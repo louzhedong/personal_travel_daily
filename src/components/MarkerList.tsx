@@ -5,7 +5,7 @@ import { getDateOnlyYear } from '../lib/date';
 import {
   MARKER_BUDGET_LEVEL_LABELS,
   MARKER_MOOD_LABELS,
-  MARKER_TAG_LABELS,
+  getMarkerTagLabel,
   MARKER_TRANSPORT_LABELS,
   MARKER_WEATHER_LABELS,
 } from '../lib/markerMetadata';
@@ -248,7 +248,7 @@ export function MarkerList({
             const hasLongNote = marker.note.trim().length > 54;
             const isExpanded = !!expandedNotes[marker.id];
             const imageUrls = marker.imageUrls ?? [];
-            const tagSummary = (marker.tags ?? []).slice(0, 3).map((tag) => MARKER_TAG_LABELS[tag].zh);
+            const tagSummary = (marker.tags ?? []).slice(0, 3).map((tag) => getMarkerTagLabel(tag));
             const metadataSummary = [
               marker.mood ? `心情 ${MARKER_MOOD_LABELS[marker.mood].zh}` : null,
               marker.weather ? `天气 ${MARKER_WEATHER_LABELS[marker.weather].zh}` : null,

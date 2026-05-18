@@ -198,6 +198,24 @@ describe('TripStatsCenter', () => {
         nextHint: '还差 18 张照片，补几张代表瞬间就更接近了。',
       },
     ],
+    expenseInsights: {
+      summary: {
+        totalAmountCents: 125000,
+        actualAmountCents: 98000,
+        draftAmountCents: 27000,
+        currency: 'CNY',
+        itemCount: 8,
+        draftCount: 2,
+        actualCount: 6,
+        averagePerCompanionCents: 125000,
+        averagePerDayCents: 31250,
+        categoryBreakdown: [{ category: 'transport' as const, label: '交通', amountCents: 52000, itemCount: 3, percentage: 42 }],
+        companionShares: [{ companionName: '小悠', companionId: 'user-alice', companionColor: '#2563eb', amountCents: 125000, itemCount: 8 }],
+      },
+      trend: [{ period: '2026-05', amountCents: 125000, itemCount: 8 }],
+      topCategories: [{ category: 'transport' as const, label: '交通', amountCents: 52000, itemCount: 3, percentage: 42 }],
+      topTrips: [{ tripId: 'trip-1', tripName: '江南春游', amountCents: 125000, itemCount: 8 }],
+    },
     heatmap: [{ scopeId: 'zj', scopeName: '浙江', scope: 'domestic' as const, intensity: 5, markerCount: 2 }],
     generatedAt: '2026-05-06T00:00:00.000Z',
   };
@@ -212,6 +230,7 @@ describe('TripStatsCenter', () => {
 
     expect(await screen.findByText('把旅行记录整理成一页旅程年鉴')).toBeInTheDocument();
     expect(await screen.findByText('总行程数')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '消费趋势' })).toBeInTheDocument();
     expect(fetchStatsOverview).toHaveBeenCalledWith({
       year: undefined,
       scope: 'all',

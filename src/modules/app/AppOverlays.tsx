@@ -2,6 +2,7 @@ import DataSync from '../../components/DataSync';
 import GuideSearchPanel from '../../components/GuideSearchPanel';
 import MarkerDetailPanel from '../../components/MarkerDetailPanel';
 import MarkerForm, { type MarkerFormValue } from '../../components/MarkerForm';
+import type { MarkerTagOption } from '../../lib/markerMetadata';
 import type {
   GuideSearchHistoryItem,
   GuideSearchResult,
@@ -23,6 +24,7 @@ interface AppOverlaysProps {
   selectedRegion?: RegionOption;
   activeUser?: UserProfile;
   onSubmitMarker: (value: MarkerFormValue) => Promise<void>;
+  tagOptions?: MarkerTagOption[];
   dataSyncOpen: boolean;
   closeDataSync: () => void;
   store: TravelStore;
@@ -89,6 +91,7 @@ export default function AppOverlays({
   selectedRegion,
   activeUser,
   onSubmitMarker,
+  tagOptions,
   dataSyncOpen,
   closeDataSync,
   store,
@@ -162,6 +165,7 @@ export default function AppOverlays({
               }
               submitting={saving}
               submitText={activeUser ? `保存到 ${activeUser.name}` : '保存标记'}
+              tagOptions={tagOptions}
               onCancel={closeMarkerModal}
               onSubmit={onSubmitMarker}
             />
@@ -196,6 +200,7 @@ export default function AppOverlays({
         user={detailUser}
         trips={store.trips ?? []}
         relatedGuides={detailMarkerGuides}
+        tagOptions={tagOptions}
         open={detailMarker !== null}
         canEdit={detailMarker?.userId === activeUserId}
         onClose={closeDetail}

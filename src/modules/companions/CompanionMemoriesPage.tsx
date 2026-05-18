@@ -127,7 +127,7 @@ export default function CompanionMemoriesPage({
     <main className="companion-memory-shell">
       <header className="companion-memory-topbar">
         <button type="button" className="ghost-button" onClick={onNavigateBack}>
-          返回
+          返回首页
         </button>
         <div className="companion-memory-topbar-actions">
           <button type="button" className="primary-button" onClick={handleRefresh} disabled={refreshing}>

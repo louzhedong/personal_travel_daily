@@ -13,6 +13,28 @@ export interface GuideSourceInput {
   sourceUrl?: string;
 }
 
+export type GuideQualityLevelDto = 'high' | 'medium' | 'low';
+
+export interface GuideQualitySnapshotDto {
+  id?: string;
+  score: number;
+  level: GuideQualityLevelDto;
+  relevanceScore: number;
+  completenessScore: number;
+  readabilityScore: number;
+  sourceStabilityScore: number;
+  saveRateScore: number;
+  priorityWeight: number;
+  reasons: string[];
+  createdAt?: string;
+}
+
+export interface GuideSourcePrioritySuggestionDto {
+  action: 'boost' | 'keep' | 'demote';
+  label: string;
+  reason: string;
+}
+
 export interface ListSavedGuidesQuery {
   companionId?: string;
   markerId?: string;
@@ -129,4 +151,19 @@ export interface GuideSourceHealthDto {
   lastSuccessAt?: string;
   lastFailureAt?: string;
   lastFailureReason?: string;
+  priorityWeight?: number;
+  demotionReason?: string;
+  quality?: GuideQualitySnapshotDto;
+  suggestion?: GuideSourcePrioritySuggestionDto;
+}
+
+export interface UpdateGuideSourcePreferenceInputDto {
+  sourceName: string;
+  sourceDomain: string;
+  priorityWeight: number;
+  demotionReason?: string;
+}
+
+export interface GuideSourcePreferenceMutationResponseDto {
+  item: GuideSourceHealthDto;
 }

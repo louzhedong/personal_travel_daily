@@ -11,7 +11,7 @@
 }
 
 .auth-stage {
-  width: min(1180px, 100%);
+  width: min(100%, var(--page-frame));
 }
 
 .auth-hero-panel,
@@ -78,7 +78,7 @@
 .auth-kicker,
 .auth-card-eyebrow,
 .auth-loading-eyebrow {
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -209,7 +209,7 @@
 }
 
 .auth-loading-card strong {
-  font-size: 1.05rem;
+  font-size: var(--text-lead);
   color: #0f172a;
 }
 

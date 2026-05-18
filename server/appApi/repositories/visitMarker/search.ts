@@ -5,7 +5,6 @@ import { Prisma } from '@prisma/client';
 import {
   MARKER_BUDGET_LEVELS,
   MARKER_MOODS,
-  MARKER_TAGS,
   MARKER_TRANSPORTS,
   MARKER_WEATHERS,
   type MarkerBudgetLevel,
@@ -61,7 +60,7 @@ export async function searchActiveMarkersByAccountId(
     whereParts.push(Prisma.sql`m.visited_start_at < ${startOfNextYear}`);
   }
 
-  if (input.tag && MARKER_TAGS.includes(input.tag)) {
+  if (input.tag && /^[a-z0-9][a-z0-9_-]{1,31}$/.test(input.tag)) {
     whereParts.push(
       Prisma.sql`JSON_SEARCH(COALESCE(m.tags, JSON_ARRAY()), 'one', ${input.tag}) IS NOT NULL`,
     );

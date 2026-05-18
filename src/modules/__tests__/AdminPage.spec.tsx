@@ -8,6 +8,7 @@ import {
   previewAdminQualityAutoFix,
   recordAdminAuditLog,
 } from '../../lib/api/adminApi';
+import { fetchAdminReminderTrends } from '../../lib/api/remindersApi';
 import AdminPage from '../admin/AdminPage';
 
 vi.mock('../../lib/api/adminApi', () => ({
@@ -18,9 +19,28 @@ vi.mock('../../lib/api/adminApi', () => ({
   applyAdminQualityAutoFix: vi.fn(),
 }));
 
+vi.mock('../../lib/api/remindersApi', () => ({
+  fetchAdminReminderTrends: vi.fn(),
+}));
+
 describe('AdminPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(fetchAdminReminderTrends).mockResolvedValue({
+      trends: [
+        {
+          type: 'planning_overdue',
+          label: '过期规划',
+          totalCount: 2,
+          activeCount: 1,
+          mutedCount: 1,
+          resolvedCount: 0,
+          criticalCount: 0,
+          accountCount: 1,
+        },
+      ],
+      generatedAt: '2026-05-12T00:00:00.000Z',
+    });
     vi.mocked(fetchAdminAuditLogs).mockResolvedValue({ logs: [] });
     vi.mocked(recordAdminAuditLog).mockResolvedValue({
       id: 'audit-new',
@@ -263,6 +283,32 @@ describe('AdminPage', () => {
           },
         ],
       },
+      guideSourceHealth: [
+        {
+          id: 'source-1',
+          sourceName: '示例来源',
+          sourceDomain: 'example.com',
+          recentSuccess: 8,
+          recentFailure: 1,
+          priorityWeight: 1,
+          quality: {
+            score: 86,
+            level: 'high',
+            relevanceScore: 88,
+            completenessScore: 78,
+            readabilityScore: 82,
+            sourceStabilityScore: 92,
+            saveRateScore: 66,
+            priorityWeight: 1,
+            reasons: ['高相关', '内容完整', '来源稳定'],
+          },
+          suggestion: {
+            action: 'keep',
+            label: '保持观察',
+            reason: '来源表现处于可接受区间。',
+          },
+        },
+      ],
       meta: {
         fetchedAt: '2026-04-22T00:00:00.000Z',
         accountCount: 2,
@@ -287,6 +333,8 @@ describe('AdminPage', () => {
     expect(await screen.findByRole('heading', { name: '审计日志' })).toBeInTheDocument();
     expect((await screen.findAllByText('攻略来源异常')).length).toBeGreaterThanOrEqual(1);
     expect(await screen.findByText('账号质量')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '来源优先级与健康度' })).toBeInTheDocument();
+    expect(await screen.findByText(/质量分 86/)).toBeInTheDocument();
     expect((await screen.findAllByText('Voyage Atlas')).length).toBeGreaterThanOrEqual(2);
     expect(await screen.findByRole('tab', { name: '行程' })).toBeInTheDocument();
     expect((await screen.findAllByText('2026 江南春游')).length).toBeGreaterThanOrEqual(2);

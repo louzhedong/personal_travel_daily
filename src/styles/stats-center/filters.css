@@ -36,7 +36,7 @@
 .stats-filter-panel-head strong {
   display: block;
   margin-top: 6px;
-  font-size: 20px;
+  font-size: var(--title-sm);
   color: var(--brand-ink);
 }
 
@@ -48,7 +48,7 @@
 
 .stats-generated-at {
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   white-space: nowrap;
 }

@@ -20,7 +20,7 @@
 
 .trip-timeline-header h3 {
   margin: 0 0 4px;
-  font-size: 18px;
+  font-size: var(--title-xs);
 }
 
 .trip-create-entry {
@@ -46,7 +46,7 @@
 .trip-timeline-header p {
   margin: 0;
   color: #64748b;
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.6;
 }
 
@@ -74,13 +74,13 @@
 
 .trip-batch-summary strong {
   color: #0f172a;
-  font-size: 13px;
+  font-size: var(--text-sm);
   padding-top: 2px;
 }
 
 .trip-batch-summary span {
   color: #2563eb;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -130,7 +130,7 @@
   display: block;
   margin-bottom: 8px;
   color: #0f172a;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .trip-batch-selection-tooltip-list {
@@ -167,7 +167,7 @@
 .trip-batch-selection-tooltip-primary {
   display: block;
   color: #1e3a8a;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -177,7 +177,7 @@
 .trip-batch-selection-tooltip-secondary {
   display: block;
   color: #64748b;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -222,7 +222,7 @@
   border-radius: 999px;
   background: rgba(219, 234, 254, 0.7);
   color: #1d4ed8;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -233,7 +233,7 @@
   background-color: rgba(255, 255, 255, 0.94);
   color: #0f172a;
   font-family: inherit;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 400;
   line-height: 1.2;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
@@ -295,7 +295,7 @@
 .trip-collection-input {
   min-height: 38px;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-collection-textarea {
@@ -312,7 +312,7 @@
 .trip-collection-submit {
   min-height: 38px;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-collection-list {
@@ -356,12 +356,12 @@
 
 .trip-collection-card-header strong {
   color: #0f172a;
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 
 .trip-collection-card-header span {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -390,7 +390,7 @@
 
 .trip-unassigned-hint {
   color: #2563eb;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -422,7 +422,7 @@
 
 .trip-timeline-day-header span {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -467,18 +467,18 @@
 
 .trip-timeline-item-top strong {
   color: #0f172a;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .trip-timeline-item-top span {
   color: #1d4ed8;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
 .trip-timeline-item-subtitle {
   color: #64748b;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 @media (max-width: 720px) {

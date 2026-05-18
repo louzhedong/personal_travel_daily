@@ -2,7 +2,6 @@ import { z } from 'zod';
 import {
   MARKER_BUDGET_LEVELS,
   MARKER_MOODS,
-  MARKER_TAGS,
   MARKER_TRANSPORTS,
   MARKER_WEATHERS,
 } from '../../../shared/markerMetadata.js';
@@ -12,7 +11,8 @@ const dateSchema = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'date must use YYYY-MM-DD format');
 
 const imageUrlsSchema = z.array(z.string().url('imageUrls must contain valid URLs')).max(20).optional();
-const markerTagsSchema = z.array(z.enum(MARKER_TAGS)).max(10).optional();
+const markerTagValueSchema = z.string().trim().min(2).max(32).regex(/^[a-z0-9][a-z0-9_-]*$/);
+const markerTagsSchema = z.array(markerTagValueSchema).max(10).optional();
 const markerMoodSchema = z.enum(MARKER_MOODS).optional().nullable();
 const markerWeatherSchema = z.enum(MARKER_WEATHERS).optional().nullable();
 const markerTransportSchema = z.enum(MARKER_TRANSPORTS).optional().nullable();
@@ -53,7 +53,7 @@ export const searchMarkersQuerySchema = z.object({
   keyword: z.string().trim().max(100, 'keyword must be 100 characters or fewer').optional(),
   companionId: z.string().trim().min(1, 'companionId is required').optional(),
   scope: z.enum(['domestic', 'international', 'all']).optional().default('all'),
-  tag: z.enum(MARKER_TAGS).optional(),
+  tag: z.string().trim().min(2).max(32).regex(/^[a-z0-9][a-z0-9_-]*$/).optional(),
   mood: z.enum(MARKER_MOODS).optional(),
   weather: z.enum(MARKER_WEATHERS).optional(),
   transport: z.enum(MARKER_TRANSPORTS).optional(),

@@ -4,8 +4,13 @@ import type { CreateGuideSearchLogBody } from '../schemas/guideSearchLogs.js';
 import { findActiveCompanionById } from '../repositories/travelCompanionRepository.js';
 import { createNotFoundError } from '../errors.js';
 import { createGuideSearchLog } from '../repositories/guideSearchLogRepository.js';
-import { upsertGuideSourceHealth } from '../repositories/guideSourceHealthRepository.js';
+import { createGuideQualitySnapshot } from '../repositories/guideQualityRepository.js';
+import {
+  findGuideSourcePreference,
+  upsertGuideSourceHealth,
+} from '../repositories/guideSourceHealthRepository.js';
 import { serializeGuideSearchLogMutation } from '../serializers/bootstrapSerializer.js';
+import { calculateGuideQualityScore } from './guideQualityService.js';
 
 function normalizeKeyword(keyword: string) {
   return keyword.trim().toLowerCase();
@@ -53,13 +58,33 @@ export async function createGuideSearchLogResource(
     });
 
     if (log.sourceName && log.sourceDomain) {
-      await upsertGuideSourceHealth(tx, {
+      const preference = await findGuideSourcePreference(tx, {
+        sourceName: log.sourceName,
+        sourceDomain: log.sourceDomain,
+      });
+      const health = await upsertGuideSourceHealth(tx, {
         id: randomUUID(),
         sourceName: log.sourceName,
         sourceDomain: log.sourceDomain,
         wasSuccessful: log.status !== 'error',
         failureReason: log.errorCode ?? undefined,
         occurredAt: log.createdAt,
+      });
+      const quality = calculateGuideQualityScore({
+        keyword: log.keyword,
+        resultCount: log.resultCount,
+        status: log.status,
+        durationMs: log.durationMs,
+        sourceSuccessCount: health.recentSuccess,
+        sourceFailureCount: health.recentFailure,
+        priorityWeight: preference?.priorityWeight ?? 0,
+      });
+      await createGuideQualitySnapshot(tx, {
+        id: randomUUID(),
+        logId: log.id,
+        sourceName: log.sourceName,
+        sourceDomain: log.sourceDomain,
+        ...quality,
       });
     }
 

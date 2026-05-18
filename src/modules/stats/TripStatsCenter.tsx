@@ -5,15 +5,19 @@ import StatsCenterFilters from '../../components/stats/StatsCenterFilters';
 import StatsHeatmapPanel from '../../components/stats/StatsHeatmapPanel';
 import StatsSummaryGrid from '../../components/stats/StatsSummaryGrid';
 import { fetchStatsOverview } from '../../lib/api/statsApi';
+import { fetchMarkerTagVocabulary } from '../../lib/api/tagVocabularyApi';
+import { MARKER_TAG_OPTIONS, type MarkerTagOption } from '../../lib/markerMetadata';
 import type {
   StatsAchievementDto,
   StatsCompanionRankingItemDto,
   StatsOverviewResponseDto,
+  StatsExpenseInsightsDto,
   StatsRegionRankingItemDto,
   StatsTripDetailItemDto,
   StatsTripRankingItemDto,
 } from '../../lib/api/types';
 import { AchievementCard, AchievementDetailDialog } from '../achievements/achievementUi';
+import { formatExpenseMoney } from '../expenses/expenseModel';
 import {
   createDefaultStatsUiFilters,
   formatGeneratedAt,
@@ -30,6 +34,46 @@ interface TripStatsCenterProps {
   onOpenAnnualReview?: (year: string) => void;
   onOpenAchievements?: () => void;
   onOpenCompanionMemories?: (companionId: string) => void;
+}
+
+function ExpenseInsightsPanel({ insights }: { insights: StatsExpenseInsightsDto }) {
+  return (
+    <section className="card stats-panel">
+      <div className="stats-section-heading">
+        <div>
+          <h3>消费趋势</h3>
+          <p>按当前筛选口径汇总实际支出和预算草稿，第一版仅按原币种 CNY 展示。</p>
+        </div>
+        <strong className="stats-expense-total">
+          {formatExpenseMoney(insights.summary.totalAmountCents, insights.summary.currency)}
+        </strong>
+      </div>
+      {insights.summary.itemCount === 0 ? (
+        <div className="stats-empty">当前筛选条件下暂无费用记录。</div>
+      ) : (
+        <div className="stats-expense-grid">
+          <div className="stats-expense-trend">
+            {insights.trend.map((point) => (
+              <article key={point.period}>
+                <span>{point.period}</span>
+                <strong>{formatExpenseMoney(point.amountCents, insights.summary.currency)}</strong>
+                <small>{point.itemCount} 笔</small>
+              </article>
+            ))}
+          </div>
+          <div className="stats-expense-breakdown">
+            {insights.topCategories.map((item) => (
+              <article key={item.category}>
+                <span>{item.label}</span>
+                <strong>{formatExpenseMoney(item.amountCents, insights.summary.currency)}</strong>
+                <small>{item.percentage}%</small>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
 }
 
 function SectionBars<T extends { markerCount: number }>({
@@ -333,6 +377,23 @@ export default function TripStatsCenter({
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [toast, setToast] = useState<{ message: string; tone: AppToastTone } | null>(null);
+  const [tagOptions, setTagOptions] = useState<MarkerTagOption[]>(MARKER_TAG_OPTIONS);
+
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchMarkerTagVocabulary()
+      .then((response) => {
+        if (cancelled) return;
+        setTagOptions(response.visibleItems.map((item) => ({ value: item.value, label: item.label, source: item.source })));
+      })
+      .catch(() => {
+        if (!cancelled) setTagOptions(MARKER_TAG_OPTIONS);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -432,7 +493,7 @@ export default function TripStatsCenter({
                 </div>
                 <span className="stats-generated-at">统计生成于 {formatGeneratedAt(data.generatedAt)}</span>
               </div>
-              <StatsCenterFilters filters={filters} data={data} onChange={setFilters} />
+              <StatsCenterFilters filters={filters} data={data} tagOptions={tagOptions} onChange={setFilters} />
               <button
                 type="button"
                 className="stats-yearbook-button"
@@ -445,6 +506,8 @@ export default function TripStatsCenter({
           </section>
 
           <StatsSummaryGrid data={data} />
+
+          <ExpenseInsightsPanel insights={data.expenseInsights} />
 
           <AchievementPanel
             items={data.achievements}

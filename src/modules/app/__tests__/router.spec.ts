@@ -4,6 +4,10 @@ import {
   createAchievementsRoute,
   createAnnualReviewRoute,
   createHomeRoute,
+  createMapReplayStoryRoute,
+  createOrganizeRoute,
+  createPublicShareRoute,
+  createTagGovernanceRoute,
   createTripChecklistRoute,
   createTripDetailRoute,
   createTripStoryRoute,
@@ -24,9 +28,16 @@ describe('router', () => {
     expect(parsePathname('/login')).toEqual({ kind: 'login', pathname: '/login' });
     expect(parsePathname('/auth')).toEqual({ kind: 'login', pathname: '/login' });
     expect(parsePathname('/register')).toEqual({ kind: 'register', pathname: '/register' });
+    expect(parsePathname('/share/token-1')).toEqual({
+      kind: 'publicShare',
+      pathname: '/share/token-1',
+      token: 'token-1',
+    });
     expect(parsePathname('/admin')).toEqual({ kind: 'admin', pathname: '/admin' });
     expect(parsePathname('/stats')).toEqual({ kind: 'stats', pathname: '/stats' });
     expect(parsePathname('/achievements')).toEqual({ kind: 'achievements', pathname: '/achievements' });
+    expect(parsePathname('/organize')).toEqual({ kind: 'organize', pathname: '/organize' });
+    expect(parsePathname('/tags')).toEqual({ kind: 'tagGovernance', pathname: '/tags' });
     expect(parsePathname('/trips/trip-1')).toEqual({
       kind: 'tripDetail',
       pathname: '/trips/trip-1',
@@ -46,6 +57,12 @@ describe('router', () => {
       kind: 'annualReview',
       pathname: '/yearbook/2026',
       year: '2026',
+    });
+    expect(parsePathname('/replay/trip/trip-1')).toEqual({
+      kind: 'mapReplayStory',
+      pathname: '/replay/trip/trip-1',
+      targetType: 'trip',
+      targetId: 'trip-1',
     });
     expect(parsePathname('/unknown')).toEqual(createHomeRoute());
   });
@@ -74,6 +91,25 @@ describe('router', () => {
     expect(createAchievementsRoute()).toEqual({
       kind: 'achievements',
       pathname: '/achievements',
+    });
+    expect(createOrganizeRoute()).toEqual({
+      kind: 'organize',
+      pathname: '/organize',
+    });
+    expect(createTagGovernanceRoute()).toEqual({
+      kind: 'tagGovernance',
+      pathname: '/tags',
+    });
+    expect(createPublicShareRoute('token/1')).toEqual({
+      kind: 'publicShare',
+      pathname: '/share/token%2F1',
+      token: 'token/1',
+    });
+    expect(createMapReplayStoryRoute('companion', 'user/alice')).toEqual({
+      kind: 'mapReplayStory',
+      pathname: '/replay/companion/user%2Falice',
+      targetType: 'companion',
+      targetId: 'user/alice',
     });
   });
 

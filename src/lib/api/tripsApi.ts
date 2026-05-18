@@ -12,10 +12,13 @@ import type {
   TripChecklistResponseDto,
   TripDetailResponseDto,
   TripPlanningResponseDto,
+  TripPlanningScheduleResponseDto,
+  ImportWishlistToTripPlanningScheduleInput,
   UpdateTripPhotoCurationInput,
   UpdateTripChecklistItemInput,
   UpdateTripInput,
   UpdateTripPlanningItemInput,
+  UpdateTripPlanningItemScheduleInput,
 } from './types';
 
 export async function createTrip(input: CreateTripInput) {
@@ -34,6 +37,10 @@ export async function fetchTripPlanning(id: string) {
   return httpClient.get<TripPlanningResponseDto>(getResourceBaseUrl(), `/trips/${id}/planning`);
 }
 
+export async function fetchTripPlanningSchedule(id: string) {
+  return httpClient.get<TripPlanningScheduleResponseDto>(getResourceBaseUrl(), `/trips/${id}/planning/schedule`);
+}
+
 export async function createTripPlanningItem(id: string, input: CreateTripPlanningItemInput) {
   return httpClient.post<TripPlanningResponseDto['items'][number]>(getResourceBaseUrl(), `/trips/${id}/planning/items`, input);
 }
@@ -44,6 +51,14 @@ export async function createTripPlanningItemFromWishlist(id: string, wishlistId:
 
 export async function updateTripPlanningItem(id: string, itemId: string, input: UpdateTripPlanningItemInput) {
   return httpClient.patch<TripPlanningResponseDto['items'][number]>(getResourceBaseUrl(), `/trips/${id}/planning/items/${itemId}`, input);
+}
+
+export async function updateTripPlanningItemSchedule(id: string, itemId: string, input: UpdateTripPlanningItemScheduleInput) {
+  return httpClient.patch<TripPlanningScheduleResponseDto>(getResourceBaseUrl(), `/trips/${id}/planning/items/${itemId}/schedule`, input);
+}
+
+export async function importWishlistToTripPlanningSchedule(id: string, input: ImportWishlistToTripPlanningScheduleInput) {
+  return httpClient.post<TripPlanningScheduleResponseDto>(getResourceBaseUrl(), `/trips/${id}/planning/schedule/import-wishlist`, input);
 }
 
 export async function deleteTripPlanningItem(id: string, itemId: string) {

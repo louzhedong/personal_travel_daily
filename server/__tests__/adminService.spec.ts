@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   listRecentGuideSearchLogsMock: vi.fn(),
   aggregateGuideSearchStatusBreakdownMock: vi.fn(),
   listGuideSourceHealthSnapshotMock: vi.fn(),
+  listGuideSourcePreferencesMock: vi.fn(),
+  listLatestGuideQualitySnapshotsByDomainMock: vi.fn(),
   listCompanionMemorySnapshotHealthMock: vi.fn(),
   serializeAdminOverviewMock: vi.fn(),
   serializeGuideSearchTrendsMock: vi.fn(),
@@ -31,6 +33,8 @@ vi.mock('../appApi/repositories/guideSearchLogRepository.js', () => ({
 
 vi.mock('../appApi/repositories/guideSourceHealthRepository.js', () => ({
   listGuideSourceHealthSnapshot: mocks.listGuideSourceHealthSnapshotMock,
+  listGuideSourcePreferences: mocks.listGuideSourcePreferencesMock,
+  listLatestGuideQualitySnapshotsByDomain: mocks.listLatestGuideQualitySnapshotsByDomainMock,
 }));
 
 vi.mock('../appApi/repositories/adminQualityRepository.js', () => ({
@@ -82,6 +86,8 @@ describe('adminService', () => {
     mocks.listRecentGuideSearchLogsMock.mockResolvedValue(logs);
     mocks.aggregateGuideSearchStatusBreakdownMock.mockResolvedValue(statusBreakdown);
     mocks.listGuideSourceHealthSnapshotMock.mockResolvedValue(sourceHealth);
+    mocks.listGuideSourcePreferencesMock.mockResolvedValue([]);
+    mocks.listLatestGuideQualitySnapshotsByDomainMock.mockResolvedValue([]);
     mocks.listCompanionMemorySnapshotHealthMock.mockResolvedValue(snapshotHealth);
     mocks.serializeAdminOverviewMock.mockReturnValue(serialized);
     mocks.serializeGuideSearchTrendsMock.mockReturnValue(serializedTrends);

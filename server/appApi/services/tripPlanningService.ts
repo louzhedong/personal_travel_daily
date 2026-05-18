@@ -105,6 +105,7 @@ export async function createTripPlanningItemFromWishlist(
   accountId: string,
   tripId: string,
   wishlistId: string,
+  plannedDate?: string | null,
 ) {
   const prisma = getPrismaClient();
 
@@ -135,7 +136,7 @@ export async function createTripPlanningItemFromWishlist(
       city: wishlistItem.city,
       note: wishlistItem.note ?? undefined,
       priority: wishlistItem.priority,
-      plannedDate: null,
+      plannedDate: plannedDate ? parseDateOnly(plannedDate) : null,
       sourceGuideIdentity: wishlistItem.sourceGuideIdentity ?? undefined,
       sourceGuideTitle: wishlistItem.sourceGuideTitle ?? undefined,
       sourceGuideSourceName: wishlistItem.sourceGuideSourceName ?? undefined,

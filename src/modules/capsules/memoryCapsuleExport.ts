@@ -1,5 +1,11 @@
 import type { MemoryCapsuleDetailDto } from '../../lib/api/types';
 import { getVisibleCapsulePhotos } from './memoryCapsulePageModel';
+import {
+  buildImageUrlList,
+  buildMarkdownSummary,
+  exportLocalArchivePackage,
+  uniqueImageUrls,
+} from '../archive/localArchive';
 
 function escapeSvgText(value: string) {
   return value
@@ -112,4 +118,39 @@ export function exportMemoryCapsuleLongImage(detail: MemoryCapsuleDetailDto) {
 
 export function exportMemoryCapsuleShareCard(detail: MemoryCapsuleDetailDto, variant: 'square' | 'story') {
   triggerSvgDownload(buildMemoryCapsuleShareCardSvg(detail, variant), `${detail.capsule.title}-${variant}.svg`);
+}
+
+export function exportMemoryCapsuleArchivePackage(detail: MemoryCapsuleDetailDto) {
+  const photos = getVisibleCapsulePhotos(detail.content);
+  const imageUrls = uniqueImageUrls([
+    detail.content.hero.coverImageUrl,
+    detail.capsule.coverImageUrl,
+    ...photos.map((photo) => photo.imageUrl),
+  ]);
+  const archiveInput = {
+    packageType: 'capsule' as const,
+    sourceId: detail.capsule.id,
+    title: detail.capsule.title,
+    subtitle: detail.capsule.subtitle ?? detail.content.hero.subtitle,
+    sourceUpdatedAt: detail.capsule.updatedAt,
+    metrics: detail.content.metrics.map((metric) => ({
+      label: metric.label,
+      value: metric.value,
+      description: metric.description,
+    })),
+    imageUrls,
+  };
+  const files = [
+    {
+      path: 'summary.md',
+      content: buildMarkdownSummary(
+        archiveInput,
+        detail.content.sections.map((section) => `## ${section.title}\n\n${section.body}`),
+      ),
+    },
+    { path: 'content/capsule.json', content: `${JSON.stringify(detail, null, 2)}\n` },
+    { path: 'images/image-urls.md', content: buildImageUrlList(imageUrls) },
+    { path: 'exports/capsule-long-image.svg', content: buildMemoryCapsuleLongImageSvg(detail) },
+  ];
+  return exportLocalArchivePackage(archiveInput, files);
 }

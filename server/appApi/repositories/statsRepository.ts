@@ -20,6 +20,16 @@ export async function getStatsOverviewSource(prisma: PrismaExecutor, accountId: 
         },
         orderBy: [{ startsAt: 'desc' }, { createdAt: 'desc' }],
       },
+      tripExpenses: {
+        where: {
+          isDeleted: false,
+        },
+        include: {
+          companion: true,
+          trip: true,
+        },
+        orderBy: [{ spentAt: 'desc' }, { createdAt: 'desc' }],
+      },
       markers: {
         where: {
           isDeleted: false,

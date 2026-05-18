@@ -7,6 +7,8 @@ const mocks = vi.hoisted(() => ({
   getPrismaClientMock: vi.fn(),
   findActiveCompanionByIdMock: vi.fn(),
   createGuideSearchLogMock: vi.fn(),
+  createGuideQualitySnapshotMock: vi.fn(),
+  findGuideSourcePreferenceMock: vi.fn(),
   upsertGuideSourceHealthMock: vi.fn(),
   serializeGuideSearchLogMutationMock: vi.fn(),
 }));
@@ -27,7 +29,12 @@ vi.mock('../appApi/repositories/guideSearchLogRepository.js', () => ({
   createGuideSearchLog: mocks.createGuideSearchLogMock,
 }));
 
+vi.mock('../appApi/repositories/guideQualityRepository.js', () => ({
+  createGuideQualitySnapshot: mocks.createGuideQualitySnapshotMock,
+}));
+
 vi.mock('../appApi/repositories/guideSourceHealthRepository.js', () => ({
+  findGuideSourcePreference: mocks.findGuideSourcePreferenceMock,
   upsertGuideSourceHealth: mocks.upsertGuideSourceHealthMock,
 }));
 
@@ -42,8 +49,14 @@ describe('guideSearchLogService', () => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
     mocks.randomUUIDMock
       .mockReturnValueOnce('log-uuid')
-      .mockReturnValueOnce('health-uuid');
+      .mockReturnValueOnce('health-uuid')
+      .mockReturnValueOnce('quality-uuid');
     mocks.serializeGuideSearchLogMutationMock.mockImplementation((item) => ({ item }));
+    mocks.findGuideSourcePreferenceMock.mockResolvedValue(null);
+    mocks.upsertGuideSourceHealthMock.mockResolvedValue({
+      recentSuccess: 3,
+      recentFailure: 0,
+    });
   });
 
   it('creates a log and updates source health when source metadata exists', async () => {
@@ -111,6 +124,17 @@ describe('guideSearchLogService', () => {
       failureReason: undefined,
       occurredAt: createdAt,
     });
+    expect(mocks.createGuideQualitySnapshotMock).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({
+        id: 'quality-uuid',
+        logId: 'log-1',
+        sourceName: 'Mock Guide',
+        sourceDomain: 'mock.example.com',
+        score: expect.any(Number),
+        reasons: expect.arrayContaining(['来源稳定']),
+      }),
+    );
     expect(result).toEqual({
       item: expect.objectContaining({ id: 'log-1', keyword: 'Kyoto' }),
     });

@@ -9,18 +9,48 @@ const appApiRouteMocks = vi.hoisted(() => ({
   getStatsOverviewMock: vi.fn(),
   getAnnualReviewMock: vi.fn(),
   getAtlasTimelineMock: vi.fn(),
+  getTripMapReplayStoryMock: vi.fn(),
+  getYearMapReplayStoryMock: vi.fn(),
+  getCompanionMapReplayStoryMock: vi.fn(),
+  listMarkerTagVocabularyMock: vi.fn(),
+  createMarkerTagVocabularyMock: vi.fn(),
+  updateMarkerTagVocabularyMock: vi.fn(),
+  deleteMarkerTagVocabularyMock: vi.fn(),
   listAccountMemoryCapsulesMock: vi.fn(),
   createAccountMemoryCapsuleMock: vi.fn(),
   getAccountMemoryCapsuleMock: vi.fn(),
   updateAccountMemoryCapsuleMock: vi.fn(),
   duplicateAccountMemoryCapsuleMock: vi.fn(),
   archiveAccountMemoryCapsuleMock: vi.fn(),
+  listAccountRemindersMock: vi.fn(),
+  resolveAccountReminderMock: vi.fn(),
+  muteAccountReminderTypeMock: vi.fn(),
+  unmuteAccountReminderTypeMock: vi.fn(),
+  getAdminReminderTrendsMock: vi.fn(),
+  listAccountPrivateShareLinksMock: vi.fn(),
+  createAccountPrivateShareLinkMock: vi.fn(),
+  updateAccountPrivateShareLinkMock: vi.fn(),
+  revokeAccountPrivateShareLinkMock: vi.fn(),
+  accessPublicPrivateShareLinkMock: vi.fn(),
   getTripDetailMock: vi.fn(),
   updateTripPhotoCurationMock: vi.fn(),
+  listTripExpensesMock: vi.fn(),
+  createTripExpenseResourceMock: vi.fn(),
+  updateTripExpenseResourceMock: vi.fn(),
+  deleteTripExpenseResourceMock: vi.fn(),
+  createExpenseDraftFromPlanningItemMock: vi.fn(),
   listPhotoCurationResourceMock: vi.fn(),
   updatePhotoCurationResourceMock: vi.fn(),
+  getPhotoAlbumsMock: vi.fn(),
+  updatePhotoAlbumPreferencesMock: vi.fn(),
+  getOrganizationWorkbenchMock: vi.fn(),
+  previewOrganizationActionMock: vi.fn(),
+  applyOrganizationActionMock: vi.fn(),
   listTripChecklistMock: vi.fn(),
   listTripPlanningMock: vi.fn(),
+  getTripPlanningScheduleMock: vi.fn(),
+  updateTripPlanningItemScheduleMock: vi.fn(),
+  importWishlistItemsToTripPlanningScheduleMock: vi.fn(),
   createTripPlanningItemResourceMock: vi.fn(),
   createTripPlanningItemFromWishlistMock: vi.fn(),
   updateTripPlanningItemResourceMock: vi.fn(),
@@ -46,6 +76,7 @@ const appApiRouteMocks = vi.hoisted(() => ({
   createGuideSearchHistoryResourceMock: vi.fn(),
   createGuideSearchLogResourceMock: vi.fn(),
   listGuideSourceHealthResourceMock: vi.fn(),
+  updateGuideSourcePreferenceResourceMock: vi.fn(),
   listWishlistItemsMock: vi.fn(),
   createWishlistItemResourceMock: vi.fn(),
   updateWishlistItemResourceMock: vi.fn(),
@@ -91,6 +122,19 @@ vi.mock('../appApi/services/atlasService.js', () => ({
   getAtlasTimeline: appApiRouteMocks.getAtlasTimelineMock,
 }));
 
+vi.mock('../appApi/services/mapReplayStoryService.js', () => ({
+  getTripMapReplayStory: appApiRouteMocks.getTripMapReplayStoryMock,
+  getYearMapReplayStory: appApiRouteMocks.getYearMapReplayStoryMock,
+  getCompanionMapReplayStory: appApiRouteMocks.getCompanionMapReplayStoryMock,
+}));
+
+vi.mock('../appApi/services/tagVocabularyService.js', () => ({
+  listMarkerTagVocabulary: appApiRouteMocks.listMarkerTagVocabularyMock,
+  createMarkerTagVocabulary: appApiRouteMocks.createMarkerTagVocabularyMock,
+  updateMarkerTagVocabulary: appApiRouteMocks.updateMarkerTagVocabularyMock,
+  deleteMarkerTagVocabulary: appApiRouteMocks.deleteMarkerTagVocabularyMock,
+}));
+
 vi.mock('../appApi/services/memoryCapsuleService.js', () => ({
   listAccountMemoryCapsules: appApiRouteMocks.listAccountMemoryCapsulesMock,
   createAccountMemoryCapsule: appApiRouteMocks.createAccountMemoryCapsuleMock,
@@ -98,6 +142,22 @@ vi.mock('../appApi/services/memoryCapsuleService.js', () => ({
   updateAccountMemoryCapsule: appApiRouteMocks.updateAccountMemoryCapsuleMock,
   duplicateAccountMemoryCapsule: appApiRouteMocks.duplicateAccountMemoryCapsuleMock,
   archiveAccountMemoryCapsule: appApiRouteMocks.archiveAccountMemoryCapsuleMock,
+}));
+
+vi.mock('../appApi/services/reminderService.js', () => ({
+  listAccountReminders: appApiRouteMocks.listAccountRemindersMock,
+  resolveAccountReminder: appApiRouteMocks.resolveAccountReminderMock,
+  muteAccountReminderType: appApiRouteMocks.muteAccountReminderTypeMock,
+  unmuteAccountReminderType: appApiRouteMocks.unmuteAccountReminderTypeMock,
+  getAdminReminderTrends: appApiRouteMocks.getAdminReminderTrendsMock,
+}));
+
+vi.mock('../appApi/services/shareLinkService.js', () => ({
+  listAccountPrivateShareLinks: appApiRouteMocks.listAccountPrivateShareLinksMock,
+  createAccountPrivateShareLink: appApiRouteMocks.createAccountPrivateShareLinkMock,
+  updateAccountPrivateShareLink: appApiRouteMocks.updateAccountPrivateShareLinkMock,
+  revokeAccountPrivateShareLink: appApiRouteMocks.revokeAccountPrivateShareLinkMock,
+  accessPublicPrivateShareLink: appApiRouteMocks.accessPublicPrivateShareLinkMock,
 }));
 
 vi.mock('../appApi/services/tripDetailService.js', () => ({
@@ -108,9 +168,28 @@ vi.mock('../appApi/services/tripPhotoService.js', () => ({
   updateTripPhotoCuration: appApiRouteMocks.updateTripPhotoCurationMock,
 }));
 
+vi.mock('../appApi/services/expenseService.js', () => ({
+  listTripExpenses: appApiRouteMocks.listTripExpensesMock,
+  createTripExpenseResource: appApiRouteMocks.createTripExpenseResourceMock,
+  updateTripExpenseResource: appApiRouteMocks.updateTripExpenseResourceMock,
+  deleteTripExpenseResource: appApiRouteMocks.deleteTripExpenseResourceMock,
+  createExpenseDraftFromPlanningItem: appApiRouteMocks.createExpenseDraftFromPlanningItemMock,
+}));
+
 vi.mock('../appApi/services/photoCurationService.js', () => ({
   listPhotoCurationResource: appApiRouteMocks.listPhotoCurationResourceMock,
   updatePhotoCurationResource: appApiRouteMocks.updatePhotoCurationResourceMock,
+}));
+
+vi.mock('../appApi/services/photoAlbumService.js', () => ({
+  getPhotoAlbums: appApiRouteMocks.getPhotoAlbumsMock,
+  updatePhotoAlbumPreferences: appApiRouteMocks.updatePhotoAlbumPreferencesMock,
+}));
+
+vi.mock('../appApi/services/organizationWorkbenchService.js', () => ({
+  getOrganizationWorkbench: appApiRouteMocks.getOrganizationWorkbenchMock,
+  previewOrganizationAction: appApiRouteMocks.previewOrganizationActionMock,
+  applyOrganizationAction: appApiRouteMocks.applyOrganizationActionMock,
 }));
 
 vi.mock('../appApi/services/tripChecklistService.js', () => ({
@@ -128,6 +207,12 @@ vi.mock('../appApi/services/tripPlanningService.js', () => ({
   updateTripPlanningItemResource: appApiRouteMocks.updateTripPlanningItemResourceMock,
   deleteTripPlanningItemResource: appApiRouteMocks.deleteTripPlanningItemResourceMock,
   convertTripPlanningItemToMarker: appApiRouteMocks.convertTripPlanningItemToMarkerMock,
+}));
+
+vi.mock('../appApi/services/tripPlanningScheduleService.js', () => ({
+  getTripPlanningSchedule: appApiRouteMocks.getTripPlanningScheduleMock,
+  updateTripPlanningItemSchedule: appApiRouteMocks.updateTripPlanningItemScheduleMock,
+  importWishlistItemsToTripPlanningSchedule: appApiRouteMocks.importWishlistItemsToTripPlanningScheduleMock,
 }));
 
 vi.mock('../appApi/services/companionService.js', () => ({
@@ -165,6 +250,7 @@ vi.mock('../appApi/services/guideSearchLogService.js', () => ({
 
 vi.mock('../appApi/services/guideSourceHealthService.js', () => ({
   listGuideSourceHealthResource: appApiRouteMocks.listGuideSourceHealthResourceMock,
+  updateGuideSourcePreferenceResource: appApiRouteMocks.updateGuideSourcePreferenceResourceMock,
 }));
 
 vi.mock('../appApi/services/wishlistService.js', () => ({

@@ -14,8 +14,10 @@ import type {
   TripCollection,
   TripPlanningItem,
   TripPlanningPriority,
+  TripPlanningSchedule,
   TripPlanningSummary,
 } from '../../../types';
+import type { TripExpenseListResponseDto } from './expenses';
 import type { GuideSourceInput } from './guides';
 
 export interface CreateTripInput {
@@ -76,10 +78,21 @@ export interface ConvertTripPlanningItemInput {
   note?: string;
 }
 
+export interface UpdateTripPlanningItemScheduleInput {
+  plannedDate: string | null;
+}
+
+export interface ImportWishlistToTripPlanningScheduleInput {
+  wishlistIds: string[];
+  plannedDate: string;
+}
+
 export interface TripPlanningResponseDto {
   summary: TripPlanningSummary;
   items: TripPlanningItem[];
 }
+
+export type TripPlanningScheduleResponseDto = TripPlanningSchedule;
 
 export interface DeleteTripPlanningItemResponseDto {
   deletedId: string;
@@ -187,6 +200,7 @@ export interface TripDetailResponseDto {
   planningSummary?: TripPlanningSummary;
   checklistSummary: TripChecklistSummary;
   checklistGroups: TripChecklistGroup[];
+  expenses: TripExpenseListResponseDto;
   meta: {
     generatedAt: string;
   };

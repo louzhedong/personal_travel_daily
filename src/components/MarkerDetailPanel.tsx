@@ -6,8 +6,9 @@ import {
   MARKER_BUDGET_LEVEL_OPTIONS,
   MARKER_MOOD_LABELS,
   MARKER_MOOD_OPTIONS,
-  MARKER_TAG_LABELS,
   MARKER_TAG_OPTIONS,
+  getMarkerTagLabel,
+  type MarkerTagOption,
   MARKER_TRANSPORT_LABELS,
   MARKER_TRANSPORT_OPTIONS,
   MARKER_WEATHER_LABELS,
@@ -34,6 +35,7 @@ interface MarkerDetailPanelProps {
   canEdit: boolean;
   onClose: () => void;
   trips?: TripCollection[];
+  tagOptions?: MarkerTagOption[];
   onUpdate: (
     markerId: string,
     updates: {
@@ -60,6 +62,7 @@ export function MarkerDetailPanel({
   onClose,
   trips = EMPTY_TRIPS,
   onUpdate,
+  tagOptions = MARKER_TAG_OPTIONS,
   relatedGuides = EMPTY_GUIDES,
   onRemoveRelatedGuide,
   onOpenGuideSearch,
@@ -418,7 +421,7 @@ export function MarkerDetailPanel({
               <div className="detail-tag-list">
                 {panelMarker.tags.map((tag) => (
                   <span key={tag} className="detail-tag-pill">
-                    {MARKER_TAG_LABELS[tag].zh}
+                    {getMarkerTagLabel(tag, tagOptions)}
                   </span>
                 ))}
               </div>
@@ -496,7 +499,7 @@ export function MarkerDetailPanel({
             <div className="field">
               <span className="field-label">主题标签</span>
               <div className="marker-form-tag-grid">
-                {MARKER_TAG_OPTIONS.map((option) => (
+                {tagOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
@@ -509,7 +512,7 @@ export function MarkerDetailPanel({
                       )
                     }
                   >
-                    {MARKER_TAG_LABELS[option.value].zh}
+                    {getMarkerTagLabel(option.value, tagOptions)}
                   </button>
                 ))}
               </div>

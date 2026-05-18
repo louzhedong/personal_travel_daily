@@ -11,8 +11,11 @@ interface AppHeroProps {
   onOpenAdmin?: () => void;
   onOpenStats?: () => void;
   onOpenAtlas?: () => void;
+  onOpenOrganize?: () => void;
+  onOpenTagGovernance?: () => void;
   onOpenPhotoCuration?: () => void;
   onOpenMemoryCapsules?: () => void;
+  onOpenReminders?: () => void;
   onOpenSettings?: () => void;
 }
 
@@ -24,8 +27,11 @@ export default function AppHero({
   onOpenAdmin,
   onOpenStats,
   onOpenAtlas,
+  onOpenOrganize,
+  onOpenTagGovernance,
   onOpenPhotoCuration,
   onOpenMemoryCapsules,
+  onOpenReminders,
   onOpenSettings,
 }: AppHeroProps) {
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
@@ -134,7 +140,7 @@ export default function AppHero({
             多人同行
           </span>
         </div>
-        {onOpenStats || onOpenAtlas || onOpenPhotoCuration || onOpenMemoryCapsules || onOpenSettings || (account.role === 'admin' && onOpenAdmin) ? (
+        {onOpenStats || onOpenAtlas || onOpenOrganize || onOpenTagGovernance || onOpenPhotoCuration || onOpenMemoryCapsules || onOpenReminders || onOpenSettings || (account.role === 'admin' && onOpenAdmin) ? (
           <div className="hero-admin-row">
             {onOpenSettings ? (
               <button type="button" className="ghost-button hero-admin-button" onClick={onOpenSettings}>
@@ -151,6 +157,16 @@ export default function AppHero({
                 地图时间机器
               </button>
             ) : null}
+            {onOpenOrganize ? (
+              <button type="button" className="ghost-button hero-admin-button" onClick={onOpenOrganize}>
+                整理工作台
+              </button>
+            ) : null}
+            {onOpenTagGovernance ? (
+              <button type="button" className="ghost-button hero-admin-button" onClick={onOpenTagGovernance}>
+                标签治理
+              </button>
+            ) : null}
             {onOpenPhotoCuration ? (
               <button type="button" className="ghost-button hero-admin-button" onClick={onOpenPhotoCuration}>
                 整理照片
@@ -159,6 +175,11 @@ export default function AppHero({
             {onOpenMemoryCapsules ? (
               <button type="button" className="ghost-button hero-admin-button" onClick={onOpenMemoryCapsules}>
                 旅行胶囊
+              </button>
+            ) : null}
+            {onOpenReminders ? (
+              <button type="button" className="ghost-button hero-admin-button" onClick={onOpenReminders}>
+                提醒中心
               </button>
             ) : null}
             {account.role === 'admin' && onOpenAdmin ? (

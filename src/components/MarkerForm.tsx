@@ -6,8 +6,9 @@ import { uploadImageToImgBB } from '../lib/imageUpload';
 import {
   MARKER_BUDGET_LEVEL_OPTIONS,
   MARKER_MOOD_OPTIONS,
-  MARKER_TAG_LABELS,
   MARKER_TAG_OPTIONS,
+  getMarkerTagLabel,
+  type MarkerTagOption,
   MARKER_TRANSPORT_OPTIONS,
   MARKER_WEATHER_OPTIONS,
   type MarkerBudgetLevel,
@@ -42,6 +43,7 @@ interface MarkerFormProps {
   initialValue?: Partial<MarkerFormValue>;
   submitting?: boolean;
   submitText?: string;
+  tagOptions?: MarkerTagOption[];
   onSubmit: (value: MarkerFormValue) => void | Promise<void>;
   onCancel?: () => void;
 }
@@ -61,6 +63,7 @@ export function MarkerForm({
   initialValue,
   submitting = false,
   submitText = '保存标记',
+  tagOptions = MARKER_TAG_OPTIONS,
   onSubmit,
   onCancel,
 }: MarkerFormProps) {
@@ -349,14 +352,14 @@ export function MarkerForm({
       <div className="field">
         <span className="field-label marker-form-label">记录标签</span>
         <div className="marker-form-tag-grid">
-          {MARKER_TAG_OPTIONS.map((option) => (
+          {tagOptions.map((option) => (
             <button
               key={option.value}
               type="button"
               className={tags.includes(option.value) ? 'marker-form-tag-chip is-active' : 'marker-form-tag-chip'}
               onClick={() => toggleTag(option.value)}
             >
-              {MARKER_TAG_LABELS[option.value].zh}
+              {getMarkerTagLabel(option.value, tagOptions)}
             </button>
           ))}
         </div>

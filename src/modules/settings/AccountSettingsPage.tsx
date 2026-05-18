@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import AppToast, { type AppToastTone } from '../../components/ui/AppToast';
 import DataSync from '../../components/DataSync';
-import type { AccountSessionDto, AccountSettingsDto } from '../../lib/api/types';
+import type {
+  AccountSessionDto,
+  AccountSettingsDto,
+  PrivateShareLinkDto,
+  PrivateShareResourceTypeDto,
+  ReminderPreferenceDto,
+} from '../../lib/api/types';
 import { remoteTravelStoreRepository } from '../../lib/repositories/remoteTravelStoreRepository';
 import {
   changeAccountPassword,
@@ -11,8 +17,15 @@ import {
   revokeAccountSession,
   updateAccountProfile,
 } from '../../lib/api/accountSettingsApi';
+import {
+  createPrivateShareLink,
+  listPrivateShareLinks,
+  revokePrivateShareLink,
+} from '../../lib/api/shareLinksApi';
+import { fetchReminders, muteReminderType, unmuteReminderType } from '../../lib/api/remindersApi';
 import type { AuthAccount, TravelStore } from '../../types';
 import { formatSettingsDate, getRoleLabel, splitSessions } from './accountSettingsPageModel';
+import { getReminderPreferenceLabel, REMINDER_TYPE_LABELS } from '../reminders/reminderModel';
 
 interface AccountSettingsPageProps {
   account: AuthAccount;
@@ -31,11 +44,19 @@ export default function AccountSettingsPage({
 }: AccountSettingsPageProps) {
   const [settings, setSettings] = useState<AccountSettingsDto | null>(null);
   const [sessions, setSessions] = useState<AccountSessionDto[]>([]);
+  const [shareLinks, setShareLinks] = useState<PrivateShareLinkDto[]>([]);
+  const [reminderPreferences, setReminderPreferences] = useState<ReminderPreferenceDto[]>([]);
   const [store, setStore] = useState<TravelStore | null>(null);
   const [name, setName] = useState(account.name);
   const [currentPassword, setCurrentPassword] = useState('');
   const [nextPassword, setNextPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [shareResourceType, setShareResourceType] = useState<PrivateShareResourceTypeDto>('memory_capsule');
+  const [shareResourceId, setShareResourceId] = useState('');
+  const [shareTitle, setShareTitle] = useState('');
+  const [shareExpiresAt, setShareExpiresAt] = useState('');
+  const [sharePassword, setSharePassword] = useState('');
+  const [shareMaxAccessCount, setShareMaxAccessCount] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<{ message: string; tone: AppToastTone } | null>(null);
@@ -59,15 +80,19 @@ export default function AccountSettingsPage({
   }, [toast]);
 
   const loadSettings = async () => {
-    const [settingsResponse, sessionsResponse, storeResponse] = await Promise.all([
+    const [settingsResponse, sessionsResponse, shareLinksResponse, reminderResponse, storeResponse] = await Promise.all([
       fetchAccountSettings(),
       fetchAccountSessions(),
+      listPrivateShareLinks(),
+      fetchReminders(),
       remoteTravelStoreRepository.loadStore(),
     ]);
     setSettings(settingsResponse);
     setName(settingsResponse.account.name);
     onAccountUpdated(settingsResponse.account);
     setSessions(sessionsResponse.sessions);
+    setShareLinks(shareLinksResponse.links);
+    setReminderPreferences(reminderResponse.preferences);
     setStore(storeResponse);
   };
 
@@ -162,6 +187,72 @@ export default function AccountSettingsPage({
     }
   };
 
+  const handleCreateShareLink = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!shareResourceId.trim()) {
+      showToast('请填写资源 ID', 'error');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const response = await createPrivateShareLink({
+        resourceType: shareResourceType,
+        resourceId: shareResourceId.trim(),
+        title: shareTitle.trim() || undefined,
+        expiresAt: shareExpiresAt ? new Date(shareExpiresAt).toISOString() : undefined,
+        password: sharePassword || undefined,
+        maxAccessCount: shareMaxAccessCount ? Number(shareMaxAccessCount) : undefined,
+      });
+      setShareLinks((current) => [response.link, ...current]);
+      if (response.link.url) {
+        await navigator.clipboard?.writeText(`${window.location.origin}${response.link.url}`);
+      }
+      setShareResourceId('');
+      setShareTitle('');
+      setShareExpiresAt('');
+      setSharePassword('');
+      setShareMaxAccessCount('');
+      showToast(response.link.url ? '分享链接已创建并复制' : '分享链接已创建', 'success');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '分享链接创建失败', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRevokeShareLink = async (linkId: string) => {
+    setBusy(true);
+    try {
+      const response = await revokePrivateShareLink(linkId);
+      setShareLinks((current) => current.map((link) => (link.id === linkId ? response.link : link)));
+      showToast('分享链接已撤销', 'success');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '分享链接撤销失败', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleToggleReminderMute = async (preference: ReminderPreferenceDto) => {
+    setBusy(true);
+    try {
+      if (preference.mutedUntil) {
+        await unmuteReminderType(preference.type);
+        showToast('已恢复该类型提醒', 'success');
+      } else {
+        await muteReminderType(preference.type);
+        showToast('已静音 7 天', 'success');
+      }
+      const response = await fetchReminders();
+      setReminderPreferences(response.preferences);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '提醒偏好更新失败', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const createdAt = settings?.createdAt ? formatSettingsDate(settings.createdAt) : '—';
   const updatedAt = settings?.updatedAt ? formatSettingsDate(settings.updatedAt) : '—';
 
@@ -201,6 +292,27 @@ export default function AccountSettingsPage({
                 保存昵称
               </button>
             </form>
+          </section>
+
+          <section className="account-settings-section account-settings-reminders">
+            <div className="account-settings-section-title">
+              <h2>提醒偏好</h2>
+              <p>按类型静音应用内提醒，保留后台巡检与数据生成。</p>
+            </div>
+            <div className="account-settings-reminder-list">
+              {reminderPreferences.map((preference) => (
+                <button
+                  key={preference.type}
+                  type="button"
+                  className="account-settings-reminder-row"
+                  disabled={busy}
+                  onClick={() => handleToggleReminderMute(preference)}
+                >
+                  <strong>{REMINDER_TYPE_LABELS[preference.type]}</strong>
+                  <span>{getReminderPreferenceLabel(preference)}</span>
+                </button>
+              ))}
+            </div>
           </section>
 
           <section className="account-settings-section">
@@ -270,6 +382,96 @@ export default function AccountSettingsPage({
             )}
           </section>
 
+          <section className="account-settings-section account-settings-shares">
+            <div className="account-settings-section-title">
+              <h2>私密分享</h2>
+              <p>为故事、年度、旅伴回忆和胶囊创建可撤销的只读链接</p>
+            </div>
+            <div className="account-settings-share-panel">
+              <form className="account-settings-share-form" onSubmit={handleCreateShareLink}>
+                <label className="account-settings-field">
+                  <span>类型</span>
+                  <select
+                    value={shareResourceType}
+                    onChange={(event) => setShareResourceType(event.target.value as PrivateShareResourceTypeDto)}
+                    disabled={busy}
+                  >
+                    <option value="trip_story">行程故事</option>
+                    <option value="annual_review">年度回顾</option>
+                    <option value="companion_memory">旅伴回忆</option>
+                    <option value="memory_capsule">旅行胶囊</option>
+                  </select>
+                </label>
+                <label className="account-settings-field">
+                  <span>资源 ID</span>
+                  <input
+                    value={shareResourceId}
+                    placeholder="tripId / 年份 / companionId / capsuleId"
+                    onChange={(event) => setShareResourceId(event.target.value)}
+                    disabled={busy}
+                  />
+                </label>
+                <label className="account-settings-field">
+                  <span>标题</span>
+                  <input
+                    value={shareTitle}
+                    placeholder="留空则自动生成"
+                    onChange={(event) => setShareTitle(event.target.value)}
+                    disabled={busy}
+                  />
+                </label>
+                <label className="account-settings-field">
+                  <span>过期时间</span>
+                  <input
+                    type="datetime-local"
+                    value={shareExpiresAt}
+                    onChange={(event) => setShareExpiresAt(event.target.value)}
+                    disabled={busy}
+                  />
+                </label>
+                <label className="account-settings-field">
+                  <span>访问密码</span>
+                  <input
+                    type="password"
+                    value={sharePassword}
+                    placeholder="可选"
+                    onChange={(event) => setSharePassword(event.target.value)}
+                    disabled={busy}
+                  />
+                </label>
+                <label className="account-settings-field">
+                  <span>访问上限</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={shareMaxAccessCount}
+                    placeholder="可选"
+                    onChange={(event) => setShareMaxAccessCount(event.target.value)}
+                    disabled={busy}
+                  />
+                </label>
+                <button type="submit" className="primary-button" disabled={busy || !shareResourceId.trim()}>
+                  创建分享链接
+                </button>
+              </form>
+
+              <div className="account-settings-share-list">
+                {shareLinks.length > 0 ? (
+                  shareLinks.map((link) => (
+                    <ShareLinkRow
+                      key={link.id}
+                      link={link}
+                      disabled={busy}
+                      onRevoke={() => handleRevokeShareLink(link.id)}
+                    />
+                  ))
+                ) : (
+                  <div className="account-settings-empty">暂无分享链接</div>
+                )}
+              </div>
+            </div>
+          </section>
+
           <section className="account-settings-section">
             <div className="account-settings-section-title">
               <h2>数据导出</h2>
@@ -316,6 +518,55 @@ function SessionRow({
       {!current && onRevoke ? (
         <button type="button" className="ghost-button" onClick={onRevoke} disabled={disabled}>
           退出设备
+        </button>
+      ) : null}
+    </article>
+  );
+}
+
+const SHARE_RESOURCE_LABELS: Record<PrivateShareResourceTypeDto, string> = {
+  trip_story: '行程故事',
+  annual_review: '年度回顾',
+  companion_memory: '旅伴回忆',
+  memory_capsule: '旅行胶囊',
+};
+
+const SHARE_STATUS_LABELS: Record<PrivateShareLinkDto['status'], string> = {
+  active: '有效',
+  expired: '已过期',
+  revoked: '已撤销',
+  depleted: '已用尽',
+};
+
+function ShareLinkRow({
+  link,
+  disabled,
+  onRevoke,
+}: {
+  link: PrivateShareLinkDto;
+  disabled?: boolean;
+  onRevoke: () => void;
+}) {
+  return (
+    <article className={`account-settings-share-link is-${link.status}`}>
+      <div>
+        <div className="account-settings-session-title">
+          <strong>{link.title}</strong>
+          <span>{SHARE_STATUS_LABELS[link.status]}</span>
+          {link.passwordProtected ? <span>密码保护</span> : null}
+        </div>
+        <p>
+          {SHARE_RESOURCE_LABELS[link.resourceType]} · {link.resourceId} · token ...{link.tokenPreview}
+        </p>
+        <div className="account-settings-session-meta">
+          <span>访问 {link.accessCount}{link.maxAccessCount ? ` / ${link.maxAccessCount}` : ''}</span>
+          {link.expiresAt ? <span>过期 {formatSettingsDate(link.expiresAt)}</span> : <span>长期有效</span>}
+          {link.lastAccessedAt ? <span>最近访问 {formatSettingsDate(link.lastAccessedAt)}</span> : null}
+        </div>
+      </div>
+      {link.status !== 'revoked' ? (
+        <button type="button" className="ghost-button" onClick={onRevoke} disabled={disabled}>
+          撤销链接
         </button>
       ) : null}
     </article>

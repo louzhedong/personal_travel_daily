@@ -273,6 +273,27 @@ Summary: Admin Quality Operations now ships as a read-by-default governance desk
 
 Summary: Account Settings and Session Governance now ships `/settings` for profile, password, session, and data-export management on top of hash-only Cookie Sessions.
 
+
+### Roadmap 全量收口：规划、整理、表达与治理 / Roadmap Full Closure: Planning, Organization, Expression, and Governance
+
+- 状态：已完成 Phase 1-12 收口。
+- 已落地范围：
+  - 架构硬化与测试深水区：DTO 目录化边界、Stats 聚合拆分、登录态路由分发表、后端 route spec 按领域拆分，以及冒烟清单文档。
+  - 日程化行前规划：`/trips/:id` 内支持未排期池、按天排期、愿望地图导入到指定日期和当天清单提示。
+  - 整理工作台：`/organize` 聚合未归行程记录、缺说明照片、未关联攻略、待精选照片和弱标签记录，批量整理采用预览确认。
+  - 智能相册与封面策展：`/photos` 提供年度、城市、旅伴和行程封面候选，并支持精选相册 SVG 导出。
+  - 标签治理与自定义词表：`/tags` 支持账号级自定义标签、隐藏、排序、同义合并、批量替换和跨模块筛选。
+  - 攻略质量评分与来源优先级：搜索结果新增质量解释，后台支持来源优先级和降权建议。
+  - 私密分享链接治理：行程故事、年度回顾、旅伴回忆和旅行胶囊支持可撤销、可过期、可选密码的只读分享。
+  - 本地归档与离线纪念包：行程故事、年度回顾和胶囊可导出 ZIP，包含 manifest、JSON、Markdown、SVG 和图片 URL 清单。
+  - 旅行预算与消费洞察：新增 `TripExpense`，联动行程详情、统计中心和年度回顾展示私密消费复盘。
+  - 地图回放故事页二期：行程、年份和旅伴均可生成路线叙事页面，并支持 SVG 长图导出。
+  - 主动提醒与异常告警：`/reminders` 聚合过期规划、缺封面、缺照片说明、异常登录和攻略来源异常，并支持静音、处理和跳转定位。
+- 后续增强：
+  - 当前推荐队列已清空；后续新功能应重新评审价值、权限、数据模型和测试成本后再进入下一版 roadmap。
+
+Summary: The previous 11-item roadmap is now complete, covering architecture hardening, scheduled planning, organization, smart albums, tag governance, guide quality, private sharing, archive packages, expense insights, replay stories, reminders, and Phase 12 bilingual documentation closure.
+
 ## 当前产品基线 / Current Product Baseline
 
 截至当前版本，项目已经具备这些核心能力：
@@ -333,26 +354,16 @@ Given the current product baseline, the product no longer lacks capture surfaces
 
 ## 下一阶段路线图 / Next-Phase Roadmap
 
-### 1. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+当前推荐执行队列已完成并迁移到“已完成里程碑”。本节暂不保留新的活动条目，避免把已交付能力继续误判为待办事项。
 
-- 优先级：`P3`
-- 为什么值得做：
-  - 功能已经跨越地图、统计、行程、详情、攻略、成就、年度回顾和后台，后续继续上功能前需要持续防止容器层和聚合层变厚。
-- 建议范围：
-  - `P0`：持续维护前后端 API DTO 目录化边界，新增 DTO 必须进入 `server/appApi/dto/*` 与 `src/lib/api/dto/*`。
-  - `P1`：将 `server/appApi/services/stats/aggregator.ts` 继续拆为筛选、排行、成就和年度回顾子模块。
-  - `P1`：评估 `src/modules/App.tsx` 顶层页面分发的表化，降低新增页面时的状态机膨胀。
-  - `P2`：继续抽离复杂状态 hook 和纯展示模型，特别是行程详情、攻略面板和记录详情面板。
-  - `P2`：按 route domain 拆分 `server/__tests__/appApiRoutes.spec.ts`，保留少量跨域 smoke。
-  - `P3`：为 Prisma migration、聚合 DTO、错误码和关键页面浏览器冒烟补契约与清单。
-
-Summary: Architecture hardening keeps future feature work from becoming slower and riskier.
+The active recommended execution queue is complete and has been moved into Completed Milestones. This section intentionally keeps no new active items so shipped capabilities are not mistaken for pending work.
 
 ## 推荐执行顺序 / Recommended Execution Order
 
-建议按下面顺序推进（已完成项已挪到文档开头）：
+- 当前无活动推荐队列。
+- 后续新增 roadmap 应先完成需求评审、权限边界、数据模型、测试策略和双语文档计划。
 
-1. 架构硬化与测试深水区 / Architecture Hardening and Test Depth
+Summary: The roadmap is intentionally empty until a new product direction is approved.
 
 ## 选题原则 / Feature Selection Rules
 

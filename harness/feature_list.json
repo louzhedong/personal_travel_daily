@@ -1,0 +1,103 @@
+{
+  "project": "personal_travel_daily",
+  "last_updated": "2026-05-14",
+  "rules": {
+    "single_active_feature": true,
+    "passing_requires_evidence": true,
+    "do_not_skip_verification": true
+  },
+  "status_legend": {
+    "not_started": "功能还没开始做。",
+    "in_progress": "这个功能是当前唯一正在进行的任务。",
+    "blocked": "因为已记录的阻塞问题，当前无法继续推进。",
+    "passing": "要求的验证已经通过，并且证据已经记录。"
+  },
+  "features": [
+    {
+      "id": "harness-001",
+      "priority": 1,
+      "area": "agent-harness",
+      "title": "建立仓库 Harness 基础工件",
+      "user_visible_behavior": "Agent 可以通过根目录 AGNETS.md 和 harness/ 下的状态文件理解开工、验证、交接和质量评审流程。",
+      "status": "passing",
+      "verification": [
+        "确认根目录存在 AGNETS.md。",
+        "确认 harness/ 下存在 init.sh、claude-progress.md、feature_list.json、session-handoff.md、clean-state-checklist.md、evaluator-rubric.md、quality-document.md、README.md。",
+        "运行 bash -n harness/init.sh。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-13: 已按 learn-harness-engineering 中文模板落地并适配本仓库路径。",
+        "2026-05-13: bash -n harness/init.sh 通过。",
+        "2026-05-13: python3 -m json.tool harness/feature_list.json 通过。",
+        "2026-05-13: find harness -maxdepth 1 -type f 与 test -f AGNETS.md 通过。",
+        "2026-05-13: git diff --check 通过。",
+        "2026-05-13: GetDiagnostics 无诊断错误。",
+        "2026-05-13: bash harness/init.sh 完整通过：npm install、npm run test、npm run build、git diff --check。"
+      ],
+      "notes": "按用户要求，除 AGNETS.md 外新增 harness 文件均放在 harness/ 下。"
+    },
+    {
+      "id": "visual-001",
+      "priority": 2,
+      "area": "frontend-ui",
+      "title": "首页左右双栏视觉与遮挡回归验证",
+      "user_visible_behavior": "首页保持左侧地图/记录、右侧面板布局，且左右两列不遮挡、不折叠。",
+      "status": "not_started",
+      "verification": [
+        "启动项目并打开 http://127.0.0.1:5173/。",
+        "在 1320px、1280px、1024px、720px 以上宽度分别检查首页左右栏。",
+        "确认地图头部控件不会画到右栏下方。",
+        "确认右侧栏标题和当前用户徽标可读。",
+        "运行 npm run build 和 git diff --check。"
+      ],
+      "evidence": [],
+      "notes": "用户已明确拒绝首页上下堆叠方案。"
+    },
+    {
+      "id": "test-001",
+      "priority": 3,
+      "area": "test-harness",
+      "title": "排查 App.spec admin mock 调用次数失败",
+      "user_visible_behavior": "标准 npm run test 可以稳定通过，admin 页面测试不再出现 fetchAdminOverview 计数为 0 的失败。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run test -- src/modules/__tests__/App.spec.tsx。",
+        "定位 allows admins to access /admin and renders the admin page 失败原因。",
+        "修复后运行 npm run test、npm run build、git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-13: 之前 npm run test -- src/modules/__tests__/App.spec.tsx 曾失败，fetchAdminOverview mock 调用次数为 0。",
+        "2026-05-13: 运行 bash harness/init.sh 时完整 npm run test 通过：139 files / 508 tests。",
+        "2026-05-13: 同一轮 harness/init.sh 后续 npm run build 通过，git diff --check 通过。"
+      ],
+      "notes": "该问题在完整 harness 运行中未复现，暂标记 passing；若再次失败，需要重新打开为 blocked。"
+    },
+    {
+      "id": "visual-002",
+      "priority": 2,
+      "area": "frontend-ui",
+      "title": "所有页面按新视觉规范收口",
+      "user_visible_behavior": "所有主要页面统一为浅色旅行杂志视觉：纸张底、弱边界、低阴影、editorial 标题、黑白主按钮和 token 化字体。",
+      "status": "passing",
+      "verification": [
+        "确认 src/styles/index.css 已引入 src/styles/visual-system.css。",
+        "确认 docs/design/design-tokens.md 已记录全站视觉规范。",
+        "扫描 src/styles 没有新增裸字号。",
+        "运行主要页面测试集合。",
+        "运行 npm run build 和 git diff --check。",
+        "确认核心路由返回 200。"
+      ],
+      "evidence": [
+        "2026-05-14: 新增 src/styles/visual-system.css，并在 src/styles/index.css 中接入。",
+        "2026-05-14: 更新 docs/design/design-tokens.md 的全站视觉规范。",
+        "2026-05-14: Grep 裸字号扫描通过。",
+        "2026-05-14: 主要页面测试 19 files / 93 tests 通过。",
+        "2026-05-14: npm run build 通过，仅保留 Vite 大 chunk warning。",
+        "2026-05-14: git diff --check 通过，GetDiagnostics 无诊断错误。",
+        "2026-05-14: /, /atlas, /settings, /stats, /admin, /reminders, /tags, /photos, /organize, /achievements 均返回 200。"
+      ],
+      "notes": "保持首页 1320px 左右双栏约束；本轮通过视觉覆盖层收口所有路由，不改业务结构。"
+    }
+  ]
+}

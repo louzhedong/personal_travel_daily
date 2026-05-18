@@ -61,7 +61,7 @@
 
 .marker-user-filter-label {
   color: #475569;
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -82,7 +82,7 @@
 }
 
 .marker-user-filter-trigger .fancy-select-value {
-  font-size: 14px;
+  font-size: var(--text-body);
   font-weight: 600;
 }
 
@@ -96,7 +96,7 @@
   border: 1px solid rgba(191, 219, 254, 0.95);
   background: rgba(219, 234, 254, 0.72);
   color: #1d4ed8;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -118,7 +118,7 @@
   border: 1px solid rgba(226, 232, 240, 0.98);
   background: rgba(255, 255, 255, 0.78);
   color: #475569;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -203,12 +203,12 @@
   border-radius: 999px;
   background: rgba(37, 99, 235, 0.08);
   color: #1d4ed8;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
 .marker-place {
-  font-size: 18px;
+  font-size: var(--title-xs);
   color: #0f172a;
 }
 
@@ -228,7 +228,7 @@
   border-radius: 999px;
   background: #eef2ff;
   color: #475569;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
@@ -249,7 +249,7 @@
   border: 0;
   background: transparent;
   color: #2563eb;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
@@ -298,7 +298,7 @@
   background: rgba(37, 99, 235, 0.08);
   border: 1px solid rgba(191, 219, 254, 0.92);
   color: #1d4ed8;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
 }
 
@@ -319,7 +319,7 @@
   background: rgba(248, 250, 252, 0.9);
   border: 1px solid rgba(226, 232, 240, 0.92);
   color: #334155;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 
@@ -336,7 +336,7 @@
   border: 0;
   background: transparent;
   color: #2563eb;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   cursor: pointer;
 }
@@ -358,13 +358,13 @@
 }
 
 .marker-image-title {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: #334155;
 }
 
 .marker-image-count {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: #64748b;
 }
 

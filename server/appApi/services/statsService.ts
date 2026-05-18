@@ -4,9 +4,11 @@ import { createNotFoundError } from '../errors.js';
 import { getPrismaClient } from '../prisma.js';
 import { getStatsOverviewSource } from '../repositories/statsRepository.js';
 import type { AnnualReviewQuery, StatsOverviewQuery } from '../schemas/stats.js';
+import { getMarkerTagLabels } from './tagVocabularyService.js';
 import { serializeStatsOverview, type StatsOverviewModel } from '../serializers/statsSerializer.js';
+import { buildTripExpenseSummary, buildTripExpenseTrend } from '../serializers/expenseSerializer.js';
 import type { AuthenticatedAccount } from '../auth/requestAuth.js';
-import type { AnnualReviewResponseDto } from '../types.js';
+import type { AnnualReviewResponseDto, StatsExpenseInsightsDto } from '../types.js';
 import {
   buildAnnualGuides,
   buildAchievements,
@@ -68,6 +70,59 @@ function assertTripExists(trips: RawTrip[], tripId?: string) {
   if (!trips.some((trip) => trip.id === tripId)) {
     throw createNotFoundError('trip not found');
   }
+}
+
+type RawExpense = NonNullable<Awaited<ReturnType<typeof getStatsOverviewSource>>>['tripExpenses'][number];
+
+function filterExpenses(
+  expenses: RawExpense[],
+  query: {
+    year?: string;
+    companionId?: string;
+    tripId?: string;
+  },
+) {
+  return expenses.filter((expense) => {
+    if (query.year && expense.spentAt.getUTCFullYear().toString() !== query.year) {
+      return false;
+    }
+    if (query.companionId && expense.companionId !== query.companionId) {
+      return false;
+    }
+    if (query.tripId && query.tripId !== 'unassigned' && expense.tripId !== query.tripId) {
+      return false;
+    }
+    if (query.tripId === 'unassigned') {
+      return false;
+    }
+    return true;
+  });
+}
+
+function buildExpenseInsights(expenses: RawExpense[]): StatsExpenseInsightsDto {
+  const topTripMap = new Map<string, { tripId: string; tripName: string; amountCents: number; itemCount: number }>();
+
+  expenses.forEach((expense) => {
+    const current = topTripMap.get(expense.tripId) ?? {
+      tripId: expense.tripId,
+      tripName: expense.trip.name,
+      amountCents: 0,
+      itemCount: 0,
+    };
+    current.amountCents += expense.amountCents;
+    current.itemCount += 1;
+    topTripMap.set(expense.tripId, current);
+  });
+
+  const summary = buildTripExpenseSummary(expenses);
+  return {
+    summary,
+    trend: buildTripExpenseTrend(expenses),
+    topCategories: summary.categoryBreakdown.slice(0, 5),
+    topTrips: Array.from(topTripMap.values())
+      .sort((left, right) => right.amountCents - left.amountCents)
+      .slice(0, 5),
+  };
 }
 
 function isDefaultStatsOverviewQuery(query: StatsOverviewQuery) {
@@ -171,6 +226,11 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
     query.tripId,
   );
   const filteredMarkers = withYearFilter(yearAgnosticMarkers, query.year);
+  const filteredExpenses = filterExpenses(source.tripExpenses ?? [], {
+    year: query.year,
+    companionId: query.companionId,
+    tripId: query.tripId,
+  });
 
   const tripDetails = buildTripDetails(filteredMarkers, source.trips);
 
@@ -195,6 +255,8 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
     listAchievementUnlocks(prisma, account.id, 'global'),
     listAchievementUnlocks(prisma, account.id, 'streak'),
   ]);
+
+  const tagLabels = await getMarkerTagLabels(prisma, account.id);
 
   const model: StatsOverviewModel = {
     filters: {
@@ -228,13 +290,14 @@ export async function getStatsOverview(account: AuthenticatedAccount, query: Sta
     companionRanking: buildCompanionRanking(filteredMarkers, source.companions),
     tripRanking: buildTripRanking(tripDetails),
     tripDetails,
-    topTags: buildTopTags(filteredMarkers),
+    topTags: buildTopTags(filteredMarkers, tagLabels),
     topMoods: buildTopMoods(filteredMarkers),
     topWeather: buildTopWeather(filteredMarkers),
     topTransports: buildTopTransports(filteredMarkers),
     topBudgetLevels: buildTopBudgetLevels(filteredMarkers),
     tripHighlights: buildTripHighlights(tripDetails),
     achievements: applyAchievementUnlocks(achievements, [...globalAchievementUnlocks, ...streakAchievementUnlocks]),
+    expenseInsights: buildExpenseInsights(filteredExpenses),
     heatmap: buildHeatmap(filteredMarkers),
     generatedAt: new Date(),
   };
@@ -251,6 +314,7 @@ export async function getAnnualReview(account: AuthenticatedAccount, query: Annu
   }
 
   const filteredMarkers = withYearFilter(source.markers, query.year);
+  const filteredExpenses = filterExpenses(source.tripExpenses ?? [], { year: query.year });
   const chronologicalMarkers = [...filteredMarkers].sort(
     (left, right) => left.visitedStartAt.getTime() - right.visitedStartAt.getTime(),
   );
@@ -296,6 +360,7 @@ export async function getAnnualReview(account: AuthenticatedAccount, query: Annu
       endsAt: toDateOnlyString(trip.endsAt),
     })),
     achievements: applyAchievementUnlocks(annualAchievements, annualAchievementUnlocks),
+    expenseInsights: buildExpenseInsights(filteredExpenses),
     firstMarker: chronologicalMarkers[0] ? serializeAnnualMarker(chronologicalMarkers[0]) : undefined,
     lastMarker:
       chronologicalMarkers.length > 0

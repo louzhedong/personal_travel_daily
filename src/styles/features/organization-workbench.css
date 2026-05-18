@@ -1,0 +1,217 @@
+.organization-workbench-shell {
+  width: min(100%, var(--page-frame));
+  margin: 0 auto;
+  padding: 28px var(--page-gutter) 56px;
+  color: #111827;
+}
+
+.organization-topbar,
+.organization-topbar > div,
+.organization-action-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.organization-topbar {
+  justify-content: space-between;
+  margin-bottom: 36px;
+  font-size: var(--text-sm);
+  color: #6b7280;
+}
+
+.organization-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 48px;
+  align-items: end;
+  padding-bottom: 34px;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.12);
+}
+
+.organization-hero h1 {
+  margin: 14px 0 14px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: var(--display-lg);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+}
+
+.organization-hero p {
+  max-width: 620px;
+  margin: 0 0 18px;
+  color: #4b5563;
+  line-height: 1.8;
+}
+
+.organization-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 28px;
+  margin: 0;
+}
+
+.organization-summary-strip div {
+  border-top: 1px solid rgba(17, 24, 39, 0.18);
+  padding-top: 12px;
+}
+
+.organization-summary-strip dt {
+  font-size: var(--text-xs);
+  color: #6b7280;
+}
+
+.organization-summary-strip dd {
+  margin: 4px 0 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: var(--display-sm);
+}
+
+.organization-action-board,
+.organization-sections-grid {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 40px;
+  padding: 32px 0;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.1);
+}
+
+.organization-action-copy span,
+.organization-preview-heading span,
+.organization-section-index h2 {
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.organization-action-copy h2 {
+  margin: 10px 0;
+  font-size: var(--title-lg);
+}
+
+.organization-action-copy p,
+.organization-preview-empty {
+  color: #6b7280;
+  line-height: 1.7;
+}
+
+.organization-action-controls label {
+  display: grid;
+  gap: 6px;
+  min-width: 168px;
+  font-size: var(--text-xs);
+  color: #6b7280;
+}
+
+.organization-action-controls select {
+  height: 38px;
+  border: 1px solid rgba(17, 24, 39, 0.16);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: #fff;
+  color: #111827;
+}
+
+.organization-preview-panel {
+  grid-column: 2;
+  border-left: 2px solid #111827;
+  padding-left: 18px;
+}
+
+.organization-preview-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.organization-preview-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.organization-preview-panel li {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+  padding-bottom: 8px;
+}
+
+.organization-preview-panel small {
+  color: #6b7280;
+  text-align: right;
+}
+
+.organization-section-index p {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 12px 0;
+  border-top: 1px solid rgba(17, 24, 39, 0.1);
+}
+
+.organization-issue-list {
+  display: grid;
+  gap: 14px;
+}
+
+.organization-issue-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.organization-issue-row img,
+.organization-issue-mark {
+  width: 72px;
+  height: 54px;
+  object-fit: cover;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+}
+
+.organization-issue-row span,
+.organization-issue-row em {
+  font-size: var(--text-xs);
+  color: #6b7280;
+  font-style: normal;
+}
+
+.organization-issue-row strong {
+  display: block;
+  margin: 4px 0;
+}
+
+.organization-issue-row p {
+  margin: 0;
+  color: #4b5563;
+}
+
+@media (max-width: 760px) {
+  .organization-hero,
+  .organization-action-board,
+  .organization-sections-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .organization-preview-panel {
+    grid-column: auto;
+  }
+
+  .organization-issue-row {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .organization-issue-row em {
+    grid-column: 2;
+  }
+}
+

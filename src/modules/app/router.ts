@@ -30,12 +30,17 @@ export type AppRoute =
   | { kind: 'login'; pathname: '/login' }
   | { kind: 'register'; pathname: '/register' }
   | { kind: 'settings'; pathname: '/settings' }
+  | { kind: 'publicShare'; pathname: string; token: string }
   | { kind: 'admin'; pathname: '/admin' }
   | { kind: 'atlas'; pathname: '/atlas' }
+  | { kind: 'organize'; pathname: '/organize' }
+  | { kind: 'tagGovernance'; pathname: '/tags' }
   | { kind: 'stats'; pathname: '/stats' }
   | { kind: 'achievements'; pathname: '/achievements' }
+  | { kind: 'reminders'; pathname: '/reminders' }
   | { kind: 'memoryCapsules'; pathname: '/capsules' }
   | { kind: 'memoryCapsuleDetail'; pathname: string; capsuleId: string }
+  | { kind: 'mapReplayStory'; pathname: string; targetType: 'trip' | 'year' | 'companion'; targetId: string }
   | { kind: 'photoCuration'; pathname: string; query: PhotoCurationRouteQuery }
   | { kind: 'companionMemories'; pathname: string; companionId: string }
   | { kind: 'tripDetail'; pathname: string; tripId: string }
@@ -61,6 +66,14 @@ export function createSettingsRoute(): AppRoute {
   return { kind: 'settings', pathname: '/settings' };
 }
 
+export function createPublicShareRoute(token: string): AppRoute {
+  return {
+    kind: 'publicShare',
+    pathname: `/share/${encodeURIComponent(token)}`,
+    token,
+  };
+}
+
 export function createAdminRoute(): AppRoute {
   return { kind: 'admin', pathname: '/admin' };
 }
@@ -69,12 +82,24 @@ export function createAtlasRoute(): AppRoute {
   return { kind: 'atlas', pathname: '/atlas' };
 }
 
+export function createOrganizeRoute(): AppRoute {
+  return { kind: 'organize', pathname: '/organize' };
+}
+
+export function createTagGovernanceRoute(): AppRoute {
+  return { kind: 'tagGovernance', pathname: '/tags' };
+}
+
 export function createStatsRoute(): AppRoute {
   return { kind: 'stats', pathname: '/stats' };
 }
 
 export function createAchievementsRoute(): AppRoute {
   return { kind: 'achievements', pathname: '/achievements' };
+}
+
+export function createRemindersRoute(): AppRoute {
+  return { kind: 'reminders', pathname: '/reminders' };
 }
 
 export function createMemoryCapsulesRoute(): AppRoute {
@@ -86,6 +111,18 @@ export function createMemoryCapsuleDetailRoute(capsuleId: string): AppRoute {
     kind: 'memoryCapsuleDetail',
     pathname: `/capsules/${encodeURIComponent(capsuleId)}`,
     capsuleId,
+  };
+}
+
+export function createMapReplayStoryRoute(
+  targetType: 'trip' | 'year' | 'companion',
+  targetId: string,
+): AppRoute {
+  return {
+    kind: 'mapReplayStory',
+    pathname: `/replay/${targetType}/${encodeURIComponent(targetId)}`,
+    targetType,
+    targetId,
   };
 }
 
@@ -157,9 +194,22 @@ export function createAnnualReviewRoute(year: string): AppRoute {
  * Parse a pathname into an AppRoute (equivalent to the former normalizePathname).
  */
 export function parsePathname(pathname: string, search = ''): AppRoute {
+  const publicShareMatch = pathname.match(/^\/share\/([^/]+)$/);
+  if (publicShareMatch) {
+    return createPublicShareRoute(decodeURIComponent(publicShareMatch[1]));
+  }
+
   const memoryCapsuleMatch = pathname.match(/^\/capsules\/([^/]+)$/);
   if (memoryCapsuleMatch) {
     return createMemoryCapsuleDetailRoute(decodeURIComponent(memoryCapsuleMatch[1]));
+  }
+
+  const mapReplayStoryMatch = pathname.match(/^\/replay\/(trip|year|companion)\/([^/]+)$/);
+  if (mapReplayStoryMatch) {
+    return createMapReplayStoryRoute(
+      mapReplayStoryMatch[1] as 'trip' | 'year' | 'companion',
+      decodeURIComponent(mapReplayStoryMatch[2]),
+    );
   }
 
   const companionMemoriesMatch = pathname.match(/^\/companions\/([^/]+)\/memories$/);
@@ -199,12 +249,24 @@ export function parsePathname(pathname: string, search = ''): AppRoute {
     return createSettingsRoute();
   }
 
+  if (pathname === '/organize') {
+    return createOrganizeRoute();
+  }
+
+  if (pathname === '/tags') {
+    return createTagGovernanceRoute();
+  }
+
   if (pathname === '/stats') {
     return createStatsRoute();
   }
 
   if (pathname === '/achievements') {
     return createAchievementsRoute();
+  }
+
+  if (pathname === '/reminders') {
+    return createRemindersRoute();
   }
 
   if (pathname === '/capsules') {

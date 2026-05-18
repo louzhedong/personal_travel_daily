@@ -3,6 +3,7 @@ import {
   MARKER_BUDGET_LEVEL_OPTIONS,
   MARKER_MOOD_OPTIONS,
   MARKER_TAG_OPTIONS,
+  type MarkerTagOption,
   MARKER_TRANSPORT_OPTIONS,
   MARKER_WEATHER_OPTIONS,
 } from '../../lib/markerMetadata';
@@ -12,10 +13,11 @@ import type { StatsUiFilters } from '../../modules/stats/statsCenterModel';
 interface StatsCenterFiltersProps {
   filters: StatsUiFilters;
   data: StatsOverviewResponseDto;
+  tagOptions?: MarkerTagOption[];
   onChange: (nextFilters: StatsUiFilters) => void;
 }
 
-export default function StatsCenterFilters({ filters, data, onChange }: StatsCenterFiltersProps) {
+export default function StatsCenterFilters({ filters, data, tagOptions = MARKER_TAG_OPTIONS, onChange }: StatsCenterFiltersProps) {
   return (
     <section className="stats-center-filters">
       <FancySelect
@@ -71,7 +73,7 @@ export default function StatsCenterFilters({ filters, data, onChange }: StatsCen
         onChange={(value) => onChange({ ...filters, tag: value as StatsUiFilters['tag'] })}
         placeholder="全部标签"
         ariaLabel="按标签筛选统计中心"
-        options={[{ value: 'all', label: '全部标签' }, ...MARKER_TAG_OPTIONS]}
+        options={[{ value: 'all', label: '全部标签' }, ...tagOptions]}
       />
       <FancySelect
         value={filters.mood}

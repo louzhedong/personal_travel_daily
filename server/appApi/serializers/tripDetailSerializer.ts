@@ -6,6 +6,7 @@ import type {
   VisitMarker,
   VisitMarkerImage,
 } from '@prisma/client';
+import type { TripExpenseListResponseDto } from '../types.js';
 import type {
   GuideContentBlockDto,
   GuideDocumentDto,
@@ -45,6 +46,7 @@ export interface TripDetailModel {
   planningSummary: TripDetailResponseDto['planningSummary'];
   checklistSummary: TripDetailResponseDto['checklistSummary'];
   checklistGroups: TripDetailResponseDto['checklistGroups'];
+  expenses: TripExpenseListResponseDto;
   meta: {
     generatedAt: Date;
   };
@@ -228,6 +230,7 @@ export function serializeTripDetail(model: TripDetailModel): TripDetailResponseD
     planningSummary: model.planningSummary,
     checklistSummary: model.checklistSummary,
     checklistGroups: model.checklistGroups,
+    expenses: model.expenses,
     meta: {
       generatedAt: toIsoString(model.meta.generatedAt),
     },

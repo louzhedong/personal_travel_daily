@@ -2,7 +2,6 @@ import { z } from 'zod';
 import {
   MARKER_BUDGET_LEVELS,
   MARKER_MOODS,
-  MARKER_TAGS,
   MARKER_TRANSPORTS,
   MARKER_WEATHERS,
 } from '../../../shared/markerMetadata.js';
@@ -29,7 +28,7 @@ export const atlasTimelineQuerySchema = z.object({
   scope: z.enum(['all', 'domestic', 'international']).optional().default('all'),
   companionId: optionalAllString,
   tripId: optionalAllString,
-  tag: z.enum(MARKER_TAGS).optional(),
+  tag: z.string().trim().min(2).max(32).regex(/^[a-z0-9][a-z0-9_-]*$/).optional(),
   mood: z.enum(MARKER_MOODS).optional(),
   weather: z.enum(MARKER_WEATHERS).optional(),
   transport: z.enum(MARKER_TRANSPORTS).optional(),

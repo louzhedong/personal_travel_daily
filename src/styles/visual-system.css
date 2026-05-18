@@ -1,0 +1,931 @@
+/*
+ * Global visual convergence layer.
+ * Keeps feature layouts intact while aligning every route to the light
+ * travel-magazine system: paper surfaces, restrained borders, editorial type.
+ */
+
+.auth-shell,
+.stats-page-stage,
+.achievements-page-stage,
+.trip-story-stage,
+.annual-review-stage,
+.trip-detail-stage,
+.account-settings-shell,
+.admin-shell,
+.reminder-shell,
+.tag-governance-shell,
+.photo-curation-shell,
+.organization-workbench-shell,
+.memory-capsule-shell,
+.memory-capsule-center-shell,
+.companion-memory-shell,
+.map-replay-story-shell,
+.public-share-shell {
+  color: var(--ink);
+  background:
+    linear-gradient(rgba(16, 20, 24, 0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 20, 24, 0.022) 1px, transparent 1px),
+    radial-gradient(circle at 12% 8%, rgba(182, 106, 69, 0.07), transparent 28%),
+    radial-gradient(circle at 88% 6%, rgba(49, 93, 114, 0.07), transparent 28%),
+    linear-gradient(135deg, var(--surface-paper), var(--surface-wash) 54%, var(--surface-mist));
+  background-size: 44px 44px, 44px 44px, auto, auto, auto;
+}
+
+.admin-shell,
+.stats-page-shell,
+.trip-detail-shell,
+.achievements-page-shell,
+.annual-review-shell,
+.account-settings-shell,
+.reminder-shell,
+.tag-governance-shell,
+.photo-curation-shell,
+.organization-workbench-shell,
+.memory-capsule-shell,
+.memory-capsule-center-shell,
+.companion-memory-shell,
+.map-replay-story-shell,
+.public-share-shell {
+  isolation: isolate;
+}
+
+.card,
+.panel-card,
+.admin-section,
+.admin-state-card,
+.admin-summary-card,
+.admin-reminder-trends,
+.admin-quality-panel,
+.admin-quality-reminder,
+.admin-quality-workbench,
+.admin-audit-panel,
+.stats-center-section,
+.stats-editorial-copy,
+.stats-page-side-note,
+.stats-achievement-card,
+.stats-loading-card,
+.achievements-page-state,
+.achievements-page-summary-grid article,
+.achievements-filter-panel,
+.achievements-group-panel,
+.trip-detail-note-card,
+.trip-detail-state-card,
+.trip-detail-summary-card,
+.trip-story-intro,
+.trip-story-panel,
+.trip-story-badge,
+.trip-story-marker-card,
+.trip-story-guide-card,
+.trip-story-checklist-card,
+.annual-review-hero-copy,
+.annual-review-state,
+.annual-review-empty,
+.annual-review-summary-card,
+.account-settings-card,
+.account-settings-section,
+.account-settings-share-panel,
+.reminder-section,
+.reminder-summary-strip div,
+.tag-governance-panel,
+.tag-governance-summary div,
+.photo-curation-panel,
+.photo-curation-summary div,
+.photo-curation-card,
+.photo-album-hero,
+.organization-panel,
+.organization-preview-panel,
+.organization-summary-strip div,
+.memory-capsule-hero,
+.memory-capsule-create-panel,
+.memory-capsule-preview-section,
+.memory-capsule-editor-panel,
+.companion-memory-panel,
+.companion-memory-state-card,
+.map-replay-story-panel,
+.map-replay-story-summary div,
+.trip-expense-panel,
+.trip-expense-summary div,
+.public-share-panel,
+.public-share-summary-card,
+.dialog-card,
+.modal-panel,
+.auth-hero-panel,
+.auth-card,
+.auth-loading-card,
+.guide-search-panel,
+.guide-result-card,
+.data-sync-panel,
+.marker-list-card,
+.detail-panel,
+.checklist-board,
+.timeline-panel {
+  border: 1px solid var(--line-hair);
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.88), rgba(255, 253, 248, 0.68)),
+    var(--surface-paper);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(10px);
+}
+
+.panel-card,
+.admin-section,
+.admin-reminder-trends,
+.admin-quality-panel,
+.admin-quality-workbench,
+.admin-audit-panel,
+.stats-center-section,
+.stats-editorial-copy,
+.stats-page-side-note,
+.achievements-filter-panel,
+.achievements-group-panel,
+.trip-detail-note-card,
+.trip-detail-state-card,
+.trip-story-intro,
+.trip-story-panel,
+.trip-story-marker-card,
+.trip-story-guide-card,
+.trip-story-checklist-card,
+.account-settings-section,
+.account-settings-share-panel,
+.reminder-section,
+.tag-governance-panel,
+.photo-curation-panel,
+.organization-panel,
+.organization-preview-panel,
+.memory-capsule-create-panel,
+.memory-capsule-preview-section,
+.memory-capsule-editor-panel,
+.companion-memory-panel,
+.map-replay-story-panel,
+.trip-expense-panel,
+.public-share-panel,
+.dialog-card,
+.auth-hero-panel,
+.auth-card,
+.auth-loading-card,
+.guide-search-panel,
+.data-sync-panel,
+.marker-list-card,
+.detail-panel,
+.checklist-board,
+.timeline-panel {
+  padding: var(--space-card-y) var(--space-card-x);
+  border-radius: var(--radius-card);
+}
+
+.admin-state-card,
+.admin-summary-card,
+.admin-quality-reminder,
+.admin-quality-workbench,
+.stats-achievement-card,
+.stats-loading-card,
+.achievements-page-state,
+.achievements-page-summary-grid article,
+.trip-detail-summary-card,
+.trip-story-badge,
+.annual-review-hero-copy,
+.annual-review-state,
+.annual-review-empty,
+.annual-review-summary-card,
+.reminder-summary-strip div,
+.reminder-summary-strip article,
+.tag-governance-summary div,
+.photo-curation-summary div,
+.photo-curation-card,
+.photo-album-hero,
+.organization-summary-strip div,
+.memory-capsule-hero,
+.companion-memory-state-card,
+.map-replay-story-summary div,
+.trip-expense-summary div,
+.public-share-summary-card,
+.guide-result-card {
+  padding: var(--space-card-compact);
+  border-radius: var(--radius-panel);
+}
+
+.admin-hero,
+.stats-page-hero,
+.achievements-page-hero,
+.trip-detail-hero,
+.annual-review-hero,
+.account-settings-hero,
+.reminder-hero,
+.tag-governance-hero,
+.photo-curation-hero,
+.organization-hero,
+.companion-memory-hero,
+.memory-capsule-center-hero,
+.map-replay-story-hero,
+.public-share-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line-hair);
+  background:
+    linear-gradient(rgba(16, 20, 24, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 20, 24, 0.02) 1px, transparent 1px),
+    radial-gradient(circle at 12% 12%, rgba(182, 106, 69, 0.11), transparent 30%),
+    radial-gradient(circle at 88% 18%, rgba(31, 111, 104, 0.08), transparent 28%),
+    linear-gradient(135deg, rgba(255, 253, 248, 0.94), rgba(243, 240, 232, 0.78));
+  background-size: 36px 36px, 36px 36px, auto, auto, auto;
+  box-shadow: var(--shadow-card);
+  padding: clamp(32px, 5vw, 56px) var(--space-card-x);
+  border-radius: var(--radius-card);
+}
+
+.admin-hero::after,
+.stats-page-hero::after,
+.achievements-page-hero::after,
+.trip-detail-hero::after,
+.annual-review-hero::after,
+.account-settings-hero::after,
+.reminder-hero::after,
+.tag-governance-hero::after,
+.photo-curation-hero::after,
+.organization-hero::after,
+.companion-memory-hero::after,
+.memory-capsule-center-hero::after,
+.map-replay-story-hero::after,
+.public-share-hero::after {
+  content: '';
+  position: absolute;
+  right: -80px;
+  top: -90px;
+  width: 260px;
+  height: 260px;
+  border: 1px dashed rgba(16, 20, 24, 0.14);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.admin-hero > *,
+.stats-page-hero > *,
+.achievements-page-hero > *,
+.trip-detail-hero > *,
+.annual-review-hero > *,
+.account-settings-hero > *,
+.reminder-hero > *,
+.tag-governance-hero > *,
+.photo-curation-hero > *,
+.organization-hero > *,
+.companion-memory-hero > *,
+.memory-capsule-center-hero > *,
+.map-replay-story-hero > *,
+.public-share-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-hero h1,
+.stats-page-hero h1,
+.achievements-page-hero h1,
+.trip-detail-hero h1,
+.annual-review-hero h1,
+.account-settings-hero h1,
+.reminder-hero h1,
+.tag-governance-hero h1,
+.photo-curation-hero h1,
+.organization-hero h1,
+.companion-memory-hero h1,
+.memory-capsule-center-hero h1,
+.map-replay-story-hero h1,
+.public-share-hero h1 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+
+.admin-hero p,
+.admin-state-card p,
+.stats-page-hero p,
+.stats-page-side-note p,
+.stats-editorial-copy p,
+.achievements-page-hero p,
+.achievements-group-head p,
+.achievements-filter-panel-head p,
+.achievements-page-state p,
+.trip-detail-hero p,
+.trip-detail-state-card p,
+.trip-detail-note-empty,
+.trip-story-intro p,
+.trip-story-section-heading p,
+.trip-story-marker-card p,
+.trip-story-guide-card p,
+.trip-story-checklist-card p,
+.annual-review-hero-copy p,
+.annual-review-state p,
+.account-settings-hero p,
+.account-settings-section-title p,
+.reminder-hero p,
+.tag-governance-hero p,
+.photo-curation-hero p,
+.photo-curation-section-head span,
+.organization-hero p,
+.organization-section-index p,
+.memory-capsule-hero p,
+.memory-capsule-create-panel p,
+.memory-capsule-preview-section p,
+.companion-memory-hero p,
+.map-replay-story-hero p,
+.public-share-hero p,
+.public-share-hero small,
+.dialog-description,
+.modal-subtitle {
+  color: var(--ink-muted);
+  line-height: var(--leading-loose);
+}
+
+.hero-kicker,
+.auth-kicker,
+.auth-card-eyebrow,
+.auth-loading-eyebrow,
+.dialog-eyebrow,
+.stats-editorial-eyebrow,
+.stats-filter-panel-eyebrow,
+.trip-detail-note-eyebrow,
+.admin-summary-label,
+.stats-page-badge,
+.stats-page-account,
+.travel-atlas-progress {
+  color: var(--accent-blueprint);
+  font-size: var(--text-xs);
+  font-weight: 900;
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+}
+
+.ghost-button,
+.hero-admin-button,
+.trip-detail-action-button,
+.auth-mode-button,
+.date-field-trigger,
+.date-picker-icon-button,
+.map-caption,
+.active-user-badge,
+.stats-page-action-row .ghost-button,
+.trip-story-template-switch button,
+.trip-story-actions .ghost-button,
+.trip-story-print-button,
+.annual-review-print-button {
+  border-color: var(--line-soft);
+  background: rgba(255, 253, 248, 0.76);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.ghost-button:hover,
+.ghost-button:focus-visible,
+.hero-admin-button:hover,
+.hero-admin-button:focus-visible,
+.trip-detail-action-button:hover,
+.trip-detail-action-button:focus-visible,
+.stats-page-action-row .ghost-button:hover,
+.stats-page-action-row .ghost-button:focus-visible,
+.annual-review-print-button:hover,
+.annual-review-print-button:focus-visible {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--ink-inverse);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+.field-control,
+.fancy-select-trigger,
+.date-field-trigger,
+.auth-mode-switch,
+.date-picker-panel,
+.fancy-select-menu {
+  border-color: var(--line-soft);
+  background: rgba(255, 253, 248, 0.9);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.field-control:focus,
+.field-control:focus-visible,
+.fancy-select-trigger:focus-visible,
+.fancy-select-trigger[aria-expanded='true'],
+.date-field-trigger:focus-visible,
+.date-field-trigger[aria-expanded='true'] {
+  border-color: var(--line-strong);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 20, 24, 0.08);
+}
+
+.auth-hero-panel,
+.auth-card {
+  border: 1px solid var(--line-hair);
+  border-radius: var(--radius-card);
+}
+
+.auth-feature-list span,
+.auth-mode-button.is-active {
+  border: 1px solid var(--line-hair);
+  background: var(--surface-sheet);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.auth-feature-list span::before {
+  background: var(--accent-route);
+}
+
+.admin-summary-card-blue,
+.admin-summary-card-sky,
+.stats-page-side-note,
+.trip-detail-note-card {
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.9), var(--surface-tint-blue)),
+    var(--surface-paper);
+}
+
+.admin-summary-card-teal,
+.admin-summary-card-green {
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.9), var(--surface-tint-route)),
+    var(--surface-paper);
+}
+
+.admin-summary-card-orange {
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.9), var(--surface-tint-clay)),
+    var(--surface-paper);
+}
+
+.admin-summary-card-slate,
+.achievements-page-summary-grid article,
+.reminder-summary-strip div,
+.reminder-summary-strip article,
+.tag-governance-summary div,
+.tag-governance-summary div,
+.photo-curation-summary div,
+.organization-summary-strip div,
+.trip-expense-summary div,
+.map-replay-story-summary div {
+  background: var(--surface-glass);
+}
+
+.trip-story-stage,
+.trip-story-template-memoir,
+.trip-story-template-postcard {
+  background:
+    linear-gradient(rgba(16, 20, 24, 0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 20, 24, 0.022) 1px, transparent 1px),
+    linear-gradient(135deg, var(--surface-paper), var(--surface-wash) 54%, var(--surface-mist));
+  background-size: 44px 44px, 44px 44px, auto;
+}
+
+.trip-story-template-memoir .card,
+.trip-story-template-memoir .trip-story-route-film li,
+.trip-story-template-memoir .trip-story-marker-card,
+.trip-story-template-memoir .trip-story-guide-card,
+.trip-story-template-memoir .trip-story-checklist-card,
+.trip-story-template-postcard .card,
+.trip-story-template-postcard .trip-story-marker-card,
+.trip-story-template-postcard .trip-story-guide-card,
+.trip-story-template-postcard .trip-story-checklist-card,
+.trip-story-template-postcard .trip-story-badge {
+  border-color: var(--line-hair);
+  background: var(--surface-sheet);
+}
+
+.annual-review-hero-copy {
+  border-radius: var(--radius-card);
+}
+
+.annual-review-hero-copy h1 {
+  font-size: var(--display-sm);
+}
+
+.annual-review-summary-card strong,
+.admin-summary-card strong,
+.achievements-page-summary-grid strong,
+.stats-expense-total,
+.trip-story-badge strong {
+  font-family: var(--font-display);
+  color: var(--ink);
+  letter-spacing: -0.04em;
+}
+
+.date-field,
+.date-field-display,
+.date-picker-header strong,
+.dialog-field-label,
+.admin-hero-meta,
+.admin-quality-reminder strong,
+.stats-expense-total,
+.achievements-page-summary-grid strong,
+.trip-story-badge strong,
+.auth-hero-panel h1,
+.auth-card h2,
+.auth-loading-card strong {
+  color: var(--ink);
+}
+
+.date-field.empty .date-field-display,
+.date-field-icon,
+.date-picker-icon-button:disabled,
+.admin-summary-label,
+.admin-quality-reminder span,
+.stats-page-badge,
+.stats-page-account,
+.stats-expense-trend span,
+.stats-expense-breakdown span,
+.stats-expense-trend small,
+.stats-expense-breakdown small,
+.achievements-page-summary-grid span,
+.trip-story-badge span,
+.auth-feature-list span,
+.public-share-hero small {
+  color: var(--ink-muted);
+}
+
+.admin-state-card-error,
+.trip-detail-state-card-error,
+.achievements-page-state-error,
+.auth-error-banner {
+  border-color: rgba(159, 61, 47, 0.26);
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.94), rgba(159, 61, 47, 0.08)),
+    var(--surface-paper);
+}
+
+.dialog-layer,
+.modal-backdrop {
+  background: rgba(16, 20, 24, 0.32);
+  backdrop-filter: blur(8px);
+}
+
+.route-skeleton-stage {
+  background:
+    linear-gradient(rgba(16, 20, 24, 0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 20, 24, 0.022) 1px, transparent 1px),
+    linear-gradient(135deg, var(--surface-paper), var(--surface-wash) 54%, var(--surface-mist));
+  background-size: 44px 44px, 44px 44px, auto;
+}
+
+.route-skeleton-hero,
+.route-skeleton-card,
+.route-skeleton-panel {
+  border-color: var(--line-hair);
+  background: var(--surface-sheet);
+}
+
+/*
+ * Unified page header contract.
+ * Feature routes should read as one product: right-aligned action rail,
+ * consistent editorial hero, and one title scale.
+ */
+.account-settings-topbar,
+.reminder-topbar,
+.tag-governance-topbar,
+.photo-curation-topbar,
+.organization-topbar,
+.memory-capsule-topbar,
+.companion-memory-topbar,
+.map-replay-story-topbar,
+.travel-atlas-topbar,
+.stats-page-topbar,
+.annual-review-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  width: min(100%, var(--page-frame));
+  min-height: var(--control-height);
+  margin: 0 auto var(--space-card-gap);
+  gap: 12px;
+}
+
+.account-settings-topbar > *,
+.reminder-topbar > *,
+.tag-governance-topbar > *,
+.photo-curation-topbar > *,
+.organization-topbar > *,
+.memory-capsule-topbar > *,
+.companion-memory-topbar > *,
+.map-replay-story-topbar > *,
+.travel-atlas-topbar > *,
+.stats-page-topbar > *,
+.annual-review-topbar > * {
+  flex: 0 0 auto;
+}
+
+.admin-hero-actions,
+.annual-review-actions,
+.trip-story-actions,
+.map-replay-story-actions,
+.memory-capsule-topbar-actions,
+.companion-memory-actions,
+.organization-action-controls,
+.tag-governance-actions,
+.photo-album-hero-actions,
+.travel-atlas-replay-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.account-settings-topbar .ghost-button,
+.account-settings-topbar .primary-button,
+.reminder-topbar .ghost-button,
+.reminder-topbar .primary-button,
+.tag-governance-topbar .ghost-button,
+.tag-governance-topbar .primary-button,
+.photo-curation-topbar .ghost-button,
+.photo-curation-topbar .primary-button,
+.organization-topbar .ghost-button,
+.organization-topbar .primary-button,
+.memory-capsule-topbar .ghost-button,
+.memory-capsule-topbar .primary-button,
+.companion-memory-topbar .ghost-button,
+.companion-memory-topbar .primary-button,
+.map-replay-story-topbar .ghost-button,
+.map-replay-story-topbar .primary-button,
+.travel-atlas-topbar .ghost-button,
+.travel-atlas-topbar .primary-button,
+.stats-page-topbar .ghost-button,
+.stats-page-topbar .primary-button,
+.annual-review-topbar .ghost-button,
+.annual-review-topbar .primary-button,
+.admin-hero-actions .ghost-button,
+.admin-hero-actions .primary-button,
+.annual-review-actions .ghost-button,
+.annual-review-actions .primary-button,
+.trip-story-actions .ghost-button,
+.trip-story-actions .primary-button,
+.map-replay-story-actions .ghost-button,
+.map-replay-story-actions .primary-button {
+  min-height: var(--control-height-sm);
+  padding: 0 18px;
+  font-size: var(--text-body);
+  font-weight: 850;
+}
+
+.admin-hero,
+.stats-page-hero,
+.achievements-page-hero,
+.trip-detail-hero,
+.annual-review-hero,
+.account-settings-hero,
+.reminder-hero,
+.tag-governance-hero,
+.photo-curation-hero,
+.organization-hero,
+.companion-memory-hero,
+.memory-capsule-hero,
+.memory-capsule-center-hero,
+.map-replay-story-hero,
+.public-share-hero,
+.travel-atlas-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  width: min(100%, var(--page-frame));
+  max-width: var(--page-frame);
+  margin: 0 auto var(--space-card-gap);
+  gap: clamp(20px, 4vw, 48px);
+  padding: clamp(30px, 4vw, 48px) var(--space-card-x);
+  border: 1px solid var(--line-hair);
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(rgba(16, 20, 24, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 20, 24, 0.02) 1px, transparent 1px),
+    radial-gradient(circle at 88% 12%, rgba(49, 93, 114, 0.08), transparent 28%),
+    linear-gradient(135deg, rgba(255, 253, 248, 0.94), rgba(243, 240, 232, 0.78));
+  background-size: 36px 36px, 36px 36px, auto, auto;
+  box-shadow: var(--shadow-card);
+}
+
+.admin-hero-copy,
+.photo-curation-hero-copy,
+.companion-memory-hero-copy,
+.annual-review-hero-copy,
+.trip-detail-hero-copy {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-hero h1,
+.stats-page-hero h1,
+.achievements-page-hero h1,
+.trip-detail-hero h1,
+.annual-review-hero h1,
+.account-settings-hero h1,
+.reminder-hero h1,
+.tag-governance-hero h1,
+.photo-curation-hero h1,
+.organization-hero h1,
+.companion-memory-hero h1,
+.memory-capsule-hero h1,
+.memory-capsule-center-hero h1,
+.map-replay-story-hero h1,
+.public-share-hero h1,
+.travel-atlas-hero h1 {
+  max-width: 12em;
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--page-hero-title);
+  font-weight: 950;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+.admin-hero p,
+.stats-page-hero p,
+.achievements-page-hero p,
+.trip-detail-hero p,
+.annual-review-hero p,
+.annual-review-hero-copy p,
+.account-settings-hero p,
+.reminder-hero p,
+.tag-governance-hero p,
+.photo-curation-hero p,
+.organization-hero p,
+.companion-memory-hero p,
+.memory-capsule-hero p,
+.memory-capsule-center-hero p,
+.map-replay-story-hero p,
+.public-share-hero p,
+.travel-atlas-hero p {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--page-hero-copy);
+  font-weight: 650;
+  line-height: var(--leading-loose);
+}
+
+.hero-kicker,
+.auth-kicker,
+.auth-card-eyebrow,
+.auth-loading-eyebrow,
+.dialog-eyebrow,
+.stats-editorial-eyebrow,
+.stats-filter-panel-eyebrow,
+.trip-detail-note-eyebrow,
+.stats-page-badge,
+.stats-page-account,
+.travel-atlas-progress,
+.account-settings-hero span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  margin: 0;
+  color: var(--accent-blueprint);
+  font-size: var(--text-xs);
+  font-weight: 900;
+  letter-spacing: var(--tracking-kicker);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.account-settings-hero > p,
+.admin-hero-actions,
+.annual-review-actions,
+.map-replay-story-actions {
+  justify-self: end;
+  align-self: end;
+}
+
+.photo-curation-hero-spread,
+.organization-summary-strip,
+.companion-memory-hero-note {
+  justify-self: end;
+  max-width: 360px;
+}
+
+.account-settings-layout {
+  gap: var(--space-card-gap);
+  border-bottom: 0;
+}
+
+.account-settings-section {
+  border-top: 0;
+}
+
+.account-settings-share-panel {
+  gap: var(--space-card-gap);
+}
+
+.admin-reminder-trends {
+  gap: var(--space-card-gap);
+}
+
+.reminder-summary-strip,
+.admin-reminder-trend-grid {
+  gap: var(--space-card-gap);
+  border: 0;
+  background: transparent;
+}
+
+.reminder-summary-strip article,
+.admin-reminder-trend {
+  border: 1px solid var(--line-hair);
+  background: var(--surface-glass);
+}
+
+.reminder-summary-strip article:first-child,
+.admin-reminder-trend:first-child {
+  border-left: 1px solid var(--line-hair);
+}
+
+@media (max-width: 760px) {
+  .panel-card,
+  .admin-section,
+  .admin-reminder-trends,
+  .admin-quality-panel,
+  .admin-quality-workbench,
+  .admin-audit-panel,
+  .stats-center-section,
+  .stats-editorial-copy,
+  .stats-page-side-note,
+  .achievements-filter-panel,
+  .achievements-group-panel,
+  .trip-detail-note-card,
+  .trip-detail-state-card,
+  .trip-story-intro,
+  .trip-story-panel,
+  .trip-story-marker-card,
+  .trip-story-guide-card,
+  .trip-story-checklist-card,
+  .account-settings-section,
+  .account-settings-share-panel,
+  .reminder-section,
+  .tag-governance-panel,
+  .photo-curation-panel,
+  .organization-panel,
+  .organization-preview-panel,
+  .memory-capsule-create-panel,
+  .memory-capsule-preview-section,
+  .memory-capsule-editor-panel,
+  .companion-memory-panel,
+  .map-replay-story-panel,
+  .trip-expense-panel,
+  .public-share-panel,
+  .dialog-card,
+  .auth-hero-panel,
+  .auth-card,
+  .auth-loading-card,
+  .guide-search-panel,
+  .data-sync-panel,
+  .marker-list-card,
+  .detail-panel,
+  .checklist-board,
+  .timeline-panel {
+    padding: 20px;
+  }
+
+  .admin-state-card,
+  .admin-summary-card,
+  .admin-quality-reminder,
+  .admin-quality-workbench,
+  .stats-achievement-card,
+  .stats-loading-card,
+  .achievements-page-state,
+  .achievements-page-summary-grid article,
+  .trip-detail-summary-card,
+  .trip-story-badge,
+  .annual-review-hero-copy,
+  .annual-review-state,
+  .annual-review-empty,
+  .annual-review-summary-card,
+  .reminder-summary-strip div,
+  .reminder-summary-strip article,
+  .tag-governance-summary div,
+  .photo-curation-summary div,
+  .photo-curation-card,
+  .photo-album-hero,
+  .organization-summary-strip div,
+  .memory-capsule-hero,
+  .companion-memory-state-card,
+  .map-replay-story-summary div,
+  .trip-expense-summary div,
+  .public-share-summary-card,
+  .guide-result-card {
+    padding: 16px;
+  }
+
+  .admin-hero,
+  .stats-page-hero,
+  .achievements-page-hero,
+  .trip-detail-hero,
+  .annual-review-hero,
+  .account-settings-hero,
+  .reminder-hero,
+  .tag-governance-hero,
+  .photo-curation-hero,
+  .organization-hero,
+  .companion-memory-hero,
+  .memory-capsule-center-hero,
+  .map-replay-story-hero,
+  .public-share-hero {
+    padding: 28px 20px;
+  }
+}

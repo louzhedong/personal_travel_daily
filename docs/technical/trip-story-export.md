@@ -79,13 +79,22 @@ The smart narrative is generated from existing aggregate data only. It does not 
 
 ## 导出方式 / Export Behavior
 
-当前支持四种导出：
+当前支持五种导出：
 
 - 浏览器原生 `window.print()`：让用户通过系统打印面板保存 PDF。
 - SVG 长图导出：生成一张内容驱动高度的私有故事长图，包含标题、日期、故事徽章、摘要、智能序言、路线回放海报、时间线、照片段落、攻略摘录和行前清单回顾。
 - 方形分享卡导出：生成 `1080x1080` SVG，包含封面图、标题、日期、智能文案和 3 个关键指标。
 - 竖版分享卡导出：生成 `1080x1920` SVG，包含同一套分享卡模型，适合移动端保存。
 - 当存在精选照片时，SVG 长图会在路线前加入“精选瞬间”，并在照片段落里保留精选标记与说明文字。
+- 本地归档包：浏览器端生成 ZIP，包含 `manifest.json`、`summary.md`、`content/story.json`、`images/image-urls.md` 和 `exports/trip-story.svg`。
+
+Currently supported exports:
+
+- Browser-native `window.print()`: lets users save PDF through the system print dialog.
+- SVG long-image export: generates a private story SVG with content-driven height.
+- Square share-card export: generates a `1080x1080` SVG.
+- Vertical share-card export: generates a `1080x1920` SVG.
+- Local archive package: browser-generated ZIP with `manifest.json`, `summary.md`, `content/story.json`, `images/image-urls.md`, and `exports/trip-story.svg`.
 
 实现约束：
 
@@ -95,15 +104,15 @@ The smart narrative is generated from existing aggregate data only. It does not 
 - 图片按浏览器现有能力打印；不做跨域图片代理或长图截图。
 - 长图和分享卡导出不引入截图依赖，不把图片嵌入 SVG，避免跨域图片污染导出链路；照片以 `<image href="...">` 写入 SVG，并使用 `clipPath`、固定画幅和底部字幕层保持重型图库下的布局稳定。
 - SVG 高度会随内容增长，不再使用固定 1800px 画布；段落之间保留显式间距，避免照片、路线、时间线和清单在长内容下互相重叠。
-- 若图片源禁止外链、需要登录、跨域策略限制 SVG 加载，或本地 SVG 查看器不加载网络图片，长图中的图片可能显示为空白；导出文件仍会保留原始图片 URL，后续若需要离线完整图片可另行引入受控图片代理或 base64 内联策略。
+- 若图片源禁止外链、需要登录、跨域策略限制 SVG 加载，或本地 SVG 查看器不加载网络图片，长图中的图片可能显示为空白；导出文件与本地归档包仍会保留原始图片 URL，后续若需要离线完整图片可另行引入受控图片代理或 base64 内联策略。
 
-Summary: Long-image and share-card exports are SVG layouts with real image references, not screenshots or offline media archives.
+Summary: Long-image, share-card, and local archive exports are browser-generated artifacts with real image references, not screenshots, server-rendered files, or offline media downloads.
 
 ## 入口 / Entry Points
 
 - `/trips/:id` 行程详情页保留“查看故事页”入口。
 - `/trips/:id` 行程详情页概览区展示“封面故事”，素材 Tab 支持精选、说明和排序。
-- `/trips/:id/story` 提供模板切换、“导出长图”、“导出方形分享卡”、“导出竖版分享卡”、“导出 PDF / 打印”和“返回行程详情”。
+- `/trips/:id/story` 提供模板切换、“导出长图”、“导出方形分享卡”、“导出竖版分享卡”、“导出本地归档包”、“导出 PDF / 打印”和“返回行程详情”。
 - 首页、统计中心和年度回顾暂不新增直接入口，避免一期入口过散。
 
 ## 空态 / Empty States

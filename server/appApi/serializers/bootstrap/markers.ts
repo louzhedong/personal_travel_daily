@@ -4,7 +4,6 @@ import type { VisitMarkerImage } from '@prisma/client';
 import {
   MARKER_BUDGET_LEVELS,
   MARKER_MOODS,
-  MARKER_TAGS,
   MARKER_TRANSPORTS,
   MARKER_WEATHERS,
   type MarkerBudgetLevel,
@@ -41,7 +40,7 @@ export function normalizeMarkerTags(value: unknown): MarkerTag[] | undefined {
     return undefined;
   }
 
-  const normalized = value.filter((item): item is MarkerTag => typeof item === 'string' && MARKER_TAGS.includes(item as MarkerTag));
+  const normalized = value.filter((item): item is MarkerTag => typeof item === 'string' && /^[a-z0-9][a-z0-9_-]{1,31}$/.test(item));
   return normalized.length > 0 ? normalized : undefined;
 }
 

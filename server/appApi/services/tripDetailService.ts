@@ -3,6 +3,8 @@ import { getPrismaClient } from '../prisma.js';
 import { findTripDetailSource } from '../repositories/tripDetailRepository.js';
 import { listActiveTripChecklistItemsByTripId } from '../repositories/tripChecklistRepository.js';
 import { listActiveTripPlanningItemsByTripId } from '../repositories/tripPlanningRepository.js';
+import { listActiveTripExpensesByTripId } from '../repositories/expenseRepository.js';
+import { serializeTripExpenseList } from '../serializers/expenseSerializer.js';
 import {
   serializeTripDetail,
   serializeTripDetailGuide,
@@ -138,22 +140,29 @@ export async function getTripDetail(accountId: string, tripId: string) {
     throw createNotFoundError('trip not found');
   }
 
-  const [checklistItems, planningItems] = await Promise.all([
+  const [checklistItems, planningItems, expenses] = await Promise.all([
     listActiveTripChecklistItemsByTripId(prisma, accountId, tripId),
     listActiveTripPlanningItemsByTripId(prisma, accountId, tripId),
+    listActiveTripExpensesByTripId(prisma, accountId, tripId),
   ]);
   const guides = buildGuides(source.markers);
   const photos = buildPhotos(source.markers);
+  const summary = buildSummary(source.markers, guides.length, photos.length);
+  const companions = buildCompanionSummary(source.markers);
   const model: TripDetailModel = {
     trip: source,
-    summary: buildSummary(source.markers, guides.length, photos.length),
-    companions: buildCompanionSummary(source.markers),
+    summary,
+    companions,
     markers: source.markers.map(serializeTripDetailMarker),
     photos,
     guides,
     planningSummary: buildTripPlanningSummary(planningItems),
     checklistSummary: buildTripChecklistSummary(checklistItems),
     checklistGroups: buildTripChecklistGroups(checklistItems),
+    expenses: serializeTripExpenseList(tripId, expenses, {
+      travelDays: summary.travelDays,
+      companionCount: companions.length || undefined,
+    }),
     meta: {
       generatedAt: new Date(),
     },

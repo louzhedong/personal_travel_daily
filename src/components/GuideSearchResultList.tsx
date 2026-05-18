@@ -19,6 +19,19 @@ function getSourceLinkLabel(item: GuideSearchResult) {
   return item.sourceName.includes('POI') ? '查看来源' : '查看原文';
 }
 
+function buildQualityBadges(item: GuideSearchResult, sourceHealth?: GuideSourceHealthDto) {
+  const quality = item.quality ?? sourceHealth?.quality;
+  const badges = new Set<string>();
+
+  if (quality?.score && quality.score >= 78) badges.add('高相关');
+  if (quality?.reasons) quality.reasons.slice(0, 3).forEach((reason) => badges.add(reason));
+  if (item.summary.length >= 48 || ((quality?.completenessScore ?? 0) >= 72)) badges.add('内容完整');
+  if (sourceHealth && sourceHealth.recentSuccess >= sourceHealth.recentFailure) badges.add('来源稳定');
+  if ((sourceHealth?.priorityWeight ?? 0) > 0) badges.add('优先来源');
+
+  return Array.from(badges).slice(0, 4);
+}
+
 /**
  * Props for GuideSearchResultList.
  * GuideSearchResultList 的属性定义。
@@ -165,6 +178,27 @@ export const GuideSearchResultList = forwardRef<HTMLDivElement, GuideSearchResul
                     {item.matchReason ? (
                       <p className="guide-result-match-reason">{renderHighlightedText(item.matchReason)}</p>
                     ) : null}
+                    {(() => {
+                      let hostname = '';
+                      try {
+                        hostname = new URL(item.sourceUrl).hostname.toLowerCase();
+                      } catch {
+                        hostname = '';
+                      }
+                      const qualityBadges = buildQualityBadges(
+                        item,
+                        hostname ? sourceHealthByDomain.get(hostname) : undefined,
+                      );
+                      return qualityBadges.length > 0 ? (
+                        <div className="guide-result-quality-badges" aria-label="攻略质量提示">
+                          {qualityBadges.map((badge) => (
+                            <span key={badge} className="guide-result-quality-badge">
+                              {badge}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null;
+                    })()}
                     {item.tags?.length ? (
                       <div className="guide-result-tags">
                         {item.tags.map((tag) => (
