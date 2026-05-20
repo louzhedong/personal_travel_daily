@@ -23,6 +23,7 @@ import FancySelect from './ui/FancySelect';
 import TravelIcon from './ui/TravelIcon';
 import { MarkerEditActionBar } from './marker-detail/MarkerEditActionBar';
 import { MarkerLightbox } from './marker-detail/MarkerLightbox';
+import { enhanceMarkerGeo } from '../lib/api/geoApi';
 import type { SavedGuide, TripCollection, UserProfile, VisitMarker } from '../types';
 
 const EMPTY_TRIPS: TripCollection[] = [];
@@ -86,6 +87,8 @@ export function MarkerDetailPanel({
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState('');
   const [saveFeedback, setSaveFeedback] = useState('');
+  const [geoFeedback, setGeoFeedback] = useState('');
+  const [enhancingGeo, setEnhancingGeo] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const displayMarker = marker ?? renderedMarker;
   const displayUser = marker ? user : renderedUser;
@@ -129,6 +132,7 @@ export function MarkerDetailPanel({
     setIsEditing(false);
     setEditError('');
     setSaveFeedback('');
+    setGeoFeedback('');
     setLightboxIndex(null);
   }, [displayMarker]);
 
@@ -172,6 +176,9 @@ export function MarkerDetailPanel({
 
   const canGoPrev = lightboxIndex !== null && lightboxIndex > 0;
   const canGoNext = lightboxIndex !== null && lightboxIndex < imageUrls.length - 1;
+  const geoPrecisionLabel = displayMarker?.latitude && displayMarker.longitude
+    ? `${displayMarker.latitude.toFixed(4)}, ${displayMarker.longitude.toFixed(4)} · ${displayMarker.geoSource ?? 'unknown'} · ${displayMarker.geoConfidence ?? 0}%`
+    : '尚未增强为真实点位';
 
   useEffect(() => {
     if (!shouldRender) {
@@ -220,6 +227,28 @@ export function MarkerDetailPanel({
       setEditError(error instanceof Error ? error.message : '图片上传失败');
     } finally {
       setUploadingImage(false);
+    }
+  };
+
+  const handleEnhanceGeo = async () => {
+    if (!displayMarker || enhancingGeo) return;
+    setEnhancingGeo(true);
+    setGeoFeedback('正在解析真实点位。');
+    try {
+      const response = await enhanceMarkerGeo(displayMarker.id, `${displayMarker.scopeName} ${displayMarker.city}`);
+      setRenderedMarker((current) => current ? {
+        ...current,
+        latitude: response.point.latitude,
+        longitude: response.point.longitude,
+        geoSource: response.point.source,
+        geoConfidence: response.point.confidence,
+        geoResolvedAt: response.point.resolvedAt,
+      } : current);
+      setGeoFeedback(`已增强真实点位：${response.point.label} · ${response.point.confidence}%`);
+    } catch {
+      setGeoFeedback('点位增强失败，请检查网络或稍后重试。');
+    } finally {
+      setEnhancingGeo(false);
     }
   };
 
@@ -360,6 +389,19 @@ export function MarkerDetailPanel({
               </span>
               {metadataSummary.length > 0 ? <span className="detail-trip-pill">{metadataSummary.join(' · ')}</span> : null}
             </div>
+            {!isEditing ? (
+              <div className="detail-geo-row">
+                <span className={panelMarker.latitude && panelMarker.longitude ? 'detail-geo-chip is-resolved' : 'detail-geo-chip'}>
+                  Geo · {geoPrecisionLabel}
+                </span>
+                {displayCanEdit ? (
+                  <button type="button" className="ghost-button detail-geo-button" disabled={enhancingGeo} onClick={handleEnhanceGeo}>
+                    {enhancingGeo ? '增强中' : '增强为真实点位'}
+                  </button>
+                ) : null}
+                {geoFeedback ? <small aria-live="polite">{geoFeedback}</small> : null}
+              </div>
+            ) : null}
           </div>
         </div>
 

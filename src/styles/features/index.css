@@ -20,6 +20,11 @@
 @import './tag-governance.css';
 @import './expenses.css';
 @import './reminders.css';
+@import './travel-os-dashboard.css';
+@import './assistant.css';
+@import './guide-subscriptions.css';
+@import './live-trip.css';
+@import './journey-timeline.css';
 
 .account-settings-shell,
 .admin-shell,

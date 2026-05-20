@@ -8,28 +8,26 @@
   justify-content: space-between;
   gap: 24px;
   align-items: flex-start;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.12);
+  border-bottom: 1px solid var(--line-hair);
   padding-bottom: 20px;
 }
 
 .trip-expense-heading h2 {
   margin: 8px 0;
   font-size: var(--title-xl);
-  color: #111827;
+  color: var(--ink);
 }
 
 .trip-expense-heading p {
   margin: 0;
-  max-width: 620px;
-  color: #64748b;
-  line-height: 1.7;
+  color: var(--ink-muted);
+  line-height: var(--leading-body);
 }
 
 .trip-expense-heading > strong {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: var(--title-xl);
-  color: #0f172a;
-  white-space: nowrap;
+  color: var(--ink);
 }
 
 .trip-expense-summary {
@@ -39,7 +37,7 @@
 }
 
 .trip-expense-summary article {
-  border-left: 1px solid rgba(15, 23, 42, 0.16);
+  border-left: 1px solid var(--line-soft);
   padding-left: 14px;
 }
 
@@ -47,14 +45,14 @@
 .trip-expense-list span,
 .trip-expense-category-list span {
   display: block;
-  color: #64748b;
+  color: var(--ink-muted);
   font-size: var(--text-xs);
 }
 
 .trip-expense-summary strong {
   display: block;
   margin-top: 6px;
-  color: #111827;
+  color: var(--ink);
   font-size: var(--title-xs);
 }
 
@@ -62,20 +60,6 @@
   display: grid;
   grid-template-columns: 1.35fr 0.7fr 0.7fr 0.9fr 1fr;
   gap: 10px;
-}
-
-.trip-expense-composer input,
-.trip-expense-composer select {
-  min-width: 0;
-  border: 1px solid rgba(15, 23, 42, 0.14);
-  border-radius: 14px;
-  padding: 10px 12px;
-  background: #fff;
-  color: #1f2937;
-}
-
-.trip-expense-composer button {
-  white-space: nowrap;
 }
 
 .trip-expense-content {
@@ -95,35 +79,34 @@
   display: flex;
   justify-content: space-between;
   gap: 18px;
-  border-top: 1px solid rgba(15, 23, 42, 0.1);
+  border-top: 1px solid var(--line-hair);
   padding-top: 14px;
 }
 
 .trip-expense-category-list strong,
 .trip-expense-list strong {
-  color: #111827;
+  color: var(--ink);
 }
 
 .trip-expense-list p {
   margin: 6px 0 0;
-  color: #64748b;
-  line-height: 1.6;
+  color: var(--ink-muted);
+  line-height: var(--leading-body);
 }
 
 .trip-expense-list article.is-draft {
-  color: #92400e;
+  color: var(--accent-warning);
 }
 
 .trip-expense-item-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  white-space: nowrap;
 }
 
 .trip-expense-empty {
   padding: 18px 0;
-  color: #64748b;
+  color: var(--ink-muted);
 }
 
 @media (max-width: 860px) {

@@ -60,6 +60,13 @@ const account = {
 
 const settingsResponse: AccountSettingsDto = {
   account,
+  preference: {
+    locale: 'zh-CN',
+    mapStyle: 'magazine',
+    defaultCurrency: 'CNY',
+    commonCurrencies: ['CNY', 'JPY', 'USD', 'EUR'],
+    exchangeRateSource: 'exchangerate-host',
+  },
   createdAt: '2026-05-01T00:00:00.000Z',
   updatedAt: '2026-05-02T00:00:00.000Z',
 };

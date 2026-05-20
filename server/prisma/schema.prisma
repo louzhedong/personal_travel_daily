@@ -76,6 +76,25 @@ enum PrivateShareResourceType {
   memory_capsule
 }
 
+enum AssistantSuggestionStatus {
+  draft
+  confirmed
+  dismissed
+}
+
+enum GuideSubscriptionKind {
+  keyword
+  source
+  destination
+  rss
+}
+
+enum GuideSubscriptionRunStatus {
+  success
+  partial
+  error
+}
+
 model Account {
   id           String               @id
   name         String
@@ -105,8 +124,96 @@ model Account {
   tripExpenses TripExpense[]
   reminderPreferences ReminderPreference[]
   reminderStates ReminderState[]
+  homeDashboardPreference HomeDashboardPreference?
+  assistantPreference AssistantPreference?
+  assistantSuggestions AssistantSuggestion[]
+  geoLookups GeoLookup[]
+  guideSubscriptions GuideSubscription[]
+  exchangeRateSnapshots ExchangeRateSnapshot[]
+  accountPreference AccountPreference?
 
   @@map("accounts")
+}
+
+model AccountPreference {
+  id                 String   @id
+  accountId          String   @unique @map("account_id")
+  locale             String   @default("zh-CN")
+  mapStyle           String   @default("magazine") @map("map_style")
+  defaultCurrency    String   @default("CNY") @map("default_currency")
+  commonCurrencies   Json     @map("common_currencies")
+  exchangeRateSource String   @default("exchangerate-host") @map("exchange_rate_source")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  account            Account  @relation(fields: [accountId], references: [id])
+
+  @@map("account_preferences")
+}
+
+model HomeDashboardPreference {
+  id                String   @id
+  accountId         String   @unique @map("account_id")
+  layoutJson        Json     @map("layout_json")
+  hiddenCardIdsJson Json     @map("hidden_card_ids_json")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  account           Account  @relation(fields: [accountId], references: [id])
+
+  @@map("home_dashboard_preferences")
+}
+
+model AssistantPreference {
+  id        String   @id
+  accountId String   @unique @map("account_id")
+  style     String   @default("magazine")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  account   Account  @relation(fields: [accountId], references: [id])
+
+  @@map("assistant_preferences")
+}
+
+model AssistantSuggestion {
+  id             String                    @id
+  accountId      String                    @map("account_id")
+  contextType    String                    @map("context_type")
+  contextId      String?                   @map("context_id")
+  style          String                    @default("magazine")
+  promptSummary  String                    @map("prompt_summary") @db.Text
+  outputJson     Json                      @map("output_json")
+  status         AssistantSuggestionStatus @default(draft)
+  confirmedAt    DateTime?                 @map("confirmed_at")
+  targetKind     String?                   @map("target_kind")
+  targetId       String?                   @map("target_id")
+  createdAt      DateTime                  @default(now()) @map("created_at")
+  updatedAt      DateTime                  @updatedAt @map("updated_at")
+  account        Account                   @relation(fields: [accountId], references: [id])
+
+  @@index([accountId, createdAt], map: "idx_assistant_suggestions_account_created")
+  @@index([accountId, contextType], map: "idx_assistant_suggestions_context")
+  @@index([status], map: "idx_assistant_suggestions_status")
+  @@map("assistant_suggestions")
+}
+
+model GeoLookup {
+  id            String    @id
+  accountId     String    @map("account_id")
+  queryKey      String    @map("query_key")
+  label         String
+  scope         String?
+  latitude      Decimal   @db.Decimal(10, 7)
+  longitude     Decimal   @db.Decimal(10, 7)
+  source        String
+  confidence    Int       @default(80)
+  rawJson       Json?     @map("raw_json")
+  resolvedAt    DateTime  @default(now()) @map("resolved_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  account       Account   @relation(fields: [accountId], references: [id])
+
+  @@unique([accountId, queryKey], map: "uq_geo_lookups_account_query")
+  @@index([accountId], map: "idx_geo_lookups_account_id")
+  @@map("geo_lookups")
 }
 
 model ReminderPreference {
@@ -361,6 +468,8 @@ model TravelCompanion {
   tripPlanningItems TripPlanningItem[] @relation("TripPlanningItemCreatedByCompanion")
   wishlistItems WishlistItem[] @relation("WishlistItemCreatedByCompanion")
   tripExpenses TripExpense[]
+  tripExpensesPaid TripExpense[] @relation("TripExpensePaidByCompanion")
+  tripExpenseSplits TripExpenseSplit[]
 
   @@index([accountId], map: "idx_travel_companions_account_id")
   @@unique([accountId, name, isDeleted], map: "uq_travel_companions_account_name_active")
@@ -372,11 +481,18 @@ model TripExpense {
   accountId            String            @map("account_id")
   tripId               String            @map("trip_id")
   companionId          String?           @map("companion_id")
+  paidByCompanionId     String?           @map("paid_by_companion_id")
   sourcePlanningItemId String?           @map("source_planning_item_id")
   title                String
   category             String
   amountCents          Int               @map("amount_cents")
   currency             String            @default("CNY")
+  originalAmountCents  Int?              @map("original_amount_cents")
+  originalCurrency     String?           @map("original_currency")
+  baseCurrency         String?           @map("base_currency")
+  exchangeRate         Decimal?          @map("exchange_rate") @db.Decimal(18, 8)
+  exchangeRateSource   String?           @map("exchange_rate_source")
+  exchangeRateAt       DateTime?         @map("exchange_rate_at")
   spentAt              DateTime          @map("spent_at")
   note                 String?           @db.Text
   status               TripExpenseStatus @default(actual)
@@ -387,14 +503,47 @@ model TripExpense {
   account              Account           @relation(fields: [accountId], references: [id])
   trip                 Trip              @relation(fields: [tripId], references: [id])
   companion            TravelCompanion?  @relation(fields: [companionId], references: [id])
+  paidByCompanion      TravelCompanion?  @relation("TripExpensePaidByCompanion", fields: [paidByCompanionId], references: [id])
+  splits               TripExpenseSplit[]
 
   @@index([accountId], map: "idx_trip_expenses_account_id")
   @@index([tripId], map: "idx_trip_expenses_trip_id")
   @@index([companionId], map: "idx_trip_expenses_companion_id")
+  @@index([paidByCompanionId], map: "idx_trip_expenses_paid_by_companion_id")
   @@index([sourcePlanningItemId], map: "idx_trip_expenses_source_planning_item_id")
   @@index([spentAt], map: "idx_trip_expenses_spent_at")
   @@index([status], map: "idx_trip_expenses_status")
   @@map("trip_expenses")
+}
+
+model TripExpenseSplit {
+  id          String          @id
+  expenseId   String          @map("expense_id")
+  companionId String          @map("companion_id")
+  shareRatio  Decimal         @default(1) @map("share_ratio") @db.Decimal(12, 6)
+  shareCents  Int             @map("share_cents")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  expense     TripExpense     @relation(fields: [expenseId], references: [id])
+  companion   TravelCompanion @relation(fields: [companionId], references: [id])
+
+  @@unique([expenseId, companionId], map: "uq_trip_expense_splits_expense_companion")
+  @@index([companionId], map: "idx_trip_expense_splits_companion_id")
+  @@map("trip_expense_splits")
+}
+
+model ExchangeRateSnapshot {
+  id           String   @id
+  accountId    String   @map("account_id")
+  fromCurrency String   @map("from_currency")
+  toCurrency   String   @map("to_currency")
+  rate         Decimal  @db.Decimal(18, 8)
+  source       String
+  fetchedAt    DateTime @map("fetched_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  account      Account  @relation(fields: [accountId], references: [id])
+
+  @@index([accountId, fromCurrency, toCurrency, fetchedAt], map: "idx_exchange_rate_snapshots_lookup")
+  @@map("exchange_rate_snapshots")
 }
 
 model VisitMarker {
@@ -412,6 +561,11 @@ model VisitMarker {
   weather        String?
   transport      String?
   budgetLevel    String?            @map("budget_level")
+  latitude       Decimal?           @db.Decimal(10, 7)
+  longitude      Decimal?           @db.Decimal(10, 7)
+  geoSource      String?            @map("geo_source")
+  geoConfidence  Int?               @map("geo_confidence")
+  geoResolvedAt  DateTime?          @map("geo_resolved_at")
   isDeleted      Boolean            @default(false) @map("is_deleted")
   visitedStartAt DateTime           @map("visited_start_at")
   visitedEndAt   DateTime           @map("visited_end_at")
@@ -429,6 +583,7 @@ model VisitMarker {
   @@index([companionId], map: "idx_visit_markers_companion_id")
   @@index([tripId], map: "idx_visit_markers_trip_id")
   @@index([scope, scopeId], map: "idx_visit_markers_scope_scope_id")
+  @@index([latitude, longitude], map: "idx_visit_markers_lat_lng")
   @@index([visitedStartAt], map: "idx_visit_markers_visited_start_at")
   @@map("visit_markers")
 }
@@ -601,6 +756,62 @@ model GuideQualitySnapshot {
   @@index([sourceDomain, createdAt], map: "idx_guide_quality_snapshots_source_created")
   @@index([score], map: "idx_guide_quality_snapshots_score")
   @@map("guide_quality_snapshots")
+}
+
+model GuideSubscription {
+  id           String                 @id
+  accountId    String                 @map("account_id")
+  kind         GuideSubscriptionKind
+  title        String
+  keyword      String?
+  sourceName   String?                @map("source_name")
+  destination  String?
+  rssUrl       String?                @map("rss_url") @db.Text
+  enabled      Boolean                @default(true)
+  lastRunAt    DateTime?              @map("last_run_at")
+  createdAt    DateTime               @default(now()) @map("created_at")
+  updatedAt    DateTime               @updatedAt @map("updated_at")
+  account      Account                @relation(fields: [accountId], references: [id])
+  runs         GuideSubscriptionRun[]
+  items        GuideSubscriptionItem[]
+
+  @@index([accountId], map: "idx_guide_subscriptions_account_id")
+  @@index([kind, enabled], map: "idx_guide_subscriptions_kind_enabled")
+  @@map("guide_subscriptions")
+}
+
+model GuideSubscriptionRun {
+  id             String                     @id
+  subscriptionId String                     @map("subscription_id")
+  status         GuideSubscriptionRunStatus
+  matchedCount   Int                        @default(0) @map("matched_count")
+  errorMessage   String?                    @map("error_message") @db.Text
+  startedAt      DateTime                   @map("started_at")
+  finishedAt     DateTime?                  @map("finished_at")
+  subscription   GuideSubscription          @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId, startedAt], map: "idx_guide_subscription_runs_subscription_started")
+  @@map("guide_subscription_runs")
+}
+
+model GuideSubscriptionItem {
+  id             String            @id
+  subscriptionId String            @map("subscription_id")
+  title          String
+  sourceName     String?           @map("source_name")
+  sourceUrl      String            @map("source_url") @db.Text
+  sourceHash     String            @map("source_hash")
+  summary        String?           @db.Text
+  publishedAt    DateTime?         @map("published_at")
+  firstSeenAt    DateTime          @default(now()) @map("first_seen_at")
+  savedGuideId   String?           @map("saved_guide_id")
+  wishlistItemId String?           @map("wishlist_item_id")
+  planningItemId String?           @map("planning_item_id")
+  subscription   GuideSubscription @relation(fields: [subscriptionId], references: [id])
+
+  @@unique([subscriptionId, sourceHash], map: "uq_guide_subscription_items_subscription_hash")
+  @@index([subscriptionId, firstSeenAt], map: "idx_guide_subscription_items_subscription_seen")
+  @@map("guide_subscription_items")
 }
 
 model TripChecklistItem {

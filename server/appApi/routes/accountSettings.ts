@@ -4,6 +4,7 @@ import { SESSION_COOKIE_NAME, readCookieValue, serializeSessionCookieClear } fro
 import {
   accountSessionParamsSchema,
   changePasswordBodySchema,
+  updateAccountPreferenceBodySchema,
   updateAccountProfileBodySchema,
 } from '../schemas/accountSettings.js';
 import { parseWithSchema } from '../schemas/utils.js';
@@ -13,6 +14,7 @@ import {
   listAccountSessions,
   logoutAllAccountSessions,
   revokeAccountSession,
+  updateAccountPreference,
   updateAccountProfile,
 } from '../services/accountSettingsService.js';
 
@@ -26,6 +28,12 @@ export async function registerAccountSettingsRoutes(app: FastifyInstance) {
     const account = await requireAuthenticatedAccount(request);
     const body = parseWithSchema(updateAccountProfileBodySchema, request.body);
     return updateAccountProfile(account.id, body);
+  });
+
+  app.patch('/api/account/preference', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const body = parseWithSchema(updateAccountPreferenceBodySchema, request.body);
+    return updateAccountPreference(account.id, body);
   });
 
   app.patch('/api/account/password', async (request) => {

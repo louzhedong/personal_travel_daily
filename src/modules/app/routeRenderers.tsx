@@ -2,10 +2,13 @@ import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import type { AuthAccount } from '../../types';
 import AdminPage from '../admin/AdminPage';
 import AchievementsPage from '../achievements/AchievementsPage';
+import AssistantPage from '../assistant/AssistantPage';
 import TravelAtlasPage from '../atlas/TravelAtlasPage';
 import MemoryCapsuleCenterPage from '../capsules/MemoryCapsuleCenterPage';
 import MemoryCapsuleDetailPage from '../capsules/MemoryCapsuleDetailPage';
 import CompanionMemoriesPage from '../companions/CompanionMemoriesPage';
+import GuideSubscriptionsPage from '../guides/GuideSubscriptionsPage';
+import JourneyTimelinePage from '../journey/JourneyTimelinePage';
 import OrganizationWorkbenchPage from '../organize/OrganizationWorkbenchPage';
 import TagGovernancePage from '../tag-governance/TagGovernancePage';
 import PhotoCurationPage from '../photos/PhotoCurationPage';
@@ -17,16 +20,21 @@ import StatsPage from '../stats/StatsPage';
 import TravelApp from '../TravelApp';
 import TripChecklistPage from '../trips/TripChecklistPage';
 import TripDetailPage from '../trips/TripDetailPage';
+import TripSettlementPage from '../expenses/TripSettlementPage';
 import TripStoryPage from '../trips/TripStoryPage';
+import TripTodayPage from '../trips/TripTodayPage';
 import AnnualReviewPage from '../yearbook/AnnualReviewPage';
 import { canOpenAdmin } from './routeGuards';
 import {
   createAdminRoute,
   createAchievementsRoute,
+  createAssistantRoute,
   createAtlasRoute,
   createAnnualReviewRoute,
   createCompanionMemoriesRoute,
   createHomeRoute,
+  createGuideSubscriptionsRoute,
+  createJourneyRoute,
   createMemoryCapsuleDetailRoute,
   createMemoryCapsulesRoute,
   createMapReplayStoryRoute,
@@ -38,7 +46,9 @@ import {
   createTagGovernanceRoute,
   createTripChecklistRoute,
   createTripDetailRoute,
+  createTripSettlementRoute,
   createTripStoryRoute,
+  createTripTodayRoute,
   parsePathname,
   type AppRoute,
 } from './router';
@@ -92,6 +102,9 @@ const authenticatedRouteRenderers: RouteRendererRegistry = {
       onNavigateBack={() => goBackOrReplace(createHomeRoute())}
     />
   ),
+  assistant: ({ goBackOrReplace }) => (
+    <AssistantPage contextType="home" onNavigateBack={() => goBackOrReplace(createHomeRoute())} />
+  ),
   atlas: ({ account, goBackOrReplace, onLogout }) => (
     <TravelAtlasPage account={account} onLogout={onLogout} onNavigateBack={() => goBackOrReplace(createHomeRoute())} />
   ),
@@ -116,6 +129,22 @@ const authenticatedRouteRenderers: RouteRendererRegistry = {
       onOpenMemoryCapsules={() => navigate(createMemoryCapsulesRoute())}
       onOpenCompanionMemories={(companionId) => navigate(createCompanionMemoriesRoute(companionId))}
       onOpenPhotoCuration={(query) => navigate(createPhotoCurationRoute(query))}
+    />
+  ),
+  tripToday: ({ account, route, goBackOrReplace, onLogout }) => (
+    <TripTodayPage
+      account={account}
+      tripId={route.tripId}
+      onLogout={onLogout}
+      onNavigateBack={() => goBackOrReplace(createTripDetailRoute(route.tripId))}
+    />
+  ),
+  tripSettlement: ({ account, route, goBackOrReplace, onLogout }) => (
+    <TripSettlementPage
+      account={account}
+      tripId={route.tripId}
+      onLogout={onLogout}
+      onNavigateBack={() => goBackOrReplace(createTripDetailRoute(route.tripId))}
     />
   ),
   tripStory: ({ account, route, navigate, goBackOrReplace, onLogout }) => (
@@ -177,6 +206,20 @@ const authenticatedRouteRenderers: RouteRendererRegistry = {
         const [pathname, search = ''] = path.split('?');
         navigate(parsePathname(pathname, search ? `?${search}` : ''));
       }}
+    />
+  ),
+  guideSubscriptions: ({ account, goBackOrReplace, onLogout }) => (
+    <GuideSubscriptionsPage
+      account={account}
+      onLogout={onLogout}
+      onNavigateBack={() => goBackOrReplace(createHomeRoute())}
+    />
+  ),
+  journey: ({ account, goBackOrReplace, onLogout }) => (
+    <JourneyTimelinePage
+      account={account}
+      onLogout={onLogout}
+      onNavigateBack={() => goBackOrReplace(createHomeRoute())}
     />
   ),
   memoryCapsuleDetail: ({ account, route, navigate, goBackOrReplace, onLogout }) => (
@@ -247,10 +290,19 @@ function renderHomeRoute({
       onOpenTagGovernance={() => navigate(createTagGovernanceRoute())}
       onOpenTripDetail={(tripId) => navigate(createTripDetailRoute(tripId))}
       onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
+      onOpenTripSettlement={(tripId) => navigate(createTripSettlementRoute(tripId))}
+      onOpenTripToday={(tripId) => navigate(createTripTodayRoute(tripId))}
       onOpenPhotoCuration={() => navigate(createPhotoCurationRoute())}
       onOpenMemoryCapsules={() => navigate(createMemoryCapsulesRoute())}
       onOpenReminders={() => navigate(createRemindersRoute())}
       onOpenSettings={() => navigate(createSettingsRoute())}
+      onOpenAssistant={() => navigate(createAssistantRoute())}
+      onOpenGuideSubscriptions={() => navigate(createGuideSubscriptionsRoute())}
+      onOpenJourney={() => navigate(createJourneyRoute())}
+      onNavigateToPath={(path) => {
+        const [pathname, search = ''] = path.split('?');
+        navigate(parsePathname(pathname, search ? `?${search}` : ''));
+      }}
       onOpenAdmin={
         canOpenAdmin(account)
           ? () => {

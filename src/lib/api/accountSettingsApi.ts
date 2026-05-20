@@ -3,6 +3,7 @@ import type {
   AccountSessionsResponseDto,
   AccountSettingsDto,
   ChangePasswordInputDto,
+  UpdateAccountPreferenceInputDto,
   UpdateAccountProfileInputDto,
 } from './types';
 
@@ -14,6 +15,10 @@ export function fetchAccountSettings() {
 
 export function updateAccountProfile(input: UpdateAccountProfileInputDto) {
   return httpClient.patch<AccountSettingsDto>(accountBaseUrl, '/account/profile', input);
+}
+
+export function updateAccountPreference(input: UpdateAccountPreferenceInputDto) {
+  return httpClient.patch<AccountSettingsDto>(accountBaseUrl, '/account/preference', input);
 }
 
 export function changeAccountPassword(input: ChangePasswordInputDto) {

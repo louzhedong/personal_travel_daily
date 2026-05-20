@@ -30,6 +30,8 @@ interface TripTimelinePanelProps {
   activeUserName?: string;
   onOpenMarkerDetail: (markerId: string) => void;
   onOpenTripDetail?: (tripId: string) => void;
+  onOpenTripToday?: (tripId: string) => void;
+  onOpenTripSettlement?: (tripId: string) => void;
   onCreateTrip: (payload: { name: string; startsAt: string; endsAt: string; note?: string }) => void;
   onUpdateTrip: (
     tripId: string,
@@ -46,6 +48,8 @@ export default function TripTimelinePanel({
   activeUserName,
   onOpenMarkerDetail,
   onOpenTripDetail,
+  onOpenTripToday,
+  onOpenTripSettlement,
   onCreateTrip,
   onUpdateTrip,
   onDeleteTrip,
@@ -412,6 +416,8 @@ export default function TripTimelinePanel({
           trips={trips}
           selectionMode={selectionMode}
           onOpenTripDetail={onOpenTripDetail}
+          onOpenTripToday={onOpenTripToday}
+          onOpenTripSettlement={onOpenTripSettlement}
           onEditTrip={openEditTripDialog}
           onRequestDeleteTrip={setPendingDeleteTripId}
           renderMarkerButton={renderMarkerButton}

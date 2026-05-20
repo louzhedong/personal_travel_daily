@@ -69,6 +69,33 @@ export interface TripExpenseListResponseDto {
   items: TripExpenseDto[];
 }
 
+export interface TripSettlementTransferDto {
+  fromCompanionId?: string;
+  fromCompanionName: string;
+  toCompanionId?: string;
+  toCompanionName: string;
+  amountCents: number;
+  currency: string;
+}
+
+export interface TripSettlementBalanceDto {
+  companionId?: string;
+  companionName: string;
+  paidCents: number;
+  shareCents: number;
+  balanceCents: number;
+  currency: string;
+}
+
+export interface TripSettlementResponseDto {
+  tripId: string;
+  currency: string;
+  balances: TripSettlementBalanceDto[];
+  transfers: TripSettlementTransferDto[];
+  csv: string;
+  generatedAt: string;
+}
+
 export interface CreateTripExpenseInputDto {
   tripId: string;
   companionId?: string | null;

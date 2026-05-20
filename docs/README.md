@@ -8,14 +8,18 @@ This index is the single entry point to every document in the repository. It is 
 
 ## 1. Start Here / 读者入口
 
-先读这两份：
+先读这四份：
 
 - [项目总览 / Project Overview](./technical/project-overview.md)
   - 全量模块、分层与约束的总入口。
+- [视觉 Token 与字体规范 / Visual Tokens and Typography Guide](./design/design-tokens.md)
+  - 全局视觉权威源：第 6 / 6A / 6B 章覆盖两档版心 (`--page-frame` / `--page-frame-wide`)、`--page-gutter` 响应式留白、统一 topbar + hero 模板，以及禁止硬编码宽度等硬约束。
+- [Harness 工程化入口 / Engineering Harness](../harness/) 与根目录 [AGENTS.md](../AGENTS.md)
+  - 一站式自检：`bash harness/init.sh` 跑通质量门禁、`feature_list.json` 维护已交付能力清单。
 - [未来 Roadmap / Product Roadmap](./technical/future-roadmap.md)
-  - 已完成里程碑与下一阶段方向。
+  - 已完成里程碑与下一阶段“十大功能方向”。
 
-Summary: Start with the project overview and the roadmap to understand both "what exists today" and "what comes next".
+Summary: Start with the project overview, the visual tokens guide (the sole authority on widths, topbar, and hero), the engineering harness, and the roadmap to understand both "what exists today" and "what comes next".
 
 ## 2. Product / 项目与产品定位
 
@@ -91,9 +95,11 @@ Summary: Check these contracts before consuming or changing any HTTP endpoint.
 - 根目录 [README.md](../README.md)
   - 一键启动、常用脚本与默认端口。
 - 根目录 [CHANGELOG.md](../CHANGELOG.md)
-  - 版本 / PR 级变更日志。
+  - 版本 / PR 级变更日志，最新条目记录 PR #41 视觉统一与宽度收口。
+- [Harness 工程化入口 / Engineering Harness](../harness/) 与 [AGENTS.md](../AGENTS.md)
+  - `bash harness/init.sh` 一键跑构建 / 测试 / 文档校验，并查看 `feature_list.json`、`quality-document.md`、`session-handoff.md`、`evaluator-rubric.md` 等基线文档。
 
-Summary: Use these for day-to-day development, local debugging, and release tracking.
+Summary: Use these for day-to-day development, local debugging, harness gating, and release tracking.
 
 ## 7. AI Prompts（可选）/ AI Collaboration Materials (Optional)
 

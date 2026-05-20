@@ -370,7 +370,7 @@ describe('App auth and guide permissions', () => {
     render(<App />);
 
     expect(await screen.findByText('系统用户总览')).toBeInTheDocument();
-    expect(fetchAdminOverview).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(fetchAdminOverview).toHaveBeenCalledTimes(1));
     expect(window.location.pathname).toBe('/admin');
   });
 

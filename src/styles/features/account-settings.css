@@ -1,29 +1,17 @@
 .account-settings-shell {
-  min-height: 100vh;
-  padding: 24px var(--page-gutter) 56px;
-  background:
-    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.72)),
-    #f8fafc;
-  color: #0f172a;
+  color: var(--ink);
 }
 
 .account-settings-topbar {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  width: min(100%, var(--page-frame));
-  margin: 0 auto 28px;
+  width: 100%;
+  margin: 0 0 28px;
 }
 
 .account-settings-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(20px, 5vw, 72px);
   align-items: end;
-  width: min(100%, var(--page-frame));
-  margin: 0 auto 24px;
-  padding: 18px 0 22px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.26);
 }
 
 .account-settings-hero span {
@@ -32,7 +20,7 @@
   gap: 10px;
   grid-column: 1;
   width: fit-content;
-  color: #64748b;
+  color: var(--ink-muted);
   font-size: var(--text-2xs);
   font-weight: 900;
   letter-spacing: 0.16em;
@@ -42,24 +30,19 @@
   content: '';
   width: 26px;
   height: 1px;
-  background: linear-gradient(90deg, #0f172a, rgba(15, 23, 42, 0.12));
+  background: linear-gradient(90deg, var(--ink), var(--line-hair));
 }
 
 .account-settings-hero h1 {
   grid-column: 1;
   margin: 10px 0 0;
-  max-width: 5em;
-  font-size: var(--display-sm);
-  font-weight: 900;
-  letter-spacing: -0.07em;
-  line-height: 0.96;
 }
 
 .account-settings-hero p,
 .account-settings-section-title p,
 .account-settings-session p {
   margin: 0;
-  color: #64748b;
+  color: var(--ink-muted);
 }
 
 .account-settings-hero > p {
@@ -67,17 +50,9 @@
   grid-row: 1 / span 2;
   align-self: end;
   justify-self: end;
-  color: #475569;
+  color: var(--ink-muted);
   font-size: var(--text-body);
   font-weight: 800;
-}
-
-.account-settings-layout {
-  display: grid;
-  gap: 0;
-  width: min(100%, var(--page-frame));
-  margin: 0 auto;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
 }
 
 .account-settings-section {
@@ -85,31 +60,26 @@
   grid-template-columns: minmax(150px, 0.26fr) minmax(0, 0.74fr);
   gap: clamp(24px, 5vw, 72px);
   align-items: start;
-  padding: clamp(20px, 4vw, 32px) 0;
-  border-top: 1px solid rgba(148, 163, 184, 0.22);
-}
-
-.account-settings-section:first-child {
-  border-top: 0;
 }
 
 .account-settings-section-title {
   display: grid;
   align-content: start;
   gap: 8px;
-  max-width: 220px;
 }
 
 .account-settings-section-title h2 {
   margin: 0;
+  font-family: var(--font-display);
   font-size: var(--title-sm);
-  letter-spacing: -0.055em;
+  letter-spacing: var(--tracking-tight);
   line-height: 1;
+  color: var(--ink);
 }
 
 .account-settings-section-title p {
   font-size: var(--text-sm);
-  line-height: 1.55;
+  line-height: var(--leading-body);
 }
 
 .account-settings-row-title {
@@ -117,14 +87,8 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: none;
   gap: 20px;
   padding: 8px 0 14px;
-}
-
-.account-settings-row-title p,
-.account-settings-row-title .ghost-button {
-  white-space: nowrap;
 }
 
 .account-settings-row-title .ghost-button {
@@ -147,7 +111,7 @@
 }
 
 .account-settings-field span {
-  color: #64748b;
+  color: var(--ink-muted);
   font-size: var(--text-2xs);
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -157,11 +121,11 @@
 .account-settings-field select {
   width: 100%;
   border: 0;
-  border-bottom: 1px solid #cbd5e1;
+  border-bottom: 1px solid var(--line-soft);
   border-radius: 0;
   background: transparent;
   padding: 9px 0 10px;
-  color: #0f172a;
+  color: var(--ink);
   font-size: var(--text-body);
   font-weight: 650;
   outline: none;
@@ -169,13 +133,14 @@
 
 .account-settings-field input:focus,
 .account-settings-field select:focus {
-  border-color: #0f172a;
+  border-color: var(--line-strong);
+  box-shadow: var(--focus-ring);
 }
 
 .account-settings-form .primary-button {
   width: fit-content;
   min-width: 132px;
-  min-height: 36px;
+  min-height: var(--control-height-sm);
   padding: 0 18px;
 }
 
@@ -188,16 +153,31 @@
   gap: 0;
 }
 
+.account-settings-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 14px;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.account-settings-pagination span {
+  flex: 1;
+  text-align: center;
+}
+
 .account-settings-session {
   display: flex;
   justify-content: space-between;
   gap: 18px;
   padding: 13px 0 14px;
-  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  border-top: 1px solid var(--line-hair);
 }
 
 .account-settings-session.is-current {
-  border-top-color: rgba(15, 23, 42, 0.42);
+  border-top-color: var(--line-strong);
 }
 
 .account-settings-shares {
@@ -231,7 +211,7 @@
   justify-content: space-between;
   gap: 18px;
   padding: 13px 0 14px;
-  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  border-top: 1px solid var(--line-hair);
 }
 
 .account-settings-share-link.is-revoked,
@@ -249,13 +229,14 @@
 
 .account-settings-session-title strong {
   font-size: var(--text-body);
+  color: var(--ink);
 }
 
 .account-settings-session-title span {
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--line-soft);
   border-radius: 999px;
   padding: 2px 8px;
-  color: #475569;
+  color: var(--ink-muted);
   font-size: var(--text-2xs);
   font-weight: 800;
 }
@@ -267,7 +248,6 @@
   font-size: var(--text-xs);
   line-height: 1.45;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .account-settings-session-meta {
@@ -278,14 +258,14 @@
 }
 
 .account-settings-session-meta span {
-  color: #64748b;
+  color: var(--ink-muted);
   font-size: var(--text-2xs);
   font-weight: 700;
 }
 
 .account-settings-empty {
   padding: 14px 0;
-  color: #64748b;
+  color: var(--ink-muted);
   font-weight: 800;
 }
 
@@ -323,8 +303,8 @@
 .account-settings-section .data-sync-cloud-note {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
-  color: #64748b;
+  border-top: 1px solid var(--line-hair);
+  color: var(--ink-muted);
   font-size: var(--text-xs);
 }
 
@@ -342,23 +322,6 @@
 }
 
 @media (max-width: 820px) {
-  .account-settings-topbar,
-  .account-settings-hero,
-  .account-settings-layout {
-    width: 100%;
-  }
-
-  .account-settings-hero {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .account-settings-hero > p {
-    grid-column: 1;
-    grid-row: auto;
-    justify-self: start;
-  }
-
   .account-settings-section {
     grid-template-columns: 1fr;
     gap: 20px;

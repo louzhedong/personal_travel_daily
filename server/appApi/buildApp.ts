@@ -2,6 +2,7 @@ import cors from '@fastify/cors';
 import Fastify from 'fastify';
 import { getAppApiEnv } from './env.js';
 import { normalizeAppApiError } from './errors.js';
+import { registerAssistantRoutes } from './routes/assistant.js';
 import { registerAdminRoutes } from './routes/admin.js';
 import { registerAccountSettingsRoutes } from './routes/accountSettings.js';
 import { registerAtlasRoutes } from './routes/atlas.js';
@@ -12,8 +13,12 @@ import { registerCompanionRoutes } from './routes/companions.js';
 import { registerExpenseRoutes } from './routes/expenses.js';
 import { registerGuideSearchHistoryRoutes } from './routes/guideSearchHistories.js';
 import { registerGuideSearchLogRoutes } from './routes/guideSearchLogs.js';
+import { registerGuideSubscriptionRoutes } from './routes/guideSubscriptions.js';
 import { registerGuideSourceHealthRoutes } from './routes/guideSourceHealth.js';
+import { registerGeoRoutes } from './routes/geo.js';
 import { registerHealthRoutes } from './routes/health.js';
+import { registerHomeDashboardRoutes } from './routes/homeDashboard.js';
+import { registerJourneyRoutes } from './routes/journey.js';
 import { registerMarkerRoutes } from './routes/markers.js';
 import { registerMapReplayStoryRoutes } from './routes/mapReplayStories.js';
 import { registerMemoryCapsuleRoutes } from './routes/memoryCapsules.js';
@@ -42,8 +47,10 @@ export async function buildApp() {
 
   await registerAuthRoutes(app);
   await registerAccountSettingsRoutes(app);
+  await registerAssistantRoutes(app);
   await registerAdminRoutes(app);
   await registerHealthRoutes(app);
+  await registerHomeDashboardRoutes(app);
   await registerBootstrapRoutes(app);
   await registerCompanionRoutes(app);
   await registerCompanionMemoryRoutes(app);
@@ -63,7 +70,10 @@ export async function buildApp() {
   await registerShareLinkRoutes(app);
   await registerGuideSearchHistoryRoutes(app);
   await registerGuideSearchLogRoutes(app);
+  await registerGuideSubscriptionRoutes(app);
   await registerGuideSourceHealthRoutes(app);
+  await registerGeoRoutes(app);
+  await registerJourneyRoutes(app);
   await registerMarkerRoutes(app);
 
   app.setErrorHandler((error, _request, reply) => {

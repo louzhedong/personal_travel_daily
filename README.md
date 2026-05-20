@@ -244,14 +244,19 @@ npm run test
 
 ---
 
-## **进一步阅读 / Further Reading**
+## 进一步阅读 / Further Reading
 
 文档统一入口：[docs/README.md](docs/README.md)
 
 常用跳转：
 
 - [项目总览 / Project Overview](docs/technical/project-overview.md)
+- [视觉 Token 与字体规范 / Visual Tokens and Typography Guide](docs/design/design-tokens.md)
+  - 全局视觉权威源；新增页面必须遵循第 6 / 6A / 6B 章的两档版心 (`--page-frame` / `--page-frame-wide`)、`--page-gutter` 响应式留白、统一 topbar + hero 模板，以及禁止硬编码宽度等硬约束。
 - [未来 Roadmap / Product Roadmap](docs/technical/future-roadmap.md)
+  - 已完成里程碑与下一阶段“十大功能方向”。
+- [Harness 工程化入口 / Engineering Harness](harness/) 与 [AGENTS.md](AGENTS.md)
+  - `bash harness/init.sh` 一键跑构建 / 测试 / 文档校验。
 - [攻略提炼为行前清单 / Guide-to-Checklist Workflow](docs/technical/guide-to-checklist-workflow.md)
 - [App API Contract](docs/technical/app-api-contract.md)
 - [Guide Search API Contract](docs/technical/guide-search-api-contract.md)
@@ -284,6 +289,8 @@ Summary: MySQL is the only source of truth; local exports are backup-only; guide
 - 通用纯逻辑放到 `src/lib`；页面 / 模块组装放到 `src/modules`；组件只保留 UI、交互和必要局部状态
 - 每次创建 PR 同步更新 `CHANGELOG.md`，并补齐涉及的 README / `docs/` 说明
 - PR 默认 Ready for review；PR 标题 / 正文 / CHANGELOG / 面向协作的文档必须保持中英双语（中文在前）
-- 新增样式放到对应模块的 `src/styles/components/*.css`；全局硬约束（例如隐藏滚动条）保留在 `src/styles/base.css`，不要随意覆盖
+- 新增样式必须使用 `src/styles/visual-system.css` 与 `src/styles/base.css` 提供的 token：两档版心 (`--page-frame` / `--page-frame-wide`)、`--page-gutter`、`--space-card-*`、`--page-hero-*`，禁止 1040 / 1120 / 1180 / 1240 / 1320 / 1360 / 1380 等硬编码宽度；新增样式放到对应模块的 `src/styles/components/*.css` 或 `src/styles/features/*.css`，不要覆盖全局收口层
+- 新增功能页头部统一使用「右对齐 Topbar（返回首页 + 退出登录）+ Hero」模板；不要在 hero 里再放导航按钮
+- 提交前跑 `bash harness/init.sh`（构建 / 测试 / 文档校验门禁）
 
-Summary: Reuse shared helpers, respect layering, keep bilingual docs in sync, and never break the global invariants in `base.css`.
+Summary: Reuse shared helpers, respect layering, keep bilingual docs in sync, follow the unified visual tokens (frame widths, gutter, hero/topbar) instead of hard-coded widths, and run the harness before submitting a PR.

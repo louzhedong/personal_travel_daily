@@ -1,14 +1,11 @@
 .achievements-page-stage {
   min-height: 100vh;
-  padding: 48px var(--page-gutter) 72px;
   background:
     radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 26%),
     linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
 }
 
 .achievements-page-shell {
-  width: min(100%, var(--page-frame));
-  margin: 0 auto;
   display: grid;
   gap: 24px;
 }

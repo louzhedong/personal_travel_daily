@@ -43,6 +43,8 @@ interface AppContentProps {
   onBulkAssignMarkersToTrip: (markerIds: string[], tripId?: string | null) => void;
   onOpenMarkerFromTimeline: (markerId: string) => void;
   onOpenTripDetail?: (tripId: string) => void;
+  onOpenTripToday?: (tripId: string) => void;
+  onOpenTripSettlement?: (tripId: string) => void;
   onOpenMarkerFromGuide: (markerId: string) => void;
   onRemoveSavedGuide: (savedGuideId: string) => void;
   onUpdateWishlistItem: (wishlistId: string, input: UpdateWishlistItemInput) => Promise<WishlistItem> | void;
@@ -82,6 +84,8 @@ export default function AppContent({
   onBulkAssignMarkersToTrip,
   onOpenMarkerFromTimeline,
   onOpenTripDetail,
+  onOpenTripToday,
+  onOpenTripSettlement,
   onOpenMarkerFromGuide,
   onRemoveSavedGuide,
   onUpdateWishlistItem,
@@ -135,6 +139,8 @@ export default function AppContent({
           activeUserName={activeUserName}
           onOpenMarkerDetail={onOpenMarkerFromTimeline}
           onOpenTripDetail={onOpenTripDetail}
+          onOpenTripToday={onOpenTripToday}
+          onOpenTripSettlement={onOpenTripSettlement}
           onCreateTrip={onCreateTrip}
           onUpdateTrip={onUpdateTrip}
           onDeleteTrip={onDeleteTrip}

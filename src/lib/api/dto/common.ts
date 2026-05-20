@@ -8,6 +8,8 @@ import type {
   VisitMarker,
 } from '../../../types';
 
+export type AccountRoleDto = 'admin' | 'member';
+
 export interface AppApiErrorPayload {
   error?: {
     code?: string;
@@ -15,7 +17,28 @@ export interface AppApiErrorPayload {
   };
 }
 
-export type AccountRoleDto = 'admin' | 'member';
+export interface CurrentAccountDto {
+  id: string;
+  name: string;
+  username: string;
+  role: AccountRoleDto;
+}
+
+export interface UserProfileDto {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface TripDto {
+  id: string;
+  name: string;
+  coverImageUrl?: string;
+  note: string;
+  startsAt: string;
+  endsAt: string;
+  createdAt: string;
+}
 
 export interface CreateMarkerInput {
   companionId: string;

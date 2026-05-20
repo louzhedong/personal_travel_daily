@@ -15,6 +15,7 @@ import {
   fetchAccountSettings,
   logoutAllAccountSessions,
   revokeAccountSession,
+  updateAccountPreference,
   updateAccountProfile,
 } from '../../lib/api/accountSettingsApi';
 import {
@@ -57,11 +58,27 @@ export default function AccountSettingsPage({
   const [shareExpiresAt, setShareExpiresAt] = useState('');
   const [sharePassword, setSharePassword] = useState('');
   const [shareMaxAccessCount, setShareMaxAccessCount] = useState('');
+  const [locale, setLocale] = useState<'zh-CN' | 'en-US'>('zh-CN');
+  const [mapStyle, setMapStyle] = useState<'minimal' | 'magazine' | 'old-map'>('magazine');
+  const [defaultCurrency, setDefaultCurrency] = useState('CNY');
+  const [commonCurrencies, setCommonCurrencies] = useState('CNY,JPY,USD,EUR');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<{ message: string; tone: AppToastTone } | null>(null);
 
   const sessionGroups = useMemo(() => splitSessions(sessions), [sessions]);
+  const SESSION_PAGE_SIZE = 5;
+  const [sessionPage, setSessionPage] = useState(1);
+  const sessionPageCount = Math.max(1, Math.ceil(sessionGroups.others.length / SESSION_PAGE_SIZE));
+  useEffect(() => {
+    if (sessionPage > sessionPageCount) {
+      setSessionPage(sessionPageCount);
+    }
+  }, [sessionPage, sessionPageCount]);
+  const visibleOtherSessions = useMemo(
+    () => sessionGroups.others.slice((sessionPage - 1) * SESSION_PAGE_SIZE, sessionPage * SESSION_PAGE_SIZE),
+    [sessionGroups.others, sessionPage],
+  );
 
   const showToast = (message: string, tone: AppToastTone = 'info') => {
     setToast({ message, tone });
@@ -89,6 +106,10 @@ export default function AccountSettingsPage({
     ]);
     setSettings(settingsResponse);
     setName(settingsResponse.account.name);
+    setLocale(settingsResponse.preference.locale);
+    setMapStyle(settingsResponse.preference.mapStyle);
+    setDefaultCurrency(settingsResponse.preference.defaultCurrency);
+    setCommonCurrencies(settingsResponse.preference.commonCurrencies.join(','));
     onAccountUpdated(settingsResponse.account);
     setSessions(sessionsResponse.sessions);
     setShareLinks(shareLinksResponse.links);
@@ -156,6 +177,25 @@ export default function AccountSettingsPage({
       showToast('密码已更新', 'success');
     } catch (error) {
       showToast(error instanceof Error ? error.message : '密码更新失败', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handlePreferenceSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    try {
+      const response = await updateAccountPreference({
+        locale,
+        mapStyle,
+        defaultCurrency: defaultCurrency.trim().toUpperCase(),
+        commonCurrencies: commonCurrencies.split(',').map((item) => item.trim().toUpperCase()).filter(Boolean),
+      });
+      setSettings(response);
+      showToast('产品偏好已保存', 'success');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '产品偏好保存失败', 'error');
     } finally {
       setBusy(false);
     }
@@ -294,6 +334,40 @@ export default function AccountSettingsPage({
             </form>
           </section>
 
+          <section className="account-settings-section">
+            <div className="account-settings-section-title">
+              <h2>产品偏好</h2>
+              <p>控制语言、地图风格和结算默认币种。</p>
+            </div>
+
+            <form className="account-settings-form" onSubmit={handlePreferenceSubmit}>
+              <label className="account-settings-field">
+                <span>界面语言</span>
+                <select value={locale} onChange={(event) => setLocale(event.target.value as typeof locale)} disabled={busy}>
+                  <option value="zh-CN">中文</option>
+                  <option value="en-US">English</option>
+                </select>
+              </label>
+              <label className="account-settings-field">
+                <span>地图风格</span>
+                <select value={mapStyle} onChange={(event) => setMapStyle(event.target.value as typeof mapStyle)} disabled={busy}>
+                  <option value="magazine">旅行杂志</option>
+                  <option value="minimal">极简线稿</option>
+                  <option value="old-map">旧地图</option>
+                </select>
+              </label>
+              <label className="account-settings-field">
+                <span>默认币种</span>
+                <input value={defaultCurrency} onChange={(event) => setDefaultCurrency(event.target.value)} disabled={busy} />
+              </label>
+              <label className="account-settings-field">
+                <span>常用币种</span>
+                <input value={commonCurrencies} onChange={(event) => setCommonCurrencies(event.target.value)} disabled={busy} />
+              </label>
+              <button type="submit" className="primary-button" disabled={busy}>保存产品偏好</button>
+            </form>
+          </section>
+
           <section className="account-settings-section account-settings-reminders">
             <div className="account-settings-section-title">
               <h2>提醒偏好</h2>
@@ -367,16 +441,41 @@ export default function AccountSettingsPage({
 
             <SessionRow session={sessionGroups.current} current />
             {sessionGroups.others.length > 0 ? (
-              <div className="account-settings-session-list">
-                {sessionGroups.others.map((session) => (
-                  <SessionRow
-                    key={session.id}
-                    session={session}
-                    disabled={busy}
-                    onRevoke={() => handleRevokeSession(session.id)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="account-settings-session-list">
+                  {visibleOtherSessions.map((session) => (
+                    <SessionRow
+                      key={session.id}
+                      session={session}
+                      disabled={busy}
+                      onRevoke={() => handleRevokeSession(session.id)}
+                    />
+                  ))}
+                </div>
+                {sessionPageCount > 1 ? (
+                  <nav className="account-settings-pagination" aria-label="会话分页">
+                    <button
+                      type="button"
+                      className="ghost-button"
+                      disabled={sessionPage <= 1}
+                      onClick={() => setSessionPage((page) => Math.max(1, page - 1))}
+                    >
+                      上一页
+                    </button>
+                    <span>
+                      第 {sessionPage} / {sessionPageCount} 页 · 共 {sessionGroups.others.length} 条
+                    </span>
+                    <button
+                      type="button"
+                      className="ghost-button"
+                      disabled={sessionPage >= sessionPageCount}
+                      onClick={() => setSessionPage((page) => Math.min(sessionPageCount, page + 1))}
+                    >
+                      下一页
+                    </button>
+                  </nav>
+                ) : null}
+              </>
             ) : (
               <div className="account-settings-empty">暂无其他设备</div>
             )}

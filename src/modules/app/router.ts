@@ -30,6 +30,7 @@ export type AppRoute =
   | { kind: 'login'; pathname: '/login' }
   | { kind: 'register'; pathname: '/register' }
   | { kind: 'settings'; pathname: '/settings' }
+  | { kind: 'assistant'; pathname: '/assistant' }
   | { kind: 'publicShare'; pathname: string; token: string }
   | { kind: 'admin'; pathname: '/admin' }
   | { kind: 'atlas'; pathname: '/atlas' }
@@ -38,12 +39,16 @@ export type AppRoute =
   | { kind: 'stats'; pathname: '/stats' }
   | { kind: 'achievements'; pathname: '/achievements' }
   | { kind: 'reminders'; pathname: '/reminders' }
+  | { kind: 'guideSubscriptions'; pathname: '/guides/subscriptions' }
+  | { kind: 'journey'; pathname: '/journey' }
   | { kind: 'memoryCapsules'; pathname: '/capsules' }
   | { kind: 'memoryCapsuleDetail'; pathname: string; capsuleId: string }
   | { kind: 'mapReplayStory'; pathname: string; targetType: 'trip' | 'year' | 'companion'; targetId: string }
   | { kind: 'photoCuration'; pathname: string; query: PhotoCurationRouteQuery }
   | { kind: 'companionMemories'; pathname: string; companionId: string }
   | { kind: 'tripDetail'; pathname: string; tripId: string }
+  | { kind: 'tripToday'; pathname: string; tripId: string }
+  | { kind: 'tripSettlement'; pathname: string; tripId: string }
   | { kind: 'tripStory'; pathname: string; tripId: string }
   | { kind: 'tripChecklist'; pathname: string; tripId: string }
   | { kind: 'annualReview'; pathname: string; year: string };
@@ -64,6 +69,10 @@ export function createRegisterRoute(): AppRoute {
 
 export function createSettingsRoute(): AppRoute {
   return { kind: 'settings', pathname: '/settings' };
+}
+
+export function createAssistantRoute(): AppRoute {
+  return { kind: 'assistant', pathname: '/assistant' };
 }
 
 export function createPublicShareRoute(token: string): AppRoute {
@@ -100,6 +109,14 @@ export function createAchievementsRoute(): AppRoute {
 
 export function createRemindersRoute(): AppRoute {
   return { kind: 'reminders', pathname: '/reminders' };
+}
+
+export function createGuideSubscriptionsRoute(): AppRoute {
+  return { kind: 'guideSubscriptions', pathname: '/guides/subscriptions' };
+}
+
+export function createJourneyRoute(): AppRoute {
+  return { kind: 'journey', pathname: '/journey' };
 }
 
 export function createMemoryCapsulesRoute(): AppRoute {
@@ -159,6 +176,22 @@ export function createTripDetailRoute(tripId: string): AppRoute {
   return {
     kind: 'tripDetail',
     pathname: `/trips/${encodeURIComponent(tripId)}`,
+    tripId,
+  };
+}
+
+export function createTripTodayRoute(tripId: string): AppRoute {
+  return {
+    kind: 'tripToday',
+    pathname: `/trips/${encodeURIComponent(tripId)}/today`,
+    tripId,
+  };
+}
+
+export function createTripSettlementRoute(tripId: string): AppRoute {
+  return {
+    kind: 'tripSettlement',
+    pathname: `/trips/${encodeURIComponent(tripId)}/settlement`,
     tripId,
   };
 }
@@ -227,6 +260,16 @@ export function parsePathname(pathname: string, search = ''): AppRoute {
     return createTripStoryRoute(decodeURIComponent(tripStoryMatch[1]));
   }
 
+  const tripTodayMatch = pathname.match(/^\/trips\/([^/]+)\/today$/);
+  if (tripTodayMatch) {
+    return createTripTodayRoute(decodeURIComponent(tripTodayMatch[1]));
+  }
+
+  const tripSettlementMatch = pathname.match(/^\/trips\/([^/]+)\/settlement$/);
+  if (tripSettlementMatch) {
+    return createTripSettlementRoute(decodeURIComponent(tripSettlementMatch[1]));
+  }
+
   const tripChecklistMatch = pathname.match(/^\/trips\/([^/]+)\/checklist$/);
   if (tripChecklistMatch) {
     return createTripChecklistRoute(decodeURIComponent(tripChecklistMatch[1]));
@@ -249,6 +292,10 @@ export function parsePathname(pathname: string, search = ''): AppRoute {
     return createSettingsRoute();
   }
 
+  if (pathname === '/assistant') {
+    return createAssistantRoute();
+  }
+
   if (pathname === '/organize') {
     return createOrganizeRoute();
   }
@@ -267,6 +314,14 @@ export function parsePathname(pathname: string, search = ''): AppRoute {
 
   if (pathname === '/reminders') {
     return createRemindersRoute();
+  }
+
+  if (pathname === '/guides/subscriptions') {
+    return createGuideSubscriptionsRoute();
+  }
+
+  if (pathname === '/journey') {
+    return createJourneyRoute();
   }
 
   if (pathname === '/capsules') {

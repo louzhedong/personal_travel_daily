@@ -18,3 +18,8 @@ export * from './organization.js';
 export * from './tagVocabulary.js';
 export * from './expenses.js';
 export * from './reminders.js';
+export * from './homeDashboard.js';
+export * from './assistant.js';
+export * from './geo.js';
+export * from './guideSubscriptions.js';
+export * from './journey.js';
