@@ -16,12 +16,19 @@ import {
   listTripExpenses,
   updateTripExpenseResource,
 } from '../services/expenseService.js';
+import { getTripSettlement } from '../services/expenses/settlementService.js';
 
 export async function registerExpenseRoutes(app: FastifyInstance) {
   app.get('/api/expenses', async (request) => {
     const account = await requireAuthenticatedAccount(request);
     const query = parseWithSchema(tripExpenseListQuerySchema, request.query);
     return listTripExpenses(account.id, query.tripId);
+  });
+
+  app.get('/api/expenses/settlement', async (request) => {
+    const account = await requireAuthenticatedAccount(request);
+    const query = parseWithSchema(tripExpenseListQuerySchema, request.query);
+    return getTripSettlement(account.id, query.tripId);
   });
 
   app.post('/api/expenses', async (request) => {

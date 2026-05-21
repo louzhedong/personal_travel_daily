@@ -1,39 +1,6 @@
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-  align-items: end;
-  gap: clamp(28px, 5vw, 64px);
-  padding: clamp(34px, 5vw, 58px);
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(255, 253, 248, 0.94), rgba(243, 240, 232, 0.82)),
-    var(--surface-paper);
-  border-radius: 30px;
-}
-
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.78;
-  background-image:
-    linear-gradient(rgba(16, 20, 24, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(16, 20, 24, 0.04) 1px, transparent 1px);
-  background-size: 36px 36px;
-  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.9), transparent 86%);
-}
-
-.hero::after {
-  content: '';
-  position: absolute;
-  inset: 18px;
-  border: 1px solid rgba(16, 20, 24, 0.07);
-  border-radius: 24px;
-  pointer-events: none;
-}
+/* hero 卡壳/装饰 / hero shell + decorations 由 visual-system.css 统一接管， */
+/* 这里只保留 home 页特有的图层定位。 */
+/* hero shell + decorations are owned by visual-system.css; keep only home-only layers here. */
 
 .hero-map-watermark {
   position: absolute;
@@ -48,12 +15,6 @@
 
 .hero-copy h1 {
   margin: 10px 0 4px;
-  font-family: var(--font-display);
-  font-size: var(--display-md);
-  line-height: 0.92;
-  letter-spacing: -0.08em;
-  max-width: none;
-  white-space: nowrap;
 }
 
 .hero-copy h1::after {
@@ -151,10 +112,8 @@
   opacity: 0;
   transform: translateX(-4px);
   transition:
-    max-width 200ms ease,
     opacity 160ms ease,
-    transform 160ms ease,
-    margin-left 200ms ease;
+    transform 160ms ease;
 }
 
 .hero-kicker-button:hover .hero-kicker-logout-hint,

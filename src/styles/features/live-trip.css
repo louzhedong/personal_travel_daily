@@ -1,0 +1,5 @@
+.live-trip-grid strong {
+  display: block;
+  font-size: var(--metric-lg);
+  font-family: var(--font-display);
+}

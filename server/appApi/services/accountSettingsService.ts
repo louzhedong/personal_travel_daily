@@ -1,4 +1,5 @@
 import { hashPassword, verifyPassword } from '../auth/password.js';
+import { randomUUID } from 'node:crypto';
 import { hashSessionToken } from '../auth/session.js';
 import { createNotFoundError, createUnauthorizedError, createValidationError } from '../errors.js';
 import { getPrismaClient } from '../prisma.js';
@@ -15,6 +16,7 @@ import {
 import type {
   AccountSessionDto,
   ChangePasswordInputDto,
+  UpdateAccountPreferenceInputDto,
   UpdateAccountProfileInputDto,
 } from '../types.js';
 
@@ -25,6 +27,40 @@ function serializeAccount(account: { id: string; name: string; username: string;
     username: account.username,
     role: account.role,
   };
+}
+
+const DEFAULT_ACCOUNT_PREFERENCE = {
+  locale: 'zh-CN' as const,
+  mapStyle: 'magazine' as const,
+  defaultCurrency: 'CNY',
+  commonCurrencies: ['CNY', 'JPY', 'USD', 'EUR'],
+  exchangeRateSource: 'exchangerate-host',
+};
+
+function serializePreference(preference: {
+  locale: string;
+  mapStyle: string;
+  defaultCurrency: string;
+  commonCurrencies: unknown;
+  exchangeRateSource: string;
+} | null) {
+  const commonCurrencies = Array.isArray(preference?.commonCurrencies)
+    ? preference.commonCurrencies.filter((item): item is string => typeof item === 'string')
+    : DEFAULT_ACCOUNT_PREFERENCE.commonCurrencies;
+  return {
+    locale: (preference?.locale === 'en-US' ? 'en-US' : 'zh-CN') as 'zh-CN' | 'en-US',
+    mapStyle: (['minimal', 'magazine', 'old-map'].includes(preference?.mapStyle ?? '') ? preference?.mapStyle : 'magazine') as 'minimal' | 'magazine' | 'old-map',
+    defaultCurrency: preference?.defaultCurrency ?? DEFAULT_ACCOUNT_PREFERENCE.defaultCurrency,
+    commonCurrencies,
+    exchangeRateSource: preference?.exchangeRateSource ?? DEFAULT_ACCOUNT_PREFERENCE.exchangeRateSource,
+  };
+}
+
+async function findAccountPreference(prisma: ReturnType<typeof getPrismaClient>, accountId: string) {
+  if (!('accountPreference' in prisma) || !prisma.accountPreference) {
+    return null;
+  }
+  return prisma.accountPreference.findUnique({ where: { accountId } });
 }
 
 function getDeviceLabel(userAgent: string | null) {
@@ -84,6 +120,7 @@ export async function getAccountSettings(accountId: string) {
 
   return {
     account: serializeAccount(account),
+    preference: serializePreference(await findAccountPreference(prisma, accountId)),
     createdAt: account.createdAt.toISOString(),
     updatedAt: account.updatedAt.toISOString(),
   };
@@ -94,6 +131,40 @@ export async function updateAccountProfile(accountId: string, input: UpdateAccou
   const account = await updateAccountName(prisma, accountId, input.name.trim());
   return {
     account: serializeAccount(account),
+    preference: serializePreference(await findAccountPreference(prisma, accountId)),
+    createdAt: account.createdAt.toISOString(),
+    updatedAt: account.updatedAt.toISOString(),
+  };
+}
+
+export async function updateAccountPreference(accountId: string, input: UpdateAccountPreferenceInputDto) {
+  const prisma = getPrismaClient();
+  const preference = await prisma.accountPreference.upsert({
+    where: { accountId },
+    create: {
+      id: randomUUID(),
+      accountId,
+      locale: input.locale ?? DEFAULT_ACCOUNT_PREFERENCE.locale,
+      mapStyle: input.mapStyle ?? DEFAULT_ACCOUNT_PREFERENCE.mapStyle,
+      defaultCurrency: input.defaultCurrency ?? DEFAULT_ACCOUNT_PREFERENCE.defaultCurrency,
+      commonCurrencies: input.commonCurrencies ?? DEFAULT_ACCOUNT_PREFERENCE.commonCurrencies,
+      exchangeRateSource: input.exchangeRateSource ?? DEFAULT_ACCOUNT_PREFERENCE.exchangeRateSource,
+    },
+    update: {
+      locale: input.locale,
+      mapStyle: input.mapStyle,
+      defaultCurrency: input.defaultCurrency,
+      commonCurrencies: input.commonCurrencies,
+      exchangeRateSource: input.exchangeRateSource,
+    },
+  });
+  const account = await findAccountSettingsById(prisma, accountId);
+  if (!account) {
+    throw createNotFoundError('account not found');
+  }
+  return {
+    account: serializeAccount(account),
+    preference: serializePreference(preference),
     createdAt: account.createdAt.toISOString(),
     updatedAt: account.updatedAt.toISOString(),
   };

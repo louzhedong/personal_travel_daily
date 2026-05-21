@@ -22,6 +22,8 @@ export interface TripGroupListProps {
   trips: TripCollection[];
   selectionMode: boolean;
   onOpenTripDetail?: (tripId: string) => void;
+  onOpenTripToday?: (tripId: string) => void;
+  onOpenTripSettlement?: (tripId: string) => void;
   onEditTrip: (trip: TripCollection) => void;
   onRequestDeleteTrip: (tripId: string) => void;
   renderMarkerButton: (marker: VisitMarker) => ReactNode;
@@ -32,6 +34,8 @@ export default function TripGroupList({
   trips,
   selectionMode,
   onOpenTripDetail,
+  onOpenTripToday,
+  onOpenTripSettlement,
   onEditTrip,
   onRequestDeleteTrip,
   renderMarkerButton,
@@ -56,6 +60,24 @@ export default function TripGroupList({
                   onClick={() => onOpenTripDetail(group.id)}
                 >
                   查看详情
+                </button>
+              ) : null}
+              {group.id !== 'unassigned' && onOpenTripToday ? (
+                <button
+                  type="button"
+                  className="ghost-button trip-card-action-button"
+                  onClick={() => onOpenTripToday(group.id)}
+                >
+                  今日模式
+                </button>
+              ) : null}
+              {group.id !== 'unassigned' && onOpenTripSettlement ? (
+                <button
+                  type="button"
+                  className="ghost-button trip-card-action-button"
+                  onClick={() => onOpenTripSettlement(group.id)}
+                >
+                  AA 结算
                 </button>
               ) : null}
               {group.id !== 'unassigned' ? (

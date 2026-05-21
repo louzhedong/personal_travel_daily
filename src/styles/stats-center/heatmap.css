@@ -53,7 +53,7 @@
   stroke: rgba(255, 251, 235, 0.98);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
-  transition: fill 0.18s ease, opacity 0.18s ease, stroke 0.18s ease, stroke-width 0.18s ease;
+  transition: fill 0.18s ease, opacity 0.18s ease, stroke 0.18s ease;
 }
 
 .stats-heatmap-shape.is-active {

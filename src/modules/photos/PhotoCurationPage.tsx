@@ -279,7 +279,7 @@ export default function PhotoCurationPage({
 
       <section className="photo-curation-hero">
         <div className="photo-curation-hero-copy">
-          <span className="hero-kicker">PHOTO DESK</span>
+          <span className="hero-kicker">PHOTO DESK · @{account.username}</span>
           <h1>影像策展台</h1>
           <p>把旅行照片整理成智能相册、封面候选和可导出的精选版面。</p>
           {data ? (

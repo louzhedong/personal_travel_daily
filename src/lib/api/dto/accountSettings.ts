@@ -1,9 +1,18 @@
-import type { AuthAccount } from '../../../types';
+import type { CurrentAccountDto } from './common.js';
 
 export interface AccountSettingsDto {
-  account: AuthAccount;
+  account: CurrentAccountDto;
+  preference: AccountPreferenceDto;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AccountPreferenceDto {
+  locale: 'zh-CN' | 'en-US';
+  mapStyle: 'minimal' | 'magazine' | 'old-map';
+  defaultCurrency: string;
+  commonCurrencies: string[];
+  exchangeRateSource: string;
 }
 
 export interface AccountSessionDto {
@@ -28,4 +37,12 @@ export interface UpdateAccountProfileInputDto {
 export interface ChangePasswordInputDto {
   currentPassword: string;
   nextPassword: string;
+}
+
+export interface UpdateAccountPreferenceInputDto {
+  locale?: AccountPreferenceDto['locale'];
+  mapStyle?: AccountPreferenceDto['mapStyle'];
+  defaultCurrency?: string;
+  commonCurrencies?: string[];
+  exchangeRateSource?: string;
 }

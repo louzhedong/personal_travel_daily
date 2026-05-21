@@ -5,6 +5,7 @@ import type {
   DeleteTripExpenseResponseDto,
   TripExpenseDto,
   TripExpenseListResponseDto,
+  TripSettlementResponseDto,
   UpdateTripExpenseInputDto,
 } from './types';
 
@@ -13,6 +14,11 @@ const expensesBaseUrl = getResourceBaseUrl();
 export function fetchTripExpenses(tripId: string) {
   const params = new URLSearchParams({ tripId });
   return httpClient.get<TripExpenseListResponseDto>(expensesBaseUrl, `/expenses?${params.toString()}`);
+}
+
+export function fetchTripSettlement(tripId: string) {
+  const params = new URLSearchParams({ tripId });
+  return httpClient.get<TripSettlementResponseDto>(expensesBaseUrl, `/expenses/settlement?${params.toString()}`);
 }
 
 export function createTripExpense(input: CreateTripExpenseInputDto) {

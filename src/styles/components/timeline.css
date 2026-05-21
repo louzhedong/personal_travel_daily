@@ -240,15 +240,15 @@
 }
 
 .trip-timeline-year-trigger:hover {
-  border-color: rgba(59, 130, 246, 0.58);
-  background-color: #fff;
+  border-color: var(--line-strong);
+  background-color: var(--surface-plain);
 }
 
 .trip-timeline-year-trigger:focus {
   outline: none;
-  border-color: rgba(37, 99, 235, 0.78);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
-  background-color: #fff;
+  border-color: var(--line-strong);
+  box-shadow: var(--focus-ring);
+  background-color: var(--surface-plain);
 }
 
 .trip-timeline-list-shell {

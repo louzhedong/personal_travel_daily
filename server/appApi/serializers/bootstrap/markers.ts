@@ -29,6 +29,11 @@ export type MarkerWithImages = {
   weather: string | null;
   transport: string | null;
   budgetLevel: string | null;
+  latitude?: unknown | null;
+  longitude?: unknown | null;
+  geoSource?: string | null;
+  geoConfidence?: number | null;
+  geoResolvedAt?: Date | null;
   visitedStartAt: Date;
   visitedEndAt: Date;
   createdAt: Date;
@@ -62,6 +67,8 @@ export function normalizeMarkerBudgetLevel(value: string | null): MarkerBudgetLe
 
 export function serializeMarker(marker: MarkerWithImages): VisitMarkerDto {
   const imageUrls = marker.images.map((image) => image.imageUrl).filter(Boolean);
+  const latitude = marker.latitude === null || marker.latitude === undefined ? undefined : Number(marker.latitude);
+  const longitude = marker.longitude === null || marker.longitude === undefined ? undefined : Number(marker.longitude);
 
   return {
     id: marker.id,
@@ -77,6 +84,11 @@ export function serializeMarker(marker: MarkerWithImages): VisitMarkerDto {
     weather: normalizeMarkerWeather(marker.weather),
     transport: normalizeMarkerTransport(marker.transport),
     budgetLevel: normalizeMarkerBudgetLevel(marker.budgetLevel),
+    ...(Number.isFinite(latitude) ? { latitude } : {}),
+    ...(Number.isFinite(longitude) ? { longitude } : {}),
+    ...(marker.geoSource ? { geoSource: marker.geoSource } : {}),
+    ...(typeof marker.geoConfidence === 'number' ? { geoConfidence: marker.geoConfidence } : {}),
+    ...(marker.geoResolvedAt ? { geoResolvedAt: toIsoString(marker.geoResolvedAt) } : {}),
     imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
     visitedStartAt: toDateOnlyString(marker.visitedStartAt),
     visitedEndAt: toDateOnlyString(marker.visitedEndAt),

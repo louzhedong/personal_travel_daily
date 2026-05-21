@@ -1,7 +1,5 @@
 .app-shell {
-  max-width: var(--page-frame-wide);
-  margin: 0 auto;
-  padding: 28px var(--page-gutter) 64px;
+  display: block;
 }
 
 .app-toast-layer {
@@ -23,7 +21,6 @@
   border: 1px solid var(--line-soft);
   background: rgba(255, 253, 248, 0.96);
   box-shadow: var(--shadow-panel);
-  backdrop-filter: blur(14px);
 }
 
 .app-toast-success {
@@ -103,7 +100,6 @@
   border: 1px solid var(--line-hair);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(10px);
 }
 
 .panel-card {

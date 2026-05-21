@@ -1,8 +1,5 @@
 .companion-memory-shell {
-  width: min(100%, var(--page-frame));
-  margin: 0 auto;
-  padding: 28px var(--page-gutter) 64px;
-  color: #142038;
+  color: var(--ink);
 }
 
 .companion-memory-state-shell {
@@ -36,15 +33,6 @@
   gap: 10px;
 }
 
-.companion-memory-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) 220px;
-  gap: 36px;
-  align-items: start;
-  padding: 8px 0 34px;
-  border-bottom: 1px solid rgba(20, 32, 56, 0.1);
-}
-
 .companion-memory-hero-copy {
   display: grid;
   gap: 18px;
@@ -54,9 +42,6 @@
   display: grid;
   gap: 4px;
   margin: 0;
-  font-size: var(--display-md);
-  line-height: 0.98;
-  letter-spacing: -0.065em;
 }
 
 .companion-memory-hero-copy h1 span {
@@ -64,11 +49,10 @@
 }
 
 .companion-memory-hero-copy p {
-  max-width: 640px;
   margin: 0;
-  color: rgba(20, 32, 56, 0.76);
+  color: var(--ink-muted);
   font-size: var(--text-lg);
-  line-height: 1.72;
+  line-height: var(--leading-loose);
 }
 
 .companion-memory-inline-stats {
@@ -76,24 +60,25 @@
   flex-wrap: wrap;
   gap: 10px;
   align-items: baseline;
-  color: rgba(20, 32, 56, 0.72);
+  color: var(--ink-muted);
   font-size: var(--text-lg);
   line-height: 1.5;
 }
 
 .companion-memory-inline-stats strong {
-  color: #142038;
+  color: var(--ink);
+  font-family: var(--font-display);
   font-size: var(--title-md);
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: var(--tracking-tight);
 }
 
 .companion-memory-inline-stats span {
-  color: rgba(20, 32, 56, 0.32);
+  color: var(--line-strong);
 }
 
 .companion-memory-updated {
-  color: rgba(20, 32, 56, 0.52);
+  color: var(--ink-muted);
   font-size: var(--text-sm);
 }
 
@@ -103,15 +88,16 @@
   align-content: start;
   justify-items: start;
   padding-left: 24px;
-  border-left: 1px solid rgba(20, 32, 56, 0.12);
-  color: #dc6a17;
+  border-left: 1px solid var(--line-soft);
+  color: var(--accent-clay);
 }
 
 .companion-memory-hero-note strong {
-  color: #dc6a17;
+  color: var(--accent-clay);
+  font-family: var(--font-display);
   font-size: var(--title-md);
   line-height: 1.12;
-  letter-spacing: -0.04em;
+  letter-spacing: var(--tracking-tight);
 }
 
 .companion-memory-hero-note span:last-child {
@@ -129,14 +115,16 @@
 
 .companion-memory-section-head h2 {
   margin: 0;
+  font-family: var(--font-display);
   font-size: var(--title-xs);
   line-height: 1.1;
-  letter-spacing: -0.03em;
+  letter-spacing: var(--tracking-tight);
+  color: var(--ink);
 }
 
 .companion-memory-year-list {
   display: grid;
-  border-top: 1px solid rgba(20, 32, 56, 0.08);
+  border-top: 1px solid var(--line-hair);
 }
 
 .companion-memory-year-row {
@@ -145,7 +133,7 @@
   gap: 16px;
   align-items: start;
   padding: 18px 0;
-  border-bottom: 1px solid rgba(20, 32, 56, 0.08);
+  border-bottom: 1px solid var(--line-hair);
 }
 
 .companion-memory-year-row-head {
@@ -162,7 +150,7 @@
 }
 
 .companion-memory-year-card-badge {
-  color: rgba(20, 32, 56, 0.46);
+  color: var(--ink-muted);
   font-size: var(--text-2xs);
   font-style: normal;
   font-weight: 700;
@@ -177,17 +165,19 @@
 }
 
 .companion-memory-year-row-main strong {
+  font-family: var(--font-display);
   font-size: var(--title-xl);
   line-height: 0.92;
-  letter-spacing: -0.06em;
+  letter-spacing: var(--tracking-tight);
+  color: var(--ink);
 }
 
 .companion-memory-year-row-main span,
 .companion-memory-year-row-meta,
 .companion-memory-year-row p {
   margin: 0;
-  color: rgba(20, 32, 56, 0.66);
-  line-height: 1.65;
+  color: var(--ink-muted);
+  line-height: var(--leading-body);
 }
 
 .companion-memory-featured-layout {
@@ -207,7 +197,7 @@
   width: 100%;
   aspect-ratio: 1.7 / 1;
   object-fit: cover;
-  background: linear-gradient(135deg, #dde4ed, #c5cfde);
+  background: var(--surface-glass);
 }
 
 .companion-memory-featured-copy {
@@ -218,26 +208,27 @@
 .companion-memory-featured-copy strong {
   font-size: var(--title-sm);
   line-height: 1.24;
+  color: var(--ink);
 }
 
 .companion-memory-featured-copy span,
 .companion-memory-featured-copy small,
 .companion-memory-featured-item span,
 .companion-memory-featured-item small {
-  color: rgba(20, 32, 56, 0.6);
+  color: var(--ink-muted);
 }
 
 .companion-memory-featured-list {
   display: grid;
   gap: 16px;
-  border-top: 1px solid rgba(20, 32, 56, 0.08);
+  border-top: 1px solid var(--line-hair);
 }
 
 .companion-memory-featured-item {
   display: grid;
   gap: 6px;
   padding-top: 16px;
-  border-bottom: 1px solid rgba(20, 32, 56, 0.08);
+  border-bottom: 1px solid var(--line-hair);
   padding-bottom: 16px;
 }
 
@@ -270,7 +261,7 @@
   display: grid;
   gap: 4px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(20, 32, 56, 0.08);
+  border-bottom: 1px solid var(--line-hair);
   text-decoration: none;
   color: inherit;
 }
@@ -290,19 +281,19 @@
 .companion-memory-milestone-content span,
 .companion-memory-milestone-content p {
   margin: 0;
-  color: rgba(20, 32, 56, 0.56);
-  line-height: 1.6;
+  color: var(--ink-muted);
+  line-height: var(--leading-body);
 }
 
 .companion-memory-place-row em {
   font-style: normal;
   font-weight: 700;
-  color: rgba(20, 32, 56, 0.72);
+  color: var(--ink);
 }
 
 .companion-memory-inline-list {
   margin: 0;
-  color: rgba(20, 32, 56, 0.72);
+  color: var(--ink-muted);
   line-height: 1.9;
 }
 
@@ -342,12 +333,12 @@
   bottom: 12px;
   display: grid;
   gap: 3px;
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+  color: var(--ink-inverse);
+  text-shadow: 0 1px 8px rgba(16, 20, 24, 0.35);
 }
 
 .companion-memory-photo-card span {
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 253, 248, 0.78);
   font-size: var(--text-xs);
 }
 
@@ -355,16 +346,16 @@
   position: absolute;
   left: 12px;
   top: 12px;
-  color: #fff;
+  color: var(--ink-inverse);
   font-size: var(--text-2xs);
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--tracking-kicker);
   text-transform: uppercase;
 }
 
 .companion-memory-timeline-section {
   padding-top: 6px;
-  border-top: 1px solid rgba(20, 32, 56, 0.08);
+  border-top: 1px solid var(--line-hair);
 }
 
 .companion-memory-milestone-timeline {
@@ -381,7 +372,7 @@
   top: 6px;
   bottom: 6px;
   width: 1px;
-  background: rgba(20, 32, 56, 0.14);
+  background: var(--line-soft);
 }
 
 .companion-memory-milestone-item {
@@ -395,7 +386,7 @@
   height: 14px;
   margin-top: 4px;
   border-radius: 999px;
-  background: #d66f27;
+  background: var(--accent-clay);
 }
 
 .companion-memory-milestone-content {
@@ -405,7 +396,7 @@
 
 .companion-memory-empty {
   margin: 0;
-  color: rgba(20, 32, 56, 0.46);
+  color: var(--ink-muted);
   font-style: italic;
 }
 
@@ -416,7 +407,7 @@
   border: 0;
   padding: 0;
   background: transparent;
-  color: rgba(20, 32, 56, 0.68);
+  color: var(--ink-muted);
   font-weight: 700;
   cursor: pointer;
 }
@@ -428,7 +419,6 @@
 }
 
 @media (max-width: 920px) {
-  .companion-memory-hero,
   .companion-memory-featured-layout,
   .companion-memory-editorial-spread {
     grid-template-columns: 1fr;
@@ -438,7 +428,7 @@
     padding-left: 0;
     padding-top: 18px;
     border-left: 0;
-    border-top: 1px solid rgba(20, 32, 56, 0.12);
+    border-top: 1px solid var(--line-soft);
   }
 
   .companion-memory-year-row {
@@ -457,12 +447,6 @@
 }
 
 @media (max-width: 640px) {
-  .companion-memory-shell {
-    width: 100%;
-    padding-top: 20px;
-    padding-inline: clamp(16px, 4vw, 24px);
-  }
-
   .companion-memory-topbar {
     flex-direction: column;
     align-items: stretch;

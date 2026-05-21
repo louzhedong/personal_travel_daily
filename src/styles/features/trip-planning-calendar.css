@@ -13,8 +13,8 @@
 .trip-planning-calendar-summary span,
 .trip-planning-calendar-section-head span {
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.06);
-  color: #64748b;
+  background: var(--surface-glass);
+  color: var(--ink-muted);
   padding: 5px 9px;
   font-size: var(--text-xs);
   font-weight: 700;
@@ -26,21 +26,21 @@
   gap: 16px;
   align-items: center;
   padding: 16px 0;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-top: 1px solid var(--line-hair);
+  border-bottom: 1px solid var(--line-hair);
 }
 
 .trip-planning-calendar-import strong,
 .trip-planning-calendar-section-head strong {
-  color: #0f172a;
+  color: var(--ink);
   font-size: var(--text-md);
 }
 
 .trip-planning-calendar-import p {
   margin: 4px 0 0;
-  color: #64748b;
+  color: var(--ink-muted);
   font-size: var(--text-sm);
-  line-height: 1.5;
+  line-height: var(--leading-body);
 }
 
 .trip-planning-calendar-import-controls,
@@ -69,12 +69,12 @@
   gap: 14px;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid var(--line-hair);
 }
 
 .trip-planning-calendar-pill strong,
 .trip-planning-calendar-item strong {
-  color: #0f172a;
+  color: var(--ink);
 }
 
 .trip-planning-calendar-pill span,
@@ -82,9 +82,9 @@
 .trip-planning-calendar-day header em,
 .trip-planning-calendar-checklist span {
   margin: 0;
-  color: #64748b;
+  color: var(--ink-muted);
   font-size: var(--text-sm);
-  line-height: 1.5;
+  line-height: var(--leading-body);
 }
 
 .trip-planning-calendar-days {
@@ -96,7 +96,7 @@
   display: grid;
   gap: 14px;
   padding-top: 18px;
-  border-top: 1px solid rgba(15, 23, 42, 0.12);
+  border-top: 1px solid var(--line-soft);
 }
 
 .trip-planning-calendar-day header {
@@ -108,7 +108,7 @@
 
 .trip-planning-calendar-day header span {
   display: block;
-  color: #64748b;
+  color: var(--ink-muted);
   font-size: var(--text-xs);
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -118,7 +118,7 @@
 .trip-planning-calendar-day header strong {
   display: block;
   margin-top: 4px;
-  color: #0f172a;
+  color: var(--ink);
   font-size: var(--title-md);
   line-height: 1;
 }
@@ -134,11 +134,11 @@
   flex-wrap: wrap;
   align-items: center;
   padding-top: 10px;
-  border-top: 1px dashed rgba(15, 23, 42, 0.12);
+  border-top: 1px dashed var(--line-soft);
 }
 
 .trip-planning-calendar-checklist strong {
-  color: #334155;
+  color: var(--ink-muted);
   font-size: var(--text-sm);
 }
 

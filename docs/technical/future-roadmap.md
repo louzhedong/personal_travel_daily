@@ -374,3 +374,16 @@ Summary: The roadmap is intentionally empty until a new product direction is app
 3. 用户能在 10 秒内感知到价值，不是只有后台数据变多。
 4. 能保持私密个人工具的气质，不把产品强行推向公开社交。
 5. 不把复杂业务规则重新塞回页面容器层或单个 service 文件。
+
+### Roadmap 新功能全量批次 / Full New-Feature Roadmap Batch
+
+- 状态：已完成全量 P1-P3 实施批次。
+- 已落地范围：Travel OS 首页总览、私密 AI 旅行助手、旅途进行时模式、真实地理点位与路径层、公开分享 v2 基础升级、多币种预算与 AA 结算、攻略订阅/RSS、PWA 离线骨架、i18n/a11y baseline、故事化时间轴。
+- 验证证据：`npm run db:generate` 与 `npm run build` 已通过；`npm run perf`、`npm run a11y` 和完整 harness 在本批次最终验证中执行。
+
+Summary: The full P1-P3 new-feature roadmap batch is implemented, covering dashboard, assistant, live trip, geo, sharing, expenses, subscriptions, PWA, i18n/a11y, and journey timeline capabilities.
+
+#### 产品级深度补齐 / Product-Grade Deep Completion
+
+- 本轮补齐从“可运行骨架”升级到“产品级闭环”：首页可配置、助手可审计、Geo 可增强、分享可下载 OG、结算可导出 CSV、订阅可运行反馈、偏好可持久化、时间轴可切换粒度。
+- This follow-up upgrades the runnable skeleton into product-grade loops: configurable dashboard, auditable assistant, enhanceable Geo, downloadable share OG, CSV settlement export, subscription run feedback, persisted preferences, and switchable timeline granularity.

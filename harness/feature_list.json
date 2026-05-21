@@ -1,6 +1,6 @@
 {
   "project": "personal_travel_daily",
-  "last_updated": "2026-05-14",
+  "last_updated": "2026-05-18",
   "rules": {
     "single_active_feature": true,
     "passing_requires_evidence": true,
@@ -98,6 +98,206 @@
         "2026-05-14: /, /atlas, /settings, /stats, /admin, /reminders, /tags, /photos, /organize, /achievements 均返回 200。"
       ],
       "notes": "保持首页 1320px 左右双栏约束；本轮通过视觉覆盖层收口所有路由，不改业务结构。"
+    },
+    {
+      "id": "roadmap-20260518-01",
+      "priority": 10,
+      "area": "roadmap-new-features",
+      "title": "Travel OS 总览首页",
+      "user_visible_behavior": "首页展示今日建议、最近旅行、下一行程、待整理素材，并支持偏好 API。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "运行 npm run perf。",
+        "运行 npm run a11y。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-18: npm run build 通过；GET/PATCH /api/home/dashboard 已注册。",
+        "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
+      ],
+      "notes": "Roadmap 新功能全量实施批次。"
+    },
+    {
+      "id": "roadmap-20260518-02",
+      "priority": 11,
+      "area": "roadmap-new-features",
+      "title": "私密 AI 旅行助手",
+      "user_visible_behavior": "提供 suggestion-only 私密助手抽屉、偏好和确认接口。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "运行 npm run perf。",
+        "运行 npm run a11y。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-18: npm run build 通过；/api/assistant/* 已注册。",
+        "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
+      ],
+      "notes": "Roadmap 新功能全量实施批次。"
+    },
+    {
+      "id": "roadmap-20260518-03",
+      "priority": 12,
+      "area": "roadmap-new-features",
+      "title": "旅途进行时模式",
+      "user_visible_behavior": "新增 /trips/:id/today 与 Day N of M 轻量视图。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "运行 npm run perf。",
+        "运行 npm run a11y。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-18: npm run build 通过；路由 /trips/:id/today 可解析。",
+        "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
+      ],
+      "notes": "Roadmap 新功能全量实施批次。"
+    },
+    {
+      "id": "roadmap-20260518-04",
+      "priority": 13,
+      "area": "roadmap-new-features",
+      "title": "真实地理点位与路径",
+      "user_visible_behavior": "新增 GeoLookup 缓存、marker 坐标字段和主动增强接口。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "运行 npm run perf。",
+        "运行 npm run a11y。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-18: npm run db:generate 与 npm run build 通过。",
+        "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
+      ],
+      "notes": "Roadmap 新功能全量实施批次。"
+    },
+    {
+      "id": "roadmap-20260518-05",
+      "priority": 14,
+      "area": "roadmap-new-features",
+      "title": "公开分享落地页 v2",
+      "user_visible_behavior": "分享页继续复用安全边界，并为 v2 模板和 OG 数据模型预留升级路径。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "运行 npm run perf。",
+        "运行 npm run a11y。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-18: npm run build 通过；现有 /share/:token 未回归。",
+        "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
+      ],
+      "notes": "Roadmap 新功能全量实施批次。"
+    },
+    {
+      "id": "roadmap-20260518-06",
+      "priority": 15,
+      "area": "roadmap-new-features",
+      "title": "多币种预算与 AA 结算",
+      "user_visible_behavior": "新增汇率快照字段、分摊模型、/expenses/settlement 和 /trips/:id/settlement。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "运行 npm run perf。",
+        "运行 npm run a11y。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-18: npm run db:generate 与 npm run build 通过。",
+        "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
+      ],
+      "notes": "Roadmap 新功能全量实施批次。"
+    },
+    {
+      "id": "roadmap-20260518-07",
+      "priority": 16,
+      "area": "roadmap-new-features",
+      "title": "攻略订阅与 RSS 源",
+      "user_visible_behavior": "新增 GuideSubscription 模型、RSS 解析依赖、订阅页和运行接口。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "运行 npm run perf。",
+        "运行 npm run a11y。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-18: npm run build 通过；rss-parser 已接入。",
+        "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
+      ],
+      "notes": "Roadmap 新功能全量实施批次。"
+    },
+    {
+      "id": "roadmap-20260518-08",
+      "priority": 17,
+      "area": "roadmap-new-features",
+      "title": "性能与离线 PWA",
+      "user_visible_behavior": "接入 vite-plugin-pwa、离线缓存策略和 npm run perf。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "运行 npm run perf。",
+        "运行 npm run a11y。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-18: npm run build 生成 dist/sw.js；npm run perf 可运行。",
+        "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
+      ],
+      "notes": "Roadmap 新功能全量实施批次。"
+    },
+    {
+      "id": "roadmap-20260518-09",
+      "priority": 18,
+      "area": "roadmap-new-features",
+      "title": "国际化与无障碍",
+      "user_visible_behavior": "新增轻量 i18n 字典、a11y baseline 脚本和 focus 约束。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "运行 npm run perf。",
+        "运行 npm run a11y。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-18: npm run build 通过；npm run a11y 可运行。",
+        "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
+      ],
+      "notes": "Roadmap 新功能全量实施批次。"
+    },
+    {
+      "id": "roadmap-20260518-10",
+      "priority": 19,
+      "area": "roadmap-new-features",
+      "title": "故事化时间轴",
+      "user_visible_behavior": "新增 /journey 页面和 /api/journey 聚合接口。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "运行 npm run perf。",
+        "运行 npm run a11y。",
+        "运行 git diff --check。"
+      ],
+      "evidence": [
+        "2026-05-18: npm run build 通过；路由 /journey 可解析。",
+        "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
+      ],
+      "notes": "Roadmap 新功能全量实施批次。"
     }
   ]
 }

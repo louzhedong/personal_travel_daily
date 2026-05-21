@@ -153,7 +153,7 @@ export default function OrganizationWorkbenchPage({ account, onLogout, onNavigat
 
       <section className="organization-hero">
         <div>
-          <span className="hero-kicker">ORGANIZATION WORKBENCH</span>
+          <span className="hero-kicker">ORGANIZATION WORKBENCH · @{account.username}</span>
           <h1>整理工作台</h1>
           <p>把未归行程记录、缺说明照片、待精选素材和弱标签记录集中到一张桌面上，先预览，再确认批量整理。</p>
           {data ? <strong>{buildOrganizationProgressText(data)}</strong> : null}

@@ -188,8 +188,10 @@ This keeps the admin page positioned as a read-only aggregation surface and avoi
 前端样式入口是 `src/styles/index.css`，当前采用“基础骨架 + 页面 barrel + 功能域 barrel + 响应式收口”的组织方式。
 The frontend styling entry is `src/styles/index.css`, and it now follows a structure of base skeleton styles, page barrels, feature barrels, and a responsive closing layer.
 
-- 基础骨架：`base.css`、`layout.css`。
-  Base skeleton: `base.css` and `layout.css`.
+- 基础骨架：`base.css`、`layout.css`，并集中维护字号、间距、版心（`--page-frame` / `--page-frame-wide`）、`--page-gutter` 与 hero/topbar 系列 token。
+  Base skeleton: `base.css` and `layout.css`, which also centralize tokens for typography, spacing, page frames (`--page-frame` / `--page-frame-wide`), `--page-gutter`, and the hero/topbar family.
+- 全站视觉收口：`visual-system.css` 统一 hero / topbar 选择器、卡片 padding、长列表滚动和 editorial 标题；新增功能页必须把自己的 `*-topbar` 选择器加入该文件统一规则，禁止单页另写覆盖。
+  Global visual layer: `visual-system.css` owns hero / topbar selector lists, card padding, long-list scrolling, and editorial titling; new feature pages must register their own `*-topbar` selector inside this file instead of writing per-page overrides.
 - 页面 barrel：`pages/index.css` 统一引入 `auth`、`admin`、`home`、`stats-center`、`trip-detail`、`trip-story`、`annual-review`；`trip-story.css` 覆盖 Story Studio 的三模板、故事徽章和路线回放海报。
   Page barrel: `pages/index.css` imports `auth`, `admin`, `home`, `stats-center`, `trip-detail`, `trip-story`, and `annual-review`.
 - 功能域 barrel：`features/index.css` 统一引入 `timeline`、`guide-search`、`map`、`marker-list`、`marker-detail`、`data-sync`、`dialog`、`forms`、`sidebar-panels`。
@@ -221,6 +223,10 @@ Under the current structure, future frontend work should follow these rules.
   Page containers above roughly `700` lines should be reviewed for decomposition instead of accepting more JSX and local state by default.
 - 跨模块共享的纯逻辑优先放 `lib/` 或 `modules/*Model`，不要塞回 JSX 文件。
   Shared pure logic should live in `lib/` or `modules/*Model` rather than being pushed back into JSX files.
+- 新增功能页必须复用统一头部：右对齐 Topbar（返回首页 + 退出登录）+ 内容化 Hero；topbar 选择器加入 `visual-system.css`，hero 不再放置导航类按钮。
+  New feature pages must adopt the unified header: a right-aligned topbar (Back home + Sign out) plus a content-only hero. Register the topbar selector in `visual-system.css`, and never place navigation buttons inside the hero.
+- 新增功能页必须从 `--page-frame` / `--page-frame-wide` 选择版心，并以 `padding-inline: var(--page-gutter)` 维持左右留白；不要再写 1040 / 1120 / 1180 / 1240 / 1320 / 1360 / 1380 等硬编码宽度。
+  New feature pages must pick a frame token from `--page-frame` / `--page-frame-wide` and use `padding-inline: var(--page-gutter)` for side padding. Do not introduce hard-coded widths such as 1040 / 1120 / 1180 / 1240 / 1320 / 1360 / 1380.
 
 这些规则的目的，是维持这次重构带来的边界清晰度，避免大组件回潮。
 The purpose of these rules is to preserve the clarity gained from this refactor and prevent a return to oversized components.

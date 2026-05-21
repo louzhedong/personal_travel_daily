@@ -117,7 +117,7 @@
   fill: rgba(255, 255, 255, 0.85);
   stroke: rgba(148, 163, 184, 0.46);
   stroke-width: 1.2;
-  transition: fill 0.18s ease, stroke 0.18s ease, stroke-width 0.18s ease;
+  transition: fill 0.18s ease, stroke 0.18s ease;
   vector-effect: non-scaling-stroke;
 }
 
@@ -199,7 +199,7 @@
   stroke-dasharray: 5 7;
   vector-effect: non-scaling-stroke;
   pointer-events: stroke;
-  transition: opacity 0.18s ease, stroke-width 0.18s ease, filter 0.18s ease;
+  transition: opacity 0.18s ease, filter 0.18s ease;
 }
 
 .map-journey-arrow {

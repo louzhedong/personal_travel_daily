@@ -18,3 +18,8 @@ export * from './organization';
 export * from './tagVocabulary';
 export * from './expenses';
 export * from './reminders';
+export * from './homeDashboard';
+export * from './assistant';
+export * from './geo';
+export * from './guideSubscriptions';
+export * from './journey';

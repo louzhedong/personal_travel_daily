@@ -278,14 +278,21 @@ Summary: The guide-api is a standalone Node service for search, POI adapters, fi
 
 ### 2.7 样式体系 / Style System
 
-- `src/styles/base.css`：全局变量与基础样式（含全局隐藏滚动条等硬约束）。
-- `src/styles/layout.css`：壳层布局与弹窗。
+- `src/styles/base.css`：全局变量与基础样式（含全局隐藏滚动条等硬约束），并集中维护字号、间距、版心、hero 与 topbar 系列 token。
+- `src/styles/visual-system.css`：全站视觉收口层，统一 hero / topbar 类、卡片 padding、长列表滚动、editorial 标题字距等共性规则，避免在单页 CSS 内重复覆盖。
+- `src/styles/layout.css`：壳层布局与弹窗，`route-skeleton-shell` / `app-shell` 统一从 `--page-frame-wide` 取版心。
 - `src/styles/home.css`：首页头部视觉。
-- `src/styles/responsive.css`：响应式覆盖。
+- `src/styles/responsive.css`：响应式覆盖，仅调整布局与排列，不再新增独立字号。
 - `src/styles/components/*.css`：按业务模块拆分的组件样式。
 - `src/styles/index.css` 仅负责聚合导入。
+- 全站功能页统一约束：
+  - 内容型页面（设置、提醒、整理、标签、照片、回放、胶囊、旅伴回忆）使用 `--page-frame: 1180px`。
+  - 数据密集型页面（首页、`/admin`、`/stats`、`/yearbook/:year`、`/trips/:id`、`/atlas`）使用 `--page-frame-wide: 1320px`。
+  - 所有 `*-shell` / `*-stage` 容器以 `padding-inline: var(--page-gutter)` 维持响应式左右留白；禁止再写 1040 / 1120 / 1180 / 1240 / 1320 / 1360 / 1380 等硬编码宽度。
+  - 所有功能页头部统一为「右对齐 Topbar（返回首页 + 退出登录）+ 内容化 Hero」，topbar / hero 字号收口到 `--page-hero-title` / `--page-hero-copy` / `--page-hero-action-height`。
+- 详细规范见 [视觉 Token 与字体规范](../design/design-tokens.md)。
 
-Summary: Styles are modular per feature; global invariants like hidden scrollbars live in `base.css` and should not be altered casually.
+Summary: Styles are modular per feature; global invariants like hidden scrollbars, page-frame widths, gutters, and unified topbars all live in `base.css` plus `visual-system.css`, and per-page CSS may not override them.
 
 ---
 

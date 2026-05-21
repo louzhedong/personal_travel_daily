@@ -11,6 +11,7 @@ import type { AuthAccount, Scope, TravelStore } from '../types';
 import AppContent from './app/AppContent';
 import AppHero from './app/AppHero';
 import AppOverlays from './app/AppOverlays';
+import TravelOsDashboard from './home/TravelOsDashboard';
 import { focusMarkerById } from './app/markerNavigation';
 import { useLockedModal } from './app/useLockedModal';
 import { useMapContext } from './app/useMapContext';
@@ -26,10 +27,16 @@ interface TravelAppProps {
   onOpenTagGovernance?: () => void;
   onOpenTripDetail?: (tripId: string) => void;
   onOpenTripChecklist?: (tripId: string) => void;
+  onOpenTripToday?: (tripId: string) => void;
+  onOpenTripSettlement?: (tripId: string) => void;
   onOpenPhotoCuration?: () => void;
   onOpenMemoryCapsules?: () => void;
   onOpenReminders?: () => void;
   onOpenSettings?: () => void;
+  onOpenAssistant?: () => void;
+  onOpenGuideSubscriptions?: () => void;
+  onOpenJourney?: () => void;
+  onNavigateToPath?: (path: string) => void;
   entryMessage?: string | null;
 }
 
@@ -43,10 +50,16 @@ function TravelApp({
   onOpenTagGovernance,
   onOpenTripDetail,
   onOpenTripChecklist,
+  onOpenTripToday,
+  onOpenTripSettlement,
   onOpenPhotoCuration,
   onOpenMemoryCapsules,
   onOpenReminders,
   onOpenSettings,
+  onOpenAssistant,
+  onOpenGuideSubscriptions,
+  onOpenJourney,
+  onNavigateToPath,
   entryMessage,
 }: TravelAppProps) {
   const [store, setStore] = useState<TravelStore>(() => createDefaultStore());
@@ -318,6 +331,13 @@ function TravelApp({
         onOpenSettings={onOpenSettings}
       />
 
+      <TravelOsDashboard
+        onNavigateToPath={(path) => onNavigateToPath?.(path)}
+        onOpenAssistant={() => onOpenAssistant?.()}
+        onOpenGuideSubscriptions={() => onOpenGuideSubscriptions?.()}
+        onOpenJourney={() => onOpenJourney?.()}
+      />
+
       <StatsPanel scope={scope} markers={visibleMarkers} users={store.users} />
 
       <AppContent
@@ -352,6 +372,8 @@ function TravelApp({
         onBulkAssignMarkersToTrip={handleBulkAssignMarkersToTrip}
         onOpenMarkerFromTimeline={handleFocusMarkerFromTimeline}
         onOpenTripDetail={onOpenTripDetail}
+        onOpenTripToday={onOpenTripToday}
+        onOpenTripSettlement={onOpenTripSettlement}
         onOpenMarkerFromGuide={handleFocusMarkerFromGuide}
         onRemoveSavedGuide={handleRemoveSavedGuide}
         onUpdateWishlistItem={handleUpdateWishlistItem}

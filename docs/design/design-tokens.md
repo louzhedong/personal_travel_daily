@@ -88,10 +88,34 @@ Summary: Modules may choose semantic levels, but must not invent sizes.
 - 按钮默认是浅色纸面 + 细边框；hover/focus 使用黑底白字作为主要强调，不再使用大面积蓝色渐变。
 - 表单、select、date picker、dialog 统一弱边界和纸张底，focus 使用 `--line-strong` 与低透明黑色 focus ring。
 - 彩色状态只作为轻量 tint：`--surface-tint-blue`、`--surface-tint-route`、`--surface-tint-clay`；不要整块高饱和铺色。
-- 首页仍遵守单独约束：桌面必须保持 1320px 左右双栏，地图操作区右对齐且不换行。
-- Atlas 仍保留地图册内页特例：1040px 版心、路线图、经纬网格和索引式信息结构。
+- 首页、行程详情、统计中心、年度回顾、后台等数据型页面统一使用 `--page-frame-wide` 版心，避免桌面端因宽度不一致出现错位。
+- 其余功能页（设置、提醒、整理、标签、照片、回放、胶囊等）统一使用 `--page-frame` 版心，并通过 `padding-inline: var(--page-gutter)` 维持左右安全留白。
+- Atlas 仍保留地图册内页特例：经纬网格和索引式信息结构，但版心仍收口到 `--page-frame-wide`，不再使用单独的 1040px。
 
 Summary: Every route now converges through `visual-system.css`; page CSS may define layout, but the visual language must stay light, restrained, and editorial.
+
+## 6A. 页面版心与左右留白 / Page Frame and Gutter
+
+- 页面版心统一从 `src/styles/base.css` 的两档 token 取值，禁止再写 1040 / 1120 / 1180 / 1240 / 1320 / 1360 / 1380 等硬编码宽度。
+- `--page-frame: 1180px`：内容型功能页（如 `/settings`、`/reminders`、`/organize`、`/tags`、`/photos`、`/capsules`、`/companions/:id/memories`、`/replay/...`）的默认版心。
+- `--page-frame-wide: 1320px`：数据密集型页面（首页、`/admin`、`/stats`、`/yearbook/:year`、`/trips/:id`、`/atlas`）的版心。
+- `--page-gutter: clamp(20px, 3vw, 36px)`：所有 `*-shell` / `*-stage` 容器的 `padding-inline`，保证左右留白随视窗自适应而不裁切内容。
+- `*-shell` / `*-stage` 必须遵循 `width: 100%; max-width: var(--page-frame[-wide]); margin-inline: auto; padding-inline: var(--page-gutter);` 模板，不要再用 `width: min(...)`、`width: clamp(...)` 等私有写法。
+- 全站任何 `1040px` / `1120px` / `1180px` / `1240px` / `1320px` / `1360px` / `1380px` 硬编码宽度都被视为回归视觉统一规则。
+
+Summary: Two width tokens cover all routes — content pages use `--page-frame`, data-heavy pages use `--page-frame-wide`, and `--page-gutter` keeps responsive side padding consistent.
+
+## 6B. 功能页头部统一 / Unified Page Headers
+
+- 所有功能页（非首页 / 非 Atlas）必须采用统一头部结构：右对齐 Topbar + Hero 卡片。
+- Topbar 类名统一为 `*-topbar`，内部按钮放在 `*-topbar-actions`，按钮组 `display: flex; justify-content: flex-end;`，最少包含「返回首页」与「退出登录」两个固定动作；附加动作（如刷新、导出）放在主按钮左侧。
+- Topbar 宽度统一为 `width: min(100%, var(--page-frame))`，居中放置在 hero 上方，使用 `--space-card-gap` 与 hero 拉开节奏。
+- Topbar 内按钮统一使用 `min-height: var(--control-height-sm); padding: 0 18px; font-size: var(--text-body); font-weight: 850;`，并复用 `ghost-button` / `primary-button` 类。
+- Hero 区只承担「eyebrow + 标题 + 描述 + 内容相关动作」，不再放置导航类按钮（返回 / 退出登录）。标题统一 `--page-hero-title`，描述统一 `--page-hero-copy`。
+- Hero 操作区类名统一为 `*-hero-actions`，按钮高度统一为 `var(--page-hero-action-height)`，禁止单页面再覆盖字号或高度。
+- Topbar 选择器列表已在 `src/styles/visual-system.css` 中集中收口，新增页面必须把 topbar 选择器加入该列表，而不是单页另写覆盖。
+
+Summary: Every functional page uses the same right-aligned topbar plus a content-only hero, and topbar / hero typography lives in `visual-system.css` to avoid per-page drift.
 
 ## 7. 禁止事项 / Do Not
 
@@ -101,6 +125,8 @@ Summary: Every route now converges through `visual-system.css`; page CSS may def
 - 不要让正文小于 `--text-xs`，除非是地图或极密集元信息。
 - 不要在响应式文件中新增独立字号，只能调整布局或复用 display token。
 - 不要新增蓝灰 SaaS 背景、强渐变按钮或强投影卡片；优先扩展 `visual-system.css` 中的全局规则。
+- 不要在功能页 hero 内放置「返回」/「退出登录」/「当前账号」类按钮，这些必须落在统一 topbar 中。
+- 不要在单页 CSS 中再写 1040 / 1120 / 1180 / 1240 / 1320 / 1360 / 1380 等硬编码宽度，必须使用 `--page-frame` 或 `--page-frame-wide`。
 
 Summary: New CSS should be token-driven and semantically named.
 

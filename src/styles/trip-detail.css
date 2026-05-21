@@ -1,11 +1,8 @@
 .trip-detail-stage {
   min-height: 100%;
-  padding: 28px var(--page-gutter) 40px;
 }
 
 .trip-detail-shell {
-  width: min(100%, var(--page-frame-wide));
-  margin: 0 auto;
   display: grid;
   gap: 22px;
 }
@@ -897,10 +894,11 @@
 
 .trip-detail-guide-link:hover,
 .trip-detail-guide-link:focus-visible {
-  border-color: rgba(147, 197, 253, 0.95);
-  background: rgba(239, 246, 255, 0.96);
-  color: #1d4ed8;
+  border-color: var(--line-strong);
+  background: var(--surface-tint-blue);
+  color: var(--accent-blueprint);
   outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 @media (max-width: 1080px) {

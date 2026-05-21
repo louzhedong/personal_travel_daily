@@ -1,10 +1,7 @@
 .admin-shell {
   display: grid;
-  width: min(100%, var(--page-frame-wide));
-  margin: 0 auto;
   gap: 22px;
   box-sizing: border-box;
-  padding: clamp(28px, 4vw, 48px) var(--page-gutter) clamp(40px, 5vw, 64px);
 }
 
 .admin-hero {
@@ -295,10 +292,6 @@
 .admin-quality-list {
   display: grid;
   gap: 10px;
-  max-height: min(520px, 54vh);
-  overflow-y: auto;
-  padding-right: 4px;
-  overscroll-behavior: contain;
 }
 
 .admin-quality-list-compact {
@@ -591,10 +584,21 @@
 .admin-audit-list {
   display: grid;
   gap: 10px;
-  max-height: min(460px, 50vh);
-  overflow-y: auto;
-  padding-right: 4px;
-  overscroll-behavior: contain;
+}
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.admin-pagination span {
+  flex: 1;
+  text-align: center;
 }
 
 .admin-audit-row {

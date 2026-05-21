@@ -49,6 +49,49 @@
   isolation: isolate;
 }
 
+.app-shell,
+.stats-page-stage,
+.achievements-page-stage,
+.trip-story-stage,
+.trip-detail-stage,
+.annual-review-stage,
+.account-settings-shell,
+.admin-shell,
+.reminder-shell,
+.tag-governance-shell,
+.photo-curation-shell,
+.organization-workbench-shell,
+.memory-capsule-shell,
+.memory-capsule-center-shell,
+.companion-memory-shell,
+.map-replay-story-shell,
+.public-share-shell,
+.travel-atlas-shell,
+.assistant-shell,
+.guide-subscription-shell,
+.journey-shell,
+.live-trip-shell {
+  width: 100%;
+  max-width: var(--page-frame-wide);
+  margin-inline: auto;
+  padding: 28px var(--page-gutter) 64px;
+  overflow: clip;
+  display: grid;
+  gap: var(--space-card-gap);
+  align-content: start;
+}
+
+.achievements-page-shell,
+.trip-story-shell,
+.trip-detail-shell,
+.annual-review-shell,
+.stats-page-shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
 .card,
 .panel-card,
 .admin-section,
@@ -85,8 +128,8 @@
 .account-settings-section,
 .account-settings-share-panel,
 .reminder-section,
-.reminder-summary-strip div,
 .tag-governance-panel,
+.tag-governance-form,
 .tag-governance-summary div,
 .photo-curation-panel,
 .photo-curation-summary div,
@@ -94,11 +137,15 @@
 .photo-album-hero,
 .organization-panel,
 .organization-preview-panel,
+.organization-action-board,
+.organization-sections-grid,
 .organization-summary-strip div,
 .memory-capsule-hero,
 .memory-capsule-create-panel,
 .memory-capsule-preview-section,
 .memory-capsule-editor-panel,
+.memory-capsule-list-head,
+.memory-capsule-list,
 .companion-memory-panel,
 .companion-memory-state-card,
 .map-replay-story-panel,
@@ -107,6 +154,9 @@
 .trip-expense-summary div,
 .public-share-panel,
 .public-share-summary-card,
+.guide-subscription-panel,
+.assistant-suggestion-panel,
+.assistant-history,
 .dialog-card,
 .modal-panel,
 .auth-hero-panel,
@@ -124,7 +174,6 @@
     linear-gradient(135deg, rgba(255, 253, 248, 0.88), rgba(255, 253, 248, 0.68)),
     var(--surface-paper);
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(10px);
 }
 
 .panel-card,
@@ -149,16 +198,26 @@
 .account-settings-share-panel,
 .reminder-section,
 .tag-governance-panel,
+.tag-governance-form,
 .photo-curation-panel,
 .organization-panel,
 .organization-preview-panel,
+.organization-action-board,
+.organization-sections-grid,
+.organization-action-board,
+.organization-sections-grid,
 .memory-capsule-create-panel,
 .memory-capsule-preview-section,
 .memory-capsule-editor-panel,
+.memory-capsule-list-head,
+.memory-capsule-list,
 .companion-memory-panel,
 .map-replay-story-panel,
 .trip-expense-panel,
 .public-share-panel,
+.guide-subscription-panel,
+.assistant-suggestion-panel,
+.assistant-history,
 .dialog-card,
 .auth-hero-panel,
 .auth-card,
@@ -204,6 +263,7 @@
   border-radius: var(--radius-panel);
 }
 
+.hero,
 .admin-hero,
 .stats-page-hero,
 .achievements-page-hero,
@@ -217,7 +277,11 @@
 .companion-memory-hero,
 .memory-capsule-center-hero,
 .map-replay-story-hero,
-.public-share-hero {
+.public-share-hero,
+.travel-os-dashboard-heading,
+.guide-subscription-hero,
+.journey-hero,
+.live-trip-hero {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--line-hair);
@@ -233,6 +297,7 @@
   border-radius: var(--radius-card);
 }
 
+.hero::after,
 .admin-hero::after,
 .stats-page-hero::after,
 .achievements-page-hero::after,
@@ -246,7 +311,11 @@
 .companion-memory-hero::after,
 .memory-capsule-center-hero::after,
 .map-replay-story-hero::after,
-.public-share-hero::after {
+.public-share-hero::after,
+.travel-os-dashboard-heading::after,
+.guide-subscription-hero::after,
+.journey-hero::after,
+.live-trip-hero::after {
   content: '';
   position: absolute;
   right: -80px;
@@ -258,6 +327,7 @@
   pointer-events: none;
 }
 
+.hero > *,
 .admin-hero > *,
 .stats-page-hero > *,
 .achievements-page-hero > *,
@@ -271,11 +341,16 @@
 .companion-memory-hero > *,
 .memory-capsule-center-hero > *,
 .map-replay-story-hero > *,
-.public-share-hero > * {
+.public-share-hero > *,
+.travel-os-dashboard-heading > *,
+.guide-subscription-hero > *,
+.journey-hero > *,
+.live-trip-hero > * {
   position: relative;
   z-index: 1;
 }
 
+.hero-copy h1,
 .admin-hero h1,
 .stats-page-hero h1,
 .achievements-page-hero h1,
@@ -289,13 +364,18 @@
 .companion-memory-hero h1,
 .memory-capsule-center-hero h1,
 .map-replay-story-hero h1,
-.public-share-hero h1 {
+.public-share-hero h1,
+.travel-os-dashboard-heading h2,
+.guide-subscription-hero h1,
+.journey-hero h1,
+.live-trip-hero h1 {
   font-family: var(--font-display);
   color: var(--ink);
   letter-spacing: var(--tracking-tight);
   line-height: var(--leading-tight);
 }
 
+.hero-copy p,
 .admin-hero p,
 .admin-state-card p,
 .stats-page-hero p,
@@ -396,11 +476,40 @@
 .date-field-trigger,
 .auth-mode-switch,
 .date-picker-panel,
-.fancy-select-menu {
+.fancy-select-menu,
+.organization-action-controls select,
+.trip-expense-composer input,
+.trip-expense-composer select,
+.guide-subscription-panel input,
+.guide-subscription-panel select {
   border-color: var(--line-soft);
   background: rgba(255, 253, 248, 0.9);
   color: var(--ink);
   box-shadow: none;
+}
+
+.organization-action-controls select,
+.trip-expense-composer input,
+.trip-expense-composer select,
+.guide-subscription-panel input,
+.guide-subscription-panel select {
+  min-height: var(--control-height-sm);
+  padding: 0 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-control);
+  font: inherit;
+}
+
+.organization-action-controls select:focus-visible,
+.trip-expense-composer input:focus,
+.trip-expense-composer input:focus-visible,
+.trip-expense-composer select:focus-visible,
+.guide-subscription-panel input:focus,
+.guide-subscription-panel input:focus-visible,
+.guide-subscription-panel select:focus-visible {
+  border-color: var(--line-strong);
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .field-control:focus,
@@ -411,7 +520,7 @@
 .date-field-trigger[aria-expanded='true'] {
   border-color: var(--line-strong);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(16, 20, 24, 0.08);
+  box-shadow: var(--focus-ring);
 }
 
 .auth-hero-panel,
@@ -588,14 +697,17 @@
 .map-replay-story-topbar,
 .travel-atlas-topbar,
 .stats-page-topbar,
-.annual-review-topbar {
+.annual-review-topbar,
+.assistant-topbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  width: min(100%, var(--page-frame));
+  width: 100%;
+  max-width: none;
   min-height: var(--control-height);
-  margin: 0 auto var(--space-card-gap);
+  margin: 0;
+  padding-inline: 0;
   gap: 12px;
 }
 
@@ -666,6 +778,7 @@
   font-weight: 850;
 }
 
+.hero,
 .admin-hero,
 .stats-page-hero,
 .achievements-page-hero,
@@ -681,13 +794,14 @@
 .memory-capsule-center-hero,
 .map-replay-story-hero,
 .public-share-hero,
-.travel-atlas-hero {
+.travel-atlas-hero,
+.assistant-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  width: min(100%, var(--page-frame));
-  max-width: var(--page-frame);
-  margin: 0 auto var(--space-card-gap);
+  width: 100%;
+  max-width: none;
+  margin: 0;
   gap: clamp(20px, 4vw, 48px);
   padding: clamp(30px, 4vw, 48px) var(--space-card-x);
   border: 1px solid var(--line-hair);
@@ -701,7 +815,12 @@
   box-shadow: var(--shadow-card);
 }
 
+.hero {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+}
+
 .admin-hero-copy,
+.stats-page-hero-copy,
 .photo-curation-hero-copy,
 .companion-memory-hero-copy,
 .annual-review-hero-copy,
@@ -710,6 +829,7 @@
   gap: 12px;
 }
 
+.hero-copy h1,
 .admin-hero h1,
 .stats-page-hero h1,
 .achievements-page-hero h1,
@@ -725,7 +845,8 @@
 .memory-capsule-center-hero h1,
 .map-replay-story-hero h1,
 .public-share-hero h1,
-.travel-atlas-hero h1 {
+.travel-atlas-hero h1,
+.assistant-hero h1 {
   max-width: 12em;
   margin: 0;
   color: var(--ink);
@@ -736,6 +857,11 @@
   letter-spacing: var(--tracking-tight);
 }
 
+.hero-copy h1 {
+  white-space: normal;
+}
+
+.hero-copy p,
 .admin-hero p,
 .stats-page-hero p,
 .achievements-page-hero p,
@@ -752,13 +878,46 @@
 .memory-capsule-center-hero p,
 .map-replay-story-hero p,
 .public-share-hero p,
-.travel-atlas-hero p {
+.travel-atlas-hero p,
+.assistant-hero p {
   max-width: 68ch;
   margin: 0;
   color: var(--ink-muted);
   font-size: var(--page-hero-copy);
   font-weight: 650;
   line-height: var(--leading-loose);
+}
+
+.hero-copy {
+  max-width: 760px;
+}
+
+.hero-copy h1::after {
+  margin-top: 10px;
+  color: rgba(16, 20, 24, 0.3);
+  font-size: var(--title-sm);
+  letter-spacing: var(--tracking-kicker);
+}
+
+.reminder-hero {
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.reminder-hero h1 {
+  max-width: 12em;
+}
+
+.reminder-summary-strip,
+.reminder-layout {
+  width: 100%;
+  margin-inline: 0;
+}
+
+.stats-page-topbar,
+.stats-page-hero {
+  width: 100%;
+  margin: 0;
 }
 
 .hero-kicker,
@@ -802,6 +961,7 @@
 }
 
 .account-settings-layout {
+  display: grid;
   gap: var(--space-card-gap);
   border-bottom: 0;
 }
@@ -836,6 +996,117 @@
   border-left: 1px solid var(--line-hair);
 }
 
+/*
+ * Legacy module convergence.
+ * These routes predate the current page contract, so keep their structure but
+ * normalize the visual language to one editorial product system.
+ */
+.stats-summary-card,
+.stats-highlight-card,
+.stats-panel,
+.stats-empty,
+.reminder-entry,
+.reminder-preferences,
+.reminder-empty {
+  border: 1px solid var(--line-hair);
+  border-radius: var(--radius-panel);
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.88), rgba(255, 253, 248, 0.68)),
+    var(--surface-paper);
+  box-shadow: var(--shadow-card);
+}
+
+.stats-summary-card,
+.stats-highlight-card,
+.stats-panel {
+  padding: var(--space-card-compact);
+}
+
+.stats-summary-label,
+.stats-summary-card p,
+.stats-highlight-card p,
+.stats-section-heading p,
+.stats-trend-item span,
+.stats-trend-item small,
+.reminder-hero p,
+.reminder-entry p,
+.reminder-entry-footnote,
+.reminder-section-title p,
+.reminder-preference-row span,
+.reminder-entry-meta span,
+.reminder-empty,
+.admin-reminder-trend span,
+.admin-reminder-trend p,
+.account-settings-reminder-row span {
+  color: var(--ink-muted);
+}
+
+.stats-summary-card strong,
+.stats-highlight-card strong,
+.stats-section-heading h3,
+.reminder-entry h2,
+.reminder-section-title h2,
+.reminder-summary-strip strong,
+.admin-reminder-trend strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+  letter-spacing: -0.035em;
+}
+
+.stats-highlight-pill {
+  border-color: var(--line-hair);
+  background: var(--surface-sheet);
+  color: var(--accent-blueprint);
+}
+
+.stats-highlight-icon {
+  background: var(--surface-tint-blue);
+  color: var(--accent-blueprint);
+}
+
+.stats-empty,
+.reminder-empty {
+  min-height: 88px;
+  align-items: center;
+  padding: var(--space-card-compact);
+  font-weight: 800;
+}
+
+.reminder-list {
+  display: grid;
+  gap: var(--space-card-gap);
+}
+
+.reminder-entry {
+  padding: var(--space-card-y) var(--space-card-x);
+  border-top: 1px solid var(--line-hair);
+}
+
+.reminder-entry:first-child {
+  border-top: 1px solid var(--line-hair);
+}
+
+.reminder-preferences {
+  padding: var(--space-card-compact);
+  border-top: 1px solid var(--line-hair);
+}
+
+.reminder-preference-row,
+.account-settings-reminder-row {
+  border-top-color: var(--line-hair);
+  color: var(--ink);
+}
+
+.reminder-preference-row:hover,
+.reminder-preference-row:focus-visible,
+.account-settings-reminder-row:hover,
+.account-settings-reminder-row:focus-visible {
+  color: var(--ink);
+  outline: none;
+  background: rgba(255, 253, 248, 0.7);
+  box-shadow: var(--focus-ring);
+}
+
 @media (max-width: 760px) {
   .panel-card,
   .admin-section,
@@ -862,6 +1133,8 @@
   .photo-curation-panel,
   .organization-panel,
   .organization-preview-panel,
+  .organization-action-board,
+  .organization-sections-grid,
   .memory-capsule-create-panel,
   .memory-capsule-preview-section,
   .memory-capsule-editor-panel,

@@ -46,6 +46,11 @@ export interface VisitMarkerDto {
   weather?: MarkerWeather;
   transport?: MarkerTransport;
   budgetLevel?: MarkerBudgetLevel;
+  latitude?: number;
+  longitude?: number;
+  geoSource?: string;
+  geoConfidence?: number;
+  geoResolvedAt?: string;
   imageUrls?: string[];
   visitedStartAt: string;
   visitedEndAt: string;

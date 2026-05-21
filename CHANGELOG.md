@@ -3,6 +3,37 @@
 本文件按日期与 PR 直接追加记录，不使用 `Unreleased` 聚合区。每次创建 PR 时，同步补充对应条目。
 This file is appended directly by date and PR. It does not use an `Unreleased` section, and each PR should add its own entry.
 
+## 2026-05-13
+
+### PR #41 `feat: 全局视觉统一与功能矩阵补齐 / Global visual unification and feature-matrix consolidation`
+
+### Added / 新增
+
+- 引入两档页面版心 token：`--page-frame: 1180px`（内容型功能页）与 `--page-frame-wide: 1320px`（数据密集型页面），并新增统一左右留白 `--page-gutter: clamp(20px, 3vw, 36px)`。
+  Added two page-frame tokens — `--page-frame: 1180px` for content pages and `--page-frame-wide: 1320px` for data-heavy pages — plus a unified responsive side-padding token `--page-gutter: clamp(20px, 3vw, 36px)`.
+- 新增统一的功能页头部 token：`--page-hero-title`、`--page-hero-copy`、`--page-hero-action-height`，并把 stats / annual review / atlas 等 topbar 选择器纳入 `visual-system.css` 集中维护。
+  Added unified page-header tokens (`--page-hero-title`, `--page-hero-copy`, `--page-hero-action-height`) and centralized stats / annual-review / atlas topbar selectors inside `visual-system.css`.
+- 新增 `--space-card-x` / `--space-card-y` / `--space-card-compact` / `--space-card-gap` 卡片间距 token，统一全站大卡片、紧凑卡片和上下间距。
+  Added card-spacing tokens (`--space-card-x`, `--space-card-y`, `--space-card-compact`, `--space-card-gap`) to unify card padding and vertical rhythm.
+- 在 `/harness` 下落地 harness 工程化资产（`init.sh`、`feature_list.json`、`quality-document.md`、`session-handoff.md`、`evaluator-rubric.md` 等），AGENTS.md 收口在仓库根目录。
+  Landed harness engineering assets under `/harness` (init script, feature list, quality document, session handoff, evaluator rubric) with `AGENTS.md` kept at the repository root.
+
+### Changed / 变更
+
+- 全站功能页头部统一为「右对齐 Topbar（返回首页 + 退出登录）+ 内容化 Hero」；photo curation、organization workbench、map replay story、companion memories、memory capsule detail、stats、annual review 等页面同步调整。
+  Unified all functional pages on a right-aligned topbar (Back home + Sign out) plus a content-only hero, including photo curation, organization workbench, map replay story, companion memories, memory capsule detail, stats, and annual review.
+- 清理 279 个文件中散落的 1040 / 1120 / 1180 / 1240 / 1320 / 1360 / 1380 等硬编码宽度，统一收口到 `--page-frame` / `--page-frame-wide` 与 `padding-inline: var(--page-gutter)`。
+  Replaced scattered hard-coded widths (1040 / 1120 / 1180 / 1240 / 1320 / 1360 / 1380) across 279 files with `--page-frame` / `--page-frame-wide` and `padding-inline: var(--page-gutter)`.
+- 后台问题筛选与审计日志面板新增 `max-height: min(520px, 54vh)` / `min(460px, 50vh)` 与内部滚动；后台模块标题统一收敛到 `--title-sm`。
+  Added internal scrolling caps to admin issue-filter and audit-log panels (`max-height: min(520px, 54vh)` / `min(460px, 50vh)`) and unified admin module titles to `--title-sm`.
+- 修复 Atlas 下拉态、首页左右双栏遮挡、地图操作区右对齐、提醒趋势卡片外层留白等回归视觉问题。
+  Fixed Atlas dropdown state, homepage two-column overlap, right-aligned map action area, and reminder-trend outer-card padding regressions.
+
+### Verified / 已验证
+
+- `npx vitest run`（139 文件 / 508 测试全部通过）
+  `npx vitest run` (139 files / 508 tests all passing)
+
 ## 2026-05-12
 
 ### PR 待定 / TBD `docs: Phase 12 文档与 Roadmap 收口 / Close Phase 12 docs and roadmap`
@@ -1194,3 +1225,42 @@ This file is appended directly by date and PR. It does not use an `Unreleased` s
   Added `system-prompt.md`, `task-prompt.md`, `design-prompt.md`, and `project-ai-prompt.md`.
 - 在 README 中加入 Prompt 文档入口。
   Updated the README documentation index with prompt entries.
+
+## 2026-05-18
+
+### PR 待定 / TBD `feat: Roadmap 新功能全量完成 / Complete full new-feature roadmap`
+
+### Added / 新增
+
+- 新增 Travel OS 首页总览、私密 AI 助手、旅途进行时、真实地理点位增强、攻略订阅、故事化时间轴、PWA 离线骨架、i18n/a11y baseline 和 AA 结算入口。
+  Added Travel OS dashboard, private AI assistant, live trip mode, real geocoding enhancement, guide subscriptions, storyfied journey timeline, PWA offline shell, i18n/a11y baseline, and AA settlement entry points.
+- 新增 Prisma 模型与字段：`HomeDashboardPreference`、`AssistantPreference`、`AssistantSuggestion`、`GeoLookup`、`GuideSubscription*`、`TripExpenseSplit`、`ExchangeRateSnapshot`、marker 坐标与费用汇率快照字段。
+  Added Prisma models and fields for dashboard preferences, assistant preferences/suggestions, geo lookup, guide subscriptions, expense splits, exchange-rate snapshots, marker coordinates, and expense exchange snapshots.
+- 新增脚本 `npm run perf` 与 `npm run a11y`，并接入 `vite-plugin-pwa`、`rss-parser`、`axe-core`、`@dnd-kit/*`。
+  Added `npm run perf` and `npm run a11y`, and integrated `vite-plugin-pwa`, `rss-parser`, `axe-core`, and `@dnd-kit/*`.
+
+### Verified / 已验证
+
+- `npm run db:generate`
+- `npm run build`
+- `npm run perf`
+- `npm run a11y`
+- `npm run db:migrate:deploy`
+- `npm run db:migrate:status`
+- `git diff --check`
+- `bash harness/init.sh`
+
+### Deep Completion / 深度补齐
+
+- Travel OS 首页补齐卡片拖拽排序、隐藏/恢复、持久化保存状态和更完整空状态。
+  Travel OS dashboard now supports draggable ordering, hide/restore, persisted saving state, and richer empty states.
+- 私密 AI 助手补齐上下文摘要、最近建议历史、确认/驳回状态和 suggestion-only 审计提示。
+  Private AI assistant now includes context summaries, recent suggestion history, confirm/dismiss states, and suggestion-only audit messaging.
+- 真实 Geo 补齐 marker 详情页主动增强入口、坐标/来源/可信度展示和 bootstrap DTO 序列化。
+  Real Geo now includes marker-level enhancement, coordinate/source/confidence display, and bootstrap DTO serialization.
+- 分享 v2 补齐模板节奏、章节说明和 OG SVG 下载；AA 结算补齐加载/错误状态与 CSV 下载。
+  Share v2 now includes template rhythms, chapter notes, and OG SVG download; AA settlement includes loading/error states and CSV download.
+- 攻略订阅补齐类型选择、运行状态、刷新反馈和命中外链；账号设置补齐语言、地图风格、默认币种和常用币种持久化。
+  Guide subscriptions now include kind selection, run state, refresh feedback, and result links; settings persist locale, map style, default currency, and common currencies.
+- 故事化时间轴补齐季度/半年切换、加载/空状态、更多高亮和路线表达。
+  Storyfied timeline now includes quarter/half-year switching, loading/empty states, richer highlights, and route lines.

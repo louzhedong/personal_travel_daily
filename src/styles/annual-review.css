@@ -4,12 +4,10 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 247, 251, 0.98)),
     radial-gradient(circle at 12% 8%, rgba(14, 165, 233, 0.14), transparent 30%),
     radial-gradient(circle at 86% 14%, rgba(245, 158, 11, 0.13), transparent 28%);
-  padding: 32px var(--page-gutter) 56px;
 }
 
 .annual-review-shell {
-  width: min(100%, var(--page-frame));
-  margin: 0 auto;
+  display: block;
 }
 
 .annual-review-hero-copy .hero-kicker {
@@ -149,16 +147,17 @@
 }
 
 .annual-review-carousel-dots span {
-  width: 18px;
+  width: 28px;
   height: 3px;
   border-radius: 999px;
   background: rgba(100, 116, 139, 0.38);
-  transition: background-color 0.2s ease, width 0.2s ease;
+  transform: scaleX(0.64);
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .annual-review-carousel-dots span.is-active {
-  width: 28px;
   background: rgba(37, 99, 235, 0.86);
+  transform: scaleX(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -234,7 +233,7 @@
 .annual-review-highlight-card span,
 .annual-review-marker-pair span,
 .annual-review-month-card span {
-  color: var(--muted);
+  color: var(--ink-muted);
   font-size: var(--text-xs);
 }
 
@@ -260,7 +259,7 @@
 .annual-review-marker-pair p,
 .annual-review-month-card p {
   margin: 0;
-  color: var(--muted);
+  color: var(--ink-muted);
   line-height: 1.5;
 }
 
@@ -295,7 +294,7 @@
 
 .annual-review-heading p {
   margin: 0;
-  color: var(--muted);
+  color: var(--ink-muted);
   line-height: 1.55;
 }
 
@@ -360,14 +359,14 @@
 
 .annual-review-achievement-card span,
 .annual-review-achievement-card small {
-  color: var(--muted);
+  color: var(--ink-muted);
   font-size: var(--text-xs);
   font-weight: 800;
 }
 
 .annual-review-achievement-card p {
   margin: 0;
-  color: var(--muted);
+  color: var(--ink-muted);
   line-height: 1.5;
 }
 
@@ -461,7 +460,7 @@
 .annual-review-photo-card span,
 .annual-review-trip-list span,
 .annual-review-guide-card span {
-  color: var(--muted);
+  color: var(--ink-muted);
   font-size: var(--text-xs);
 }
 
@@ -494,7 +493,7 @@
 .annual-review-trip-list p,
 .annual-review-guide-card p {
   margin: 6px 0;
-  color: var(--muted);
+  color: var(--ink-muted);
   line-height: 1.5;
 }
 
@@ -519,7 +518,7 @@
 .annual-review-expense-grid span,
 .annual-review-expense-grid p,
 .annual-review-empty-inline {
-  color: var(--muted);
+  color: var(--ink-muted);
 }
 
 .annual-review-expense-grid strong {

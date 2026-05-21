@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { accessPublicShareLink } from '../../lib/api/shareLinksApi';
 import type { PublicShareAccessResponseDto, PublicShareResourceDto } from '../../lib/api/types';
+import { buildPublicShareOgSvg, getPublicShareTemplate } from './publicSharePageModel';
 
 interface PublicSharePageProps {
   token: string;
@@ -94,6 +95,8 @@ export default function PublicSharePage({ token }: PublicSharePageProps) {
   const resource = response?.resource;
   const metrics = useMemo(() => (resource ? getMetrics(resource) : []), [resource]);
   const photos = useMemo(() => (resource ? getPhotos(resource) : []), [resource]);
+  const template = useMemo(() => (resource ? getPublicShareTemplate(resource) : null), [resource]);
+  const ogSvg = useMemo(() => (resource ? buildPublicShareOgSvg(resource) : ''), [resource]);
 
   const loadShare = async (nextPassword?: string) => {
     setErrorMessage('');
@@ -176,12 +179,16 @@ export default function PublicSharePage({ token }: PublicSharePageProps) {
 
   return (
     <main className="public-share-shell">
-      <article className="public-share-page">
+      <article className={`public-share-page ${template?.className ?? ''}`}>
         <header className="public-share-hero">
-          <span className="hero-kicker">{RESOURCE_LABELS[resource.kind]}</span>
+          <span className="hero-kicker">{RESOURCE_LABELS[resource.kind]} · {template?.label}</span>
           <h1>{resource.title}</h1>
           <p>{getResourceIntro(resource)}</p>
-          <small>只读分享 · 生成于 {new Date(resource.generatedAt).toLocaleString('zh-CN')}</small>
+          <div className="public-share-hero-meta">
+            <small>{template?.rhythm}</small>
+            <small>只读分享 · 生成于 {new Date(resource.generatedAt).toLocaleString('zh-CN')}</small>
+            {ogSvg ? <a href={ogSvg} download={`${resource.kind}-og.svg`}>下载 OG 卡片</a> : null}
+          </div>
         </header>
 
         {metrics.length > 0 ? (
@@ -206,6 +213,12 @@ export default function PublicSharePage({ token }: PublicSharePageProps) {
             ))}
           </section>
         ) : null}
+
+        <section className="public-share-chapters" aria-label="分享章节">
+          <article><span>01</span><strong>路线</strong><p>使用已公开的城市与真实坐标摘要，不暴露后台原始数据。</p></article>
+          <article><span>02</span><strong>照片</strong><p>仅展示精选图片与说明，不包含上传凭证或管理入口。</p></article>
+          <article><span>03</span><strong>回看</strong><p>读者看到的是已封装故事，而不是账号工作台。</p></article>
+        </section>
 
         <section className="public-share-readonly-note">
           <strong>隐私边界</strong>
