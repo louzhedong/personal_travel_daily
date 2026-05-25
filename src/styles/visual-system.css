@@ -70,7 +70,13 @@
 .assistant-shell,
 .guide-subscription-shell,
 .journey-shell,
-.live-trip-shell {
+.live-trip-shell,
+.wishlist-mood-shell,
+.trip-reconciliation-shell,
+.recall-shell,
+.contribution-inbox-shell,
+.contribution-drop-shell,
+.rhythm-portrait-shell {
   width: 100%;
   max-width: var(--page-frame-wide);
   margin-inline: auto;

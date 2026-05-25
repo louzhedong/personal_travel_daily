@@ -20,9 +20,15 @@ import StatsPage from '../stats/StatsPage';
 import TravelApp from '../TravelApp';
 import TripChecklistPage from '../trips/TripChecklistPage';
 import TripDetailPage from '../trips/TripDetailPage';
+import TripReconciliationPage from '../trips/TripReconciliationPage';
 import TripSettlementPage from '../expenses/TripSettlementPage';
 import TripStoryPage from '../trips/TripStoryPage';
 import TripTodayPage from '../trips/TripTodayPage';
+import WishlistMoodBoardPage from '../wishlist-mood/WishlistMoodBoardPage';
+import RecallPage from '../recall/RecallPage';
+import ContributionInboxPage from '../contribution/ContributionInboxPage';
+import ContributionDropPage from '../contribution/ContributionDropPage';
+import RhythmPortraitPage from '../rhythm/RhythmPortraitPage';
 import AnnualReviewPage from '../yearbook/AnnualReviewPage';
 import { canOpenAdmin } from './routeGuards';
 import {
@@ -46,6 +52,7 @@ import {
   createTagGovernanceRoute,
   createTripChecklistRoute,
   createTripDetailRoute,
+  createTripReconciliationRoute,
   createTripSettlementRoute,
   createTripStoryRoute,
   createTripTodayRoute,
@@ -67,7 +74,7 @@ interface AuthenticatedRouteRendererProps {
 
 type RegisteredAuthenticatedRoute = Exclude<
   AppRoute,
-  { kind: 'home' } | { kind: 'login' } | { kind: 'register' } | { kind: 'publicShare' }
+  { kind: 'home' } | { kind: 'login' } | { kind: 'register' } | { kind: 'publicShare' } | { kind: 'contributionDrop' }
 >;
 
 type RouteRenderer<K extends RegisteredAuthenticatedRoute['kind']> = (
@@ -126,6 +133,7 @@ const authenticatedRouteRenderers: RouteRendererRegistry = {
       onNavigateBack={() => goBackOrReplace(createStatsRoute())}
       onOpenTripChecklist={(tripId) => navigate(createTripChecklistRoute(tripId))}
       onOpenTripStory={(tripId) => navigate(createTripStoryRoute(tripId))}
+      onOpenTripReconciliation={(tripId) => navigate(createTripReconciliationRoute(tripId))}
       onOpenMemoryCapsules={() => navigate(createMemoryCapsulesRoute())}
       onOpenCompanionMemories={(companionId) => navigate(createCompanionMemoriesRoute(companionId))}
       onOpenPhotoCuration={(query) => navigate(createPhotoCurationRoute(query))}
@@ -172,6 +180,42 @@ const authenticatedRouteRenderers: RouteRendererRegistry = {
       tripId={route.tripId}
       onLogout={onLogout}
       onNavigateBack={() => goBackOrReplace(createTripDetailRoute(route.tripId))}
+    />
+  ),
+  tripReconciliation: ({ account, route, goBackOrReplace, onLogout }) => (
+    <TripReconciliationPage
+      account={account}
+      tripId={route.tripId}
+      onLogout={onLogout}
+      onNavigateBack={() => goBackOrReplace(createTripDetailRoute(route.tripId))}
+    />
+  ),
+  wishlistMoodBoard: ({ account, goBackOrReplace, onLogout }) => (
+    <WishlistMoodBoardPage
+      account={account}
+      onLogout={onLogout}
+      onNavigateBack={() => goBackOrReplace(createHomeRoute())}
+    />
+  ),
+  recall: ({ account, goBackOrReplace, onLogout }) => (
+    <RecallPage
+      account={account}
+      onLogout={onLogout}
+      onNavigateBack={() => goBackOrReplace(createHomeRoute())}
+    />
+  ),
+  contributionInbox: ({ account, goBackOrReplace, onLogout }) => (
+    <ContributionInboxPage
+      account={account}
+      onLogout={onLogout}
+      onNavigateBack={() => goBackOrReplace(createHomeRoute())}
+    />
+  ),
+  rhythmPortrait: ({ account, goBackOrReplace, onLogout }) => (
+    <RhythmPortraitPage
+      account={account}
+      onLogout={onLogout}
+      onNavigateBack={() => goBackOrReplace(createStatsRoute())}
     />
   ),
   annualReview: ({ account, route, navigate, goBackOrReplace, onLogout }) => (
@@ -324,6 +368,11 @@ export function renderAuthenticatedRoute(props: AuthenticatedRouteRendererProps)
   return renderHomeRoute(props);
 }
 
-export function renderPublicRoute(route: Extract<AppRoute, { kind: 'publicShare' }>) {
-  return <PublicSharePage token={route.token} />;
+export function renderPublicRoute(
+  route: Extract<AppRoute, { kind: 'publicShare' } | { kind: 'contributionDrop' }>,
+) {
+  if (route.kind === 'publicShare') {
+    return <PublicSharePage token={route.token} />;
+  }
+  return <ContributionDropPage slug={route.slug} />;
 }

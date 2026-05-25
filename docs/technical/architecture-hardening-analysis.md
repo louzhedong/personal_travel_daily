@@ -146,3 +146,87 @@ Phase 3 reduces top-level UI and test monoliths while improving smoke coverage.
 - `npm run build`
 
 The first DTO refactor should be validated through API-module tests, barrel tests, admin route/UI regression tests, and a full build.
+
+---
+
+## 6. 工具链：CodeGraph 语义索引 / Tooling: CodeGraph Semantic Index
+
+### 决策 / Decision
+
+接入 [`@colbymchenry/codegraph`](https://github.com/colbymchenry/codegraph)（v0.9.x）作为本地、零外发的代码语义索引层，向 AI Agent 暴露 MCP 工具，把 "探索 → grep → Read" 的工具调用聚合为一次语义查询。
+
+We adopt `@colbymchenry/codegraph` as a local, fully on-device semantic index, exposing MCP tools to AI agents so the typical "explore → grep → read" loop collapses into a single semantic query.
+
+### 架构定位 / Architectural Role
+
+| 层级 / Layer | 角色 / Role |
+|---|---|
+| 索引产物 / Artifact | `.codegraph/codegraph.db`（SQLite + FTS5，本地、不入库） |
+| 抽取器 / Extractor | tree-sitter（TS/TSX/JS/YAML），自动识别 Fastify route shape |
+| 接入层 / Surface | MCP Server (`codegraph serve --mcp`) |
+| 当前规模 / Scale | 673 文件 / 6,476 节点 / 13,142 边 / 113 框架路由节点 |
+
+### 使用约束 / Usage Constraints
+
+- 主会话只允许调用轻量 API：`codegraph_search` / `codegraph_callers` / `codegraph_callees` / `codegraph_impact` / `codegraph_node` / `codegraph_files` / `codegraph_status`。
+- 重型查询 `codegraph_explore` / `codegraph_context` 只允许在子 agent 中使用，避免污染主上下文。
+- 大规模重构后必须 `codegraph sync`；CI 不依赖该索引（仅本地 dev 工具）。
+
+The main session may use only lightweight APIs. Heavy queries are confined to sub-agents. The index is a developer-only tool and is not part of the CI pipeline.
+
+### Agent 接入矩阵 / Agent Wiring Matrix
+
+| Agent | Status | Config |
+|---|---|---|
+| Codex CLI | ✅ | `~/.codex/config.toml` 中 `[mcp_servers.codegraph]` |
+| Trae | ⏳ Manual | 在 Trae IDE → MCP 面板填写 `command=codegraph`, `args=["serve","--mcp"]` |
+| Claude / Cursor / opencode | ➖ Optional | `codegraph install --target=<id> --location=local --yes` |
+
+### 风险与回滚 / Risks & Rollback
+
+- **风险**：tree-sitter 抽取的 route 节点可能落后于实际 Fastify schema 变更，需要 `codegraph sync` 才生效。
+- **回滚**：删除 `.codegraph/` 即可彻底退出；MCP 配置可通过 `codegraph install --print-config codex` 或手动从 `~/.codex/config.toml` 移除 `[mcp_servers.codegraph]`。
+
+---
+
+## 7. 第二批 G1–G5 架构决策 / Batch-2 Architecture Decisions
+
+第二批五大功能（G1 愿望灵感板 / G2 旅行对账日 / G3 事件维度回想 / G4 旅伴匿名只写贡献链接 / G5 旅行节奏画像）已按以下决策落地，作为后续架构演进的参照点。
+
+The second batch of five features ships under the decisions below, which serve as the architectural reference for follow-up work.
+
+### G3 事件回想：拒绝 FTS5/向量 / Recall: No FTS5/Vector
+
+不引入 FTS5 全文索引或向量召回，仅在 `RecallEventIndex` 中存储**维度（companion / mood / weather / city / tag / month）**而不存内容正文。索引可由 `recallIndexService.rebuildAccountIndex` 全量重建，保证可回滚、可审计、零向量依赖。
+
+The recall feature stores only **facets** (companion / mood / weather / city / tag / month) in `RecallEventIndex` — never the document body — and can be fully rebuilt from `recallIndexService.rebuildAccountIndex`. No FTS5, no vectors, no opaque ranker.
+
+### G4 匿名投稿：token-hash 单向写入 / Contribution: Token-Hash Write-Only
+
+旅伴匿名贡献链接沿用 `PrivateShareLink` 的 token 设计，但 **只写不读**：明文 token 仅在创建瞬间一次性返回给 owner，DB 只保存 hash。投稿落盘到沙盒目录 `var/contribution-inbox/<accountId>/<dropboxId>/`，与正式资源隔离，需要 owner 在 inbox 审核后才能 accept 为 photo / marker / journal。
+
+The companion contribution link reuses the hashed-token pattern from `PrivateShareLink` but is **write-only**: the plaintext token is revealed exactly once on creation; only the hash persists. Submissions land in the sandbox directory `var/contribution-inbox/`, isolated from primary assets, and require explicit owner-side acceptance before being promoted to a photo, marker, or journal entry.
+
+### G5 节奏画像：纯统计 + 手写 SVG / Rhythm: Pure Stats + Hand-Rolled SVG
+
+`rhythmPortraitService` 仅基于现有 trip / expense / companion 聚合产出指纹（预算档、平均天数、同伴多样性、月份分布、交通主题等），不调用任何 LLM。可视化导出复用 `tripStoryExport.ts` / `memoryCapsuleExport.ts` 同款手写 SVG 雷达图通道，避免新增 server-side rendering 依赖。
+
+`rhythmPortraitService` derives fingerprints purely from existing trip, expense, and companion aggregates — no LLM in the loop. The exported radar chart reuses the hand-rolled SVG pipeline from `tripStoryExport.ts` and `memoryCapsuleExport.ts`, so no new server-side rendering dependency is introduced.
+
+### Reminder 管线扩展 / Reminder Pipeline Extension
+
+提醒 `trip_reconciliation_due` 已并入既有管线：`REMINDER_TYPES` + `REMINDER_LABELS` + `generateAccountReminders(account, now)` + `upsertReminderState`，前端通过新增 `tripReconciliation` 导航 kind 跳转。后续新增提醒类型必须沿用同一管线，不得旁路。
+
+The `trip_reconciliation_due` reminder rides the existing pipeline (types, labels, generator, state upsert) and surfaces through the new `tripReconciliation` navigation kind. Future reminder types must follow the same pipeline rather than introducing parallel paths.
+
+### 视觉 Shell 收口 / Visual Shell Consolidation
+
+G1–G5 的所有页面外壳（`wishlist-mood-shell` / `trip-reconciliation-shell` / `recall-shell` / `contribution-inbox-shell` / `contribution-drop-shell` / `rhythm-portrait-shell`）已注册到 `src/styles/visual-system.css` 的 `--page-frame-wide` 列表，禁止页面内联 `max-width` 或独立 shell 宽度。
+
+All G1–G5 page shells register against the `--page-frame-wide` selector list in `src/styles/visual-system.css`. Page-level inline `max-width` overrides are prohibited.
+
+### 路由四处同步 / Router Four-Point Sync
+
+新增前端路由必须同时更新四处：`router.ts` 的 `AppRoute` 联合、`createXxxRoute` 工厂、`parsePathname` 规则、`pathnameFor` 实现；`routeRenderers.tsx` 的 `authenticatedRouteRenderers` 注册表（`RegisteredAuthenticatedRoute` 排除公开路由）；`routeGuards.ts` 的公开放行；`App.tsx` 的 `renderPublicRoute` 分支。该约束由本批次 `tripReconciliation / wishlistMoodBoard / recall / contributionInbox / contributionDrop / rhythmPortrait` 六条路由共同验证。
+
+A new frontend route must update four sites simultaneously: the `AppRoute` union / `createXxxRoute` factory / `parsePathname` rule / `pathnameFor` implementation in `router.ts`; the `authenticatedRouteRenderers` registry (with the public route excluded from `RegisteredAuthenticatedRoute`); the public-route allow-list in `routeGuards.ts`; and the `renderPublicRoute` dispatch in `App.tsx`. This batch validates that contract across six new routes.

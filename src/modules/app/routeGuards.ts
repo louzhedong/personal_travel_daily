@@ -2,7 +2,7 @@ import type { AuthAccount } from '../../types';
 import type { AppRoute } from './router';
 
 export function shouldShowAuthPage(account: AuthAccount | null, route: AppRoute) {
-  if (route.kind === 'publicShare') {
+  if (route.kind === 'publicShare' || route.kind === 'contributionDrop') {
     return false;
   }
   return !account || route.kind === 'login' || route.kind === 'register';

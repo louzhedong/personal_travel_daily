@@ -298,6 +298,91 @@
         "2026-05-18: 深度补齐产品级交互、状态反馈、持久化偏好和可下载/可审计输出。"
       ],
       "notes": "Roadmap 新功能全量实施批次。"
+    },
+    {
+      "id": "batch2-G1-wishlist-mood",
+      "priority": 21,
+      "area": "batch2-features",
+      "title": "G1 · 愿望灵感板",
+      "user_visible_behavior": "/wishlist/mood 路径打开灵感板，可为任意愿望追加图片/语录/便签/季节窗口/预算卡片，按色块归类。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "确认 /wishlist/mood 可由 router parsePathname 解析。"
+      ],
+      "evidence": [
+        "2026-05-25: 后端 schema/migrations + DTO + service + routes 完成；前端 DTO/api/页面/路由全部落地；npx vite build 通过。"
+      ],
+      "notes": "G1-G5 第二批批次。"
+    },
+    {
+      "id": "batch2-G2-trip-reconciliation",
+      "priority": 22,
+      "area": "batch2-features",
+      "title": "G2 · 旅行对账日",
+      "user_visible_behavior": "/trips/:id/reconciliation 生成规划-标记-清单-预算-照片对照报告，并提供已查阅标记。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "确认 reminder 列表新增 trip_reconciliation_due 类型。"
+      ],
+      "evidence": [
+        "2026-05-25: TripReconciliationReport 模型 + service refresh/acknowledge + 前端报告页落地；npx vite build 通过。"
+      ],
+      "notes": "G1-G5 第二批批次。"
+    },
+    {
+      "id": "batch2-G3-event-recall",
+      "priority": 23,
+      "area": "batch2-features",
+      "title": "G3 · 事件维度回想",
+      "user_visible_behavior": "/recall 页面提供同伴/天气/心情/标签/城市/类型多维度筛选与事件流回想。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "确认 RecallEventIndex 表可全量重建。"
+      ],
+      "evidence": [
+        "2026-05-25: RecallEventIndex 衍生表 + query/rebuild API + facet 聚合页面落地；npx vite build 通过。"
+      ],
+      "notes": "G1-G5 第二批批次，未引入 FTS5/向量。"
+    },
+    {
+      "id": "batch2-G4-companion-drop-box",
+      "priority": 24,
+      "area": "batch2-features",
+      "title": "G4 · 旅伴匿名只写贡献链接",
+      "user_visible_behavior": "/contribution/inbox 管理 drop box 链接与审核 inbox；公开 /c/:slug 提供匿名只写投稿。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "确认 ContributionDropBox token 仅以 hash 落库。"
+      ],
+      "evidence": [
+        "2026-05-25: ContributionDropBox/InboxItem 模型 + token-hash 单向方案 + 前后端落地；npx vite build 通过。"
+      ],
+      "notes": "G1-G5 第二批批次，私密原则——不引入协作账号。"
+    },
+    {
+      "id": "batch2-G5-rhythm-portrait",
+      "priority": 25,
+      "area": "batch2-features",
+      "title": "G5 · 旅行节奏画像",
+      "user_visible_behavior": "/rhythm-portrait 输出预算档/月份/交通/主题/同伴多样性指数与可下载 SVG 分享卡。",
+      "status": "passing",
+      "verification": [
+        "运行 npm run db:generate。",
+        "运行 npm run build。",
+        "确认 share-card.svg 端点可直接渲染 1080x1080 雷达图。"
+      ],
+      "evidence": [
+        "2026-05-25: RhythmPortraitSnapshot + 纯统计学聚合 + 手写 SVG 雷达图 + 前端落地；npx vite build 通过。"
+      ],
+      "notes": "G1-G5 第二批批次，纯统计学不调 LLM。"
     }
   ]
 }

@@ -36,6 +36,7 @@ const REMINDER_TYPES: ReminderTypeDto[] = [
   'guide_source_degraded',
   'guide_search_error_spike',
   'companion_memory_snapshot_stale',
+  'trip_reconciliation_due',
 ];
 
 const REMINDER_LABELS: Record<ReminderTypeDto, string> = {
@@ -46,6 +47,7 @@ const REMINDER_LABELS: Record<ReminderTypeDto, string> = {
   guide_source_degraded: '攻略来源异常',
   guide_search_error_spike: '搜索失败升高',
   companion_memory_snapshot_stale: '回忆快照过期',
+  trip_reconciliation_due: '旅行对账日',
 };
 
 const GUIDE_SEARCH_ERROR_SPIKE_THRESHOLD = 3;
@@ -61,6 +63,7 @@ function normalizeDate(value: Date | string | null | undefined) {
 function buildPath(kind: GeneratedReminder['navigation']['kind'], payload: Record<string, string | number | undefined>) {
   if (kind === 'tripDetail' && payload.tripId) return `/trips/${encodeURIComponent(String(payload.tripId))}`;
   if (kind === 'tripChecklist' && payload.tripId) return `/trips/${encodeURIComponent(String(payload.tripId))}/checklist`;
+  if (kind === 'tripReconciliation' && payload.tripId) return `/trips/${encodeURIComponent(String(payload.tripId))}/reconciliation`;
   if (kind === 'photoCuration') {
     const params = new URLSearchParams();
     if (payload.tripId) params.set('tripId', String(payload.tripId));
@@ -104,6 +107,29 @@ function generateAccountReminders(account: ReminderSourceAccount, now: Date): Ge
         suggestedAction: '进入行程详情，选择一张代表性照片作为封面。',
         navigation: createNavigation('tripDetail', { tripId: trip.id }),
       });
+    }
+
+    const tripEndsAt = normalizeDate(trip.endsAt);
+    if (tripEndsAt) {
+      const reconciliationDueAt = new Date(tripEndsAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+      if (reconciliationDueAt.getTime() <= now.getTime()) {
+        const acknowledged = trip.reconciliationReports?.[0]?.acknowledgedAt;
+        if (!acknowledged) {
+          reminders.push({
+            fingerprint: `trip_reconciliation_due:${trip.id}`,
+            type: 'trip_reconciliation_due',
+            severity: 'info',
+            title: '旅行对账日已到',
+            description: `${trip.name} 已结束 ≥ 7 天，可以查看对账报告。`,
+            targetKind: 'trip',
+            targetId: trip.id,
+            targetLabel: trip.name,
+            detectedAt: reconciliationDueAt,
+            suggestedAction: '进入对账日页面查看完成度并标记为已读。',
+            navigation: createNavigation('tripReconciliation', { tripId: trip.id }),
+          });
+        }
+      }
     }
 
     for (const item of trip.planningItems) {

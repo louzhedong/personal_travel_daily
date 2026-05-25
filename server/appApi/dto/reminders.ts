@@ -7,7 +7,8 @@ export type ReminderTypeDto =
   | 'anomalous_login'
   | 'guide_source_degraded'
   | 'guide_search_error_spike'
-  | 'companion_memory_snapshot_stale';
+  | 'companion_memory_snapshot_stale'
+  | 'trip_reconciliation_due';
 
 export type ReminderSeverityDto = 'critical' | 'warning' | 'info';
 export type ReminderStatusDto = 'open' | 'resolved';

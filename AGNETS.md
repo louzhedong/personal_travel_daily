@@ -62,3 +62,39 @@
 3. 记录仍未解决的风险或 blocker。
 4. 跑 `git diff --check` 和相关验证；如果验证失败，记录失败命令、失败原因和下一步。
 5. 保证下一轮会话可以直接运行 `bash harness/init.sh` 并理解当前状态。
+
+## CodeGraph (本地语义索引 / Local Semantic Index)
+
+本仓库已接入 [@colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)（v0.9.x）。索引数据库位于 `.codegraph/codegraph.db`，已在 `.gitignore` 中忽略，不会入库。
+
+### 何时调用 / When to call
+
+- **优先**：探索类问题（"X 如何实现"、"Y 在哪里"、"修改 Z 影响范围"）必须先用 `codegraph_search` / `codegraph_callers` / `codegraph_callees` / `codegraph_impact`。
+- **避免**：主会话直接调用 `codegraph_explore`、`codegraph_context`（返回大量源码，会污染上下文）。需深度探索时改 spawn 子 agent。
+- **降级**：仅当 codegraph 返回 `no result` 或对应文件不在 `Additional relevant files` 时，才回退 grep / Read。
+
+### 维护 / Maintenance
+
+- 大规模重构后：`codegraph sync` 增量同步，或 `codegraph index` 全量重建。
+- 状态查看：`codegraph status`。
+- 当前规模（参考）：673 文件 / 6,476 节点 / 13,142 边 / 113 framework route。
+
+### Agent 接入 / Wiring
+
+| Agent | 状态 | 配置位置 |
+|---|---|---|
+| Codex CLI | ✅ 已配置 | `~/.codex/config.toml` (`[mcp_servers.codegraph]`) |
+| Trae | ⏳ 手动 | 在 Trae IDE → MCP 面板添加：`command=codegraph`, `args=["serve","--mcp"]` |
+| Claude Code / Cursor / opencode | ➖ 未启用 | 需要时跑 `codegraph install --target=claude,cursor,opencode --location=local --yes` |
+
+## 第二批 G1–G5 约束 / Batch-2 G1–G5 Constraints
+
+第二批 5 大功能落地于 `.trae/documents/five-major-features-batch-2-plan.md`，实施顺序 G2 → G1 → G3 → G5 → G4，所有子模块共享下列硬约束：
+
+- **DTO 目录化 / DTO Directory**：新增领域必须在 `server/appApi/dto/<feature>.ts` 与 `src/lib/api/dto/<feature>.ts` 双侧分文件维护，并由 `dto/index.ts` barrel 统一 re-export，禁止把跨领域 schema 揉进单文件。
+- **私密为主 / Privacy First**：不引入第三方协作账号；G4 旅伴投稿采用 `slug + token-hash` 单向写入沙盒 `var/contribution-inbox/`，token 仅哈希入库，明文只在创建时一次性返回。
+- **路由四处同步 / Router Four-Point Sync**：新增前端路由必须同时更新 `src/modules/app/router.ts`（AppRoute 联合 / `createXxxRoute` 工厂 / `parsePathname` 规则 / `pathnameFor` 实现）+ `routeRenderers.tsx` 注册表（`RegisteredAuthenticatedRoute` 排除公开路由）+ `routeGuards.ts`（公开路由放行）+ `App.tsx`（`renderPublicRoute` 分支）。
+- **视觉 Shell 收口 / Visual Shell**：所有 G1–G5 页面外层使用 `--page-frame-wide`（1320px）容器，shell 选择器（`*-shell`）统一在 `src/styles/visual-system.css` 注册，禁止页面内联 `max-width`。
+- **统计而非 LLM / Statistics over LLM**：G3 事件回想仅做 facet 索引（不引入 FTS5/RRF/向量）；G5 节奏画像基于纯统计指纹，手写 SVG 雷达图（参考 `tripStoryExport.ts` / `memoryCapsuleExport.ts`），不调用 LLM。
+- **提醒体系扩展 / Reminder Extension**：`trip_reconciliation_due` 已并入 `REMINDER_TYPES` + `REMINDER_LABELS` + `generateAccountReminders` + `upsertReminderState` + 导航 kind `tripReconciliation`，新增提醒类型必须沿用同一管线。
+

@@ -99,6 +99,10 @@ export default function TravelOsDashboard({ onNavigateToPath, onOpenAssistant, o
           <button type="button" className="ghost-button" onClick={onOpenAssistant}>AI 助手</button>
           <button type="button" className="ghost-button" onClick={onOpenGuideSubscriptions}>攻略订阅</button>
           <button type="button" className="ghost-button" onClick={onOpenJourney}>故事时间轴</button>
+          <button type="button" className="ghost-button" onClick={() => onNavigateToPath('/wishlist/mood')}>愿望灵感板</button>
+          <button type="button" className="ghost-button" onClick={() => onNavigateToPath('/recall')}>事件回想</button>
+          <button type="button" className="ghost-button" onClick={() => onNavigateToPath('/contribution/inbox')}>旅伴投稿</button>
+          <button type="button" className="ghost-button" onClick={() => onNavigateToPath('/rhythm-portrait')}>节奏画像</button>
         </div>
       </div>
 

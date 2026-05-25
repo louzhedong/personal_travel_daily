@@ -73,6 +73,7 @@ interface TripDetailPageProps {
   onLogout: () => Promise<void> | void;
   onOpenTripChecklist?: (tripId: string) => void;
   onOpenTripStory?: (tripId: string) => void;
+  onOpenTripReconciliation?: (tripId: string) => void;
   onOpenMemoryCapsules?: () => void;
   onOpenCompanionMemories?: (companionId: string) => void;
   onOpenPhotoCuration?: (query: { tripId: string }) => void;
@@ -85,6 +86,7 @@ export default function TripDetailPage({
   onLogout,
   onOpenTripChecklist,
   onOpenTripStory,
+  onOpenTripReconciliation,
   onOpenMemoryCapsules,
   onOpenCompanionMemories,
   onOpenPhotoCuration,
@@ -668,6 +670,11 @@ export default function TripDetailPage({
                   {onOpenTripStory ? (
                     <button type="button" className="ghost-button" onClick={() => onOpenTripStory(tripId)}>
                       打开故事页
+                    </button>
+                  ) : null}
+                  {onOpenTripReconciliation ? (
+                    <button type="button" className="ghost-button" onClick={() => onOpenTripReconciliation(tripId)}>
+                      旅行对账日
                     </button>
                   ) : null}
                 </div>
