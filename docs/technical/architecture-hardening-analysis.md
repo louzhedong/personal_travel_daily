@@ -221,9 +221,9 @@ The `trip_reconciliation_due` reminder rides the existing pipeline (types, label
 
 ### 视觉 Shell 收口 / Visual Shell Consolidation
 
-G1–G5 的所有页面外壳（`wishlist-mood-shell` / `trip-reconciliation-shell` / `recall-shell` / `contribution-inbox-shell` / `contribution-drop-shell` / `rhythm-portrait-shell`）已注册到 `src/styles/visual-system.css` 的 `--page-frame-wide` 列表，禁止页面内联 `max-width` 或独立 shell 宽度。
+G1–G5 的所有页面外壳（`wishlist-mood-shell` / `trip-reconciliation-shell` / `recall-shell` / `contribution-inbox-shell` / `contribution-drop-shell` / `rhythm-portrait-shell`）已注册到 `src/styles/visual-system.css` 的 `--page-frame`（1180px 窄页框）规则中，与既有内容页保持一致。`--page-frame-wide`（1320px）仅保留给首页 / 工作台类宽幅 dashboard（admin / stats / atlas / journey / live-trip 等）。新页面禁止内联 `max-width`，也禁止默认走 wide-frame——否则在常规视口下卡片会贴边、缺少视觉边距。
 
-All G1–G5 page shells register against the `--page-frame-wide` selector list in `src/styles/visual-system.css`. Page-level inline `max-width` overrides are prohibited.
+All G1–G5 page shells register against the `--page-frame` (1180px narrow frame) rule in `src/styles/visual-system.css`, aligned with regular travel-magazine content pages. The `--page-frame-wide` (1320px) frame is reserved for dashboards and workbenches such as admin / stats / atlas / journey / live-trip. Page-level inline `max-width` overrides — and any default routing to the wide frame — are prohibited; otherwise cards touch the viewport edges and lose horizontal breathing room at typical viewports.
 
 ### 路由四处同步 / Router Four-Point Sync
 
