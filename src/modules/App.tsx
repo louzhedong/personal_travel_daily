@@ -125,7 +125,7 @@ function App() {
     );
   }
 
-  if (route.kind === 'publicShare') {
+  if (route.kind === 'publicShare' || route.kind === 'contributionDrop') {
     return renderPublicRoute(route);
   }
 

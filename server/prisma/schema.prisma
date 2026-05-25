@@ -95,6 +95,86 @@ enum GuideSubscriptionRunStatus {
   error
 }
 
+enum FinanceAccountKind {
+  cash
+  debit
+  credit
+  prepaid
+}
+
+enum ExpenseReimbursementStatus {
+  pending
+  submitted
+  reimbursed
+  n_a
+}
+
+enum PlaceKind {
+  hotel
+  restaurant
+  sight
+  cafe
+  onsen
+  shop
+  other
+}
+
+enum JournalMood {
+  delighted
+  calm
+  tired
+  excited
+  reflective
+  neutral
+}
+
+enum ShareTemplate {
+  magazine
+  postcard
+  minimal
+  polaroid
+}
+
+enum WishlistMoodCardKind {
+  image
+  quote
+  note
+  season
+  budget
+}
+
+enum RecallEventKind {
+  marker
+  photo
+  expense
+  journal
+  guide
+}
+
+enum ContributionAcceptKind {
+  photo
+  note
+  both
+}
+
+enum ContributionInboxKind {
+  photo
+  note
+}
+
+enum ContributionInboxStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum ContributionAcceptedAsType {
+  marker
+  photo
+  journal
+  note
+}
+
 model Account {
   id           String               @id
   name         String
@@ -131,6 +211,18 @@ model Account {
   guideSubscriptions GuideSubscription[]
   exchangeRateSnapshots ExchangeRateSnapshot[]
   accountPreference AccountPreference?
+  financeAccounts FinanceAccount[]
+  fxRateSnapshots FxRateSnapshot[]
+  places Place[]
+  journalEntries JournalEntry[]
+  archiveMediaCaches ArchiveMediaCache[]
+  shareLinkPresentations ShareLinkPresentation[]
+  wishlistMoodCards WishlistMoodCard[]
+  tripReconciliationReports TripReconciliationReport[]
+  recallEventIndex RecallEventIndex[]
+  contributionDropBoxes ContributionDropBox[]
+  contributionInboxItems ContributionInboxItem[]
+  rhythmPortraitSnapshots RhythmPortraitSnapshot[]
 
   @@map("accounts")
 }
@@ -327,6 +419,7 @@ model PrivateShareLink {
   updatedAt          DateTime                 @updatedAt @map("updated_at")
   account            Account                  @relation(fields: [accountId], references: [id])
   accessLogs         PrivateShareAccessLog[]
+  presentation       ShareLinkPresentation?
 
   @@index([accountId], map: "idx_private_share_links_account_id")
   @@index([accountId, resourceType], map: "idx_private_share_links_account_resource")
@@ -420,6 +513,9 @@ model Trip {
   checklistItems TripChecklistItem[]
   planningItems TripPlanningItem[]
   expenses      TripExpense[]
+  journalEntries JournalEntry[]
+  reconciliationReports TripReconciliationReport[]
+  contributionDropBoxes ContributionDropBox[]
 
   @@index([accountId], map: "idx_trips_account_id")
   @@index([startsAt], map: "idx_trips_starts_at")
@@ -483,6 +579,9 @@ model TripExpense {
   companionId          String?           @map("companion_id")
   paidByCompanionId     String?           @map("paid_by_companion_id")
   sourcePlanningItemId String?           @map("source_planning_item_id")
+  financeAccountId     String?           @map("finance_account_id")
+  fxSnapshotId         String?           @map("fx_snapshot_id")
+  reimbursementStatus  ExpenseReimbursementStatus @default(n_a) @map("reimbursement_status")
   title                String
   category             String
   amountCents          Int               @map("amount_cents")
@@ -505,6 +604,8 @@ model TripExpense {
   companion            TravelCompanion?  @relation(fields: [companionId], references: [id])
   paidByCompanion      TravelCompanion?  @relation("TripExpensePaidByCompanion", fields: [paidByCompanionId], references: [id])
   splits               TripExpenseSplit[]
+  financeAccount       FinanceAccount?   @relation(fields: [financeAccountId], references: [id])
+  fxSnapshot           FxRateSnapshot?   @relation(fields: [fxSnapshotId], references: [id])
 
   @@index([accountId], map: "idx_trip_expenses_account_id")
   @@index([tripId], map: "idx_trip_expenses_trip_id")
@@ -513,6 +614,8 @@ model TripExpense {
   @@index([sourcePlanningItemId], map: "idx_trip_expenses_source_planning_item_id")
   @@index([spentAt], map: "idx_trip_expenses_spent_at")
   @@index([status], map: "idx_trip_expenses_status")
+  @@index([financeAccountId], map: "idx_trip_expenses_finance_account_id")
+  @@index([reimbursementStatus], map: "idx_trip_expenses_reimbursement_status")
   @@map("trip_expenses")
 }
 
@@ -578,6 +681,8 @@ model VisitMarker {
   images         VisitMarkerImage[]
   savedGuides    SavedGuide[]
   convertedPlanningItems TripPlanningItem[] @relation("TripPlanningItemConvertedMarker")
+  placeId        String?            @map("place_id")
+  place          Place?             @relation(fields: [placeId], references: [id])
 
   @@index([accountId], map: "idx_visit_markers_account_id")
   @@index([companionId], map: "idx_visit_markers_companion_id")
@@ -585,6 +690,7 @@ model VisitMarker {
   @@index([scope, scopeId], map: "idx_visit_markers_scope_scope_id")
   @@index([latitude, longitude], map: "idx_visit_markers_lat_lng")
   @@index([visitedStartAt], map: "idx_visit_markers_visited_start_at")
+  @@index([placeId], map: "idx_visit_markers_place_id")
   @@map("visit_markers")
 }
 
@@ -900,6 +1006,7 @@ model WishlistItem {
   sourceGuideTitle      String?          @map("source_guide_title")
   sourceGuideSourceName String?          @map("source_guide_source_name")
   sourceGuideSourceUrl  String?          @map("source_guide_source_url")
+  moodCardCount         Int              @default(0) @map("mood_card_count")
   isDeleted             Boolean          @default(false) @map("is_deleted")
   createdAt             DateTime         @default(now()) @map("created_at")
   updatedAt             DateTime         @updatedAt @map("updated_at")
@@ -907,10 +1014,296 @@ model WishlistItem {
   account               Account          @relation(fields: [accountId], references: [id])
   createdByCompanion    TravelCompanion  @relation("WishlistItemCreatedByCompanion", fields: [createdByCompanionId], references: [id])
   planningItems         TripPlanningItem[] @relation("TripPlanningItemSourceWishlist")
+  moodCards             WishlistMoodCard[]
 
   @@index([accountId], map: "idx_wishlist_items_account_id")
   @@index([createdByCompanionId], map: "idx_wishlist_items_companion_id")
   @@index([scope, scopeId], map: "idx_wishlist_items_scope_scope_id")
   @@index([targetYear], map: "idx_wishlist_items_target_year")
   @@map("wishlist_items")
+}
+
+model FinanceAccount {
+  id            String             @id
+  accountId     String             @map("account_id")
+  kind          FinanceAccountKind
+  name          String
+  currency      String             @default("CNY")
+  isArchived    Boolean            @default(false) @map("is_archived")
+  sortOrder     Int                @default(0) @map("sort_order")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  account       Account            @relation(fields: [accountId], references: [id])
+  expenses      TripExpense[]
+
+  @@index([accountId], map: "idx_finance_accounts_account_id")
+  @@index([accountId, isArchived], map: "idx_finance_accounts_account_archived")
+  @@unique([accountId, name, isArchived], map: "uq_finance_accounts_account_name_active")
+  @@map("finance_accounts")
+}
+
+model FxRateSnapshot {
+  id            String        @id
+  accountId     String        @map("account_id")
+  baseCurrency  String        @map("base_currency")
+  quoteCurrency String        @map("quote_currency")
+  rate          Decimal       @db.Decimal(18, 8)
+  source        String
+  takenAt       DateTime      @map("taken_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  account       Account       @relation(fields: [accountId], references: [id])
+  expenses      TripExpense[]
+
+  @@index([accountId, baseCurrency, quoteCurrency, takenAt], map: "idx_fx_rate_snapshots_lookup")
+  @@map("fx_rate_snapshots")
+}
+
+model Place {
+  id              String      @id
+  accountId       String      @map("account_id")
+  kind            PlaceKind
+  name            String
+  city            String?
+  region          String?
+  countryCode     String?     @map("country_code")
+  latitude        Decimal?    @db.Decimal(10, 7)
+  longitude       Decimal?    @db.Decimal(10, 7)
+  tagsJson        Json        @map("tags_json")
+  privateRating   Int?        @map("private_rating")
+  myNotesMd       String?     @map("my_notes_md") @db.Text
+  isFavorite      Boolean     @default(false) @map("is_favorite")
+  visitCount      Int         @default(0) @map("visit_count")
+  firstVisitedAt  DateTime?   @map("first_visited_at")
+  lastVisitedAt   DateTime?   @map("last_visited_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  account         Account     @relation(fields: [accountId], references: [id])
+  markers         VisitMarker[]
+
+  @@index([accountId], map: "idx_places_account_id")
+  @@index([accountId, kind], map: "idx_places_account_kind")
+  @@index([latitude, longitude], map: "idx_places_lat_lng")
+  @@index([accountId, isFavorite], map: "idx_places_account_favorite")
+  @@map("places")
+}
+
+model JournalEntry {
+  id          String       @id
+  accountId   String       @map("account_id")
+  tripId      String       @map("trip_id")
+  entryDate   DateTime     @map("entry_date") @db.Date
+  mood        JournalMood  @default(neutral)
+  weather     String?
+  bodyMd      String       @map("body_md") @db.Text
+  aiDraftMd   String?      @map("ai_draft_md") @db.Text
+  aiModel     String?      @map("ai_model")
+  aiGeneratedAt DateTime?  @map("ai_generated_at")
+  isPinned    Boolean      @default(false) @map("is_pinned")
+  editedAt    DateTime?    @map("edited_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  account     Account      @relation(fields: [accountId], references: [id])
+  trip        Trip         @relation(fields: [tripId], references: [id])
+
+  @@index([accountId], map: "idx_journal_entries_account_id")
+  @@index([tripId, entryDate], map: "idx_journal_entries_trip_date")
+  @@unique([tripId, entryDate], map: "uq_journal_entries_trip_date")
+  @@map("journal_entries")
+}
+
+model ArchiveMediaCache {
+  id          String   @id
+  accountId   String   @map("account_id")
+  sourceUrl   String   @map("source_url") @db.Text
+  sha256      String
+  byteSize    Int      @map("byte_size")
+  mimeType    String?  @map("mime_type")
+  localPath   String   @map("local_path") @db.Text
+  fetchedAt   DateTime @map("fetched_at")
+  lastUsedAt  DateTime @default(now()) @map("last_used_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  account     Account  @relation(fields: [accountId], references: [id])
+
+  @@unique([accountId, sha256], map: "uq_archive_media_cache_account_sha")
+  @@index([accountId], map: "idx_archive_media_cache_account_id")
+  @@index([lastUsedAt], map: "idx_archive_media_cache_last_used_at")
+  @@map("archive_media_cache")
+}
+
+model ShareLinkPresentation {
+  id            String           @id
+  accountId     String           @map("account_id")
+  shareLinkId   String           @unique @map("share_link_id")
+  template      ShareTemplate    @default(magazine)
+  slug          String           @unique
+  ogTitle       String?          @map("og_title")
+  ogSubtitle    String?          @map("og_subtitle") @db.Text
+  ogCoverUrl    String?          @map("og_cover_url") @db.Text
+  themeColor    String?          @map("theme_color")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  account       Account          @relation(fields: [accountId], references: [id])
+  shareLink     PrivateShareLink @relation(fields: [shareLinkId], references: [id])
+
+  @@index([accountId], map: "idx_share_link_presentations_account_id")
+  @@map("share_link_presentations")
+}
+
+// G1: wishlist mood board cards
+model WishlistMoodCard {
+  id              String                 @id
+  accountId       String                 @map("account_id")
+  wishlistItemId  String                 @map("wishlist_item_id")
+  kind            WishlistMoodCardKind
+  imageMediaId    String?                @map("image_media_id")
+  quoteText       String?                @map("quote_text") @db.Text
+  noteText        String?                @map("note_text") @db.Text
+  seasonWindow    String?                @map("season_window")
+  budgetCents     Int?                   @map("budget_cents")
+  currency        String?                @default("CNY")
+  positionX       Int                    @default(0) @map("position_x")
+  positionY       Int                    @default(0) @map("position_y")
+  colorTag        String?                @map("color_tag")
+  sortOrder       Int                    @default(0) @map("sort_order")
+  createdAt       DateTime               @default(now()) @map("created_at")
+  updatedAt       DateTime               @updatedAt @map("updated_at")
+  account         Account                @relation(fields: [accountId], references: [id])
+  wishlistItem    WishlistItem           @relation(fields: [wishlistItemId], references: [id])
+
+  @@index([accountId], map: "idx_wishlist_mood_cards_account_id")
+  @@index([wishlistItemId], map: "idx_wishlist_mood_cards_wishlist_id")
+  @@index([wishlistItemId, sortOrder], map: "idx_wishlist_mood_cards_wishlist_sort")
+  @@map("wishlist_mood_cards")
+}
+
+// G2: trip reconciliation reports
+model TripReconciliationReport {
+  id                          String   @id
+  accountId                   String   @map("account_id")
+  tripId                      String   @unique @map("trip_id")
+  generatedAt                 DateTime @map("generated_at")
+  planVsMarkerCoverage        Int      @map("plan_vs_marker_coverage")
+  checklistCompletionRate     Int      @map("checklist_completion_rate")
+  budgetVarianceCents         Int      @default(0) @map("budget_variance_cents")
+  budgetPlannedCents          Int      @default(0) @map("budget_planned_cents")
+  budgetActualCents           Int      @default(0) @map("budget_actual_cents")
+  unconvertedPlanningItemIds  Json     @map("unconverted_planning_item_ids")
+  missingCaptionPhotoCount    Int      @default(0) @map("missing_caption_photo_count")
+  summaryMarkdown             String   @map("summary_markdown") @db.Text
+  acknowledgedAt              DateTime? @map("acknowledged_at")
+  createdAt                   DateTime @default(now()) @map("created_at")
+  updatedAt                   DateTime @updatedAt @map("updated_at")
+  account                     Account  @relation(fields: [accountId], references: [id])
+  trip                        Trip     @relation(fields: [tripId], references: [id])
+
+  @@index([accountId], map: "idx_trip_reconciliation_reports_account_id")
+  @@index([acknowledgedAt], map: "idx_trip_reconciliation_reports_acknowledged_at")
+  @@map("trip_reconciliation_reports")
+}
+
+// G3: derived recall event index (rebuildable, not source of truth)
+model RecallEventIndex {
+  id            String           @id
+  accountId     String           @map("account_id")
+  eventDate     DateTime         @map("event_date")
+  kind          RecallEventKind
+  sourceId      String           @map("source_id")
+  tripId        String?          @map("trip_id")
+  companionIds  Json             @map("companion_ids")
+  weather       String?
+  mood          String?
+  latitude      Decimal?         @db.Decimal(10, 7)
+  longitude     Decimal?         @db.Decimal(10, 7)
+  tagSlugs      Json             @map("tag_slugs")
+  title         String?
+  city          String?
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  account       Account          @relation(fields: [accountId], references: [id])
+
+  @@unique([accountId, kind, sourceId], map: "uq_recall_event_index_account_kind_source")
+  @@index([accountId, eventDate], map: "idx_recall_event_index_account_date")
+  @@index([accountId, kind], map: "idx_recall_event_index_account_kind")
+  @@index([tripId], map: "idx_recall_event_index_trip_id")
+  @@map("recall_event_index")
+}
+
+// G4: contribution drop boxes (token-hash, write-only)
+model ContributionDropBox {
+  id            String                 @id
+  accountId     String                 @map("account_id")
+  tripId        String?                @map("trip_id")
+  title         String
+  tokenHash     String                 @unique @map("token_hash")
+  tokenPreview  String                 @map("token_preview")
+  slug          String                 @unique
+  acceptKind    ContributionAcceptKind @default(both) @map("accept_kind")
+  expiresAt     DateTime               @map("expires_at")
+  revokedAt     DateTime?              @map("revoked_at")
+  maxUploads    Int                    @default(50) @map("max_uploads")
+  usedCount     Int                    @default(0) @map("used_count")
+  note          String?                @db.Text
+  createdAt     DateTime               @default(now()) @map("created_at")
+  updatedAt     DateTime               @updatedAt @map("updated_at")
+  account       Account                @relation(fields: [accountId], references: [id])
+  trip          Trip?                  @relation(fields: [tripId], references: [id])
+  inboxItems    ContributionInboxItem[]
+
+  @@index([accountId], map: "idx_contribution_drop_boxes_account_id")
+  @@index([tripId], map: "idx_contribution_drop_boxes_trip_id")
+  @@index([expiresAt], map: "idx_contribution_drop_boxes_expires_at")
+  @@map("contribution_drop_boxes")
+}
+
+// G4: contribution inbox items (sandboxed)
+model ContributionInboxItem {
+  id                  String                       @id
+  accountId           String                       @map("account_id")
+  dropBoxId           String                       @map("drop_box_id")
+  submittedAt         DateTime                     @map("submitted_at")
+  kind                ContributionInboxKind
+  imagePath           String?                      @map("image_path") @db.Text
+  imageByteSize       Int?                         @map("image_byte_size")
+  imageMimeType       String?                      @map("image_mime_type")
+  noteText            String?                      @map("note_text") @db.Text
+  submitterDisplayName String?                     @map("submitter_display_name")
+  eventDate           DateTime?                    @map("event_date")
+  status              ContributionInboxStatus      @default(pending)
+  acceptedAsType      ContributionAcceptedAsType?  @map("accepted_as_type")
+  acceptedAtId        String?                      @map("accepted_as_id")
+  reviewedAt          DateTime?                    @map("reviewed_at")
+  createdAt           DateTime                     @default(now()) @map("created_at")
+  updatedAt           DateTime                     @updatedAt @map("updated_at")
+  account             Account                      @relation(fields: [accountId], references: [id])
+  dropBox             ContributionDropBox          @relation(fields: [dropBoxId], references: [id])
+
+  @@index([accountId], map: "idx_contribution_inbox_items_account_id")
+  @@index([dropBoxId], map: "idx_contribution_inbox_items_drop_box_id")
+  @@index([accountId, status], map: "idx_contribution_inbox_items_account_status")
+  @@index([submittedAt], map: "idx_contribution_inbox_items_submitted_at")
+  @@map("contribution_inbox_items")
+}
+
+// G5: rhythm portrait snapshot (cross-year fingerprint)
+model RhythmPortraitSnapshot {
+  id                       String   @id
+  accountId                String   @map("account_id")
+  generatedAt              DateTime @map("generated_at")
+  windowYears              String   @map("window_years")
+  topMonths                Json     @map("top_months")
+  topTransports            Json     @map("top_transports")
+  avgTripDays              Decimal  @map("avg_trip_days") @db.Decimal(8, 2)
+  budgetTier               String   @map("budget_tier")
+  themeMix                 Json     @map("theme_mix")
+  companionDiversityIndex  Decimal  @map("companion_diversity_index") @db.Decimal(8, 4)
+  totalTripCount           Int      @default(0) @map("total_trip_count")
+  totalMarkerCount         Int      @default(0) @map("total_marker_count")
+  summaryMarkdown          String   @map("summary_markdown") @db.Text
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+  account                  Account  @relation(fields: [accountId], references: [id])
+
+  @@unique([accountId], map: "uq_rhythm_portrait_snapshots_account")
+  @@index([generatedAt], map: "idx_rhythm_portrait_snapshots_generated_at")
+  @@map("rhythm_portrait_snapshots")
 }

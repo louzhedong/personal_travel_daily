@@ -19,6 +19,7 @@ export function getReminderSourceAccount(prisma: PrismaExecutor, accountId: stri
             where: { isDeleted: false },
             include: { createdByCompanion: { select: { id: true, name: true, color: true } } },
           },
+          reconciliationReports: true,
         },
       },
       companions: {

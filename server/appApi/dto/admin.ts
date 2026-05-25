@@ -130,6 +130,7 @@ export type AdminQualityIssueTypeDto =
 export type AdminQualityNavigationKindDto =
   | 'tripDetail'
   | 'tripChecklist'
+  | 'tripReconciliation'
   | 'photoCuration'
   | 'companionMemories'
   | 'adminOnly';

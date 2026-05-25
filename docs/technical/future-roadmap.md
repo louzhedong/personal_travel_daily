@@ -387,3 +387,28 @@ Summary: The full P1-P3 new-feature roadmap batch is implemented, covering dashb
 
 - 本轮补齐从“可运行骨架”升级到“产品级闭环”：首页可配置、助手可审计、Geo 可增强、分享可下载 OG、结算可导出 CSV、订阅可运行反馈、偏好可持久化、时间轴可切换粒度。
 - This follow-up upgrades the runnable skeleton into product-grade loops: configurable dashboard, auditable assistant, enhanceable Geo, downloadable share OG, CSV settlement export, subscription run feedback, persisted preferences, and switchable timeline granularity.
+
+### 第一批五大功能 / Batch-1 Five Features (F1–F5)
+
+- 状态：已完成。
+- 已落地范围：F1 离线纪念册（archive media cache + SHA256 dedup）、F2 旅行知识库、F3 智能日记、F4 公开分享 v3、F5 旅行财务深耕。
+- 实施裁决：偏产品形态扩张 + 维持私密为主。
+- 验证证据：`npm run db:generate`、`npx tsc -p tsconfig.json --noEmit`、`npx vite build` 均通过；`harness/feature_list.json` 已记录全部 passing entry。
+
+Summary: Batch-1 (F1 offline keepsake, F2 knowledge base, F3 smart journal, F4 public sharing v3, F5 finance deepening) is fully shipped under the "expand product form, stay privacy-first" mandate.
+
+### 第二批五大功能 / Batch-2 Five Features (G1–G5)
+
+- 状态：已完成全栈实施。
+- 规划文档：`.trae/documents/five-major-features-batch-2-plan.md`。
+- 已落地范围：
+  - **G1 愿望灵感板 / Wishlist Mood Board**：愿望卡片支持 image/quote/note/season/budget 五种 mood 类型 + 颜色 tag + 本地图片 dataURL 入库。
+  - **G2 旅行对账日 / Trip Reconciliation Day**：行程结束后对照规划与实际，输出 4 卡片对账面板 + 未落地规划项 + summaryMarkdown，并接入 `trip_reconciliation_due` 提醒。
+  - **G3 事件维度回想 / Event-Dimension Recall**：facet 索引（同伴 / 心情 / 天气 / 城市 / 标签 / 月份），按月分组事件流，无 FTS5/向量。
+  - **G4 旅伴匿名只写贡献链接 / Companion Anonymous Drop Box**：`slug + token-hash` 单向写入沙盒 `var/contribution-inbox/`，公开 `/c/:slug` 提交后由 owner 在 inbox 审核 accept 为 photo / marker / journal。
+  - **G5 旅行节奏画像 / Travel Rhythm Portrait**：基于纯统计学的预算档 / 平均天数 / 同伴多样性 / 月份 / 交通 / 主题指纹，手写 SVG 雷达图导出，不调用 LLM。
+- 实施裁决：重做一份全新 5 个功能（不重复旧 5 个）+ 继承上次：产品形态扩张 + 维持私密为主。
+- 实施顺序：G2 → G1 → G3 → G5 → G4。
+- 验证证据：`npm run db:generate`、`npx tsc -p tsconfig.json --noEmit`、`npx vite build` 均通过；`harness/feature_list.json` 已追加 batch2-G1..G5 五条 passing entry（priority 21–25, evidence 注明 2026-05-25）。
+
+Summary: Batch-2 (G1 wishlist mood board, G2 trip reconciliation day, G3 event-dimension recall, G4 companion anonymous drop box, G5 travel rhythm portrait) is fully shipped under "expand product form, stay privacy-first", reusing the trip / expense / companion aggregates without introducing FTS5, vectors, LLMs, or third-party collaboration accounts.

@@ -51,6 +51,12 @@ export type AppRoute =
   | { kind: 'tripSettlement'; pathname: string; tripId: string }
   | { kind: 'tripStory'; pathname: string; tripId: string }
   | { kind: 'tripChecklist'; pathname: string; tripId: string }
+  | { kind: 'tripReconciliation'; pathname: string; tripId: string }
+  | { kind: 'wishlistMoodBoard'; pathname: '/wishlist/mood' }
+  | { kind: 'recall'; pathname: '/recall' }
+  | { kind: 'contributionInbox'; pathname: '/contribution/inbox' }
+  | { kind: 'contributionDrop'; pathname: string; slug: string }
+  | { kind: 'rhythmPortrait'; pathname: '/rhythm-portrait' }
   | { kind: 'annualReview'; pathname: string; year: string };
 
 // ---------- 路由工厂 / Route factories ----------
@@ -212,6 +218,38 @@ export function createTripChecklistRoute(tripId: string): AppRoute {
   };
 }
 
+export function createTripReconciliationRoute(tripId: string): AppRoute {
+  return {
+    kind: 'tripReconciliation',
+    pathname: `/trips/${encodeURIComponent(tripId)}/reconciliation`,
+    tripId,
+  };
+}
+
+export function createWishlistMoodBoardRoute(): AppRoute {
+  return { kind: 'wishlistMoodBoard', pathname: '/wishlist/mood' };
+}
+
+export function createRecallRoute(): AppRoute {
+  return { kind: 'recall', pathname: '/recall' };
+}
+
+export function createContributionInboxRoute(): AppRoute {
+  return { kind: 'contributionInbox', pathname: '/contribution/inbox' };
+}
+
+export function createContributionDropRoute(slug: string): AppRoute {
+  return {
+    kind: 'contributionDrop',
+    pathname: `/c/${encodeURIComponent(slug)}`,
+    slug,
+  };
+}
+
+export function createRhythmPortraitRoute(): AppRoute {
+  return { kind: 'rhythmPortrait', pathname: '/rhythm-portrait' };
+}
+
 export function createAnnualReviewRoute(year: string): AppRoute {
   return {
     kind: 'annualReview',
@@ -273,6 +311,32 @@ export function parsePathname(pathname: string, search = ''): AppRoute {
   const tripChecklistMatch = pathname.match(/^\/trips\/([^/]+)\/checklist$/);
   if (tripChecklistMatch) {
     return createTripChecklistRoute(decodeURIComponent(tripChecklistMatch[1]));
+  }
+
+  const tripReconciliationMatch = pathname.match(/^\/trips\/([^/]+)\/reconciliation$/);
+  if (tripReconciliationMatch) {
+    return createTripReconciliationRoute(decodeURIComponent(tripReconciliationMatch[1]));
+  }
+
+  const contributionDropMatch = pathname.match(/^\/c\/([^/]+)$/);
+  if (contributionDropMatch) {
+    return createContributionDropRoute(decodeURIComponent(contributionDropMatch[1]));
+  }
+
+  if (pathname === '/wishlist/mood') {
+    return createWishlistMoodBoardRoute();
+  }
+
+  if (pathname === '/recall') {
+    return createRecallRoute();
+  }
+
+  if (pathname === '/contribution/inbox') {
+    return createContributionInboxRoute();
+  }
+
+  if (pathname === '/rhythm-portrait') {
+    return createRhythmPortraitRoute();
   }
 
   const tripDetailMatch = pathname.match(/^\/trips\/([^/]+)$/);
