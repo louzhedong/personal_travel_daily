@@ -75,7 +75,7 @@ export default function ContributionDropPage({ slug }: Props) {
   if (!meta) {
     return (
       <main className="contribution-drop-shell">
-        <section className="card">
+        <section className="card panel-card">
           <h1>正在加载链接…</h1>
           {error ? <p>{error}</p> : null}
         </section>
@@ -86,7 +86,7 @@ export default function ContributionDropPage({ slug }: Props) {
   if (!meta.active) {
     return (
       <main className="contribution-drop-shell">
-        <section className="card">
+        <section className="card panel-card">
           <h1>这个投稿入口已关闭</h1>
           <p>它可能已过期、被撤销，或额度已用完。</p>
         </section>
@@ -97,7 +97,7 @@ export default function ContributionDropPage({ slug }: Props) {
   if (done) {
     return (
       <main className="contribution-drop-shell">
-        <section className="card">
+        <section className="card panel-card">
           <h1>谢谢你的投稿</h1>
           <p>主理人会稍后查看。本链接还可投稿 {done.remaining} 次。</p>
           <button className="ghost-button" onClick={() => setDone(null)}>继续投稿</button>
@@ -108,7 +108,7 @@ export default function ContributionDropPage({ slug }: Props) {
 
   return (
     <main className="contribution-drop-shell">
-      <section className="card">
+      <section className="card panel-card">
         <span className="hero-kicker">Travel Companion Drop-Box</span>
         <h1>{meta.title}</h1>
         <p>无需账号，匿名投稿。你的内容会进入主理人的审核队列，对方查阅后才会被纳入旅程。</p>
@@ -116,9 +116,9 @@ export default function ContributionDropPage({ slug }: Props) {
         <small>剩余额度：{meta.remainingUploads} · 截止：{new Date(meta.expiresAt).toLocaleString()}</small>
       </section>
 
-      {error ? <section className="card"><p>{error}</p></section> : null}
+      {error ? <section className="card panel-card"><p>{error}</p></section> : null}
 
-      <section className="card">
+      <section className="card panel-card">
         <h3>提交内容</h3>
         <div style={{ display: 'grid', gap: 8 }}>
           <div style={{ display: 'flex', gap: 8 }}>

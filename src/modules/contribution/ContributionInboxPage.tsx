@@ -122,15 +122,15 @@ export default function ContributionInboxPage({ account, onLogout, onNavigateBac
         <button className="ghost-button" onClick={() => void onLogout()}>退出登录</button>
       </div>
 
-      <section className="card">
+      <section className="card panel-card">
         <span className="hero-kicker">Companion Drop-Box · @{account.username}</span>
         <h1>旅伴投稿链接</h1>
         <p>给旅伴一个一次性链接，他们只能写、不能看你的旅程。无须账号，token 单向 hash。</p>
       </section>
 
-      {error ? <section className="card"><p>{error}</p></section> : null}
+      {error ? <section className="card panel-card"><p>{error}</p></section> : null}
 
-      <section className="card">
+      <section className="card panel-card">
         <h3>创建新链接</h3>
         <div style={{ display: 'grid', gap: 8 }}>
           <input
@@ -186,7 +186,7 @@ export default function ContributionInboxPage({ account, onLogout, onNavigateBac
         ) : null}
       </section>
 
-      <section className="card">
+      <section className="card panel-card">
         <h3>已发出的链接</h3>
         {boxes.length === 0 ? <p>还没有创建任何投稿链接。</p> : null}
         <ul style={{ display: 'grid', gap: 8 }}>
@@ -209,7 +209,7 @@ export default function ContributionInboxPage({ account, onLogout, onNavigateBac
         </ul>
       </section>
 
-      <section className="card" aria-busy={loading}>
+      <section className="card panel-card" aria-busy={loading}>
         <h3>待审核投稿 · {inbox.filter((i) => i.status === 'pending').length}</h3>
         {loading ? <p>加载中…</p> : null}
         <ul style={{ display: 'grid', gap: 8 }}>

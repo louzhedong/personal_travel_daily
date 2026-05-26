@@ -121,7 +121,7 @@ export default function RecallPage({ account, onLogout, onNavigateBack }: Props)
         <button className="ghost-button" onClick={onNavigateBack}>返回</button>
         <button className="ghost-button" onClick={() => void onLogout()}>退出登录</button>
       </div>
-      <section className="card">
+      <section className="card panel-card">
         <span className="hero-kicker">Event Recall · @{account.username}</span>
         <h1>事件维度回想</h1>
         <p>不再翻照片墙——按同伴、天气、心情、标签、城市筛出共同的瞬间。</p>
@@ -131,9 +131,9 @@ export default function RecallPage({ account, onLogout, onNavigateBack }: Props)
         </div>
       </section>
 
-      {error ? <section className="card"><p>{error}</p></section> : null}
+      {error ? <section className="card panel-card"><p>{error}</p></section> : null}
 
-      <section className="card">
+      <section className="card panel-card">
         <h3>筛选 · {data?.total ?? 0} 条事件</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
           <input
@@ -166,7 +166,7 @@ export default function RecallPage({ account, onLogout, onNavigateBack }: Props)
         ) : null}
       </section>
 
-      <section className="card" aria-busy={loading}>
+      <section className="card panel-card" aria-busy={loading}>
         <h3>事件流</h3>
         {loading ? <p>加载中…</p> : null}
         {!loading && groupedEvents.length === 0 ? <p>没有匹配的事件，换组筛选试试。</p> : null}
