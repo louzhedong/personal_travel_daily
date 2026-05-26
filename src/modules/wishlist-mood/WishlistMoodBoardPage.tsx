@@ -141,7 +141,7 @@ export default function WishlistMoodBoardPage({ account, onLogout, onNavigateBac
 
   const renderCardBody = (card: WishlistMoodCardDto) => {
     if (card.kind === 'image') {
-      return <img src={buildWishlistMoodCardImageUrl(card.id)} alt="灵感图" style={{ maxWidth: '100%', borderRadius: 8 }} />;
+      return <img src={buildWishlistMoodCardImageUrl(card.id)} alt="灵感图" className="batch2-mood-image" />;
     }
     if (card.kind === 'quote') return <blockquote>"{card.quoteText}"</blockquote>;
     if (card.kind === 'note') return <p>{card.noteText}</p>;
@@ -163,7 +163,7 @@ export default function WishlistMoodBoardPage({ account, onLogout, onNavigateBac
         <span className="hero-kicker">Wishlist Mood Board · @{account.username}</span>
         <h1>愿望灵感板</h1>
         <p>把图片、语录、便签、季节窗口、预算贴在一起，让一个愿望长出味道。</p>
-        <div style={{ marginTop: 16 }}>
+        <div className="batch2-row-spaced">
           <FancySelect
             value={activeWishlistId}
             onChange={setActiveWishlistId}
@@ -179,7 +179,7 @@ export default function WishlistMoodBoardPage({ account, onLogout, onNavigateBac
 
       <section className="card panel-card">
         <h3>新增灵感卡</h3>
-        <div style={{ display: 'grid', gap: 8 }}>
+        <div className="batch2-stack-tight">
           <FancySelect
             value={draftKind}
             onChange={(v) => setDraftKind(v as WishlistMoodCardKindDto)}
@@ -206,7 +206,7 @@ export default function WishlistMoodBoardPage({ account, onLogout, onNavigateBac
             />
           ) : null}
           {draftKind === 'budget' ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 8 }}>
+            <div className="batch2-grid-2">
               <input
                 className="field-control"
                 placeholder="预算金额"
@@ -239,18 +239,18 @@ export default function WishlistMoodBoardPage({ account, onLogout, onNavigateBac
         <h3>{board?.wishlistTitle ?? '灵感板'}</h3>
         {loading ? <p>加载中…</p> : null}
         {!loading && (board?.cards.length ?? 0) === 0 ? <p>还没有灵感卡，加几张试试。</p> : null}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginTop: 12 }}>
+        <div className="batch2-grid-cards">
           {(board?.cards ?? []).map((card) => (
             <article
               key={card.id}
-              className="panel-card"
-              style={{ padding: 16, borderRadius: 12, background: card.colorTag ?? undefined }}
+              className="batch2-mood-card"
+              style={card.colorTag ? { background: card.colorTag } : undefined}
             >
               <small>{KIND_OPTIONS.find((o) => o.value === card.kind)?.label}</small>
-              <div style={{ marginTop: 8 }}>{renderCardBody(card)}</div>
-              <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+              <div className="batch2-mood-card-body">{renderCardBody(card)}</div>
+              <div className="batch2-mood-card-tags">
                 {['#fffbe9', '#fde2e4', '#dbeafe', '#dcfce7'].map((c) => (
-                  <button key={c} className="ghost-button" style={{ background: c, padding: '2px 8px' }} onClick={() => void handleColorTag(card, c)}>
+                  <button key={c} className="ghost-button" style={{ background: c }} onClick={() => void handleColorTag(card, c)}>
                     色
                   </button>
                 ))}

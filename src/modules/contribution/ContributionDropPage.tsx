@@ -120,12 +120,13 @@ export default function ContributionDropPage({ slug }: Props) {
 
       <section className="card panel-card">
         <h3>提交内容</h3>
-        <div style={{ display: 'grid', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 8 }}>
+        <div className="batch2-stack-tight">
+          <div className="batch2-contrib-segmented">
             {meta.acceptKind !== 'note' ? (
               <button
-                className="ghost-button"
-                style={{ background: kind === 'photo' ? 'var(--accent-soft, #e9eef5)' : undefined }}
+                type="button"
+                className={`ghost-button batch2-contrib-segmented-button${kind === 'photo' ? ' is-active' : ''}`}
+                aria-pressed={kind === 'photo'}
                 onClick={() => setKind('photo')}
               >
                 照片
@@ -133,8 +134,9 @@ export default function ContributionDropPage({ slug }: Props) {
             ) : null}
             {meta.acceptKind !== 'photo' ? (
               <button
-                className="ghost-button"
-                style={{ background: kind === 'note' ? 'var(--accent-soft, #e9eef5)' : undefined }}
+                type="button"
+                className={`ghost-button batch2-contrib-segmented-button${kind === 'note' ? ' is-active' : ''}`}
+                aria-pressed={kind === 'note'}
                 onClick={() => setKind('note')}
               >
                 文字

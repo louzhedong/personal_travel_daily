@@ -132,7 +132,7 @@ export default function ContributionInboxPage({ account, onLogout, onNavigateBac
 
       <section className="card panel-card">
         <h3>创建新链接</h3>
-        <div style={{ display: 'grid', gap: 8 }}>
+        <div className="batch2-stack-tight">
           <input
             className="field-control"
             placeholder="标题，如：东京三日游 · 旅伴投稿"
@@ -147,7 +147,7 @@ export default function ContributionInboxPage({ account, onLogout, onNavigateBac
             ariaLabel="接收类型"
             triggerClassName="wishlist-select"
           />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div className="batch2-grid-2">
             <input
               className="field-control"
               placeholder="有效期（天）"
@@ -173,12 +173,12 @@ export default function ContributionInboxPage({ account, onLogout, onNavigateBac
           <button className="primary-button" disabled={busy} onClick={() => void handleCreate()}>生成链接</button>
         </div>
         {tokenReveal ? (
-          <div className="panel-card" style={{ padding: 12, marginTop: 12 }}>
+          <div className="panel-card batch2-token-reveal">
             <small>仅本次显示完整 token，关闭后无法再次查看</small>
-            <p style={{ wordBreak: 'break-all' }}>
+            <p>
               <strong>链接：</strong>{tokenReveal.publicUrl}
             </p>
-            <p style={{ wordBreak: 'break-all' }}>
+            <p>
               <strong>token：</strong>{tokenReveal.token}
             </p>
             <button className="ghost-button" onClick={() => setTokenReveal(null)}>我已保存</button>
@@ -189,9 +189,9 @@ export default function ContributionInboxPage({ account, onLogout, onNavigateBac
       <section className="card panel-card">
         <h3>已发出的链接</h3>
         {boxes.length === 0 ? <p>还没有创建任何投稿链接。</p> : null}
-        <ul style={{ display: 'grid', gap: 8 }}>
+        <ul className="batch2-empty-list">
           {boxes.map((box) => (
-            <li key={box.id} className="panel-card" style={{ padding: 12 }}>
+            <li key={box.id} className="panel-card batch2-mini-panel">
               <strong>{box.title}</strong>
               <div><small>{box.publicUrl}</small></div>
               <small>
@@ -200,7 +200,7 @@ export default function ContributionInboxPage({ account, onLogout, onNavigateBac
                 {box.revokedAt ? ' 已撤销' : ` 待审核 ${box.pendingInboxCount} 条`}
               </small>
               {!box.revokedAt ? (
-                <div style={{ marginTop: 6 }}>
+                <div className="batch2-row">
                   <button className="ghost-button" disabled={busy} onClick={() => void handleRevoke(box.id)}>撤销链接</button>
                 </div>
               ) : null}
@@ -212,19 +212,19 @@ export default function ContributionInboxPage({ account, onLogout, onNavigateBac
       <section className="card panel-card" aria-busy={loading}>
         <h3>待审核投稿 · {inbox.filter((i) => i.status === 'pending').length}</h3>
         {loading ? <p>加载中…</p> : null}
-        <ul style={{ display: 'grid', gap: 8 }}>
+        <ul className="batch2-empty-list">
           {inbox.map((item) => (
-            <li key={item.id} className="panel-card" style={{ padding: 12 }}>
+            <li key={item.id} className="panel-card batch2-mini-panel">
               <small>
                 {new Date(item.submittedAt).toLocaleString()} · {item.kind === 'photo' ? '照片' : '文字'} ·
                 {item.submitterDisplayName ? ` ${item.submitterDisplayName}` : ' 匿名'} · {item.dropBoxTitle}
               </small>
               {item.kind === 'photo' && item.imageUrl ? (
-                <div><img src={buildContributionInboxImageUrl(item.id)} alt="投稿" style={{ maxWidth: 320, borderRadius: 8 }} /></div>
+                <div><img src={buildContributionInboxImageUrl(item.id)} alt="投稿" className="batch2-contrib-photo-preview" /></div>
               ) : null}
               {item.noteText ? <p>{item.noteText}</p> : null}
               {item.eventDate ? <small>事件日期：{item.eventDate}</small> : null}
-              <div style={{ marginTop: 6 }}>
+              <div className="batch2-row">
                 {item.status === 'pending' ? (
                   <>
                     {ACCEPT_AS_OPTIONS.map((opt) => (

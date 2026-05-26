@@ -75,20 +75,17 @@ export default function RecallPage({ account, onLogout, onNavigateBack }: Props)
   ) => {
     const selected = (filters[field] as string[] | undefined) ?? [];
     return (
-      <div style={{ marginBottom: 12 }}>
-        <small>{title}</small>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+      <div className="batch2-recall-facets">
+        <small className="batch2-recall-facet-label">{title}</small>
+        <div className="batch2-recall-facet-row">
           {facets.map((facet) => {
             const active = selected.includes(facet.value);
             return (
               <button
                 key={facet.value}
-                className="ghost-button"
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: 999,
-                  background: active ? 'var(--accent-soft, #e9eef5)' : undefined,
-                }}
+                type="button"
+                className={`batch2-recall-facet-chip${active ? ' is-active' : ''}`}
+                aria-pressed={active}
                 onClick={() =>
                   setFilters((current) => ({
                     ...current,
@@ -125,7 +122,7 @@ export default function RecallPage({ account, onLogout, onNavigateBack }: Props)
         <span className="hero-kicker">Event Recall · @{account.username}</span>
         <h1>事件维度回想</h1>
         <p>不再翻照片墙——按同伴、天气、心情、标签、城市筛出共同的瞬间。</p>
-        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <div className="batch2-row-spaced">
           <button className="ghost-button" disabled={busy} onClick={() => void handleRebuild()}>重建索引</button>
           <button className="ghost-button" onClick={() => setFilters({ limit: 200 })}>清空筛选</button>
         </div>
@@ -135,28 +132,30 @@ export default function RecallPage({ account, onLogout, onNavigateBack }: Props)
 
       <section className="card panel-card">
         <h3>筛选 · {data?.total ?? 0} 条事件</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+        <div className="batch2-stack-tight">
+          <div className="batch2-grid-2">
+            <input
+              className="field-control"
+              placeholder="开始日期 YYYY-MM-DD"
+              value={filters.startDate ?? ''}
+              onChange={(e) => setFilters((c) => ({ ...c, startDate: e.target.value || undefined }))}
+            />
+            <input
+              className="field-control"
+              placeholder="结束日期 YYYY-MM-DD"
+              value={filters.endDate ?? ''}
+              onChange={(e) => setFilters((c) => ({ ...c, endDate: e.target.value || undefined }))}
+            />
+          </div>
           <input
             className="field-control"
-            placeholder="开始日期 YYYY-MM-DD"
-            value={filters.startDate ?? ''}
-            onChange={(e) => setFilters((c) => ({ ...c, startDate: e.target.value || undefined }))}
-          />
-          <input
-            className="field-control"
-            placeholder="结束日期 YYYY-MM-DD"
-            value={filters.endDate ?? ''}
-            onChange={(e) => setFilters((c) => ({ ...c, endDate: e.target.value || undefined }))}
+            placeholder="关键词搜索（标题 / 城市 / 旅行）"
+            value={filters.searchKeyword ?? ''}
+            onChange={(e) => setFilters((c) => ({ ...c, searchKeyword: e.target.value || undefined }))}
           />
         </div>
-        <input
-          className="field-control"
-          placeholder="关键词搜索（标题 / 城市 / 旅行）"
-          value={filters.searchKeyword ?? ''}
-          onChange={(e) => setFilters((c) => ({ ...c, searchKeyword: e.target.value || undefined }))}
-        />
         {data ? (
-          <div style={{ marginTop: 12 }}>
+          <div className="batch2-recall-facets-wrap">
             {renderFacetChips('同伴', 'companionIds', data.facets.companions)}
             {renderFacetChips('心情', 'moods', data.facets.moods)}
             {renderFacetChips('天气', 'weathers', data.facets.weathers)}
@@ -171,11 +170,11 @@ export default function RecallPage({ account, onLogout, onNavigateBack }: Props)
         {loading ? <p>加载中…</p> : null}
         {!loading && groupedEvents.length === 0 ? <p>没有匹配的事件，换组筛选试试。</p> : null}
         {groupedEvents.map(([month, events]) => (
-          <div key={month} style={{ marginTop: 16 }}>
+          <div key={month} className="batch2-recall-month">
             <h4>{month}</h4>
-            <ul style={{ display: 'grid', gap: 6 }}>
+            <ul className="batch2-recall-month-list">
               {events.map((event) => (
-                <li key={event.id} className="panel-card" style={{ padding: 10 }}>
+                <li key={event.id} className="panel-card batch2-mini-panel-tight">
                   <small>{event.eventDate} · {KIND_LABELS[event.kind]}{event.tripName ? ` · ${event.tripName}` : ''}</small>
                   <div><strong>{event.title ?? '(无标题)'}</strong></div>
                   <small>
