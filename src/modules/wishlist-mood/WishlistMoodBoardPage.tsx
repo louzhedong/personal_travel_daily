@@ -159,7 +159,7 @@ export default function WishlistMoodBoardPage({ account, onLogout, onNavigateBac
         <button className="ghost-button" onClick={onNavigateBack}>返回</button>
         <button className="ghost-button" onClick={() => void onLogout()}>退出登录</button>
       </div>
-      <section className="card">
+      <section className="card panel-card">
         <span className="hero-kicker">Wishlist Mood Board · @{account.username}</span>
         <h1>愿望灵感板</h1>
         <p>把图片、语录、便签、季节窗口、预算贴在一起，让一个愿望长出味道。</p>
@@ -175,9 +175,9 @@ export default function WishlistMoodBoardPage({ account, onLogout, onNavigateBac
         </div>
       </section>
 
-      {error ? <section className="card"><p>{error}</p></section> : null}
+      {error ? <section className="card panel-card"><p>{error}</p></section> : null}
 
-      <section className="card">
+      <section className="card panel-card">
         <h3>新增灵感卡</h3>
         <div style={{ display: 'grid', gap: 8 }}>
           <FancySelect
@@ -235,7 +235,7 @@ export default function WishlistMoodBoardPage({ account, onLogout, onNavigateBac
         </div>
       </section>
 
-      <section className="card" aria-busy={loading}>
+      <section className="card panel-card" aria-busy={loading}>
         <h3>{board?.wishlistTitle ?? '灵感板'}</h3>
         {loading ? <p>加载中…</p> : null}
         {!loading && (board?.cards.length ?? 0) === 0 ? <p>还没有灵感卡，加几张试试。</p> : null}

@@ -62,7 +62,7 @@ export default function RhythmPortraitPage({ account, onLogout, onNavigateBack }
         <button className="ghost-button" onClick={onNavigateBack}>返回</button>
         <button className="ghost-button" onClick={() => void onLogout()}>退出登录</button>
       </div>
-      <section className="card">
+      <section className="card panel-card">
         <span className="hero-kicker">Travel Rhythm Portrait · @{account.username}</span>
         <h1>旅行节奏画像</h1>
         <p>纯统计学拼出的旅行风格指纹：你偏好的月份、交通、主题与陪伴多样性。</p>
@@ -76,11 +76,11 @@ export default function RhythmPortraitPage({ account, onLogout, onNavigateBack }
         </div>
       </section>
 
-      {loading ? <section className="card"><p>加载中…</p></section> : null}
-      {error ? <section className="card"><p>{error}</p></section> : null}
+      {loading ? <section className="card panel-card"><p>加载中…</p></section> : null}
+      {error ? <section className="card panel-card"><p>{error}</p></section> : null}
 
       {portrait && !portrait.available ? (
-        <section className="card">
+        <section className="card panel-card">
           <h3>样本不足</h3>
           <p>当前窗口仅 {portrait.windowYearCount} 年的旅行数据，至少需 2 年的历史样本才能拟合稳定的指纹。</p>
         </section>
@@ -88,7 +88,7 @@ export default function RhythmPortraitPage({ account, onLogout, onNavigateBack }
 
       {portrait?.available ? (
         <>
-          <section className="card">
+          <section className="card panel-card">
             <h3>窗口 {portrait.windowYears}</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
               <div className="panel-card" style={{ padding: 12 }}>
@@ -110,7 +110,7 @@ export default function RhythmPortraitPage({ account, onLogout, onNavigateBack }
             </div>
           </section>
 
-          <section className="card">
+          <section className="card panel-card">
             <h3>偏好月份</h3>
             <ul>
               {portrait.topMonths.map((month) => (
@@ -127,7 +127,7 @@ export default function RhythmPortraitPage({ account, onLogout, onNavigateBack }
             </ul>
           </section>
 
-          <section className="card">
+          <section className="card panel-card">
             <h3>主题混合</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
               {([
@@ -145,7 +145,7 @@ export default function RhythmPortraitPage({ account, onLogout, onNavigateBack }
             </div>
           </section>
 
-          <section className="card">
+          <section className="card panel-card">
             <h3>画像总结</h3>
             <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{portrait.summaryMarkdown}</pre>
             {portrait.generatedAt ? (
