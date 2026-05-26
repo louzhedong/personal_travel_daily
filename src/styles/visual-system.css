@@ -82,10 +82,12 @@
 }
 
 /* 旅行杂志默认窄页框：G1-G5 等新内容页面使用 --page-frame（1180px），
- * 与既有内容页保持视觉一致，避免 1320px wide-frame 在中等视口下的贴边感。
+ * 与既有内容页保持视觉一致。横向 padding 使用更大的 clamp 区间，
+ * 保证常规视口（~1024px）下卡片左右有足够留白，避免贴边。
  * Travel-magazine default narrow page frame: G1-G5 and other regular content
- * pages use --page-frame (1180px) to align with existing pages and avoid the
- * edge-touching feel of the 1320px wide frame at mid-range viewports.
+ * pages use --page-frame (1180px) to align with existing pages. The horizontal
+ * padding uses a wider clamp range so that cards keep visible breathing room
+ * at typical viewports (~1024px) and never touch the edges.
  */
 .wishlist-mood-shell,
 .trip-reconciliation-shell,
@@ -96,7 +98,7 @@
   width: 100%;
   max-width: var(--page-frame);
   margin-inline: auto;
-  padding: 28px var(--page-gutter) 64px;
+  padding: 28px clamp(28px, 6vw, 80px) 64px;
   overflow: clip;
   display: grid;
   gap: var(--space-card-gap);
