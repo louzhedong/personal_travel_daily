@@ -74,7 +74,7 @@ export default function TripReconciliationPage({ account, tripId, onLogout, onNa
         <button className="ghost-button" onClick={onNavigateBack}>返回</button>
         <button className="ghost-button" onClick={() => void onLogout()}>退出登录</button>
       </div>
-      <section className="card">
+      <section className="card panel-card">
         <span className="hero-kicker">Trip Reconciliation Day · @{account.username}</span>
         <h1>{report?.tripName ?? '旅行对账日'}</h1>
         <p>结束一段旅程后，给规划与现实做一次温柔的对照。</p>
@@ -91,12 +91,12 @@ export default function TripReconciliationPage({ account, tripId, onLogout, onNa
         {report?.acknowledgedAt ? <small>已于 {new Date(report.acknowledgedAt).toLocaleString()} 查阅</small> : null}
       </section>
 
-      {loading ? <section className="card"><p>加载中…</p></section> : null}
-      {error ? <section className="card"><p>{error}</p></section> : null}
+      {loading ? <section className="card panel-card"><p>加载中…</p></section> : null}
+      {error ? <section className="card panel-card"><p>{error}</p></section> : null}
 
       {report ? (
         <>
-          <section className="card">
+          <section className="card panel-card">
             <h3>对照面板</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
               <div className="panel-card" style={{ padding: 12 }}>
@@ -123,7 +123,7 @@ export default function TripReconciliationPage({ account, tripId, onLogout, onNa
           </section>
 
           {report.unconvertedPlanningItems.length > 0 ? (
-            <section className="card">
+            <section className="card panel-card">
               <h3>未落地的规划项</h3>
               <ul>
                 {report.unconvertedPlanningItems.map((item) => (
@@ -136,7 +136,7 @@ export default function TripReconciliationPage({ account, tripId, onLogout, onNa
             </section>
           ) : null}
 
-          <section className="card">
+          <section className="card panel-card">
             <h3>对账总结</h3>
             <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{report.summaryMarkdown}</pre>
           </section>

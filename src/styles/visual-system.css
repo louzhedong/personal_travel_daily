@@ -70,7 +70,22 @@
 .assistant-shell,
 .guide-subscription-shell,
 .journey-shell,
-.live-trip-shell,
+.live-trip-shell {
+  width: 100%;
+  max-width: var(--page-frame-wide);
+  margin-inline: auto;
+  padding: 28px var(--page-gutter) 64px;
+  overflow: clip;
+  display: grid;
+  gap: var(--space-card-gap);
+  align-content: start;
+}
+
+/* 旅行杂志默认窄页框：G1-G5 等新内容页面使用 --page-frame（1180px），
+ * 与既有内容页保持视觉一致。
+ * Travel-magazine default narrow page frame: G1-G5 and other regular content
+ * pages use --page-frame (1180px) to align with existing pages.
+ */
 .wishlist-mood-shell,
 .trip-reconciliation-shell,
 .recall-shell,
@@ -78,7 +93,7 @@
 .contribution-drop-shell,
 .rhythm-portrait-shell {
   width: 100%;
-  max-width: var(--page-frame-wide);
+  max-width: var(--page-frame);
   margin-inline: auto;
   padding: 28px var(--page-gutter) 64px;
   overflow: clip;
