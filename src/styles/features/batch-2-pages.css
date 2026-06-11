@@ -1,0 +1,212 @@
+/*
+ * Batch-2 (G1-G5) 页面样式收口
+ * Batch-2 pages (G1 wishlist mood / G2 trip reconciliation / G3 recall /
+ * G4 contribution drop / G5 rhythm portrait) shared style tokens.
+ *
+ * 收口原则 / Principles:
+ * - 所有原本散落在页面里的 style={{ padding / gap / grid }} 全部下沉到此处。
+ * - 卡片内边距由 .panel-card 提供；本文件只补面板内的网格 / 行 / 占位组合。
+ * - All inline style props on Batch-2 pages are migrated here.
+ * - Card padding still comes from .panel-card; this file only provides
+ *   in-panel layout primitives (rows, grids, mini panels).
+ */
+
+.batch2-stack {
+  display: grid;
+  gap: var(--space-card-gap);
+}
+
+.batch2-stack-tight {
+  display: grid;
+  gap: 8px;
+}
+
+.batch2-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.batch2-row-spaced {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.batch2-row-end {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.batch2-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.batch2-grid-fluid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.batch2-grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.batch2-grid-five {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .batch2-grid-five {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---- Mini panels inside cards ---- */
+.batch2-mini-panel {
+  padding: 12px;
+}
+
+.batch2-mini-panel-tight {
+  padding: 10px;
+}
+
+.batch2-mini-panel-center {
+  padding: 12px;
+  text-align: center;
+}
+
+.batch2-token-reveal {
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.batch2-token-reveal p {
+  word-break: break-all;
+  margin: 4px 0 0;
+}
+
+/* ---- Mood card (G1) ---- */
+.batch2-mood-card {
+  padding: 16px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line-hair);
+  background: rgba(255, 253, 248, 0.78);
+}
+
+.batch2-mood-card-body {
+  margin-top: 8px;
+}
+
+.batch2-mood-card-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.batch2-mood-card-tags .ghost-button {
+  padding: 2px 10px;
+  min-height: 0;
+  line-height: 1.4;
+}
+
+.batch2-mood-image {
+  max-width: 100%;
+  border-radius: 8px;
+  display: block;
+}
+
+/* ---- Recall (G3) ---- */
+.batch2-recall-facets-wrap {
+  margin-top: 12px;
+}
+
+.batch2-recall-facets {
+  margin-bottom: 12px;
+}
+
+.batch2-recall-facet-label {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-soft, var(--ink));
+}
+
+.batch2-recall-facet-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.batch2-recall-facet-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-hair);
+  background: rgba(255, 253, 248, 0.6);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.batch2-recall-facet-chip[aria-pressed='true'],
+.batch2-recall-facet-chip.is-active {
+  background: var(--ink);
+  color: var(--surface-paper);
+  border-color: var(--ink);
+}
+
+.batch2-recall-month {
+  margin-top: 16px;
+}
+
+.batch2-recall-month-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---- Contribution drop (G4) ---- */
+.batch2-contrib-segmented {
+  display: flex;
+  gap: 8px;
+}
+
+.batch2-contrib-segmented-button[aria-pressed='true'],
+.batch2-contrib-segmented-button.is-active {
+  background: var(--accent-soft, #e9eef5);
+}
+
+.batch2-contrib-photo-preview {
+  max-width: 320px;
+  border-radius: 8px;
+  display: block;
+}
+
+/* ---- Markdown summary block (G2 / G5) ---- */
+.batch2-summary-pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  margin: 0;
+}
+
+.batch2-empty-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

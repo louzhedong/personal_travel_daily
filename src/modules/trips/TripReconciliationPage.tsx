@@ -78,7 +78,7 @@ export default function TripReconciliationPage({ account, tripId, onLogout, onNa
         <span className="hero-kicker">Trip Reconciliation Day · @{account.username}</span>
         <h1>{report?.tripName ?? '旅行对账日'}</h1>
         <p>结束一段旅程后，给规划与现实做一次温柔的对照。</p>
-        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <div className="batch2-row-spaced">
           <button className="primary-button" disabled={busy} onClick={() => void handleRefresh()}>
             {report ? '重新生成' : '生成报告'}
           </button>
@@ -98,23 +98,23 @@ export default function TripReconciliationPage({ account, tripId, onLogout, onNa
         <>
           <section className="card panel-card">
             <h3>对照面板</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-              <div className="panel-card" style={{ padding: 12 }}>
+            <div className="batch2-grid-fluid">
+              <div className="panel-card batch2-mini-panel">
                 <small>规划→标记 转化率</small>
                 <h2>{formatPercent(report.planVsMarkerCoverage)}</h2>
                 <small>{report.convertedPlanningCount} / {report.totalPlanningCount}</small>
               </div>
-              <div className="panel-card" style={{ padding: 12 }}>
+              <div className="panel-card batch2-mini-panel">
                 <small>清单完成度</small>
                 <h2>{formatPercent(report.checklistCompletionRate)}</h2>
                 <small>{report.completedChecklistCount} / {report.totalChecklistCount}</small>
               </div>
-              <div className="panel-card" style={{ padding: 12 }}>
+              <div className="panel-card batch2-mini-panel">
                 <small>预算偏差 ({report.baseCurrency})</small>
                 <h2>{formatYuan(report.budgetVarianceCents)}</h2>
                 <small>计划 {formatYuan(report.budgetPlannedCents)} / 实际 {formatYuan(report.budgetActualCents)}</small>
               </div>
-              <div className="panel-card" style={{ padding: 12 }}>
+              <div className="panel-card batch2-mini-panel">
                 <small>缺标题照片</small>
                 <h2>{report.missingCaptionPhotoCount}</h2>
                 <small>共 {report.totalPhotoCount} 张</small>
@@ -138,7 +138,7 @@ export default function TripReconciliationPage({ account, tripId, onLogout, onNa
 
           <section className="card panel-card">
             <h3>对账总结</h3>
-            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{report.summaryMarkdown}</pre>
+            <pre className="batch2-summary-pre">{report.summaryMarkdown}</pre>
           </section>
         </>
       ) : null}
